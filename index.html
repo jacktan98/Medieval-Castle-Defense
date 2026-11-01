@@ -2399,12 +2399,22 @@ const steelM = mat('#a3aab2'), soldierBandM = mat('#2d4f86'), ironM = mat('#5b60
   raiderHoodM = (() => { const m = mat('#3a2a26'); m.side = THREE.DoubleSide; return m; })();
 const captainShieldM = mat('#2a2b2e'), captainRimM = mat('#d9d6cc');
 const mailM = mat('#8d939a'), kiteM = mat('#3466b0');   // soldiers' mail; their blue shields and surcoat (plain: M.flag waves)
+// tier-2 defenders' gambeson: blue-grey padded cloth quilted in rows (canvas texture)
+function quiltMat(base, line) {
+  const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d');
+  x.fillStyle = base; x.fillRect(0, 0, 32, 32); x.fillStyle = line;
+  for (let y = 3; y < 32; y += 8) x.fillRect(0, y, 32, 2);
+  x.globalAlpha = .45; for (let k = 6; k < 32; k += 10) x.fillRect(k, 0, 1, 32);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2, 2); t.magFilter = THREE.NearestFilter;
+  return new THREE.MeshStandardMaterial({ map: t, roughness: .95, flatShading: true });
+}
+const gambesonM = quiltMat('#62789a', '#465a7a');
 function makeHelm(kind) {
   const h = new THREE.Group(), add = o => { o.castShadow = true; h.add(o); return o; };
-  if (kind === 'kettle') {                   // soldier: polished kettle hat, a dome with a wide flat brim
-    const d = add(new THREE.Mesh(new THREE.SphereGeometry(.152, 14, 7, 0, Math.PI * 2, 0, Math.PI * .5), steelM)); d.position.y = 1.07; d.scale.y = 1.05;
-    add(cyl(.25, .25, .022, 16, steelM, 0, 1.075, 0));
-    add(cyl(.155, .155, .03, 14, bandM, 0, 1.095, 0));
+  if (kind === 'skullcap') {                 // tier 2 soldier: a plain steel skullcap riveted to a leather rim, ear flaps of the padded coif
+    const d = add(new THREE.Mesh(new THREE.SphereGeometry(.15, 14, 7, 0, Math.PI * 2, 0, Math.PI * .42), steelM)); d.position.y = 1.075; d.scale.y = .95;
+    add(cyl(.152, .152, .035, 14, leatherM, 0, 1.08, 0));
+    for (const sx of [-1, 1]) add(box(.03, .1, .09, gambesonM, sx * .135, 1.0, -.01));
   } else if (kind === 'soldier') {          // town archer: bright steel round helm, blue band, nose guard
     const d = add(new THREE.Mesh(new THREE.SphereGeometry(.153, 14, 7, 0, Math.PI * 2, 0, Math.PI * .55), steelM)); d.position.y = 1.045; d.scale.y = 1.12;
     add(cyl(.156, .156, .032, 14, soldierBandM, 0, 1.06, 0));
@@ -2461,13 +2471,16 @@ const OUTFIT = {
 };
 const strawM = mat('#d2b56a'), leatherM = mat('#5a4630'), featherM = mat('#b8452c');
 const apronM = (() => { const m = mat('#b9ae96'); m.side = THREE.DoubleSide; return m; })(), apronHemM = (() => { const m = mat('#ddd5c2'); m.side = THREE.DoubleSide; return m; })();
+// workers dress by their workplace's tier: 1 their own clothes (the tool says the job), 2 the work tunic and a cloth cap,
+// 3 the full outfit (hat, apron or belt); builders always wear theirs (v.outfitTier overrides, for the gallery)
 function dress(v, kind) {
-  const O = OUTFIT[kind], tun = O ? O.tunic : v.baseTunic;
+  const tier = v.outfitTier || (kind === 'hammer' || !v.job ? 3 : v.job.tier); v.dressT = tier;
+  const O0 = OUTFIT[kind], O = O0 && tier === 3 ? O0 : null, tun = O0 && tier >= 2 ? O0.tunic : v.baseTunic;
   v.torso.material = tun; v.arms.forEach(a => a.userData.sleeve.material = tun);
   if (v.hatG) v.body.remove(v.hatG); v.hatG = null;
   if (v.apron) { v.body.remove(v.apron); v.apron = null; }
   const h = new THREE.Group();
-  if (!O) { if (v.plainHat) { const c = new THREE.Mesh(new THREE.SphereGeometry(.15, 12, 5, 0, Math.PI * 2, 0, Math.PI * .5), hatM); c.scale.y = .72; c.position.y = 1.07; c.castShadow = true; h.add(c); } }
+  if (!O) { if (v.plainHat || (O0 && tier === 2)) { const c = new THREE.Mesh(new THREE.SphereGeometry(.15, 12, 5, 0, Math.PI * 2, 0, Math.PI * .5), hatM); c.scale.y = .72; c.position.y = 1.07; c.castShadow = true; h.add(c); } }
   else if (O.hat === 'straw') { h.add(cyl(.28, .28, .025, 12, strawM, 0, 1.13, 0)); h.add(cyl(.12, .14, .13, 10, strawM, 0, 1.2, 0)); }
   else if (O.hat === 'woolcap') {          // woodsman: round green wool cap, thick rolled brim, a feather tucked in the side
     const cr = new THREE.Mesh(new THREE.SphereGeometry(.15, 12, 6, 0, Math.PI * 2, 0, Math.PI * .5), O.hatM); cr.position.y = 1.07; cr.scale.y = 1.1; cr.castShadow = true; h.add(cr);
@@ -3072,7 +3085,7 @@ function updateVillagers(dt, now) {
       if (v.hungry) { updateHungry(v, dt); if (v.sleeping) continue; }
       else {
         const want = toolFor(v) || null;
-        if ((v.toolKind || null) !== want || v.changeT > 0) updateChange(v, dt, want);     // wrong clothes for the next task: change first
+        if ((v.toolKind || null) !== want || v.changeT > 0 || (want && want !== 'hammer' && v.job && v.dressT !== v.job.tier)) updateChange(v, dt, want);   // new tool, or the workplace's new tier     // wrong clothes for the next task: change first
         else {
           if (!(v.hideT > 0) && !canStand(v.x, v.z, 1)) exitDoor(v);
           if (v.build) updateBuilder(v, dt); else if (v.job) updateWorker(v, dt, now); else updateWander(v, dt);
@@ -3422,7 +3435,6 @@ function updateEnemies(dt) {
   }
 }
 // ---------- night watch: villagers walk to the castle and towers and shoot from the top ----------
-const guardTunic = mat('#3a62a0');
 const POSTS = {
   tower: [[.38, 3.19], [.31, 3.43], [.38, 4.7]].map(([x, y], i) => [[x, y * TOWER_K[i], 0], [-x, y * TOWER_K[i], 0]]),
   castle: [
@@ -3434,7 +3446,7 @@ const POSTS = {
 function postOffset(B, a) { const L = POSTS[B.type][B.tier - 1], [x, y, z] = L[a % L.length], [rx, rz] = faceRot(B.face || 0, x, z); return [rx, y, rz]; }
 function showDefender(B, a) {
   B.figs = B.figs || [];
-  if (!B.figs[a]) B.figs[a] = makePerson({ tunic: guardTunic, helm: 'soldier', tool: 'bow' });
+  if (!B.figs[a]) { B.figs[a] = makePerson({ tool: 'bow' }); armour(B.figs[a], B.tier); }
   const f = B.figs[a], o = postOffset(B, a), c = center(B);
   f.g.position.set(c.x + o[0], B.group.position.y + o[1], c.z + o[2]); f.g.rotation.y = Math.atan2(o[0] || .01, o[2] || .01); f.g.visible = true;
 }
@@ -3468,24 +3480,34 @@ function killVillager(v) {
   if (castleB()) respawns.push({ home: v.home, t: 60, homeless: !!v.homeless });
 }
 
+// ---------- the town's defenders: one look per tier for every defender (archers, barracks soldiers and the rest); only the weapon differs ----------
+// tier 1: the villager's own clothes and a blue belt; tier 2: a quilted blue-grey gambeson, a skullcap; tier 3: mail under the blue
+// surcoat, a steel helm, shoulder plates
+function armour(p, tier) {
+  if (p.armour) p.armour.forEach(o => o.parent && o.parent.remove(o));
+  p.armour = []; const put = o => { o.castShadow = true; p.body.add(o); p.armour.push(o); return o; };
+  const tun = tier === 3 ? mailM : tier === 2 ? gambesonM : p.baseTunic;
+  p.torso.material = tun; p.arms.forEach(a => a.userData.sleeve.material = tun);
+  if (p.hatG) p.hatG.visible = false; if (p.apron) p.apron.visible = false;
+  if (tier === 1) put(cyl(.197, .197, .05, 10, kiteM, 0, .47, 0));
+  if (tier === 2) { put(cyl(.205, .228, .13, 10, gambesonM, 0, .37, 0)); put(cyl(.197, .197, .045, 10, leatherM, 0, .5, 0)); put(makeHelm('skullcap')); }
+  if (tier === 3) {
+    put(cyl(.15, .214, .42, 8, kiteM, 0, .62, 0)); put(cyl(.17, .17, .05, 8, leatherM, 0, .55, 0)); put(makeHelm('soldier'));
+    for (const sx of [-1, 1]) { const pl = put(new THREE.Mesh(new THREE.SphereGeometry(.085, 8, 5, 0, Math.PI * 2, 0, Math.PI * .5), steelM)); pl.position.set(sx * .19, .86, 0); pl.scale.set(1, .75, 1.1); }
+  }
+  return p.armour;
+}
 // ---------- barracks soldiers: villagers who muster at a barracks at night, gear up by its tier and fight raiders hand to hand ----------
 const SOLDIER = { hp: [70, 100, 140], dmg: [7, 10, 14], rate: .9, names: ['Militia', 'Guard', 'Man-at-arms'] };
 const SQUAD = [[0, 0], [-.8, -.5], [.8, -.5]];      // where the three stand round their spot
 var respawns = [], fallen = [];                     // fallen soldiers come back as villagers after 60 s of daylight
-// tier 1 militia: blue tunic, padded cap, spear; tier 2 guard: leather jerkin, kettle hat, spear, round wooden shield;
-// tier 3 man-at-arms: mail under a blue surcoat, steel helm, sword, blue kite shield
+// the tier's armour (armour()); tier 1 militia: spear; tier 2 guard: spear and a round wooden shield; tier 3 man-at-arms: sword and a blue kite shield
 function soldierKit(v, tier) {
   if (v.kit) v.kit.forEach(o => o.parent && o.parent.remove(o));
   v.kit = []; v.kitTier = tier;
   const put = o => { o.castShadow = true; v.body.add(o); v.kit.push(o); return o; };
-  const tunic = tier === 3 ? mailM : guardTunic;
-  v.torso.material = tunic; v.arms.forEach(a => a.userData.sleeve.material = tunic);
-  if (v.hatG) v.hatG.visible = false; if (v.apron) v.apron.visible = false;
   if (v.carryLog) v.carryLog.visible = v.carryStone.visible = false;    // nobody marches out with a log
-  if (tier === 1) { const c = put(new THREE.Mesh(new THREE.SphereGeometry(.15, 12, 5, 0, Math.PI * 2, 0, Math.PI * .5), leatherM)); c.scale.y = .8; c.position.y = 1.06; }
-  else put(makeHelm(tier === 2 ? 'kettle' : 'soldier'));
-  if (tier === 2) put(cyl(.152, .212, .34, 8, leatherM, 0, .66, 0));
-  if (tier === 3) { put(cyl(.15, .214, .42, 8, kiteM, 0, .62, 0)); put(cyl(.17, .17, .05, 8, leatherM, 0, .55, 0)); }
+  v.kit.push(...armour(v, tier)); v.armour = null;
   if (tier > 1) { const sh = armShield(v, tier === 2 ? roundShield(.19, M.wood) : heaterShield(.3, .44, kiteM, steelM)); sh.castShadow = true; v.kit.push(sh); }
   if (v.pivot) v.pivot.parent.remove(v.pivot);
   v.toolKind = tier === 3 ? 'sword' : 'spear'; v.pivot = makeTool(v.toolKind); v.arms[1].add(v.pivot);
@@ -4171,15 +4193,18 @@ function buildGallery() {
   }));
   row('Decor', 2, zc => ['well', 'torch', 'flowers', 'statue'].forEach((t, i) => { add(makeModel(t, 1, true, 0, 0), 8 + i * 9, zc, true); galLabel(DEF[t].name, '#fff', 8 + i * 9, zc + 2.1); }));
   const people = (title, list) => (row(title, 1.2, zc => list.forEach((P, i) => {
-    const x = 6 + i * 3.3, p = P.raider ? makeRaider(P.raider) : P.guard ? makePerson({ tunic: guardTunic, helm: 'soldier', tool: 'bow' }) : makePerson({});
+    const x = 6 + i * 3.3, p = P.raider ? makeRaider(P.raider) : P.guard ? makePerson({ tool: 'bow' }) : makePerson({});
     if (P.kit) soldierKit(p, P.kit);
-    else if (!P.raider && !P.guard) { p.plainHat = !P.tool; addLoads(p); giveTool(p, P.tool || null); dress(p, P.tool || null); if (P.carry === 'log') p.carryLog.visible = true; if (P.carry === 'stone') p.carryStone.visible = true; }
+    else if (P.guard) armour(p, P.guard);
+    else if (!P.raider) { p.plainHat = !P.tool; p.outfitTier = P.tier || 3; addLoads(p); giveTool(p, P.tool || null); dress(p, P.tool || null); if (P.carry === 'log') p.carryLog.visible = true; if (P.carry === 'stone') p.carryStone.visible = true; }
     p.g.position.set(x, 0, zc); p.g.rotation.y = .5; gScene.add(p.g); Object.assign(p, P, { seed: i * .7 }); gPeople.push(p);
     galLabel(P.name, P.raider ? '#ff9a8a' : '#fff', x, zc + 1.2, false, .75);
   })), gRows[gRows.length - 1].n = list.length);     // how many people: tools/render takes two shots of a long row
-  people('Villagers', [{ name: 'Villager' }, { name: 'Farmer', tool: 'hoe', work: 1 }, { name: 'Lumberjack', tool: 'axe', work: 1 }, { name: 'Log carrier', tool: 'axe', carry: 'log' },
-    { name: 'Mason', tool: 'pick', work: 1 }, { name: 'Stone carrier', tool: 'pick', carry: 'stone' }, { name: 'Builder', tool: 'hammer', work: 1 }, { name: 'Archer', guard: 1 }]);
-  people('Soldiers', [{ name: 'Militia', kit: 1 }, { name: 'Guard', kit: 2 }, { name: 'Man-at-arms', kit: 3 }]);
+  people('Villagers', [{ name: 'Villager' }, { name: 'Log carrier', tool: 'axe', carry: 'log' }, { name: 'Stone carrier', tool: 'pick', carry: 'stone' }, { name: 'Builder', tool: 'hammer', work: 1 }]);
+  // workers by their workplace's tier: own clothes and the tool, the work tunic and a cap, the full outfit
+  people('Workers', [['Farmer', 'hoe'], ['Lumberjack', 'axe'], ['Mason', 'pick']].flatMap(([n, t]) => [1, 2, 3].map(k => ({ name: `${n} ${k}`, tool: t, work: 1, tier: k }))));
+  // defenders by tier: the same armour for every kind, only the weapon differs
+  people('Soldiers', [{ name: 'Archer 1', guard: 1 }, { name: 'Archer 2', guard: 2 }, { name: 'Archer 3', guard: 3 }, { name: 'Militia', kit: 1 }, { name: 'Guard', kit: 2 }, { name: 'Man-at-arms', kit: 3 }]);
   people('Raiders', [{ name: 'Spearman', raider: 'spear' }, { name: 'Swordsman', raider: 'sword' }, { name: 'Archer', raider: 'archer' }, { name: 'Captain', raider: 'captain' }]);
 }
 function openGallery() {
