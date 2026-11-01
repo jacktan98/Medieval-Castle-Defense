@@ -104,6 +104,9 @@ The whole game is currently one self-contained file: `index.html` (~165 KB, thre
 | torch | ⅓ tile | wood 2 | — | charm 0.1, walkable, night light | — |
 | flowers | 1×1 | gold 3 | — | charm 0.15, walkable | — |
 | statue | 1×1 | stone 12 gold 10 | — | charm 0.35 | — |
+| banner | 1×1 | wood 4 gold 8 | — | charm 0.2; Garrison banner: the town's blue banner (`M.drape`) from a crossbar on a tall pole, stepped stone base | — |
+| campfire | 1×1 | wood 4 | — | charm 0.15; stone ring, crossed logs, a low flickering fire (`flameShader`), embers and a night light (`lampSpots`), logs to sit on | — |
+| rack | 1×1 | wood 6 gold 4 | — | charm 0.12; Weapon rack: timber A-frame of spears, a round shield and a sword | — |
 | path | ⅓-tile strip | gold 1 | — | player-built only, auto-connects, speed ×1.6 | — |
 
 Build times (`BUILD_T`, builder-seconds): market 12, house 10, farm 10, lodge 12, quarry 14, tower 14, barracks 14, wall 3, gate 8, castle 24, well 5, torch 3, flowers 3, statue 8. Upgrades ×1.3.
