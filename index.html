@@ -384,10 +384,10 @@ const cellAt = (x, z) => clamp(Math.floor(z / CELL), 0, N - 1) * N + clamp(Math.
 const ICON = {
   gold: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#e3b341" stroke="#8a6416" stroke-width="1.2"/><circle cx="8" cy="8" r="3.4" fill="none" stroke="#8a6416" stroke-width="1"/></svg>',
   wood: '<svg viewBox="0 0 16 16"><path d="M3.6 5 H12.5 V11 H3.6 A2 3 0 0 1 3.6 5 Z" fill="#8b5a2b" stroke="#4e3015"/><path d="M4.5 7 H9.5 M5.5 9.2 H10.5" stroke="#6b4423" stroke-width=".7" stroke-linecap="round"/><ellipse cx="12.5" cy="8" rx="2" ry="3" fill="#d9a86b" stroke="#4e3015"/><ellipse cx="12.5" cy="8" rx="1" ry="1.6" fill="none" stroke="#a87a45" stroke-width=".6"/><circle cx="12.5" cy="8" r=".45" fill="#8b5a2b"/></svg>',
-  stone: '<svg viewBox="0 0 16 16"><path d="M1.6 9.4 L2.6 6.3 L5.2 4.4 L8.6 3.9 L11.8 4.6 L14 6.6 L14.5 9.6 L12.8 12.2 L9.4 13.4 L5.6 13.2 L2.7 11.7 Z" fill="#a19c92" stroke="#55524b" stroke-width="1" stroke-linejoin="round"/><path d="M2.6 6.3 L6.4 7.4 L8.6 3.9 M6.4 7.4 L10.4 8.2 L14 6.6 M10.4 8.2 L12.8 12.2 M6.4 7.4 L5.6 13.2" fill="none" stroke="#6d6960" stroke-width=".7" stroke-linejoin="round"/><path d="M3.3 6.6 L6.2 7.4 L8.2 4.5 L5.4 4.9 Z" fill="#c4bfb5"/></svg>',
+  stone: '<svg viewBox="0 0 16 16"><path d="M1.8 13.4 L3.2 7.4 L6.4 3.4 L10.8 3 L14.2 7.6 L14.6 13.4 Z" fill="#8e897f" stroke="#4d4a44" stroke-width="1" stroke-linejoin="round"/><path d="M3.2 7.4 L6.4 3.4 L10.8 3 L9.2 7.2 Z" fill="#bdb8ad"/><path d="M9.2 7.2 L10.8 3 L14.2 7.6 L14.6 13.4 L9.8 13.4 Z" fill="#6c6861"/><path d="M3.2 7.4 L9.2 7.2 L9.8 13.4 M9.2 7.2 L10.8 3" fill="none" stroke="#4d4a44" stroke-width=".7" stroke-linejoin="round"/></svg>',
   pop: '<svg viewBox="0 0 16 16"><circle cx="8" cy="4.6" r="2.6" fill="#e2cfa8" stroke="#6b5a3e"/><path d="M3 14.5 C3.4 9.6 5.5 8 8 8 C10.5 8 12.6 9.6 13 14.5 Z" fill="#8a6a44" stroke="#4a3622"/></svg>',
   guard: '<svg viewBox="0 0 16 16"><circle cx="8" cy="4.6" r="2.6" fill="#e2cfa8" stroke="#6b5a3e"/><path d="M3 14.5 C3.4 9.6 5.5 8 8 8 C10.5 8 12.6 9.6 13 14.5 Z" fill="#3f63b8" stroke="#1f3570"/></svg>',
-  food: '<svg viewBox="0 0 16 16"><path d="M8 15 V4" stroke="#a07a2a" stroke-width="1.2"/><g fill="#e2c15a" stroke="#a07a2a" stroke-width=".6"><ellipse cx="6.3" cy="5.2" rx="1.3" ry="2.2" transform="rotate(-25 6.3 5.2)"/><ellipse cx="9.7" cy="5.2" rx="1.3" ry="2.2" transform="rotate(25 9.7 5.2)"/><ellipse cx="6.3" cy="8.7" rx="1.3" ry="2.2" transform="rotate(-25 6.3 8.7)"/><ellipse cx="9.7" cy="8.7" rx="1.3" ry="2.2" transform="rotate(25 9.7 8.7)"/><ellipse cx="8" cy="2.6" rx="1.1" ry="1.9"/></g></svg>',
+  food: '<svg viewBox="0 0 16 16"><path d="M9.4 9.8 L12.6 13" stroke="#efe4cc" stroke-width="2.1" stroke-linecap="round"/><circle cx="13.7" cy="12.4" r="1.25" fill="#efe4cc" stroke="#9c8c6c" stroke-width=".6"/><circle cx="12.3" cy="13.8" r="1.25" fill="#efe4cc" stroke="#9c8c6c" stroke-width=".6"/><path d="M2.6 3.4 C5.4 .9 10.4 2 10.9 6 C11.3 9.2 8.6 11.4 5.6 10.6 C2.7 9.8 .9 5.6 2.6 3.4 Z" fill="#c2702a" stroke="#7a4214" stroke-width="1"/><path d="M4 4.2 C5.3 3.1 7.3 3.2 8.2 4.3" stroke="#eaa868" stroke-width="1.1" fill="none" stroke-linecap="round"/></svg>',
   hp: '<svg viewBox="0 0 16 16"><path d="M8 14 C3 10.5 1.5 8.3 1.5 5.8 C1.5 3.7 3.1 2.3 4.9 2.3 C6.3 2.3 7.4 3.1 8 4.3 C8.6 3.1 9.7 2.3 11.1 2.3 C12.9 2.3 14.5 3.7 14.5 5.8 C14.5 8.3 13 10.5 8 14 Z" fill="#d9503f" stroke="#7a2418" stroke-width="1"/><path d="M4.3 5 C4.6 4.2 5.2 3.9 5.8 3.9" fill="none" stroke="#f3a493" stroke-width="1" stroke-linecap="round"/></svg>',
   sword: '<svg viewBox="0 0 16 16"><path d="M13.8 2.2 L12.9 4.9 L6.4 11.4 L4.6 9.6 L11.1 3.1 Z" fill="#cfd4da" stroke="#5d646c" stroke-width=".9" stroke-linejoin="round"/><path d="M3.3 8.3 L7.7 12.7" stroke="#c9a03e" stroke-width="1.8" stroke-linecap="round"/><path d="M5.5 10.5 L2.6 13.4" stroke="#6b4423" stroke-width="1.7" stroke-linecap="round"/><circle cx="2.2" cy="13.8" r="1" fill="#c9a03e"/></svg>',
   home: '<svg viewBox="0 0 16 16"><path d="M3.2 7.5 V14 H12.8 V7.5" fill="#e2cfa8" stroke="#6b5a3e" stroke-width="1"/><path d="M1.5 8 L8 2.3 L14.5 8 Z" fill="#b5532f" stroke="#6b2d18" stroke-width="1" stroke-linejoin="round"/><path d="M6.6 14 V10.4 H9.4 V14" fill="#6b4423" stroke="#4a2e16" stroke-width=".8"/></svg>',
@@ -410,7 +410,7 @@ const DEF = {
   house:  { size: 1, name: 'House', maxdh: 1.4, hp: [100, 150, 220], cost: { wood: 15 },
             up: [{ wood: 25, gold: 20 }, { wood: 30, stone: 20, gold: 40 }], gold: [2, 4, 6], residents: [2, 3, 4],
             tiers: ['Hovel', 'Cottage', 'Townhouse'], key: '1' },
-  farm:   { size: 2, name: 'Farm', maxdh: 1.6, hp: [90, 130, 180], cost: { wood: 15 },
+  farm:   { size: 2, name: 'Fields', maxdh: 1.6, plot: true, field: true, hp: [90, 130, 180], cost: { wood: 15 },
             up: [{ wood: 20, gold: 20 }, { wood: 30, stone: 15, gold: 35 }], food: [3, 5, 8], workers: [1, 1, 2],
             tiers: ['Plot', 'Croft', 'Manor farm'], key: '2' },
   lodge:  { size: 2, name: 'Lumber', maxdh: 1.8, hp: [120, 170, 240], cost: { gold: 20 },
@@ -434,6 +434,17 @@ const DEF = {
             archers: [4, 4, 5], shootY: [3.2, 4.6, 5.2], residents: [3, 3, 3], tiers: ['Palisade fort', 'Stone keep', 'Castle'] },
   market: { size: 2, name: 'Market', maxdh: 1.6, hp: [110, 160, 230], cost: { wood: 20, gold: 15 },
             up: [{ wood: 25, gold: 30 }, { stone: 25, gold: 50 }], tiers: ['Market stall', 'Market', 'Market hall'], key: '9' },
+  // the other economy picks (one of each pair before a game): a grove grown on its own plot, a mine dug down into its own ground,
+  // a yard of animals; none of them needs forest or rock nearby
+  forester: { size: 2, name: 'Forester', maxdh: 1.6, plot: true, hp: [100, 140, 200], cost: { gold: 30, wood: 5 },
+            up: [{ gold: 55, stone: 10 }, { gold: 85, stone: 25 }], workers: [2, 3, 4], grove: [5, 7, 8], grow: [40, 34, 28],
+            tiers: ["Forester's hut", 'Coppice', 'Tree farm'] },
+  mine:   { size: 2, name: 'Mine', maxdh: 2.6, hp: [160, 230, 320], cost: { gold: 30, wood: 20 },
+            up: [{ gold: 55, wood: 25 }, { gold: 85, wood: 35, stone: 10 }], workers: [2, 3, 4], dig: [9, 8, 7],
+            tiers: ['Pit shaft', 'Mine', 'Deep mine'] },
+  farmhouse: { size: 2, name: 'Farmhouse', maxdh: 1.6, plot: true, field: true, hp: [100, 150, 210], cost: { wood: 25, gold: 10 },
+            up: [{ wood: 30, gold: 25 }, { wood: 35, stone: 15, gold: 40 }], food: [4, 7, 11], workers: [1, 2, 2],
+            tiers: ['Hen yard', 'Smallholding', 'Farmstead'] },
   well:    { size: 1, name: 'Well', decor: true, maxdh: 1.3, falloff: 1.2, hp: [80], cost: { stone: 5 }, tiers: ['Well'], noRoad: true },
   torch:   { size: 1, name: 'Torch', decor: true, maxdh: 1.6, falloff: 1, hp: [40], cost: { wood: 2 }, tiers: ['Torch post'], noRoad: true },
   flowers: { size: 1, name: 'Flowers', decor: true, maxdh: 1.2, falloff: 1, hp: [40], cost: { gold: 3 }, tiers: ['Flowers'], noRoad: true },
@@ -445,11 +456,11 @@ const TRADES = [['wood', 4, 4], ['stone', 2, 6], ['food', 6, 2]].flatMap(([r, bu
   { give: 'gold', get: r, n: [buy, buy + 2, buy + 4] }, { give: r, get: 'gold', n: [sell, sell + 2, sell + 4] }]);
 DEF.castle.food = [3, 4, 5];
 DEF.tower.shootY = DEF.tower.shootY.map((y, i) => y * TOWER_K[i]);
-const BUILD_T = { market: 12, house: 10, farm: 10, lodge: 12, quarry: 14, tower: 14, barracks: 14, wall: 3, gate: 8, castle: 24, well: 5, torch: 3, flowers: 3, statue: 8 };
+const BUILD_T = { forester: 12, mine: 16, farmhouse: 12, market: 12, house: 10, farm: 10, lodge: 12, quarry: 14, tower: 14, barracks: 14, wall: 3, gate: 8, castle: 24, well: 5, torch: 3, flowers: 3, statue: 8 };
 for (const t in BUILD_T) DEF[t].build = BUILD_T[t];
 DEF.well.charm = .25; DEF.torch.charm = .1; DEF.flowers.charm = .15; DEF.statue.charm = .35;
-const PATH_COST = { gold: 1 }, PATH_SPEED = 1.6, PATH_CHARM = .02, CHARM_R = 8, WALK = { farm: 1, torch: 1, flowers: 1 };
-const CATS = { eco: ['house', 'farm', 'lodge', 'quarry', 'market'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'well', 'torch', 'flowers', 'statue'] };
+const PATH_COST = { gold: 1 }, PATH_SPEED = 1.6, PATH_CHARM = .02, CHARM_R = 8, WALK = { farm: 1, forester: 1, farmhouse: 1, torch: 1, flowers: 1 };
+const CATS = { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'well', 'torch', 'flowers', 'statue'] };
 const WALLY = { wall: 1, gate: 1 };   // walls join only walls and gates
 // spearmen are the basic raider and come first; swordsmen join from wave 2, captains from wave 3
 const WAVES_STD = [
@@ -1252,6 +1263,8 @@ const DOOR = {
   quarry: [[-1, -.22], [-1, .03], [-1, .03]],
   castle: [[0, .5], [0, 2.75], [0, 2.51]],      // T1 the hall door; T2/T3 the gatehouse
   barracks: [[-1, .42], [-1, .42], [-1, .42]],
+  mine: [[-.55, .55], [-.55, .55], [-.55, .55]],
+  forester: [[-1.05, -.62], [-1.05, -.62], [-1.05, -.62]],   // the hut at the back of the plot: log carriers cross the plot to it     // the adit: in through the timber (stone) portal in the face of the mound
 };
 // buildings the player can turn (walls and gates have their own E–W / N–S rotation); face 0 = +z, 1 = +x, 2 = -z, 3 = -x
 const FACING = { market: 1, house: 1, lodge: 1, quarry: 1, barracks: 1, farm: 1, tower: 1, castle: 1, well: 1, torch: 1, flowers: 1, statue: 1 };
@@ -1814,14 +1827,155 @@ function makeBridge(b) {
   return g;
 }
 function buildBridges() { for (const b of bridges) { b.g = makeBridge(b); scene.add(b.g); } }
-const MODELS = { market: makeMarket, barracks: makeBarracks, house: makeHouse, tower: makeTower, castle: makeCastle, lodge: makeLodge, quarry: makeQuarry, farm: makeFarm,
+
+// ---------- the other economy picks: forester, mine, farmhouse ----------
+const mineRockM = mat('#79746b'), penM = mat('#7c6b4a'), henM = mat('#efe8da'), combM = mat('#c23a2a'), beakM = mat('#e2a43a'),
+  pigM = mat('#e2a596'), snoutM = mat('#c98274'), cowM = mat('#ebe5d8'), patchM = mat('#2b2622'), hornM = mat('#d9cfb8'),
+  groveTrunkM = mat('#5a3e26'), groveLeafM = mat('#3f6a2c'), groveLeaf2M = mat('#4f7d34');
+addGrit(mineRockM, 'rock');
+// a fence round a 2x2 plot (open at the front left, where the plot's door tile is); rough leaning stakes at tier 1, posts and rails after
+function plotFence(g, tier) {
+  const gap = (x, z) => z > 1.7 && x > -1.5 && x < -.5;
+  for (let s = -1.75; s <= 1.76; s += .5) for (const [x, z] of [[s, -1.75], [s, 1.75], [-1.75, s], [1.75, s]]) {
+    if (gap(x, z) || (tier === 1 && hash(x * 3, z * 5) < .3)) continue;
+    const p = box(.07, .55, .07, tier === 1 ? M.rough : M.timber, x, .27, z); if (tier === 1) p.rotation.z = (hash(x, z) - .5) * .35; g.add(p);
+  }
+  if (tier > 1) for (const [x, z, w, d] of [[0, -1.75, 3.5, .05], [-1.75, 0, .05, 3.5], [1.75, 0, .05, 3.5], [.6, 1.75, 2.3, .05], [-1.6, 1.75, .3, .05]])
+    for (const y of [.25, .45]) g.add(box(w, .05, d, M.timber, x, y, z));
+}
+// a small hut at the plot's back left with its door to the front (the door everyone uses): tier 1 daub or logs under old thatch,
+// tier 2 a log roof, tier 3 plastered with the blue roof
+function plotHut(g, tier, wallM, w = 1.2, d = .9) {
+  const x = -1.05, z = -1.15, h = 1.28;
+  g.add(box(w, h, d, tier === 3 ? M.plaster : wallM, x, h / 2 + .06, z));
+  if (tier === 3) for (const sx of [-1, 1]) g.add(box(.08, h, .08, M.timber, x + sx * (w / 2 - .02), h / 2 + .06, z + d / 2 - .02));
+  g.add(pyramid(w * .78, .8, d / w * 1.05, tier === 1 ? M.thatchOld : tier === 2 ? M.thatch : M.roofBlue, h + .06 + .4, x, z));
+  g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[tier], x, .08 + DOOR_H / 2, z + d / 2 + .02));
+  g.add(box(.2, .18, .04, M.glow, x + .38, .85, z + d / 2 + .02));
+}
+// forester: a fenced plot of young trees planted in rows (the trees are drawn by updateEco so they grow and get felled), the
+// forester's hut at the back left; tier 1 a sapling bundle and a chopping block, tier 2 a stack of cut poles, tier 3 a log pile
+// and a sawhorse on the far side
+const GROVE_AT = [[.3, -1.2], [1.25, -1.2], [-1.2, .05], [.05, .05], [1.25, .05], [-.6, 1.25], [.55, 1.25], [-.1, -.55]];
+function makeGroveTree() {
+  const t = new THREE.Group();
+  t.add(cyl(.035, .06, .6, 5, groveTrunkM, 0, .3, 0));
+  t.add(cone(.3, .7, 6, groveLeafM, 0, .82, 0)); t.add(cone(.22, .5, 6, groveLeaf2M, 0, 1.12, 0));
+  return t;
+}
+function makeForester(tier) {
+  const g = new THREE.Group();
+  g.add(box(3.5, .07, 3.5, M.soil, 0, .045, 0));
+  GROVE_AT.forEach(([x, z]) => g.add(cyl(.24, .27, .03, 8, M.court, x, .09, z)));   // hoed rings where the trees stand
+  plotFence(g, tier); plotHut(g, tier, M.log, 1.15, .85);
+  if (tier === 1) {
+    g.add(cyl(.2, .22, .3, 8, M.log, -.2, .2, -1.45)); g.add(box(.03, .14, .18, M.iron, -.2, .44, -1.45));     // chopping block with the axe in it
+    for (let n = 0; n < 5; n++) { const s = box(.03, .7, .03, M.rough, 1.55 + n * .04, .4, -.3 + n * .05); s.rotation.z = .25; g.add(s); }   // bundled saplings
+  } else {
+    for (let r = 0; r < 3; r++) for (let n = 0; n < 4 - r; n++) { const l = cyl(.07, .07, 1.0, 6, M.log, 1.5, .14 + r * .12, -.6 + n * .15 + r * .075); l.rotation.x = Math.PI / 2; g.add(l); }
+  }
+  if (tier === 3) {
+    for (const sx of [-1, 1]) { const l = box(.05, .45, .05, M.timber, 1.45 + sx * .2, .25, 1.5); l.rotation.z = sx * .35; g.add(l); }
+    g.add(box(.6, .05, .06, M.timber, 1.45, .45, 1.5)); const lg = cyl(.08, .08, .7, 6, M.log, 1.45, .55, 1.5); lg.rotation.z = Math.PI / 2; g.add(lg);
+  }
+  return g;
+}
+// mine: a shaft driven into a rocky mound; rails run out of the adit to a spoil heap and the cart rolls out with every load
+// (updateEco). Tier 1 a timber-framed adit and a windlass; tier 2 a headframe with its wheel; tier 3 a stone portal, a taller
+// headframe and a winding house with the blue roof
+function makeMine(tier, plinth) {
+  const g = new THREE.Group(), b = plinth ? .2 : SLAB_TOP;
+  if (plinth) g.add(box(4.0, 1.8, 4.0, tier === 2 ? M.plainStone : M.stone, 0, -.7, 0));
+  const rock = (sx, sy, sz, x, y, z, r) => { const o = new THREE.Mesh(new THREE.DodecahedronGeometry(1, 0), mineRockM); o.scale.set(sx, sy, sz); o.position.set(x, y, z); o.rotation.y = r; o.castShadow = o.receiveShadow = true; g.add(o); };
+  rock(1.75, 1.05 + tier * .15, 1.15, .15, b + .2, -.85, .3); rock(.8, .7, .7, 1.35, b + .1, -.1, 1.1); rock(.55, .45, .5, -1.5, b + .05, -.3, .6);
+  const ax = -.55, fz = .32;
+  g.add(box(.64, .98, .5, M.dark, ax, b + .49, fz - .1));                                    // the dark mouth of the adit
+  if (tier < 3) {
+    for (const sx of [-1, 1]) g.add(box(.1, 1.08, .12, M.timber, ax + sx * .37, b + .54, fz + .1));
+    g.add(box(.92, .13, .16, M.timber, ax, b + 1.1, fz + .1));
+  } else {
+    for (const sx of [-1, 1]) g.add(box(.2, 1.15, .22, M.stone2, ax + sx * .42, b + .58, fz + .1));
+    g.add(box(1.08, .22, .24, M.stone2, ax, b + 1.22, fz + .1)); g.add(pyramid(.7, .35, .5, M.roofBlue, b + 1.5, ax, fz + .1));
+  }
+  g.add(box(.12, .1, .06, M.glow, ax + .5, b + .95, fz + .22));                             // a lantern by the mouth
+  for (const sx of [-1, 1]) g.add(box(.035, .035, 1.55, M.iron, ax + sx * .17, b + .04, 1.15));
+  for (let zz = .5; zz < 1.9; zz += .28) g.add(box(.48, .03, .08, M.timber, ax, b + .02, zz));
+  const cart = new THREE.Group(); cart.position.set(ax, b, .75); cart.userData.cart = true; g.add(cart);
+  cart.add(box(.36, .22, .48, M.wood, 0, .22, 0)); cart.add(box(.38, .04, .5, M.iron, 0, .34, 0));
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const w = cyl(.07, .07, .04, 8, M.dark, sx * .19, .07, sz * .15); w.rotation.z = Math.PI / 2; cart.add(w); }
+  for (const [x, z] of [[-.07, -.08], [.08, .06], [0, .12]]) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(.08, 0), M.stone2); st.position.set(x, .36, z); cart.add(st); }
+  g.add(cone(.6, .5, 7, M.stone2, 1.1, b + .25, 1.25));                                       // the spoil heap
+  for (const [x, z, r] of [[.7, 1.6, .09], [1.5, 1.6, .11], [1.6, .85, .08]]) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(r, 0), M.stone2); st.position.set(x, b + r * .7, z); st.castShadow = true; g.add(st); }
+  if (tier === 1) {                                                                          // windlass over a shaft beside the adit
+    for (const sx of [-1, 1]) g.add(box(.08, .75, .08, M.rough, .55 + sx * .32, b + .38, .55));
+    const a = cyl(.05, .05, .7, 6, M.rough, .55, b + .72, .55); a.rotation.z = Math.PI / 2; g.add(a);
+    g.add(box(.5, .06, .5, M.dark, .55, b + .02, .55));
+  } else {                                                                                   // headframe: two raking legs and a wheel
+    const H = tier === 2 ? 2.4 : 2.9, hx = .95, hz = -.05;
+    for (const sx of [-1, 1]) { const l = box(.1, H, .1, M.timber, hx + sx * .3, b + H / 2, hz); l.rotation.z = -sx * .12; g.add(l); }
+    const back = box(.09, H * 1.05, .09, M.timber, hx, b + H / 2, hz - .45); back.rotation.x = .25; g.add(back);
+    g.add(box(.7, .08, .12, M.timber, hx, b + H - .1, hz));
+    const wh = new THREE.Mesh(new THREE.TorusGeometry(.3, .04, 6, 14), M.iron); wh.position.set(hx, b + H + .1, hz); wh.castShadow = true; g.add(wh);
+    g.add(box(.012, H - .3, .012, ropeM, hx + .3, b + (H + .2) / 2, hz));
+  }
+  if (tier === 3) {                                                                          // winding house with the blue roof, ore bins
+    g.add(box(1.0, .85, .75, M.stone2, 1.35, b + .43, .55)); g.add(pyramid(.78, .5, .78, M.roofBlue, b + 1.1, 1.35, .55));
+    for (const x of [-1.55, -1.15]) { g.add(box(.36, .32, .36, M.wood, x, b + .16, 1.45)); const o = new THREE.Mesh(new THREE.DodecahedronGeometry(.12, 0), M.stone2); o.position.set(x, b + .36, 1.45); g.add(o); }
+  }
+  return g;
+}
+// farmhouse: a fenced yard with the farmhouse at the back left; hens and their coop from tier 1, a pigsty from tier 2, a hay rack
+// and water trough for cows at tier 3 (the animals themselves are drawn by updateEco and wander the yard)
+function makeAnimal(kind) {
+  const a = new THREE.Group();
+  if (kind === 'hen') {
+    const b = new THREE.Mesh(new THREE.SphereGeometry(.085, 7, 5), henM); b.scale.set(1, .85, 1.3); b.position.y = .13; a.add(b);
+    a.add(box(.03, .07, .05, henM, 0, .2, -.1));
+    const h = new THREE.Mesh(new THREE.SphereGeometry(.045, 6, 4), henM); h.position.set(0, .22, .09); a.add(h);
+    a.add(box(.012, .035, .045, combM, 0, .27, .09)); a.add(box(.02, .02, .03, beakM, 0, .22, .14));
+    for (const sx of [-1, 1]) a.add(box(.012, .07, .012, beakM, sx * .03, .035, 0));
+  } else if (kind === 'pig') {
+    a.add(box(.26, .22, .44, pigM, 0, .22, 0)); a.add(box(.2, .18, .16, pigM, 0, .24, .28)); a.add(box(.1, .07, .04, snoutM, 0, .21, .37));
+    for (const sx of [-1, 1]) { a.add(box(.05, .05, .02, snoutM, sx * .07, .35, .26)); for (const sz of [-1, 1]) a.add(box(.06, .12, .06, pigM, sx * .08, .06, sz * .14)); }
+  } else {
+    a.add(box(.36, .32, .7, cowM, 0, .5, 0)); a.add(box(.37, .2, .22, patchM, 0, .55, -.12)); a.add(box(.2, .15, .02, patchM, .1, .5, .351));
+    a.add(box(.22, .24, .26, cowM, 0, .6, .45)); a.add(box(.16, .1, .06, snoutM, 0, .52, .59));
+    for (const sx of [-1, 1]) { a.add(cone(.025, .1, 5, hornM, sx * .09, .76, .45)); for (const sz of [-1, 1]) a.add(box(.08, .34, .08, cowM, sx * .12, .17, sz * .25)); }
+  }
+  a.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  return a;
+}
+const HERD = { 1: ['hen', 'hen', 'hen', 'hen'], 2: ['hen', 'hen', 'hen', 'pig', 'pig'], 3: ['hen', 'hen', 'pig', 'pig', 'cow', 'cow'] };
+const ANIMAL_SPEED = { hen: .5, pig: .3, cow: .22 };
+function makeFarmhouse(tier) {
+  const g = new THREE.Group();
+  g.add(box(3.5, .06, 3.5, penM, 0, .04, 0));
+  plotFence(g, tier); plotHut(g, tier, tier === 1 ? M.mud : M.daub, 1.3, 1.0);
+  // hen coop on short legs with a ramp, and a feed trough
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.05, .3, .05, M.timber, 1.15 + sx * .26, .15, -1.3 + sz * .22));
+  g.add(box(.62, .38, .5, M.wood, 1.15, .48, -1.3)); g.add(pyramid(.46, .3, 1, tier === 3 ? M.roofBlue : M.thatchOld, .82, 1.15, -1.3));
+  const ramp = box(.16, .03, .45, M.rough, 1.05, .18, -.9); ramp.rotation.x = .5; g.add(ramp);
+  g.add(box(.7, .12, .18, M.wood, .05, .1, -.85));
+  if (tier >= 2) {                                                                            // pigsty: low plank walls, a lean-to roof, a wallow
+    g.add(box(.82, .02, .72, M.soil, 1.25, .08, -.25));
+    for (const [x, z, w, d] of [[1.25, -.6, .82, .05], [1.65, -.25, .05, .72], [1.25, .1, .82, .05]]) g.add(box(w, .3, d, M.wood, x, .2, z));
+    const r = box(.86, .04, .4, tier === 3 ? M.roofBlue : M.thatch, 1.28, .55, -.45); r.rotation.x = .35; g.add(r);
+    for (const x of [.9, 1.62]) g.add(box(.05, .5, .05, M.timber, x, .3, -.28));
+  }
+  if (tier === 3) {                                                                           // hay rack and water trough for the cows
+    g.add(box(.14, .55, 1.0, M.timber, -1.35, .32, .75)); g.add(box(.3, .3, .9, M.hay, -1.3, .55, .75));
+    g.add(box(.25, .14, .8, M.stone2, -1.05, .1, 1.35));
+  }
+  return g;
+}
+const MODELS = { forester: makeForester, mine: makeMine, farmhouse: makeFarmhouse, market: makeMarket, barracks: makeBarracks, house: makeHouse, tower: makeTower, castle: makeCastle, lodge: makeLodge, quarry: makeQuarry, farm: makeFarm,
   wall: makeWall, gate: makeGate, well: makeWell, torch: makeTorch, flowers: makeFlowers, statue: makeStatue };
 // grit: every mesh gets a slightly different, weathered copy of its material; tier 1 is dirtier and duller
 const aoTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
   const g = x.createRadialGradient(64, 64, 20, 64, 64, 64); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(.55, 'rgba(0,0,0,.75)'); g.addColorStop(1, 'rgba(0,0,0,0)');
   x.fillStyle = g; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
 const aoMat = new THREE.MeshBasicMaterial({ color: '#000000', map: aoTex, transparent: true, opacity: .42, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
-const NO_AO = { farm: 1, flowers: 1, torch: 1, wall: 1 };
+const NO_AO = { farm: 1, forester: 1, farmhouse: 1, flowers: 1, torch: 1, wall: 1 };
 const tintCache = new Map(), NO_TINT = new Set([M.glow, M.flame, M.flameMid, M.flameCore, M.water, aoMat, M.flag, M.banner, M.drape]);
 function tinted(m, tier, n) {
   const key = m.uuid + ':' + tier + ':' + n; let t = tintCache.get(key);
@@ -1836,7 +1990,7 @@ function tinted(m, tier, n) {
   return t;
 }
 const makeModel = (type, tier, plinth, mask, rot = 0, fixed = false) => {
-  const g = MODELS[type](tier, plinth && tier >= 2 && type !== 'farm' && !DEF[type].decor, mask, rot, fixed), tt = DEF[type].decor ? 2 : tier;
+  const g = MODELS[type](tier, plinth && tier >= 2 && !DEF[type].plot && !DEF[type].decor, mask, rot, fixed), tt = DEF[type].decor ? 2 : tier;
   if (plinth && tier === 1 && SLAB[type]) { const w = DEF[type].size * CELL; g.add(box(w, 1.0, w, M.court, 0, SLAB_TOP - .5, 0)); }   // a metre deep: ground lowered by a neighbour never opens a gap
   if (!NO_AO[type]) { const w = DEF[type].size * CELL + 1.3, ao = new THREE.Mesh(new THREE.PlaneGeometry(w, w).rotateX(-Math.PI / 2), aoMat); ao.position.y = .04; ao.userData.ao = true; g.add(ao); }
   let n = 0;
@@ -1848,9 +2002,9 @@ const makeModel = (type, tier, plinth, mask, rot = 0, fixed = false) => {
 };
 
 // stone bases fill their tiles exactly; this is how far each one's top sits above the building's ground level
-const PLINTH_TOP = { market: .2, house: .1, tower: .2, castle: .2, lodge: .2, quarry: .2, barracks: .2 };
+const PLINTH_TOP = { mine: .2, market: .2, house: .1, tower: .2, castle: .2, lodge: .2, quarry: .2, barracks: .2 };
 // tier 1 stands on a packed-earth slab like the palisade fort's yard, filling its tiles so neighbours meet edge to edge
-const SLAB = { market: 1, house: 1, lodge: 1, quarry: 1, castle: 1, barracks: 1, tower: 1 }, SLAB_TOP = .08;
+const SLAB = { mine: 1, market: 1, house: 1, lodge: 1, quarry: 1, castle: 1, barracks: 1, tower: 1 }, SLAB_TOP = .08;
 const plinthTop = (type, tier) => tier === 1 ? (SLAB[type] ? SLAB_TOP : null) : PLINTH_TOP[type];
 // a stone-based building placed edge to edge with another settles at the height that makes the two stone tops flush,
 // so a row of buildings reads as one continuous platform (only if that is within reach of the ground it stands on)
@@ -2345,9 +2499,16 @@ function paintWall(a, b) {
 const tunics = ['#7a5434', '#8a6240', '#6b4a2e', '#956b44', '#7f5a3a', '#5f4229'].map(mat);   // plain villagers: homespun browns
 const hairs = ['#3a2716', '#5a3a1e', '#2a221c', '#8a5a2e', '#b8894a', '#6b6b66'].map(mat);
 const skin = mat('#d6a982'), hatM = mat('#6b5236'), legM = mat('#3a2e22');
-// solid things inside a farm plot (hut, hay, scarecrow, barn, stooks): [x, z, half-width, half-depth] from the plot centre
-const FARM_OBST = { 1: [[-1.0, -1.2, .55, .4], [.9, -1.2, .3, .3]], 2: [[1.1, -.9, .2, .2]], 3: [[-1.15, -1.15, .55, .45], [1.35, 1.35, .2, .2], [.75, 1.42, .2, .2]] };
-function farmBlocked(B, x, z) { const c = center(B), [lx, lz] = unrot(B.face || 0, x - c.x, z - c.z); return FARM_OBST[B.tier].some(([ox, oz, hx, hz]) => Math.abs(lx - ox) < hx + .18 && Math.abs(lz - oz) < hz + .18); }
+// solid things inside a walkable plot (farm: hut, hay, scarecrow, barn, stooks; forester: hut; farmhouse: house, coop, sty, byre):
+// [x, z, half-width, half-depth] from the plot centre, by tier
+const OBST = {
+  farm: { 1: [[-1.0, -1.2, .55, .4], [.9, -1.2, .3, .3]], 2: [[1.1, -.9, .2, .2]], 3: [[-1.15, -1.15, .55, .45], [1.35, 1.35, .2, .2], [.75, 1.42, .2, .2]] },
+  forester: { 1: [[-1.05, -1.15, .55, .42]], 2: [[-1.05, -1.15, .6, .45]], 3: [[-1.05, -1.15, .6, .45], [1.45, 1.5, .3, .2]] },
+  farmhouse: { 1: [[-1.0, -1.15, .6, .45], [1.15, -1.3, .32, .28]], 2: [[-1.0, -1.15, .65, .5], [1.15, -1.3, .32, .28], [1.25, -.25, .4, .35]],
+    3: [[-1.0, -1.15, .65, .5], [1.15, -1.3, .32, .28], [1.25, -.25, .4, .35], [-1.3, .75, .3, .55]] },
+};
+const FARM_OBST = OBST.farm;
+function farmBlocked(B, x, z) { const L = OBST[B.type]; if (!L) return false; const c = center(B), [lx, lz] = unrot(B.face || 0, x - c.x, z - c.z); return L[B.tier].some(([ox, oz, hx, hz]) => Math.abs(lx - ox) < hx + .18 && Math.abs(lz - oz) < hz + .18); }
 function canStand(x, z, mode) {   // mode 0 villager, 1 worker, 2 enemy
   if (x < .5 || z < .5 || x > SIZE - .5 || z > SIZE - .5) return false;
   if (MAP === 'pass' && !passOpen(x, z)) return false;           // the mountains are too steep for anyone
@@ -2356,7 +2517,7 @@ function canStand(x, z, mode) {   // mode 0 villager, 1 worker, 2 enemy
   if (h < (mode === 2 || mode === 1 ? .3 : .5)) return false;   // nobody wades: rivers are crossed by bridge
   const b = occB[cellAt(x, z)];
   if (b && !WALK[b.type] && !(b.type === 'gate' && mode !== 2)) return false;
-  if (b && b.type === 'farm' && farmBlocked(b, x, z)) return false;
+  if (b && OBST[b.type] && farmBlocked(b, x, z)) return false;
   return slopeAt(x, z) < (mode ? 3.4 : 1.6);
 }
 // a tool held in the hand; its handle runs along the arm's line, so turning the arm swings the tool
@@ -2384,6 +2545,7 @@ function makeTool(kind) {
   if (kind === 'pick') { p.add(box(.035, .05, .46, M.iron, 0, -.52, 0)); }
   if (kind === 'hoe') p.add(box(.15, .02, .13, M.iron, 0, -.53, -.07));   // blade turned down towards the soil
   if (kind === 'hammer') p.add(box(.07, .09, .18, M.iron, 0, -.5, 0));
+  if (kind === 'pail') { p.children.forEach(o => o.visible = false); p.add(cyl(.075, .058, .13, 8, M.wood, 0, -.08, 0)); p.add(cyl(.077, .077, .015, 8, M.iron, 0, -.04, 0)); }   // a feed pail in the hand (no handle shaft)
   return p;
 }
 // short hair: a cap over the crown and a fuller fall at the back; the face (+z) stays clear
@@ -2468,6 +2630,7 @@ const OUTFIT = {
   axe:    { tunic: plaidMat('#c9a227', '#4a3018'), hat: 'woolcap', hatM: mat('#45602f'), brimM: mat('#2f4321') },   // lumberjack: yellow and brown checked shirt
   pick:   { tunic: mat('#a8925e'), hat: 'flatcap', hatM: mat('#8c857a'), apron: true },
   hammer: { tunic: mat('#c98f2e'), hat: 'felt', hatM: mat('#6b4a2b'), belt: true },   // builders: amber smock, brown felt hat, tool belt
+  pail:   { tunic: mat('#b8934a'), hat: 'coif', hatM: mat('#e6dcc6'), apron: true },  // herders (farmhouse): ochre smock, white linen coif, apron
 };
 const strawM = mat('#d2b56a'), leatherM = mat('#5a4630'), featherM = mat('#b8452c');
 const apronM = (() => { const m = mat('#b9ae96'); m.side = THREE.DoubleSide; return m; })(), apronHemM = (() => { const m = mat('#ddd5c2'); m.side = THREE.DoubleSide; return m; })();
@@ -2490,6 +2653,10 @@ function dress(v, kind) {
   else if (O.hat === 'flatcap') {           // mason: soft cloth bonnet, puffed and slumped to one side over a leather band
     h.add(cyl(.142, .142, .05, 12, leatherM, 0, 1.115, 0));
     const top = new THREE.Mesh(new THREE.SphereGeometry(.2, 12, 6), O.hatM); top.scale.set(1, .38, 1); top.position.set(.03, 1.17, -.01); top.rotation.z = -.16; top.castShadow = true; h.add(top);
+  }
+  else if (O.hat === 'coif') {             // herder: a close linen coif over the hair, tied under the chin
+    const cf = new THREE.Mesh(new THREE.SphereGeometry(.15, 12, 7, 0, Math.PI * 2, 0, Math.PI * .62), O.hatM); cf.position.y = 1.035; cf.castShadow = true; h.add(cf);
+    h.add(box(.2, .025, .04, O.hatM, 0, .93, .08));
   }
   else if (O.hat === 'felt') { h.add(cyl(.2, .2, .03, 10, O.hatM, 0, 1.12, 0)); h.add(cyl(.12, .13, .11, 10, O.hatM, 0, 1.19, 0)); }
   v.body.add(h); v.hatG = h;
@@ -2514,7 +2681,7 @@ function giveTool(v, kind) {
   if (!kind) return;
   const p = makeTool(kind); v.arms[1].add(p); v.pivot = p;
 }
-const JOB_TOOL = { lodge: 'axe', quarry: 'pick', farm: 'hoe' };
+const JOB_TOOL = { lodge: 'axe', forester: 'axe', quarry: 'pick', mine: 'pick', farm: 'hoe', farmhouse: 'pail' };
 // down on one knee by c (0 standing … 1 kneeling): body lowered, front leg forward, back leg behind
 function kneel(p, c) { p.body.position.y = -.2 * c; p.legs[0].rotation.x = -1.3 * c; p.legs[1].rotation.x = .6 * c; }
 // working swings (t in seconds): right arm R, free arm L, tool tilt, body lean; w is the swing sine (a strike sounds as it passes +0.85)
@@ -2529,6 +2696,8 @@ const TOOL_POSE = {
   pick: t => { const w = stroke(t / 1.25 % 1); return { w, R: -1.5 + w, L: -.35 - w * .15, tilt: -.75, lean: .06, crouch: .2 + .55 * (w + 1) / 2 }; },
   // the farmer lifts the hoe, chops it into the soil, then drags it back towards himself (the recovery), crouched throughout
   hoe: t => { const w = stroke(t / 1.05 % 1); return { w, R: -.85 + w * .35, L: -.25, tilt: -.32, lean: .1, crouch: .5 + .25 * Math.max(w, 0), twist: -.1 * w }; },
+  // herders scatter feed from the pail: the hand sweeps out low and back, half crouched
+  pail: t => { const s = Math.sin(t * 3.1); return { w: -.5, R: -.75 + .35 * s, L: -.3, tilt: -.1, lean: .05, crouch: .25, twist: .15 * s }; },
   // builders: three light taps and a big blow; half of them kneel to work low (by seed), the rest stand
   hammer: (t, seed = 0) => {
     const p = t / 1.9 % 1, big = p >= .6, w = stroke(big ? (p - .6) / .4 : p / .2 % 1), amp = big ? .85 : .4;
@@ -2613,19 +2782,19 @@ function syncResidents(B) {
 // workplaces take villagers who have no job yet; they commute from home
 // food is low below 3 meals a head, or while the town eats more than it grows (each villager eats 1 per payout; farms and the
 // castle make food each payout): farms are filled first, and if nobody is free a lumberjack or mason is moved to the field
-const foodMade = () => buildings.reduce((s, B) => !B.built ? s : B.type === 'farm' ? s + DEF.farm.food[B.tier - 1] * farmersAt(B) / DEF.farm.workers[B.tier - 1] : B.type === 'castle' ? s + DEF.castle.food[B.tier - 1] : s, 0);
+const foodMade = () => buildings.reduce((s, B) => !B.built ? s : DEF[B.type].field ? s + DEF[B.type].food[B.tier - 1] * farmersAt(B) / DEF[B.type].workers[B.tier - 1] : B.type === 'castle' ? s + DEF.castle.food[B.tier - 1] : s, 0);
 const foodLow = () => res.food < villagers.length * 3 || foodMade() < villagers.length;
 var foodLogT = -1e9;
 function assignJobs() {
-  const low = foodLow(), order = buildings.slice().sort((a, b) => (b.type === 'farm') - (a.type === 'farm'));
+  const low = foodLow(), order = buildings.slice().sort((a, b) => !!DEF[b.type].field - !!DEF[a.type].field);
   for (const B of order) {
     const T = DEF[B.type]; if (!T.workers || !B.built) continue;
     let have = villagers.filter(v => v.job === B).length;   // (hungry farmers have already left their field)
     while (have < T.workers[B.tier - 1]) {
       const c = center(B); let best = null, bd = 1e9;
       for (const v of villagers) if (!v.job && !v.soldier && !v.unkit && !v.hungry) { const d = Math.hypot(v.x - c.x, v.z - c.z); if (d < bd) { bd = d; best = v; } }
-      if (!best && low && B.type === 'farm') for (const v of villagers) {
-        if (!v.job || v.job.type === 'farm' || v.hungry || v.soldier || v.unkit || v.post || v.build || v.carryLog.visible || v.carryStone.visible) continue;
+      if (!best && low && T.field) for (const v of villagers) {
+        if (!v.job || DEF[v.job.type].field || v.hungry || v.soldier || v.unkit || v.post || v.build || v.carryLog.visible || v.carryStone.visible) continue;
         const d = Math.hypot(v.x - c.x, v.z - c.z); if (d < bd) { bd = d; best = v; }
       }
       if (!best) break;
@@ -2710,7 +2879,7 @@ function cellPass(n, mode) {
   if (bridgeCell[n]) return true;
   const o = mode === 3 ? null : occB[n]; if (o && !WALK[o.type] && !(o.type === 'gate' && mode !== 2)) return false;   // mode 3: raiders' ground, buildings count as open (they break through)
   // a farm cell whose middle is the hut, barn, hay or a scarecrow is routed round (people still walk the open ground by it)
-  if (o && o.type === 'farm' && farmBlocked(o, (n % N + .5) * CELL, (((n / N) | 0) + .5) * CELL)) return false;
+  if (o && OBST[o.type] && farmBlocked(o, (n % N + .5) * CELL, (((n / N) | 0) + .5) * CELL)) return false;
   return cH[n] > (mode === 1 ? .2 : .45) && cS[n] < (mode === 1 ? 4 : 2.6);
 }
 const ND = [[1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1], [1, 1, 1.414], [1, -1, 1.414], [-1, 1, 1.414], [-1, -1, 1.414]];
@@ -2796,7 +2965,7 @@ function cutsOff(r, type, f) {
   const pass = regPass.slice();
   for (let b = r.cj; b < r.cj + r.s; b++) for (let a = r.ci; a < r.ci + r.s; a++) {
     const n = b * N + a, x = (a + .5) * CELL, z = (b + .5) * CELL;
-    if (type === 'farm' ? farmBlocked({ ev: r, face: f, tier: 1 }, x, z) : !WALK[type] && type !== 'gate') pass[n] = 0;
+    if (OBST[type] ? farmBlocked({ type, ev: r, face: f, tier: 1 }, x, z) : !WALK[type] && type !== 'gate') pass[n] = 0;
   }
   const T = floodRegions(regTry, pass), K = castleB(), nid = doorRegion(K, T);
   if (!nid) return 'Blocks the way';
@@ -2933,7 +3102,8 @@ function nearDoor(v, B, dp) { const d = Math.hypot(dp.x - v.x, dp.z - v.z); retu
 function claimResource(v, now) {
   const hb = center(v.job), R = DEF[v.job.type].reach, G = regions(), id = doorRegion(v.job, G), reach = q => !id || regionAt(q.x, q.z, G) === id;
   let best = null, bd = 1e9;
-  if (v.job.type === 'lodge') { for (const t of trees) if (treeFree(t, now) && reach(t)) { const d = Math.hypot(t.x - hb.x, t.z - hb.z); if (d < R && d < bd) { bd = d; best = t; } } }
+  if (v.job.type === 'forester') { for (const t of v.job.grove || []) if (t.g >= 1 && !t.claim) { const d = Math.hypot(t.x - v.x, t.z - v.z); if (d < bd) { bd = d; best = t; } } }
+  else if (v.job.type === 'lodge') { for (const t of trees) if (treeFree(t, now) && reach(t)) { const d = Math.hypot(t.x - hb.x, t.z - hb.z); if (d < R && d < bd) { bd = d; best = t; } } }
   else for (const r of rocks) if (r.amount > 0 && !((r.blocked || 0) > now) && reach(r)) { const d = Math.hypot(r.x - hb.x, r.z - hb.z) + (r.claim ? 4 : 0); if (d < R + 4 && d < bd) { bd = d; best = r; } }
   if (best) best.claim = v;
   return best;
@@ -2986,15 +3156,29 @@ function updateBuilder(v, dt) {
 }
 function updateWorker(v, dt, now) {
   const W = v.job, dp = doorPoint(W), mult = 1, workMul = W.tier === 3 ? .7 : 1;
+  // someone still indoors from another task (a new job, a mine they were moved out of): out first
+  if (v.hideT > 0 && v.state !== 'drop' && v.state !== 'dig' && !v.doorWalk) { v.hideT = 0; exitDoor(v); }
   if (v.state === 'commute') { if (walkTo(v, dp.x, dp.z, dt, 1, .4) || nearDoor(v, W, dp) || v.noProg > 6) v.state = 'find'; return; }
-  if (W.type === 'farm') {
+  if (DEF[W.type].field) {           // fields and the farmhouse yard: work a spot inside the plot (hoe, or feed from the pail)
     const e = W.ev;
     if (v.state === 'work') { v.working = true; if ((v.wait -= dt) <= 0) v.state = 'find'; return; }
     if (v.state !== 'go') { for (let n = 0; n < 12; n++) { v.tx = lerp(e.x0 + .4, e.x1 - .4, Math.random()); v.tz = lerp(e.z0 + .4, e.z1 - .4, Math.random()); if (canStand(v.tx, v.tz, 1)) break; } v.state = 'go'; v.stuck = 0; }
     if (walkTo(v, v.tx, v.tz, dt, 1, .2, .7) || v.noProg > 3) { v.state = 'work'; v.wait = 2 + Math.random() * 2; }
     return;
   }
-  const lumber = W.type === 'lodge';
+  if (W.type === 'mine') {           // miners dig underground: in through the adit, a load of stone up with every dig; out at night or for another task
+    if (v.state !== 'dig') {
+      if (walkTo(v, dp.x, dp.z, dt, 1, .35) || nearDoor(v, W, dp) || v.noProg > 6) { enter(v, W, 1e9); v.state = 'dig'; v.digT = DEF.mine.dig[W.tier - 1]; }
+      return;
+    }
+    if (v.g.visible || v.doorWalk) return;
+    if ((v.digT -= dt) <= 0) {
+      v.digT = DEF.mine.dig[W.tier - 1] * (.9 + Math.random() * .2);
+      if (PH.kind === 'day') { const c = center(W); res.stone++; stats.stone++; floatRes('stone', 1, c.x, W.group.position.y + 2.2, c.z); W.cartT = 2.4; sfx('pick', c, .6); }
+    }
+    return;
+  }
+  const lumber = W.type === 'lodge' || W.type === 'forester';
   switch (v.state) {
     case 'find': {
       if ((v.wait -= dt) > 0) break;
@@ -3015,7 +3199,8 @@ function updateWorker(v, dt, now) {
       if ((v.wait -= dt) <= 0) {
         const t = v.target;
         if (!t) { v.state = 'find'; break; }
-        if (lumber) { t.cut = true; t.fallStart = now; t.regrow = now + 45000; v.carryLog.visible = true; }
+        if (t.grove) { t.g = 0; t.cut = true; v.carryLog.visible = true; }          // a grove tree felled: a sapling again
+        else if (lumber) { t.cut = true; t.fallStart = now; t.regrow = now + 45000; v.carryLog.visible = true; }
         else { t.amount--; seatRocks(); v.carryStone.visible = true; }
         release(v); v.state = 'home'; v.stuck = 0;
       }
@@ -3615,13 +3800,58 @@ function updateDefense(dt) {
   }
 }
 
+// the living parts of the other economy picks, kept on whatever model the building has now (an upgrade swaps the model):
+// the forester's grove grows by day and is felled tree by tree; the farmhouse animals wander the yard; the mine cart rolls out
+// with each load and back
+function ecoGroup(B) { if (!B.ecoG) B.ecoG = new THREE.Group(); if (B.ecoG.parent !== B.group) B.group.add(B.ecoG); return B.ecoG; }
+function penSpot(B) {
+  for (let n = 0; n < 14; n++) {
+    const x = (Math.random() - .5) * 2.9, z = -.5 + Math.random() * 1.95;
+    if (!OBST.farmhouse[B.tier].some(([ox, oz, hx, hz]) => Math.abs(x - ox) < hx + .2 && Math.abs(z - oz) < hz + .2)) return [x, z];
+  }
+  return [.3, .8];
+}
+function updateEco(dt) {
+  const day = PH.kind === 'day';
+  for (const B of buildings) {
+    if (!B.built) continue;
+    if (B.type === 'forester') {
+      const T = DEF.forester, k = B.tier - 1, G = ecoGroup(B), c = center(B);
+      B.grove = B.grove || [];
+      while (B.grove.length < T.grove[k]) { const [lx, lz] = GROVE_AT[B.grove.length], m = makeGroveTree(); G.add(m); B.grove.push({ lx, lz, g: .2 + Math.random() * .4, m, grove: true, cut: true, claim: null }); }
+      for (const t of B.grove) {
+        if (day && t.g < 1) t.g = Math.min(1, t.g + dt / T.grow[k]);
+        t.cut = t.g < 1; const [wx, wz] = faceRot(B.face || 0, t.lx, t.lz); t.x = c.x + wx; t.z = c.z + wz;
+        t.m.position.set(t.lx, .07, t.lz); t.m.scale.setScalar(.22 + .78 * t.g); t.m.rotation.y = t.lx * 3.7;
+      }
+    } else if (B.type === 'farmhouse') {
+      const G = ecoGroup(B);
+      if (B.herdT !== B.tier) {
+        B.herdT = B.tier; (B.herd || []).forEach(a => G.remove(a.m));
+        B.herd = HERD[B.tier].map(kind => { const m = makeAnimal(kind), [x, z] = penSpot(B); G.add(m); return { kind, m, x, z, tx: x, tz: z, wait: Math.random() * 3, ph: Math.random() * 6 }; });
+      }
+      for (const a of B.herd) {
+        const dx = a.tx - a.x, dz = a.tz - a.z, d = Math.hypot(dx, dz);
+        if (d < .04) { if ((a.wait -= dt) <= 0) { [a.tx, a.tz] = penSpot(B); a.wait = 1.5 + Math.random() * 4; } }
+        else { const st = Math.min(d, ANIMAL_SPEED[a.kind] * dt); a.x += dx / d * st; a.z += dz / d * st; a.m.rotation.y = Math.atan2(dx, dz); a.ph += dt * 9; }
+        a.m.position.set(a.x, .07 + (d >= .04 ? Math.abs(Math.sin(a.ph)) * .02 : 0), a.z);
+        if (a.kind === 'hen' && d < .04) a.m.rotation.x = Math.max(0, Math.sin(performance.now() / 300 + a.ph)) * .5;   // pecking
+        else a.m.rotation.x = 0;
+      }
+    } else if (B.type === 'mine') {
+      if (B.cartOn !== B.group) { B.cartOn = B.group; B.cart = null; B.group.traverse(o => { if (o.userData.cart) B.cart = o; }); }
+      B.cartT = Math.max(0, (B.cartT || 0) - dt);
+      if (B.cart) B.cart.position.z = lerp(.75, 1.62, B.cartT > 0 ? Math.sin(Math.PI * (1 - B.cartT / 2.4)) : 0);
+    }
+  }
+}
 // ---------- economy ----------
 const farmersAt = B => villagers.filter(v => v.job === B && !v.build && !v.hungry && !v.post).length;
 function econTick() {
   for (const B of buildings) {
     if (!B.built) continue;
     const c = center(B), T = DEF[B.type];
-    if (B.type === 'farm') {          // food by farmers at work: a Manor farm with 1 of its 2 farmers makes half
+    if (T.field) {                    // food by farmers at work: a Manor farm with 1 of its 2 farmers makes half
       const k = B.tier - 1, raw = T.food[k] * farmersAt(B) / T.workers[k], f = Math.floor(raw) + (Math.random() < raw % 1 ? 1 : 0);
       if (f) { res.food += f; stats.food += f; floatRes('food', f, c.x, B.group.position.y + 1.6, c.z); }
     }
@@ -3646,7 +3876,7 @@ function feedVillager(v, dt) {
   if ((v.mealT = (v.mealT ?? 15 + Math.random() * 30) - dt) > 0) return;
   if (res.food >= 1) { res.food -= 1; stats.eaten = (stats.eaten || 0) + 1; v.mealT = MEAL * (.85 + Math.random() * .3); return; }
   v.hungry = true; newlyHungry++; release(v); v.visit = null; v.path = null;
-  if (v.job && v.job.type === 'farm') v.job = null;    // a hungry farmer leaves the field, so someone else takes it over at once
+  if (v.job && DEF[v.job.type].field) v.job = null;    // a hungry farmer leaves the field, so someone else takes it over at once
   if (v.build) v.build = null;
   floatText('Hungry', '#e2715b', v.x, hAt(v.x, v.z) + 1.6, v.z);
 }
@@ -3753,6 +3983,9 @@ const TOOL_ICON = {
   wall: '<svg viewBox="0 0 24 24"><path d="M3 20 V11 H21 V20 Z"/><path d="M3 11 V8 H6 V11 M9 11 V8 H12 V11 M15 11 V8 H18 V11 M21 11 V8"/><path d="M3 15.5 H21 M8 11 V15.5 M15 11 V15.5 M11.5 15.5 V20"/></svg>',
   gate: '<svg viewBox="0 0 24 24"><path d="M4 20 V8 H20 V20"/><path d="M8 20 V13.5 A4 4 0 0 1 16 13.5 V20"/><path d="M4 8 V5 H7 V8 M17 8 V5 H20 V8"/></svg>',
   road: '<svg viewBox="0 0 24 24"><path d="M7 21 C9 15 13 10 15 3"/><path d="M12 21 C14 16 17 12 19.5 6"/><path d="M10.2 16 L13.8 17 M12.6 10.5 L15.6 12"/></svg>',
+  forester: '<svg viewBox="0 0 24 24"><path d="M12 21 V11"/><path d="M12 11 C8 11 5.5 8.5 5.5 4.8 C9.2 4.8 12 7.4 12 11 Z"/><path d="M12 14.5 C15.6 14.5 18.5 12 18.5 8 C14.8 8 12 10.6 12 14.5 Z"/><path d="M6 21 H18"/></svg>',
+  mine: '<svg viewBox="0 0 24 24"><path d="M2.5 20 H21.5"/><path d="M4.5 20 C4.5 11 8 6.5 12 6.5 C16 6.5 19.5 11 19.5 20"/><path d="M9 20 V14.5 H15 V20"/><path d="M8.5 14.5 H15.5"/></svg>',
+  farmhouse: '<svg viewBox="0 0 24 24"><path d="M3 20 V10.5 L12 4 L21 10.5 V20 Z"/><path d="M8.5 20 V13.5 H15.5 V20"/><path d="M8.5 13.5 L15.5 20 M15.5 13.5 L8.5 20"/></svg>',
   well: '<svg viewBox="0 0 24 24"><path d="M6 13 H18 V20 H6 Z"/><path d="M7 13 V7.5 M17 13 V7.5"/><path d="M4.5 8 L12 3.5 L19.5 8"/><path d="M12 8 V11"/></svg>',
   torch: '<svg viewBox="0 0 24 24"><path d="M12 21 V11"/><path d="M9 11 H15"/><path d="M12 9 C9.5 7 10.5 5 12 3 C13.5 5 14.5 7 12 9 Z"/></svg>',
   flowers: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="2.6"/><path d="M12 10.6 V20"/><path d="M12 15 C9 13 7 13.5 5.5 16 M12 17 C15 15 17 15.5 18.5 18"/><path d="M5 20 H19"/></svg>',
@@ -3840,7 +4073,8 @@ function refreshCard() {
     const ch = Math.round(charmOf(B) * 100); if (ch) st.push(STAT('charm', `+${ch}%`, 'good'));
     const hg = villagers.filter(v => v.home === B && v.hungry).length; if (hg) st.push(STAT('bowl', `${hg}`, 'bad'));
   }
-  if (B.type === 'farm') { const f = +(T.food[k] * farmersAt(B) / T.workers[k]).toFixed(1); st.push(STAT('food', `+${f}`, f < T.food[k] ? 'warn' : '')); }
+  if (B.type === 'forester' && B.built) st.push(STAT('wood', `${(B.grove || []).filter(t => t.g >= 1).length}/${T.grove[k]}`, '', 'Trees grown'));
+  if (T.field) { const f = +(T.food[k] * farmersAt(B) / T.workers[k]).toFixed(1); st.push(STAT('food', `+${f}`, f < T.food[k] ? 'warn' : '')); }
   if (T.residents) st.push(STAT('home', `${villagers.filter(v => v.home === B && !v.homeless).length}/${B.built ? T.residents[B.tier - 1] : 0}`));   // housing: residents / room
   if (T.workers && B.built) { const w = villagers.filter(v => v.job === B).length; st.push(STAT('hammer', `${w}/${T.workers[k]}`, w < T.workers[k] ? 'warn' : '')); }
   if (T.range) {
@@ -4171,6 +4405,11 @@ function galLabel(text, color, x, z, big, k = 1) {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: textTex(text, color), transparent: true, depthWrite: false, toneMapped: false }));
   sp.scale.set((big ? 4.4 : 3.4) * k, (big ? 1.1 : .85) * k, 1); sp.position.set(x, big ? 1.4 : .55, z); sp.renderOrder = 5; gScene.add(sp);
 }
+// the living parts drawn in place for the gallery: a full-grown grove, the yard's animals
+function galPreview(g, type, tier) {
+  if (type === 'forester') GROVE_AT.slice(0, DEF.forester.grove[tier - 1]).forEach(([x, z], i) => { const t = makeGroveTree(); t.position.set(x, .07, z); t.scale.setScalar(i % 3 === 2 ? .5 : 1); g.add(t); });
+  if (type === 'farmhouse') HERD[tier].forEach((kind, i) => { const a = makeAnimal(kind); a.position.set(-1.1 + (i % 3) * .9, .07, .1 + Math.floor(i / 3) * .8); a.rotation.y = i * 1.3; g.add(a); });
+}
 function buildGallery() {
   gScene = new THREE.Scene(); gScene.background = SKY_DAY.clone();
   gScene.add(new THREE.HemisphereLight('#d6e6ff', '#4a3d28', .7));
@@ -4182,9 +4421,9 @@ function buildGallery() {
   let z = 3;
   const row = (title, depth, fill) => { const zc = z + depth / 2; galLabel(title, '#f2c95e', 1.5, zc, true); fill(zc, depth); gRows.push({ title, z: zc, depth }); z += depth + 3.4; };
   const add = (g, x, zc, turns) => { g.position.set(x, 0, zc); g.userData.turn = 0; gScene.add(g); gItems.push({ g, turns }); return g; };
-  for (const type of ['castle', 'house', 'lodge', 'quarry', 'farm', 'market', 'tower', 'barracks']) {
+  for (const type of ['castle', 'house', 'lodge', 'forester', 'quarry', 'mine', 'farm', 'farmhouse', 'market', 'tower', 'barracks']) {
     const T = DEF[type], d = T.size * CELL;
-    row(T.name, d, zc => T.tiers.forEach((nm, i) => { add(makeModel(type, i + 1, true, 0, 0), GAL_X[i], zc, true); galLabel(nm, '#fff', GAL_X[i], zc + d / 2 + 1.1); }));
+    row(T.name, d, zc => T.tiers.forEach((nm, i) => { const g = add(makeModel(type, i + 1, true, 0, 0), GAL_X[i], zc, true); galPreview(g, type, i + 1); galLabel(nm, '#fff', GAL_X[i], zc + d / 2 + 1.1); }));
   }
   // walls run into a gate from both sides: E–W wall, gate, wall
   row('Walls · gate', 2, zc => DEF.gate.tiers.forEach((nm, i) => {
@@ -4202,7 +4441,7 @@ function buildGallery() {
   })), gRows[gRows.length - 1].n = list.length);     // how many people: tools/render takes two shots of a long row
   people('Villagers', [{ name: 'Villager' }, { name: 'Log carrier', tool: 'axe', carry: 'log' }, { name: 'Stone carrier', tool: 'pick', carry: 'stone' }, { name: 'Builder', tool: 'hammer', work: 1 }]);
   // workers by their workplace's tier: own clothes and the tool, the work tunic and a cap, the full outfit
-  people('Workers', [['Farmer', 'hoe'], ['Lumberjack', 'axe'], ['Mason', 'pick']].flatMap(([n, t]) => [1, 2, 3].map(k => ({ name: `${n} ${k}`, tool: t, work: 1, tier: k }))));
+  people('Workers', [['Farmer', 'hoe'], ['Herder', 'pail'], ['Lumberjack', 'axe'], ['Mason', 'pick']].flatMap(([n, t]) => [1, 2, 3].map(k => ({ name: `${n} ${k}`, tool: t, work: 1, tier: k }))));
   // defenders by tier: the same armour for every kind, only the weapon differs
   people('Soldiers', [{ name: 'Archer 1', guard: 1 }, { name: 'Archer 2', guard: 2 }, { name: 'Archer 3', guard: 3 }, { name: 'Militia', kit: 1 }, { name: 'Guard', kit: 2 }, { name: 'Man-at-arms', kit: 3 }]);
   people('Raiders', [{ name: 'Spearman', raider: 'spear' }, { name: 'Swordsman', raider: 'sword' }, { name: 'Archer', raider: 'archer' }, { name: 'Captain', raider: 'captain' }]);
@@ -4645,7 +4884,7 @@ function frame(now) {
   if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now);
   if (paused) { renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not
-  if (!gameOver) { updatePhase(gdt); updateVillagers(gdt, now); updateEnemies(gdt); updateDefense(gdt); separateUnits(gdt); updateDoors(gdt); updateFallen(gdt); updateChips(gdt); updateSplashes(gdt); }
+  if (!gameOver) { updatePhase(gdt); updateVillagers(gdt, now); updateEco(gdt); updateEnemies(gdt); updateDefense(gdt); separateUnits(gdt); updateDoors(gdt); updateFallen(gdt); updateChips(gdt); updateSplashes(gdt); }
   updateArrows(gdt); updateVolley(gdt); updateTrees(now); emitSmoke(gdt); updateBirds(gdt);
   if (anims.length) {
     for (let n = anims.length - 1; n >= 0; n--) { const a = anims[n], t = clamp((now - a.t0) / a.dur, 0, 1); applyPlan(a.plan, easeOut(t)); if (t >= 1) anims.splice(n, 1); }
