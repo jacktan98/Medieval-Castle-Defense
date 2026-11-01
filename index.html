@@ -943,7 +943,7 @@ for (const m of [M.wood, M.rough, M.timber, M.log, M.dark]) addGrit(m, 'wood');
 addGrit(M.stone, 'stone'); addGrit(M.stone2, 'stone'); addGrit(M.court, 'earth');   // tier 1 slabs: mottled packed earth with pebbles
 M.plainStone = mat('#8f8a80'); addGrit(M.plainStone, 'rock');   // tier 2 bases: rough grey stone without block joints
 // doors by tier, the same on every building of that tier: weathered planks, dark oak, painted the town's blue like tier-3 roofs
-const DOOR_M = [null, mat('#7a5b3e'), mat('#53351f'), mat('#33507f')]; DOOR_M.slice(1).forEach(m => addGrit(m, 'wood'));
+const DOOR_M = [null, mat('#3f2a1a'), mat('#6b4628'), mat('#9a7350')]; DOOR_M.slice(1).forEach(m => addGrit(m, 'wood'));
 M.drape = mat('#2f4f8a');
 M.awning = mat('#3466b0');   // market awning stripes: the town's blue (no flag wave)
 M.drape.onBeforeCompile = sh => {
@@ -2112,9 +2112,10 @@ function makeCatapult(tier) {
     arm.position.set(0, .4, -.32); e.add(arm);
     arm.add(box(.09, 1.25, .09, M.timber, 0, .62, 0));
     // the cup opens off the arm's face (+z), so cocked back it holds its stone face up and flings it forward
-    if (tier === 1) { const cup = cyl(.13, .09, .1, 8, M.wood, 0, 1.22, .07); cup.rotation.x = Math.PI / 2; arm.add(cup); }
-    else { const sl = box(.16, .14, .03, M.canvas, 0, 1.22, .1); arm.add(sl); for (const sx of [-1, 1]) arm.add(box(.012, .012, .1, ropeM, sx * .07, 1.22, .05)); }
-    const shot = new THREE.Mesh(new THREE.DodecahedronGeometry(.09, 0), M.stone2); shot.position.set(0, 1.22, .16); shot.userData.bolt = true; shot.castShadow = true; arm.add(shot);
+    // the mangonel's cup is bigger, bound in iron, for its bigger stone
+    const cr = tier === 1 ? .13 : .19, cup = cyl(cr, cr * .7, cr * .75, 9, M.wood, 0, 1.22, .07); cup.rotation.x = Math.PI / 2; arm.add(cup);
+    if (tier === 2) { const band = cyl(cr + .012, cr + .012, .03, 9, M.iron, 0, 1.22, .07 + cr * .3); band.rotation.x = Math.PI / 2; arm.add(band); }
+    const sr = tier === 1 ? .1 : .14, shot = new THREE.Mesh(new THREE.DodecahedronGeometry(sr, 0), M.stone2); shot.position.set(0, 1.22, .07 + cr * .38 + sr * .75); shot.userData.bolt = true; shot.castShadow = true; arm.add(shot);
     if (tier === 2) for (const sx of [-1, 1]) e.add(box(.04, .04, 1.52, M.iron, sx * .36, .4, 0));
     const ball = new THREE.Mesh(new THREE.DodecahedronGeometry(.13, 0), M.stone2); ball.position.set(.5, .2, -.75); ball.castShadow = true; e.add(ball);
   } else {
@@ -2125,8 +2126,8 @@ function makeCatapult(tier) {
     arm.position.set(0, 2.15, 0); e.add(arm);
     arm.add(box(.11, 2.7, .11, M.timber, 0, .7, 0));                                  // long end up (+y), short end down
     arm.add(box(.5, .5, .5, M.wood, 0, -.82, 0)); for (const y of [-.65, -1.0]) arm.add(box(.52, .05, .52, M.iron, 0, y, 0));   // counterweight
-    arm.add(box(.012, .5, .012, ropeM, 0, 2.25, .04)); arm.add(box(.18, .16, .04, M.canvas, 0, 2.5, .08));   // sling pouch on the arm's face
-    const shot = new THREE.Mesh(new THREE.DodecahedronGeometry(.11, 0), M.stone2); shot.position.set(0, 2.5, .17); shot.userData.bolt = true; shot.castShadow = true; arm.add(shot);
+    for (const sx of [-1, 1]) arm.add(box(.012, .5, .012, ropeM, sx * .13, 2.25, .04)); arm.add(box(.36, .32, .06, M.canvas, 0, 2.5, .08));   // a big sling pouch on the arm's face
+    const shot = new THREE.Mesh(new THREE.DodecahedronGeometry(.2, 0), M.stone2); shot.position.set(0, 2.5, .26); shot.userData.bolt = true; shot.castShadow = true; arm.add(shot);
     for (let n = 0; n < 3; n++) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(.15, 0), M.stone2); st.position.set(.75, .15, -.6 + n * .3); st.castShadow = true; e.add(st); }
     const wn = cyl(.12, .12, .5, 8, M.wood, -.75, .35, -.6); wn.rotation.z = Math.PI / 2; e.add(wn);
   }
@@ -2137,7 +2138,21 @@ function makeCatapult(tier) {
 // stables: a long stable block on the right, open stalls to the front with horses looking out, a small armoury hut at the front
 // left where the riders gear up (the door), hay and a trough; tier 1 a plank shed under old thatch, tier 2 timber under a log roof
 // with a saddle rack and a flag, tier 3 stone below timber under the blue roof, a third horse and a stand of armour
+// a whole horse standing in its stall (the same build as a rider's horse), head out over the half door
+const STALL_COATS = [];
+function stallHorse(hc) {
+  const h = new THREE.Group(), mm = maneM;
+  h.add(box(.34, .36, .92, hc, 0, .78, 0));                                                   // barrel
+  const neck = box(.2, .46, .22, hc, 0, 1.06, .48); neck.rotation.x = .55; h.add(neck);
+  const head = box(.16, .17, .4, hc, 0, 1.22, .72); head.rotation.x = .35; h.add(head);
+  const mane = box(.05, .42, .1, mm, 0, 1.1, .4); mane.rotation.x = .55; h.add(mane);
+  for (const sx of [-1, 1]) h.add(box(.04, .08, .05, hc, sx * .05, 1.34, .62));               // ears
+  const tail = box(.07, .45, .07, mm, 0, .76, -.5); tail.rotation.x = -.35; h.add(tail);
+  for (const [sx, sz] of [[-1, 1], [1, 1], [-1, -1], [1, -1]]) { h.add(box(.09, .58, .09, hc, sx * .12, .33, sz * .36)); h.add(box(.1, .06, .1, hoofM, sx * .12, .03, sz * .36)); }
+  return h;
+}
 function makeStables(tier, plinth) {
+  if (!STALL_COATS.length) STALL_COATS.push(horseM, mat('#3b2a1e'), mat('#8a6a4a'));
   const g = new THREE.Group(), b = plinth ? .2 : SLAB_TOP;
   if (plinth) g.add(box(4.0, 1.8, 4.0, tier === 2 ? M.plainStone : M.stone, 0, -.7, 0));
   const wallM = tier === 1 ? M.rough : tier === 2 ? M.wood : M.stone2, roofM = tier === 1 ? M.thatchOld : tier === 2 ? M.thatch : M.roofBlue;
@@ -2148,10 +2163,7 @@ function makeStables(tier, plinth) {
   for (let n = 1; n < stalls; n++) g.add(box(.08, .9, dpt - .2, M.timber, sx0 + n * w / stalls, b + .45, (sz0 + sz1) / 2));
   for (let n = 0; n < stalls; n++) {                                                        // half doors and a horse looking over each
     const x = sx0 + (n + .5) * w / stalls; g.add(box(w / stalls - .14, .55, .06, DOOR_M[tier], x, b + .28, sz1));
-    const hc = [horseM, mat('#3b2a1e'), mat('#8a6a4a')][n % 3];
-    const nk = box(.18, .4, .2, hc, x, b + .85, sz1 - .05); nk.rotation.x = .5; g.add(nk);
-    const hd = box(.15, .16, .36, hc, x, b + 1.02, sz1 + .12); hd.rotation.x = .3; g.add(hd);
-    for (const ex of [-1, 1]) g.add(box(.035, .08, .04, hc, x + ex * .045, b + 1.14, sz1 - .03));
+    const hc = STALL_COATS[n % 3], k = .85, hs = stallHorse(hc); hs.scale.setScalar(k); hs.position.set(x, b, sz1 + .1 - .74 * k); g.add(hs);
   }
   g.add(box(w + .1, .1, .1, M.timber, cx, b + h - .05, sz1));
   const rf = pyramid(w * .74, .75, dpt / w * 1.25, roofM, b + h + .37, cx, (sz0 + sz1) / 2); g.add(rf);
@@ -2553,6 +2565,11 @@ function doorShift(B) {
   return faceRot(B.face || 0, L[B.tier - 1][0] - tile, 0);
 }
 // where the model's own door is; villagers walk from the path tile to here before they vanish inside
+// a point in a building's own frame (front = +z) in the world
+function localPt(B, x, z) { const c = center(B), [rx, rz] = faceRot(B.face || 0, x, z); return { x: c.x + rx, z: c.z + rz }; }
+// where a worker steps in from: the forester's own men use the hut door inside the plot (they never leave the plot to store logs)
+function yardDoor(B) { const p = innerDoor(B); if (!p) return null; const L = DOOR[B.type][B.tier - 1]; return localPt(B, L[0] + .4, L[1] + .32); }   // clear of the grove's nearest trees
+function outerDoor(B, v) { return B.type === 'forester' && v && v.job === B && innerDoor(B) ? yardDoor(B) : doorPoint(B); }
 function innerDoor(B) {
   const L = DOOR[B.type]; if (!L || !B.door || !B.built) return null;
   const c = center(B), [x, z] = faceRot(B.face || 0, ...L[B.tier - 1]); return { x: c.x + x, z: c.z + z };
@@ -2772,10 +2789,21 @@ function makeTool(kind) {
     p.add(box(.008, .008, tipZ * 2, M.canvas, 0, tipY, 0));
     return p;
   }
-  if (kind === 'crossbow') {            // stock along the hand's line (forward when the arm is raised), the prod across its far end
-    p.add(box(.05, .5, .06, M.wood, 0, -.12, 0)); p.add(box(.44, .04, .05, M.timber, 0, -.36, 0));
-    for (const sx of [-1, 1]) { const st = box(.008, .2, .008, ropeM, sx * .11, -.28, 0); st.rotation.z = sx * .95; p.add(st); }
-    p.add(box(.07, .03, .07, M.iron, 0, -.4, 0));
+  if (kind === 'crossbow') {            // the hand holds the grip under the stock; the stock runs forward (−y with the arm raised) from a butt at the shoulder to a curved prod
+    const SX = -.06, SZ = .055;          // the stock sits a little toward the other hand (which steadies it) and just above the grip
+    p.add(box(.05, .66, .06, M.wood, SX, -.06, SZ));                                     // stock, butt to nose
+    p.add(box(.06, .1, .08, M.wood, SX, .24, SZ - .01));                                 // butt
+    const gr = box(.04, .05, .12, M.timber, SX * .5, 0, SZ * .35); gr.rotation.y = .45; p.add(gr);   // the grip, from the hand up into the stock
+    p.add(box(.012, .04, .03, M.iron, SX, .05, SZ - .045));                              // trigger lever
+    p.add(box(.012, .3, .012, M.dark, SX, -.2, SZ + .04));                               // a bolt on top
+    const R = .3, TH = .78, SEG = 6, py = -.36;                                          // the prod: a bent bow, tips swept back
+    for (let n = 0; n < SEG; n++) {
+      const f = -TH + (n + .5) * (2 * TH / SEG), w = .045 - Math.abs(f) / TH * .016;
+      const sg = box(R * 2 * TH / SEG + .012, w, w, M.timber, SX + R * Math.sin(f), py + R * (1 - Math.cos(f)), SZ); sg.rotation.z = f; p.add(sg);
+    }
+    const tx = R * Math.sin(TH), ty = py + R * (1 - Math.cos(TH)), ny = -.2;              // the string from each tip to the nut, spanned
+    for (const sx of [-1, 1]) { const dx = sx * tx, dy = ty - ny, L = Math.hypot(dx, dy), st = box(.008, L, .008, ropeM, SX + dx / 2, ny + dy / 2, SZ + .01); st.rotation.z = Math.atan2(-dx, dy); p.add(st); }
+    p.add(box(.07, .03, .07, M.iron, SX, -.42, SZ));                                     // the iron stirrup at the nose
     return p;
   }
   if (kind === 'spear') {               // long ash shaft with an iron head at the -y end (forward when the arm is raised)
@@ -2940,8 +2968,8 @@ const TOOL_POSE = {
   pick: t => { const w = stroke(t / 1.25 % 1); return { w, R: -1.5 + w, L: -.35 - w * .15, tilt: -.75, lean: .06, crouch: .2 + .55 * (w + 1) / 2 }; },
   // the farmer lifts the hoe, chops it into the soil, then drags it back towards himself (the recovery), crouched throughout
   hoe: t => { const w = stroke(t / 1.05 % 1); return { w, R: -.85 + w * .35, L: -.25, tilt: -.32, lean: .1, crouch: .5 + .25 * Math.max(w, 0), twist: -.1 * w }; },
-  // herders scatter feed from the pail: the hand sweeps out low and back, half crouched
-  pail: t => { const s = Math.sin(t * 3.1); return { w: -.5, R: -.75 + .35 * s, L: -.3, tilt: -.1, lean: .05, crouch: .25, twist: .15 * s }; },
+  // herders kneel to the animals and scatter feed low from the pail: down on a knee, the hand sweeping out and back near the ground, rising a little now and then
+  pail: t => { const s = Math.sin(t * 3.1), c = .5 + .5 * Math.sin(t * .8); return { w: -.5, R: -.6 + .35 * s, L: -.35, tilt: -.1, lean: .05, crouch: .65 + .3 * c, twist: .15 * s }; },
   // builders: three light taps and a big blow; half of them kneel to work low (by seed), the rest stand
   hammer: (t, seed = 0) => {
     const p = t / 1.9 % 1, big = p >= .6, w = stroke(big ? (p - .6) / .4 : p / .2 % 1), amp = big ? .85 : .4;
@@ -3319,13 +3347,13 @@ function walkTo(v, tx, tz, dt, mode, stop = .2, mult = 1) {
 function enter(v, B, secs) { release(v); v.path = null; v.indoor = B; v.hideT = secs; goIn(v, B); v.stuck = 0; }
 // villagers vanish only at the model's door: from the path tile they walk straight in, and come out the same way
 function goIn(v, B) {
-  const p = innerDoor(B), dp = doorPoint(B);
+  const p = innerDoor(B), dp = outerDoor(B, v);
   // walk in only from in front of the door; someone who gave up further off just goes inside, rather than through a wall
   if (p && v.g.visible && Math.hypot(dp.x - v.x, dp.z - v.z) < 1.7) v.doorWalk = { x: p.x, z: p.z, hide: true };
   else { v.doorWalk = null; v.g.visible = false; }
 }
 function exitDoor(v) {
-  const B = v.indoor && !v.indoor.dead ? v.indoor : (v.home && !v.home.dead ? v.home : castleB() || v.home), dp = doorPoint(B), p = innerDoor(B);
+  const B = v.indoor && !v.indoor.dead ? v.indoor : (v.home && !v.home.dead ? v.home : castleB() || v.home), dp = outerDoor(B, v), p = innerDoor(B);
   dropLoad(v);
   if (v.doorWalk && v.g.visible) v.doorWalk = { x: dp.x, z: dp.z };              // turned back on the way in
   else if (p) { v.x = p.x; v.z = p.z; v.doorWalk = { x: dp.x, z: dp.z }; }
@@ -3335,11 +3363,13 @@ function exitDoor(v) {
 // one step of a door walk; true while it lasts (the villager's own logic waits)
 function doorStep(v, dt) {
   const W = v.doorWalk, dx = W.x - v.x, dz = W.z - v.z, d = Math.hypot(dx, dz), step = v.speed * dt;
-  v.walking = true; turnTo(v, Math.atan2(dx, dz), dt);
-  if (d > step) { v.x += dx / d * step; v.z += dz / d * step; return true; }
-  v.x = W.x; v.z = W.z; v.doorWalk = null;
+  if (d > step) { v.walking = true; turnTo(v, Math.atan2(dx, dz), dt); v.x += dx / d * step; v.z += dz / d * step; return true; }
+  v.x = W.x; v.z = W.z;
+  if (W.hold > 0) { if (W.face != null) turnTo(v, W.face, dt); W.hold -= dt; return true; }   // a pause on the way (picking up, tipping out)
+  v.doorWalk = W.next || null;
+  if (W.on) W.on(v);
   if (W.hide) { v.g.visible = false; dropLoad(v); }
-  return false;
+  return !!v.doorWalk;
 }
 // at the door: on its tile, or held up close to it (never just near the building: from behind a wall they walked through it)
 function nearDoor(v, B, dp) { const d = Math.hypot(dp.x - v.x, dp.z - v.z); return d < .6 || (v.noProg > 1 && d < 1.6); }
@@ -3398,8 +3428,17 @@ function updateBuilder(v, dt) {
     if ((v.dustT = (v.dustT || Math.random()) - dt) <= 0) { v.dustT = .5 + Math.random() * .6; dustAt((v.x + c.x) / 2, hAt(v.x, v.z), (v.z + c.z) / 2); }
   }
 }
+// a miner out of the adit: to the cart (rolled out and held there), a stone from it onto the spoil heap, back underground
+function mineHaul(v, W) {
+  const P = (x, z) => localPt(W, x, z), A = DOOR.mine[W.tier - 1], ad = P(A[0], A[1]), cart = P(-.13, 1.5), heap = P(.42, 1.02), hc = P(1.1, 1.25);
+  W.hauler = v; v.g.visible = true; v.hideT = 0; v.x = ad.x; v.z = ad.z; v.rx = v.x; v.rz = v.z; v.path = null;
+  const cartFace = Math.atan2(P(-.55, 1.62).x - cart.x, P(-.55, 1.62).z - cart.z), heapFace = Math.atan2(hc.x - heap.x, hc.z - heap.z);
+  const back = { ...ad, hide: true, on: u => { u.indoor = W; u.hideT = 1e9; if (W.hauler === u) W.hauler = null; } };
+  const drop = { ...heap, hold: .7, face: heapFace, on: u => { u.carryStone.visible = false; }, next: back };
+  v.doorWalk = { ...cart, hold: .8, face: cartFace, on: u => { u.carryStone.visible = true; }, next: drop };
+}
 function updateWorker(v, dt, now) {
-  const W = v.job, dp = doorPoint(W), mult = 1, workMul = W.tier === 3 ? .7 : 1;
+  const W = v.job, dp = outerDoor(W, v), mult = 1, workMul = W.tier === 3 ? .7 : 1;
   // someone still indoors from another task (a new job, a mine they were moved out of): out first
   if (v.hideT > 0 && v.state !== 'drop' && v.state !== 'dig' && !v.doorWalk) { v.hideT = 0; exitDoor(v); }
   if (v.state === 'commute') { if (walkTo(v, dp.x, dp.z, dt, 1, .4) || nearDoor(v, W, dp) || v.noProg > 6) v.state = 'find'; return; }
@@ -3418,7 +3457,10 @@ function updateWorker(v, dt, now) {
     if (v.g.visible || v.doorWalk) return;
     if ((v.digT -= dt) <= 0) {
       v.digT = DEF.mine.dig[W.tier - 1] * (.9 + Math.random() * .2);
-      if (PH.kind === 'day') { const c = center(W); res.stone++; stats.stone++; floatRes('stone', 1, c.x, W.group.position.y + 2.2, c.z); W.cartT = 2.4; sfx('pick', c, .6); }
+      if (PH.kind === 'day') {
+        const c = center(W); res.stone++; stats.stone++; floatRes('stone', 1, c.x, W.group.position.y + 2.2, c.z); W.cartT = 2.4; sfx('pick', c, .6);
+        if (!W.hauler && Math.random() < .4) mineHaul(v, W);          // now and then one comes up to tip the cart's stone onto the heap
+      }
     }
     return;
   }
@@ -3427,7 +3469,7 @@ function updateWorker(v, dt, now) {
     case 'find': {
       if ((v.wait -= dt) > 0) break;
       v.target = claimResource(v, now);
-      if (v.target) { v.state = 'go'; v.stuck = 0; } else { v.state = 'idle'; v.wait = 3; v.tx = dp.x + (Math.random() - .5) * 3; v.tz = dp.z + (Math.random() - .5) * 3; }
+      if (v.target) { v.state = 'go'; v.stuck = 0; } else { v.state = 'idle'; v.wait = 3; const r = W.type === 'forester' ? 1.2 : 3; for (let n = 0; n < 8; n++) { v.tx = dp.x + (Math.random() - .5) * r; v.tz = dp.z + (Math.random() - .5) * r; if (canStand(v.tx, v.tz, 1)) break; } }
       break;
     }
     case 'idle': walkTo(v, v.tx, v.tz, dt, 1); if ((v.wait -= dt) <= 0) v.state = 'find'; break;
@@ -3695,21 +3737,24 @@ function bowPose(p, draw, loose, L0, R0) {
 // crossbowmen: the crossbow levelled at the shoulder with both hands to shoot; between shots it is held low to span and reload
 function xbowPose(p, aim) {
   const [l, r] = p.arms;
-  if (aim) { l.rotation.set(-1.4, 0, .42); r.rotation.set(-1.5, 0, -.05); }
-  else { const c = Math.sin(performance.now() / 160 + p.phase) * .25; l.rotation.set(-.55 + c, 0, .3); r.rotation.set(-.45, 0, 0); }
+  // aiming: the right hand on the grip, swung in toward the chest, the left hand up against the stock beside it
+  if (aim) { l.rotation.set(-1.45, 0, .5); r.rotation.set(-1.5, 0, -.35); if (p.pivot) p.pivot.rotation.set(0, 0, .35); }
+  else { const c = Math.sin(performance.now() / 160 + p.phase) * .25; l.rotation.set(-.55 + c, 0, .3); r.rotation.set(-.45, 0, 0); if (p.pivot) p.pivot.rotation.set(0, 0, 0); }
 }
-function xbowPoint(p) { xbowPose(p, true); p.g.updateMatrixWorld(true); return (p.pivot || p.arms[1]).localToWorld(new THREE.Vector3(0, -.38, 0)); }
+function xbowPoint(p) { xbowPose(p, true); p.g.updateMatrixWorld(true); return (p.pivot || p.arms[1]).localToWorld(new THREE.Vector3(-.06, -.38, .1)); }
 function bowPoint(p) {
   p.arms[0].rotation.x = -1.5; p.arms[0].rotation.z = .6; p.g.updateMatrixWorld(true);
   return (p.pivot || p.arms[0]).getWorldPosition(new THREE.Vector3());
 }
 // kind: an arrow (default), 'qbolt' a crossbow's short bolt, 'bolt' a ballista's, 'stone' a catapult's (slow, high)
+const CATA_SHOT = [.65, .95, 1.35];     // the catapult's stone grows with the engine (×.17 m)
 const SHOT = { qbolt: { geo: new THREE.BoxGeometry(.035, .035, .42), speed: 26 }, bolt: { geo: new THREE.BoxGeometry(.075, .075, 1.3), speed: 30 },
   stone: { geo: new THREE.DodecahedronGeometry(.17, 0), speed: 13, m: M.stone2 } };
 function fireArrow(from, to, onHit, arc, kind) {
   const K = SHOT[kind], m = new THREE.Mesh(K ? K.geo : arrowGeo, K && K.m || arrowMat); m.castShadow = true; m.position.copy(from); scene.add(m);
   const d = from.distanceTo(to);
   arrows.push({ m, from: from.clone(), to: to.clone(), t: 0, dur: Math.max(.25, d / (K ? K.speed : 22)), arc: arc || Math.min(3, d * .15), onHit, spin: kind === 'stone' }); sfx('arrow', from, kind === 'stone' ? .5 : 1);
+  return m;
 }
 const tv = new THREE.Vector3();
 function arrowPos(a, t, out) { out.lerpVectors(a.from, a.to, t); out.y += a.arc * 4 * t * (1 - t); return out; }
@@ -4143,7 +4188,7 @@ function updateSiege(B, T, dt) {
     fireArrow(from, to, () => {
       for (const e of enemies) if (!e.dead) { const d = Math.hypot(e.x - tx, e.z - tz); if (d < rad) hurtEnemy(e, dmg * (1 - .5 * d / rad)); }
       for (let n = 0; n < 6; n++) dustAt(tx + (Math.random() - .5) * rad, walkY(tx, tz), tz + (Math.random() - .5) * rad); shake(.08, { x: tx, z: tz }, 'stone', .4);
-    }, Math.max(3, bd * .45), 'stone');
+    }, Math.max(3, bd * .45), 'stone').scale.setScalar(CATA_SHOT[k]);
   }
 }
 
@@ -4188,7 +4233,10 @@ function updateEco(dt) {
     } else if (B.type === 'mine') {
       if (B.cartOn !== B.group) { B.cartOn = B.group; B.cart = null; B.group.traverse(o => { if (o.userData.cart) B.cart = o; }); }
       B.cartT = Math.max(0, (B.cartT || 0) - dt);
-      if (B.cart) B.cart.position.z = lerp(.75, 1.62, B.cartT > 0 ? Math.sin(Math.PI * (1 - B.cartT / 2.4)) : 0);
+      if (B.hauler && (B.hauler.dead || !B.hauler.doorWalk)) B.hauler = null;
+      const want = B.hauler ? 1 : B.cartT > 0 ? Math.sin(Math.PI * (1 - B.cartT / 2.4)) : 0;
+      B.cartK = B.hauler ? Math.min(1, (B.cartK || 0) + dt * 1.2) : want;
+      if (B.cart) B.cart.position.z = lerp(.75, 1.62, B.cartK);
     }
   }
 }
