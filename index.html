@@ -307,6 +307,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
         <span class="cardIco" id="cardIco"></span>
         <div class="cardName"><h4 id="cardTitle"></h4><div class="cardSub"><span id="cardSub"></span><span class="pips" id="cardPips"></span></div></div>
         <button class="iconBtn" id="rallyBtn" title="Rally: tap, then a spot" aria-label="Rally"><svg viewBox="0 0 24 24"><path d="M6 21 V3.5"/><path d="M6 4 H17.5 L15 8 L17.5 12 H6"/></svg></button><button class="iconBtn" id="recallBtn" title="Recall to the barracks" aria-label="Recall"><svg viewBox="0 0 24 24"><path d="M9 14 L4 9 L9 4"/><path d="M4 9 H14 A5.5 5.5 0 0 1 14 20 H9"/></svg></button>
+        <button class="iconBtn" id="moveBtn" hidden title="Move: tap, then a tile" aria-label="Move"><svg viewBox="0 0 24 24"><path d="M12 3 V21 M3 12 H21"/><path d="M9 6 L12 3 L15 6 M9 18 L12 21 L15 18 M6 9 L3 12 L6 15 M18 9 L21 12 L18 15"/></svg></button>
         <button class="iconBtn" id="volleyBtn" hidden title="Arrow volley: tap, then a spot" aria-label="Arrow volley"><svg viewBox="0 0 24 24"><path d="M4 4 L13 13 M9 2.5 L18 11.5 M2.5 9 L11.5 18"/><path class="solid" d="M15 15 L11.2 14.2 L14.2 11.2 Z M20 13.5 L16.2 12.7 L19.2 9.7 Z M13.5 20 L12.7 16.2 L9.7 19.2 Z"/></svg><b class="cd"></b></button>
         <button class="iconBtn" id="cardRotBtn" hidden aria-label="Rotate" title="Rotate"><svg viewBox="0 0 24 24"><path d="M19 12 a7 7 0 1 1-2.05-4.95"/><path d="M19.2 3.8 V7.5 H15.5"/></svg></button>
         <button class="iconBtn" id="closeCard" aria-label="Close" title="Close"><svg viewBox="0 0 24 24"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
@@ -425,6 +426,22 @@ const DEF = {
   barracks: { size: 2, name: 'Barracks', maxdh: 1.8, hp: [220, 320, 450], cost: { wood: 25, gold: 20 },
             up: [{ wood: 30, gold: 35, stone: 10 }, { stone: 40, gold: 60 }], soldiers: [3, 3, 3],
             tiers: ['Muster hut', 'Barracks', 'Garrison'], key: '8' },
+  // the other defence picks: a ranged tower that shoots faster but closer, and siege engines that need two crew (a loader and a
+  // gunner) to work at all: the ballista's bolt runs through every raider in its line, the catapult's stone hits all round where
+  // it lands (not too close: minRange) and the engine can be moved, slowly, to another tile (Move on its card)
+  // stables: like the barracks, but its soldiers ride (fast, tough, dear); they gear up in the armoury hut at the front left
+  stables: { size: 2, name: 'Stables', maxdh: 1.8, hp: [240, 340, 480], cost: { wood: 40, gold: 50 }, cavalry: true,
+            up: [{ wood: 45, gold: 70, stone: 15 }, { stone: 60, gold: 110 }], soldiers: [2, 2, 3],
+            tiers: ['Horse shed', 'Stables', 'Royal stables'] },
+  crossbow: { size: 1, name: 'Crossbow', maxdh: 1.8, hp: [200, 300, 430], cost: { wood: 20, gold: 15 }, noRoad: true, weapon: 'crossbow',
+            up: [{ wood: 35, gold: 35 }, { stone: 45, gold: 65 }], range: [8, 9, 10], dmg: [6, 8, 10], rate: [.55, .48, .4],
+            archers: [2, 2, 2], shootY: [3.1, 3.4, 3.7], tiers: ['Bolt tower', 'Crossbow tower', 'Arbalest tower'] },
+  ballista: { size: 1, name: 'Ballista', maxdh: 1.8, hp: [170, 250, 350], cost: { wood: 30, gold: 25 }, noRoad: true,
+            up: [{ wood: 40, gold: 45 }, { stone: 50, gold: 80 }], range: [14, 16, 18], dmg: [30, 42, 58], rate: [3.2, 2.9, 2.6], crew: [2, 2, 2],
+            tiers: ['Scorpion', 'Ballista', 'Great ballista'] },
+  catapult: { size: 1, name: 'Catapult', maxdh: 1.4, hp: [150, 220, 320], cost: { wood: 40, gold: 30 }, noRoad: true, movable: true, noPlinth: true,
+            up: [{ wood: 50, gold: 50 }, { wood: 40, stone: 40, gold: 90 }], range: [15, 17, 20], minRange: 4, dmg: [28, 38, 52], splash: [1.6, 1.9, 2.3],
+            rate: [5.5, 5, 4.5], crew: [2, 2, 2], tiers: ['Catapult', 'Mangonel', 'Trebuchet'] },
   wall:   { size: 1, name: 'Wall', maxdh: 1.8, falloff: 1.5, hp: [200, 350, 500], cost: { wood: 5, gold: 2 }, noRoad: true, paint: true,
             up: [{ stone: 6, gold: 3 }, { stone: 10, gold: 10 }], tiers: ['Palisade', 'Stone wall', 'Battlement'], key: '6' },
   gate:   { size: 1, name: 'Gate', maxdh: 1.6, falloff: 1.5, hp: [250, 400, 600], cost: { wood: 15, gold: 10 }, noRoad: true,
@@ -456,11 +473,11 @@ const TRADES = [['wood', 4, 4], ['stone', 2, 6], ['food', 6, 2]].flatMap(([r, bu
   { give: 'gold', get: r, n: [buy, buy + 2, buy + 4] }, { give: r, get: 'gold', n: [sell, sell + 2, sell + 4] }]);
 DEF.castle.food = [3, 4, 5];
 DEF.tower.shootY = DEF.tower.shootY.map((y, i) => y * TOWER_K[i]);
-const BUILD_T = { forester: 12, mine: 16, farmhouse: 12, market: 12, house: 10, farm: 10, lodge: 12, quarry: 14, tower: 14, barracks: 14, wall: 3, gate: 8, castle: 24, well: 5, torch: 3, flowers: 3, statue: 8 };
+const BUILD_T = { stables: 18, crossbow: 14, ballista: 16, catapult: 18, forester: 12, mine: 16, farmhouse: 12, market: 12, house: 10, farm: 10, lodge: 12, quarry: 14, tower: 14, barracks: 14, wall: 3, gate: 8, castle: 24, well: 5, torch: 3, flowers: 3, statue: 8 };
 for (const t in BUILD_T) DEF[t].build = BUILD_T[t];
 DEF.well.charm = .25; DEF.torch.charm = .1; DEF.flowers.charm = .15; DEF.statue.charm = .35;
 const PATH_COST = { gold: 1 }, PATH_SPEED = 1.6, PATH_CHARM = .02, CHARM_R = 8, WALK = { farm: 1, forester: 1, farmhouse: 1, torch: 1, flowers: 1 };
-const CATS = { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'well', 'torch', 'flowers', 'statue'] };
+const CATS = { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'stables', 'wall', 'gate'], decor: ['road', 'well', 'torch', 'flowers', 'statue'] };
 const WALLY = { wall: 1, gate: 1 };   // walls join only walls and gates
 // spearmen are the basic raider and come first; swordsmen join from wave 2, captains from wave 3
 const WAVES_STD = [
@@ -1264,6 +1281,7 @@ const DOOR = {
   castle: [[0, .5], [0, 2.75], [0, 2.51]],      // T1 the hall door; T2/T3 the gatehouse
   barracks: [[-1, .42], [-1, .42], [-1, .42]],
   mine: [[-.55, .55], [-.55, .55], [-.55, .55]],
+  stables: [[-1, .4], [-1, .4], [-1, .4]],         // the armoury hut at the front left
   forester: [[-1.05, -.62], [-1.05, -.62], [-1.05, -.62]],   // the hut at the back of the plot: log carriers cross the plot to it     // the adit: in through the timber (stone) portal in the face of the mound
 };
 // buildings the player can turn (walls and gates have their own E–W / N–S rotation); face 0 = +z, 1 = +x, 2 = -z, 3 = -x
@@ -1968,7 +1986,154 @@ function makeFarmhouse(tier) {
   }
   return g;
 }
-const MODELS = { forester: makeForester, mine: makeMine, farmhouse: makeFarmhouse, market: makeMarket, barracks: makeBarracks, house: makeHouse, tower: makeTower, castle: makeCastle, lodge: makeLodge, quarry: makeQuarry, farm: makeFarm,
+
+// ---------- the other defence picks: crossbow tower, ballista, catapult ----------
+// crossbow tower: squat and solid next to the archers' tall lookout, an open fighting top behind a parapet for two crossbowmen:
+// tier 1 a log blockhouse with a plank parapet, tier 2 stone below a timber hoarding under a log canopy, tier 3 stone with
+// battlements and the blue roof on corner piers
+const XBOW_TOP = [2.05, 2.35, 2.65];
+function makeCrossbowTower(tier, plinth) {
+  const g = new THREE.Group(), top = XBOW_TOP[tier - 1], HEAD = 1.55;
+  if (plinth) g.add(box(2.0, 1.8, 2.0, tier === 2 ? M.plainStone : M.stone, 0, -.7, 0));
+  if (tier === 1) {
+    g.add(box(1.5, top - .12, 1.5, M.log, 0, (top - .12) / 2 + .06, 0));
+    for (const sx of [-1, 1]) g.add(box(.06, .3, .02, M.dark, sx * .35, 1.2, .76));
+    g.add(box(1.8, .12, 1.8, M.rough, 0, top - .06, 0));
+    for (const [x, z, w, d] of [[0, .87, 1.8, .06], [0, -.87, 1.8, .06], [.87, 0, .06, 1.8], [-.87, 0, .06, 1.8]]) g.add(box(w, .5, d, M.rough, x, top + .25, z));
+    for (let n = 0; n < 6; n++) { const r = box(.05, .05, .5, M.rough, -.9, .25 + n * .32, -.2); r.rotation.x = 0; g.add(r); }   // ladder rungs up the side
+    for (const sz of [-.42, .02]) g.add(box(.05, top, .05, M.rough, -.92, top / 2, sz - .2));
+  } else if (tier === 2) {
+    g.add(box(1.55, top - 1.0, 1.55, M.plainStone, 0, (top - 1.0) / 2 + .2, 0));
+    g.add(box(1.75, .85, 1.75, M.wood, 0, top - .55, 0));
+    for (const sx of [-1, 1]) g.add(box(.05, .26, .02, M.dark, sx * .36, top - .55, .88));
+    g.add(box(1.85, .1, 1.85, M.timber, 0, top - .07, 0));
+    for (const [x, z, w, d] of [[0, .9, 1.85, .06], [0, -.9, 1.85, .06], [.9, 0, .06, 1.85], [-.9, 0, .06, 1.85]]) g.add(box(w, .5, d, M.timber, x, top + .25, z));
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.08, HEAD, .08, M.timber, sx * .85, top + HEAD / 2, sz * .85));
+    g.add(pyramid(1.45, .7, 1, M.thatch, top + HEAD + .35));
+  } else {
+    g.add(box(1.6, top, 1.6, M.stone, 0, top / 2 + .2, 0));
+    for (const sx of [-1, 1]) g.add(box(.06, .3, .03, M.dark, sx * .38, top * .6, .81));
+    g.add(box(1.85, .14, 1.85, M.stone2, 0, top + .13, 0));
+    for (let n = 0; n < 4; n++) for (const k of [-1, 0, 1]) {               // battlements: merlons with gaps on every side
+      const a = n * Math.PI / 2, [x, z] = [Math.sin(a) * .86 + Math.cos(a) * k * .62, Math.cos(a) * .86 - Math.sin(a) * k * .62];
+      g.add(box(.3, .45, .3, M.stone2, x, top + .42, z));
+    }
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.18, HEAD, .18, M.stone2, sx * .82, top + .2 + HEAD / 2, sz * .82));
+    g.add(pyramid(1.5, .85, 1, M.roofBlue, top + .2 + HEAD + .42));
+  }
+  return g;
+}
+// ballista: a great crossbow on a swivel (userData.turret, turned to the target by its gunner), a bolt laid in it when loaded
+// (userData.bolt): tier 1 a scorpion on a low timber deck, tier 2 a ballista up on a raised timber platform, tier 3 a great
+// ballista on a stone platform with a low battlement
+const BALLISTA_DECK = [.32, 1.16, 1.5], BALLISTA_K = [.85, 1, 1.28];
+function ballistaTurret(k) {
+  const t = new THREE.Group(); t.userData.turret = true;
+  t.add(cyl(.07, .1, .45, 6, M.timber, 0, .22, 0));
+  t.add(box(.16, .13, 1.15, M.wood, 0, .5, .05));                                    // the stock
+  for (const sx of [-1, 1]) { const arm = box(.06, .07, .62, M.timber, sx * .27, .52, .42); arm.rotation.y = sx * 1.05; t.add(arm); }
+  for (const sx of [-1, 1]) t.add(box(.13, .16, .13, ropeM, sx * .09, .52, .52));      // torsion springs either side of the stock
+  t.add(box(.86, .015, .015, ropeM, 0, .56, .2));                                      // the drawn string
+  const bolt = new THREE.Group(); bolt.userData.bolt = true; t.add(bolt);
+  bolt.add(box(.035, .035, .95, M.timber, 0, .6, .15)); const tip = cone(.045, .14, 4, M.iron, 0, .6, .68); tip.rotation.x = Math.PI / 2; bolt.add(tip);
+  const w = cyl(.06, .06, .3, 6, M.timber, 0, .5, -.52); w.rotation.z = Math.PI / 2; t.add(w);
+  for (const sx of [-1, 1]) t.add(box(.03, .18, .03, M.iron, sx * .16, .5, -.52));     // winch handles
+  t.scale.setScalar(k); return t;
+}
+function makeBallista(tier, plinth) {
+  const g = new THREE.Group(), deck = BALLISTA_DECK[tier - 1];
+  if (plinth) g.add(box(2.0, 1.8, 2.0, tier === 2 ? M.plainStone : M.stone, 0, -.7, 0));
+  if (tier === 1) { g.add(box(1.7, .24, 1.7, M.rough, 0, .2, 0)); for (const sx of [-1, 1]) g.add(box(1.7, .06, .12, M.timber, 0, .31, sx * .6)); }
+  else if (tier === 2) {
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.15, deck, .15, M.timber, sx * .72, deck / 2, sz * .72));
+    for (const sz of [-1, 1]) { const x = box(1.5, .08, .08, M.timber, 0, deck * .5, sz * .72); x.rotation.z = .55; g.add(x); }
+    g.add(box(1.85, .12, 1.85, M.wood, 0, deck - .06, 0));
+    for (const [x, z, w, d] of [[.9, 0, .06, 1.85], [-.9, 0, .06, 1.85], [0, .9, 1.85, .06]]) g.add(box(w, .35, d, M.timber, x, deck + .17, z));
+    for (let n = 0; n < 4; n++) g.add(box(.5, .05, .07, M.rough, 0, .2 + n * .27, -.95 - n * .02));   // steps up the back
+  } else {
+    g.add(box(1.8, deck - .2, 1.8, M.stone, 0, (deck - .2) / 2 + .2, 0)); g.add(box(1.9, .1, 1.9, M.stone2, 0, deck - .05, 0));
+    for (const [x, z] of [[.8, .8], [-.8, .8], [.8, -.8], [-.8, -.8], [.8, 0], [-.8, 0], [0, .8]]) g.add(box(.26, .38, .26, M.stone2, x, deck + .19, z));
+    for (let n = 0; n < 5; n++) g.add(box(.45, .1, .22, M.stone2, 0, .25 + n * .27, -1.0 - n * .0));
+  }
+  const t = ballistaTurret(BALLISTA_K[tier - 1]); t.position.y = deck; g.add(t);
+  return g;
+}
+// catapult (tier 1, a torsion arm on a wheeled frame), mangonel (tier 2, bigger, a sling, iron-shod), trebuchet (tier 3, a tall
+// A-frame and a counterweighted arm on skids); the whole engine turns to aim (userData.turret), the arm (userData.arm) swings
+// up to throw and is winched back down while the crew reloads
+const CATA_ARM = [[-1.35, .15], [-1.35, .2], [-2.2, .35]];   // the arm's angle about x: cocked, and at the end of the throw
+function makeCatapult(tier) {
+  const g = new THREE.Group(), e = new THREE.Group(); e.userData.turret = true; g.add(e);
+  const arm = new THREE.Group(); arm.userData.arm = true;
+  if (tier < 3) {
+    const k = tier === 1 ? 1 : 1.15, fm = tier === 1 ? M.rough : M.timber; e.scale.setScalar(k);
+    for (const sx of [-1, 1]) e.add(box(.12, .18, 1.5, fm, sx * .36, .3, 0));
+    for (const z of [-.6, .6]) e.add(box(.84, .12, .12, fm, 0, .3, z));
+    for (const sx of [-1, 1]) for (const z of [-.5, .5]) { const w = cyl(.22, .22, .08, 10, M.wood, sx * .47, .22, z); w.rotation.z = Math.PI / 2; e.add(w); if (tier === 2) { const r = cyl(.225, .225, .03, 10, M.iron, sx * .52, .22, z); r.rotation.z = Math.PI / 2; e.add(r); } }
+    for (const sx of [-1, 1]) e.add(box(.1, .75, .1, fm, sx * .3, .65, .28));
+    e.add(box(.72, .14, .16, fm, 0, 1.02, .28)); e.add(box(.5, .12, .1, M.canvas, 0, 1.02, .2));   // the stop beam, padded
+    const tb = cyl(.13, .13, .62, 8, ropeM, 0, .4, -.32); tb.rotation.z = Math.PI / 2; e.add(tb);
+    arm.position.set(0, .4, -.32); e.add(arm);
+    arm.add(box(.09, 1.25, .09, M.timber, 0, .62, 0));
+    if (tier === 1) arm.add(cyl(.13, .09, .1, 8, M.wood, 0, 1.25, 0));
+    else { arm.add(box(.012, .3, .012, ropeM, .05, 1.38, 0)); arm.add(box(.15, .05, .12, M.canvas, .05, 1.52, 0)); }
+    if (tier === 2) for (const sx of [-1, 1]) e.add(box(.04, .04, 1.52, M.iron, sx * .36, .4, 0));
+    const ball = new THREE.Mesh(new THREE.DodecahedronGeometry(.13, 0), M.stone2); ball.position.set(.5, .2, -.75); ball.castShadow = true; e.add(ball);
+  } else {
+    for (const sx of [-1, 1]) e.add(box(.14, .16, 1.9, M.timber, sx * .5, .1, 0));
+    for (const z of [-.8, .8]) e.add(box(1.14, .12, .14, M.timber, 0, .12, z));
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const l = box(.12, 2.3, .12, M.timber, sx * .5, 1.12, sz * .42); l.rotation.x = -sz * .36; e.add(l); }
+    const ax = cyl(.06, .06, 1.15, 8, M.iron, 0, 2.15, 0); ax.rotation.z = Math.PI / 2; e.add(ax);
+    arm.position.set(0, 2.15, 0); e.add(arm);
+    arm.add(box(.11, 2.7, .11, M.timber, 0, .7, 0));                                  // long end up (+y), short end down
+    arm.add(box(.5, .5, .5, M.wood, 0, -.82, 0)); for (const y of [-.65, -1.0]) arm.add(box(.52, .05, .52, M.iron, 0, y, 0));   // counterweight
+    arm.add(box(.012, .5, .012, ropeM, 0, 2.25, 0)); arm.add(box(.16, .06, .14, M.canvas, 0, 2.5, 0));
+    for (let n = 0; n < 3; n++) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(.15, 0), M.stone2); st.position.set(.75, .15, -.6 + n * .3); st.castShadow = true; e.add(st); }
+    const wn = cyl(.12, .12, .5, 8, M.wood, -.75, .35, -.6); wn.rotation.z = Math.PI / 2; e.add(wn);
+  }
+  arm.rotation.x = CATA_ARM[tier - 1][0];
+  return g;
+}
+
+// stables: a long stable block on the right, open stalls to the front with horses looking out, a small armoury hut at the front
+// left where the riders gear up (the door), hay and a trough; tier 1 a plank shed under old thatch, tier 2 timber under a log roof
+// with a saddle rack and a flag, tier 3 stone below timber under the blue roof, a third horse and a stand of armour
+function makeStables(tier, plinth) {
+  const g = new THREE.Group(), b = plinth ? .2 : SLAB_TOP;
+  if (plinth) g.add(box(4.0, 1.8, 4.0, tier === 2 ? M.plainStone : M.stone, 0, -.7, 0));
+  const wallM = tier === 1 ? M.rough : tier === 2 ? M.wood : M.stone2, roofM = tier === 1 ? M.thatchOld : tier === 2 ? M.thatch : M.roofBlue;
+  const sx0 = -.25, sx1 = 1.9, sz0 = -1.75, sz1 = .1, h = 1.45, cx = (sx0 + sx1) / 2, w = sx1 - sx0, dpt = sz1 - sz0;
+  g.add(box(w, h, .12, wallM, cx, b + h / 2, sz0 + .06));                                   // back wall
+  for (const x of [sx0 + .06, sx1 - .06]) g.add(box(.12, h, dpt, wallM, x, b + h / 2, (sz0 + sz1) / 2));
+  const stalls = tier === 3 ? 3 : 2;
+  for (let n = 1; n < stalls; n++) g.add(box(.08, .9, dpt - .2, M.timber, sx0 + n * w / stalls, b + .45, (sz0 + sz1) / 2));
+  for (let n = 0; n < stalls; n++) {                                                        // half doors and a horse looking over each
+    const x = sx0 + (n + .5) * w / stalls; g.add(box(w / stalls - .14, .55, .06, DOOR_M[tier], x, b + .28, sz1));
+    const hc = [horseM, mat('#3b2a1e'), mat('#8a6a4a')][n % 3];
+    const nk = box(.18, .4, .2, hc, x, b + .85, sz1 - .05); nk.rotation.x = .5; g.add(nk);
+    const hd = box(.15, .16, .36, hc, x, b + 1.02, sz1 + .12); hd.rotation.x = .3; g.add(hd);
+    for (const ex of [-1, 1]) g.add(box(.035, .08, .04, hc, x + ex * .045, b + 1.14, sz1 - .03));
+  }
+  g.add(box(w + .1, .1, .1, M.timber, cx, b + h - .05, sz1));
+  const rf = pyramid(w * .74, .75, dpt / w * 1.25, roofM, b + h + .37, cx, (sz0 + sz1) / 2); g.add(rf);
+  // the armoury hut at the front left, its door the building's
+  const hx = -1.05, hz = .2, hw = 1.05, hd = .85, hh = 1.25;
+  g.add(box(hw, hh, hd, tier === 3 ? M.stone2 : wallM, hx, b + hh / 2, hz));
+  g.add(pyramid(hw * .78, .6, hd / hw * 1.05, roofM, b + hh + .3, hx, hz));
+  g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[tier], -1, b + DOOR_H / 2, .4 + .23));
+  g.add(cyl(.3, .32, .4, 8, M.hay, -1.45, b + .2, -1.1)); g.add(box(.7, .2, .25, M.wood, -.65, b + .1, -1.2));   // hay and a trough
+  if (tier >= 2) {
+    g.add(box(.5, .06, .08, M.timber, .6, b + .7, .75)); for (const x of [.4, .8]) g.add(box(.06, .7, .06, M.timber, x, b + .35, .75));   // saddle rack
+    g.add(box(.22, .12, .3, saddleM, .6, b + .78, .75));
+    g.add(box(.04, 1.1, .04, M.timber, cx, b + h + .75 + .5, (sz0 + sz1) / 2)); g.add(flagBox(.42, .26, .02, M.flag, cx + .22, b + h + 1.15, (sz0 + sz1) / 2));
+  }
+  if (tier === 3) {                                                                          // a stand of armour beside the armoury
+    g.add(box(.05, 1.0, .05, M.timber, -.35, b + .5, .85)); g.add(cyl(.15, .19, .4, 8, mailM, -.35, b + .85, .85)); g.add(cyl(.15, .2, .3, 8, kiteM, -.35, b + .62, .85));
+    const hm = new THREE.Mesh(new THREE.SphereGeometry(.12, 10, 6, 0, Math.PI * 2, 0, Math.PI * .55), steelM); hm.position.set(-.35, b + 1.12, .85); g.add(hm);
+  }
+  return g;
+}
+const MODELS = { stables: makeStables, crossbow: makeCrossbowTower, ballista: makeBallista, catapult: makeCatapult, forester: makeForester, mine: makeMine, farmhouse: makeFarmhouse, market: makeMarket, barracks: makeBarracks, house: makeHouse, tower: makeTower, castle: makeCastle, lodge: makeLodge, quarry: makeQuarry, farm: makeFarm,
   wall: makeWall, gate: makeGate, well: makeWell, torch: makeTorch, flowers: makeFlowers, statue: makeStatue };
 // grit: every mesh gets a slightly different, weathered copy of its material; tier 1 is dirtier and duller
 const aoTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
@@ -1990,7 +2155,7 @@ function tinted(m, tier, n) {
   return t;
 }
 const makeModel = (type, tier, plinth, mask, rot = 0, fixed = false) => {
-  const g = MODELS[type](tier, plinth && tier >= 2 && !DEF[type].plot && !DEF[type].decor, mask, rot, fixed), tt = DEF[type].decor ? 2 : tier;
+  const g = MODELS[type](tier, plinth && tier >= 2 && !DEF[type].plot && !DEF[type].decor && !DEF[type].noPlinth, mask, rot, fixed), tt = DEF[type].decor ? 2 : tier;
   if (plinth && tier === 1 && SLAB[type]) { const w = DEF[type].size * CELL; g.add(box(w, 1.0, w, M.court, 0, SLAB_TOP - .5, 0)); }   // a metre deep: ground lowered by a neighbour never opens a gap
   if (!NO_AO[type]) { const w = DEF[type].size * CELL + 1.3, ao = new THREE.Mesh(new THREE.PlaneGeometry(w, w).rotateX(-Math.PI / 2), aoMat); ao.position.y = .04; ao.userData.ao = true; g.add(ao); }
   let n = 0;
@@ -2002,9 +2167,9 @@ const makeModel = (type, tier, plinth, mask, rot = 0, fixed = false) => {
 };
 
 // stone bases fill their tiles exactly; this is how far each one's top sits above the building's ground level
-const PLINTH_TOP = { mine: .2, market: .2, house: .1, tower: .2, castle: .2, lodge: .2, quarry: .2, barracks: .2 };
+const PLINTH_TOP = { stables: .2, crossbow: .2, ballista: .2, mine: .2, market: .2, house: .1, tower: .2, castle: .2, lodge: .2, quarry: .2, barracks: .2 };
 // tier 1 stands on a packed-earth slab like the palisade fort's yard, filling its tiles so neighbours meet edge to edge
-const SLAB = { mine: 1, market: 1, house: 1, lodge: 1, quarry: 1, castle: 1, barracks: 1, tower: 1 }, SLAB_TOP = .08;
+const SLAB = { stables: 1, crossbow: 1, ballista: 1, mine: 1, market: 1, house: 1, lodge: 1, quarry: 1, castle: 1, barracks: 1, tower: 1 }, SLAB_TOP = .08;
 const plinthTop = (type, tier) => tier === 1 ? (SLAB[type] ? SLAB_TOP : null) : PLINTH_TOP[type];
 // a stone-based building placed edge to edge with another settles at the height that makes the two stone tops flush,
 // so a row of buildings reads as one continuous platform (only if that is within reach of the ground it stands on)
@@ -2043,7 +2208,6 @@ function makeGhost(t) {
   const g = MODELS[t](1, false, 0, placeRot); g.traverse(o => { if (o.isMesh) { o.material = ghostMat; o.castShadow = false; } });
   g.visible = false; scene.add(g); ghosts[t] = g;
 }
-for (const t in DEF) if (t !== 'castle') makeGhost(t);
 function makeLine(color, opacity) {
   const l = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color, transparent: true, opacity, depthTest: false, toneMapped: false }));
   l.renderOrder = 10; l.visible = false; scene.add(l); return l;
@@ -2340,7 +2504,7 @@ function place(type, ci, cj, opts = {}) {
   for (let b = cj; b < cj + ev.s; b++) for (let a = ci; a < ci + ev.s; a++) { occB[b * N + a] = B; if (type !== 'gate') road[b * N + a] = 0; }
   const c = center(B), now = performance.now();
   const g = makeModel(type, 1, adapt, 0, B.rot); g.userData.B = B; B.group = g;
-  if (adapt && type !== 'wall') {
+  if (adapt && type !== 'wall' && !T.movable) {          // walls follow the slope; a movable engine leaves the ground as it is
     const plan = planFlatten(ev, T.falloff || F);
     plan.verts.forEach(v => { if (v.inside) lock[v.k] = 1; });
     if (opts.instant) applyPlan(plan, 1); else anims.push({ plan, t0: now, dur: 450 });
@@ -2532,6 +2696,12 @@ function makeTool(kind) {
     }
     const tipY = R - R * Math.cos(TH), tipZ = R * Math.sin(TH);
     p.add(box(.008, .008, tipZ * 2, M.canvas, 0, tipY, 0));
+    return p;
+  }
+  if (kind === 'crossbow') {            // stock along the hand's line (forward when the arm is raised), the prod across its far end
+    p.add(box(.05, .5, .06, M.wood, 0, -.12, 0)); p.add(box(.44, .04, .05, M.timber, 0, -.36, 0));
+    for (const sx of [-1, 1]) { const st = box(.008, .2, .008, ropeM, sx * .11, -.28, 0); st.rotation.z = sx * .95; p.add(st); }
+    p.add(box(.07, .03, .07, M.iron, 0, -.4, 0));
     return p;
   }
   if (kind === 'spear') {               // long ash shaft with an iron head at the -y end (forward when the arm is raised)
@@ -3251,7 +3421,7 @@ function updateVillagers(dt, now) {
             else { v.g.visible = false; showDefender(P.B, P.a); }
           }
         } else if (v.kitT > 0) {                    // changing inside the barracks; out again armed
-          if (!v.g.visible && !v.doorWalk && (v.kitT -= dt) <= 0) { soldierKit(v, v.post.B.tier); v.sbar = v.sbar || makeBar(.6); v.prog = null; v.indoor = v.post.B; exitDoor(v); }
+          if (!v.g.visible && !v.doorWalk && (v.kitT -= dt) <= 0) { soldierKit(v, v.post.B.tier, DEF[v.post.B.type].cavalry); v.sbar = v.sbar || makeBar(.6); v.prog = null; v.indoor = v.post.B; exitDoor(v); }
         } else if (v.soldier) updateSoldier(v, dt);
       } else if (!v.inside) {                       // everyone else shelters in the castle
         release(v); v.visit = null; if (v.state === 'building') v.state = 'tobuild';
@@ -3282,8 +3452,13 @@ function updateVillagers(dt, now) {
     }
     if (!v.doorWalk && (v.inside || v.hideT > 0 || (v.posted && !v.soldier) || v.sleeping || !v.g.visible)) continue;
     const amp = stride(v, dt, 9), swing = Math.sin(v.phase) * .6 * amp;
-    v.legs[0].rotation.x = swing; v.legs[1].rotation.x = -swing;
-    v.body.position.y = Math.abs(Math.sin(v.phase)) * .05 * amp;
+    if (v.horse) {                                                    // a rider: legs astride, the horse's diagonal pairs stride
+      v.legs[0].rotation.set(-1.2, 0, -.55); v.legs[1].rotation.set(-1.2, 0, .55); v.body.position.y = SADDLE + Math.abs(Math.sin(v.phase * 1.4)) * .04 * amp;
+      v.horseLegs.forEach((l, i) => { l.rotation.x = (i === 0 || i === 3 ? 1 : -1) * Math.sin(v.phase * 1.4) * .8 * amp; });
+    } else {
+      v.legs[0].rotation.x = swing; v.legs[1].rotation.x = -swing;
+      v.body.position.y = Math.abs(Math.sin(v.phase)) * .05 * amp;
+    }
     const cheer = v.cheerT > 0 && !v.build && !v.working; if (v.cheerT > 0) v.cheerT -= dt;
     if (v.seed === undefined) v.seed = Math.random() * 6.283;    // fixed per villager: v.phase runs on with the stride, which would speed up swings
     if (cheer) v.body.position.y += Math.abs(Math.sin(now / 1000 * 9 + v.seed)) * .14;
@@ -3331,7 +3506,7 @@ const shieldM = mat('#5a2a1e');
 // the raider captain rides: a horse under the rider, who sits astride with legs to either side
 const horseM = mat('#5a3a22'), maneM = mat('#2a1d14'), saddleM = mat('#3a2418'), blanketM = mat('#8a221c'), hoofM = mat('#1f1a16');
 const SADDLE = .72;   // lifts the rider's body so the hips sit on the saddle
-function mountHorse(p) {
+function mountHorse(p, cloth = blanketM) {
   const h = new THREE.Group(); p.g.add(h);
   h.add(box(.34, .36, .92, horseM, 0, .78, 0));                                   // barrel
   const neck = box(.2, .46, .22, horseM, 0, 1.06, .48); neck.rotation.x = .55; h.add(neck);
@@ -3339,7 +3514,7 @@ function mountHorse(p) {
   const mane = box(.05, .42, .1, maneM, 0, 1.1, .4); mane.rotation.x = .55; h.add(mane);
   for (const sx of [-1, 1]) h.add(box(.04, .08, .05, horseM, sx * .05, 1.34, .62));  // ears
   const tail = box(.07, .45, .07, maneM, 0, .76, -.5); tail.rotation.x = -.35; h.add(tail);
-  h.add(box(.38, .06, .4, blanketM, 0, .97, -.02)); h.add(box(.3, .08, .3, saddleM, 0, 1.01, -.02));
+  h.add(box(.38, .06, .4, cloth, 0, .97, -.02)); h.add(box(.3, .08, .3, saddleM, 0, 1.01, -.02));
   p.horseLegs = [[-1, 1], [1, 1], [-1, -1], [1, -1]].map(([sx, sz]) => {
     const pv = new THREE.Group(); pv.position.set(sx * .12, .62, sz * .36); h.add(pv);
     const l = box(.09, .58, .09, horseM, 0, -.29, 0); pv.add(l); pv.add(box(.1, .06, .1, hoofM, 0, -.58, 0));
@@ -3443,21 +3618,31 @@ function bowPose(p, draw, loose, L0, R0) {
   else if (loose) { l.rotation.set(-1.5, 0, .6); r.rotation.set(-1.0, 0, .2); }
   else { l.rotation.set(L0, 0, 0); r.rotation.set(R0, 0, 0); }
 }
+// crossbowmen: the crossbow levelled at the shoulder with both hands to shoot; between shots it is held low to span and reload
+function xbowPose(p, aim) {
+  const [l, r] = p.arms;
+  if (aim) { l.rotation.set(-1.4, 0, .42); r.rotation.set(-1.5, 0, -.05); }
+  else { const c = Math.sin(performance.now() / 160 + p.phase) * .25; l.rotation.set(-.55 + c, 0, .3); r.rotation.set(-.45, 0, 0); }
+}
+function xbowPoint(p) { xbowPose(p, true); p.g.updateMatrixWorld(true); return (p.pivot || p.arms[1]).localToWorld(new THREE.Vector3(0, -.38, 0)); }
 function bowPoint(p) {
   p.arms[0].rotation.x = -1.5; p.arms[0].rotation.z = .6; p.g.updateMatrixWorld(true);
   return (p.pivot || p.arms[0]).getWorldPosition(new THREE.Vector3());
 }
-function fireArrow(from, to, onHit, arc) {
-  const m = new THREE.Mesh(arrowGeo, arrowMat); m.castShadow = true; m.position.copy(from); scene.add(m);
+// kind: an arrow (default), 'qbolt' a crossbow's short bolt, 'bolt' a ballista's, 'stone' a catapult's (slow, high)
+const SHOT = { qbolt: { geo: new THREE.BoxGeometry(.035, .035, .42), speed: 26 }, bolt: { geo: new THREE.BoxGeometry(.075, .075, 1.3), speed: 30 },
+  stone: { geo: new THREE.DodecahedronGeometry(.17, 0), speed: 13, m: M.stone2 } };
+function fireArrow(from, to, onHit, arc, kind) {
+  const K = SHOT[kind], m = new THREE.Mesh(K ? K.geo : arrowGeo, K && K.m || arrowMat); m.castShadow = true; m.position.copy(from); scene.add(m);
   const d = from.distanceTo(to);
-  arrows.push({ m, from: from.clone(), to: to.clone(), t: 0, dur: Math.max(.25, d / 22), arc: arc || Math.min(3, d * .15), onHit }); sfx('arrow', from);
+  arrows.push({ m, from: from.clone(), to: to.clone(), t: 0, dur: Math.max(.25, d / (K ? K.speed : 22)), arc: arc || Math.min(3, d * .15), onHit, spin: kind === 'stone' }); sfx('arrow', from, kind === 'stone' ? .5 : 1);
 }
 const tv = new THREE.Vector3();
 function arrowPos(a, t, out) { out.lerpVectors(a.from, a.to, t); out.y += a.arc * 4 * t * (1 - t); return out; }
 function updateArrows(dt) {
   for (let n = arrows.length - 1; n >= 0; n--) {
     const a = arrows[n]; a.t += dt / a.dur;
-    const t = Math.min(a.t, 1); arrowPos(a, t, a.m.position); a.m.lookAt(arrowPos(a, Math.min(t + .03, 1.03), tv));
+    const t = Math.min(a.t, 1); arrowPos(a, t, a.m.position); if (a.spin) a.m.rotation.x += dt * 6; else a.m.lookAt(arrowPos(a, Math.min(t + .03, 1.03), tv));
     if (a.t >= 1) { scene.remove(a.m); arrows.splice(n, 1); a.onHit(); }
   }
 }
@@ -3548,7 +3733,7 @@ function reachTarget(e, ok) {
 function pickTarget(e) {
   e.field = null; e.tpNew = null;
   if (e.kind === 'captain') { const K = castleB(); return K && reachTarget(e, B => B === K) || reachTarget(e) || nearestBuilding(e.x, e.z); }
-  if (e.kind === 'sword') return reachTarget(e, B => B.type === 'tower') || reachTarget(e) || nearestBuilding(e.x, e.z);
+  if (e.kind === 'sword') return reachTarget(e, B => B.type !== 'castle' && (DEF[B.type].archers || DEF[B.type].crew)) || reachTarget(e) || nearestBuilding(e.x, e.z);
   if (e.kind === 'archer') return reachTarget(e, NOT_WALL) || reachTarget(e) || nearestBuilding(e.x, e.z);
   return reachTarget(e) || nearestBuilding(e.x, e.z);
 }
@@ -3628,12 +3813,17 @@ const POSTS = {
     [[-.45, 4.8, -.4], [.45, 4.8, -.4], [0, 2.4, -2.1], [2.1, 2.4, 0], [-2.1, 2.4, 0]],   // two on the keep, one on each wall-walk except the gate side
   ].map((L, i) => L.map(([x, y, z]) => [x * CASTLE_K[i], y, z * CASTLE_K[i]])),
 };
+// crossbowmen on the fighting top; siege crews: the loader at the winch, the gunner behind (ballista on its deck, catapult on the ground)
+POSTS.crossbow = XBOW_TOP.map(y => [[.35, y, .22], [-.35, y, -.22]]);
+POSTS.ballista = BALLISTA_DECK.map((y, i) => [[.55 * BALLISTA_K[i], y, -.3], [-.2, y, -.7 * BALLISTA_K[i]]]);
+POSTS.catapult = [[[.72, 0, -.4], [-.62, 0, .15]], [[.8, 0, -.45], [-.7, 0, .15]], [[-.85, 0, -.62], [.85, 0, .5]]];
 function postOffset(B, a) { const L = POSTS[B.type][B.tier - 1], [x, y, z] = L[a % L.length], [rx, rz] = faceRot(B.face || 0, x, z); return [rx, y, rz]; }
 function showDefender(B, a) {
   B.figs = B.figs || [];
-  if (!B.figs[a]) { B.figs[a] = makePerson({ tool: 'bow' }); armour(B.figs[a], B.tier); }
-  const f = B.figs[a], o = postOffset(B, a), c = center(B);
-  f.g.position.set(c.x + o[0], B.group.position.y + o[1], c.z + o[2]); f.g.rotation.y = Math.atan2(o[0] || .01, o[2] || .01); f.g.visible = true;
+  // the same armour on every defender of the tier; the weapon by post: bow, crossbow, or none for a siege crew
+  if (!B.figs[a]) { const T = DEF[B.type]; B.figs[a] = makePerson({ tool: T.crew ? null : T.weapon || 'bow' }); armour(B.figs[a], B.tier); }
+  const f = B.figs[a], o = postOffset(B, a), c = B.move ? B.group.position : center(B);
+  f.g.position.set(c.x + o[0], B.group.position.y + o[1], c.z + o[2]); f.g.rotation.y = DEF[B.type].crew ? Math.atan2(-o[0], -o[2]) : Math.atan2(o[0] || .01, o[2] || .01); f.g.visible = true;
 }
 function hideDefenders(B) { (B.figs || []).forEach(f => f && scene.remove(f.g)); B.figs = []; }
 function postPoint(B, v) {
@@ -3645,11 +3835,15 @@ function postPoint(B, v) {
 function assignPosts() {
   const slots = [];
   // manned in priority order: the castle, then archer towers, then barracks with whoever is left (a barracks may go short)
-  const rank = B => B.type === 'castle' ? 0 : DEF[B.type].archers ? 1 : 2;
-  const order = buildings.filter(B => (DEF[B.type].archers || DEF[B.type].soldiers) && B.built).sort((a, b) => rank(a) - rank(b));
-  for (const B of order) { const T = DEF[B.type]; B.manned = B.manned || []; for (let a = 0; a < (T.archers || T.soldiers)[B.tier - 1]; a++) if (!villagers.some(v => v.post && !v.post.fled && v.post.B === B && v.post.a === a)) slots.push({ B, a }); }
+  const rank = B => B.type === 'castle' ? 0 : DEF[B.type].archers ? 1 : DEF[B.type].crew ? 1.5 : 2;
+  const order = buildings.filter(B => (DEF[B.type].archers || DEF[B.type].soldiers || DEF[B.type].crew) && B.built).sort((a, b) => rank(a) - rank(b));
+  for (const B of order) { const T = DEF[B.type]; B.manned = B.manned || []; for (let a = 0; a < (T.archers || T.soldiers || T.crew)[B.tier - 1]; a++) if (!villagers.some(v => v.post && !v.post.fled && v.post.B === B && v.post.a === a)) slots.push({ B, a }); }
   let posted = 0;
+  const free = () => villagers.filter(v => !v.post && !v.sleeping).length;
   for (const S of slots) {
+    // a siege engine is no use half-crewed: its crew is posted as a pair or not at all
+    if (DEF[S.B.type].crew && S.a === 0 && free() < 2 && !villagers.some(v => v.post && v.post.B === S.B)) continue;
+    if (DEF[S.B.type].crew && S.a === 1 && !villagers.some(v => v.post && v.post.B === S.B && v.post.a === 0)) continue;
     const c = center(S.B); let best = null, bd = 1e9;
     for (const v of villagers) if (!v.post && !v.sleeping) { const d = Math.hypot(v.x - c.x, v.z - c.z) + (v.job ? 10 : 0); if (d < bd) { bd = d; best = v; } }
     if (!best) break;
@@ -3684,10 +3878,13 @@ function armour(p, tier) {
 }
 // ---------- barracks soldiers: villagers who muster at a barracks at night, gear up by its tier and fight raiders hand to hand ----------
 const SOLDIER = { hp: [70, 100, 140], dmg: [7, 10, 14], rate: .9, names: ['Militia', 'Guard', 'Man-at-arms'] };
+// the stables' riders: tougher and harder hitting, and they ride at RIDER.speed times a soldier's pace
+const RIDER = { hp: [110, 150, 200], dmg: [9, 13, 18], rate: .8, speed: 2.1, names: ['Rider', 'Lancer', 'Knight'] };
+const ridingM = mat('#2f4f86');   // the town's blue saddle cloth
 const SQUAD = [[0, 0], [-.8, -.5], [.8, -.5]];      // where the three stand round their spot
 var respawns = [], fallen = [];                     // fallen soldiers come back as villagers after 60 s of daylight
 // the tier's armour (armour()); tier 1 militia: spear; tier 2 guard: spear and a round wooden shield; tier 3 man-at-arms: sword and a blue kite shield
-function soldierKit(v, tier) {
+function soldierKit(v, tier, cav) {
   if (v.kit) v.kit.forEach(o => o.parent && o.parent.remove(o));
   v.kit = []; v.kitTier = tier;
   const put = o => { o.castShadow = true; v.body.add(o); v.kit.push(o); return o; };
@@ -3696,17 +3893,19 @@ function soldierKit(v, tier) {
   if (tier > 1) { const sh = armShield(v, tier === 2 ? roundShield(.19, M.wood) : heaterShield(.3, .44, kiteM, steelM)); sh.castShadow = true; v.kit.push(sh); }
   if (v.pivot) v.pivot.parent.remove(v.pivot);
   v.toolKind = tier === 3 ? 'sword' : 'spear'; v.pivot = makeTool(v.toolKind); v.arms[1].add(v.pivot);
-  v.soldier = true; v.maxHp = v.hp = SOLDIER.hp[tier - 1];
+  v.soldier = true; v.cav = !!cav; v.maxHp = v.hp = (cav ? RIDER : SOLDIER).hp[tier - 1];
+  if (cav && !v.horse) { mountHorse(v, ridingM); v.kit.push(v.horse); }
 }
 function stripKit(v) {
   if (v.kit) { v.kit.forEach(o => o.parent && o.parent.remove(o)); v.kit = null; }
-  v.soldier = false; v.foe = null; giveTool(v, toolFor(v));
+  if (v.horse) { v.horse = null; v.horseLegs = null; v.body.position.y = 0; v.legs.forEach(l => l.rotation.set(0, 0, 0)); }
+  v.soldier = false; v.cav = false; v.foe = null; giveTool(v, toolFor(v));
   if (v.sbar) v.sbar.grp.visible = false;
 }
 function nearestSoldier(x, z, r) { let best = null, bd = r; for (const v of villagers) if (v.soldier && v.g.visible) { const d = Math.hypot(v.x - x, v.z - z); if (d < bd) { bd = d; best = v; } } return best; }
 // hold the barracks door (or the rally flag); go for raiders that come within 6 m of it, give up on any that lead them 9 m away
 function updateSoldier(v, dt) {
-  const B = v.post.B, k = v.kitTier - 1;
+  const B = v.post.B, k = v.kitTier - 1, S = v.cav ? RIDER : SOLDIER, ride = v.cav ? RIDER.speed : 1;
   v.attackT = Math.max(0, (v.attackT || 0) - dt); v.cool = (v.cool || 0) - dt;
   const base = (!v.post.fled && B.rally) || doorPoint(B), [ox, oz] = SQUAD[v.post.a % 3], hx = base.x + ox, hz = base.z + oz;
   if (v.skip && (v.skip.t -= dt) <= 0) v.skip = null;
@@ -3715,10 +3914,10 @@ function updateSoldier(v, dt) {
   if (foe !== v.foe) v.prog = null;
   v.foe = foe;
   if (foe) {
-    const reach = (v.toolKind === 'spear' ? 1.15 : .9) + (foe.horse ? .3 : 0), d = Math.hypot(foe.x - v.x, foe.z - v.z);
-    if (d > reach) { walkTo(v, foe.x, foe.z, dt, 1, reach * .9, 1.25); if (v.noProg > 4) { v.skip = { e: foe, t: 4 }; v.foe = null; } }    // can't reach that one
-    else { turnTo(v, Math.atan2(foe.x - v.x, foe.z - v.z), dt); if (v.cool <= 0) { v.cool = SOLDIER.rate; v.attackT = v.toolKind === 'spear' ? SPEAR_T : SWORD_T; hurtEnemy(foe, SOLDIER.dmg[k]); sfx('clash', v); } }
-  } else if (Math.hypot(hx - v.x, hz - v.z) > .35) walkTo(v, hx, hz, dt, 1, .3, 1.3);
+    const reach = (v.toolKind === 'spear' ? 1.15 : .9) + (foe.horse ? .3 : 0) + (v.cav ? .35 : 0), d = Math.hypot(foe.x - v.x, foe.z - v.z);
+    if (d > reach) { walkTo(v, foe.x, foe.z, dt, 1, reach * .9, 1.25 * ride); if (v.noProg > 4) { v.skip = { e: foe, t: 4 }; v.foe = null; } }    // can't reach that one
+    else { turnTo(v, Math.atan2(foe.x - v.x, foe.z - v.z), dt); if (v.cool <= 0) { v.cool = S.rate; v.attackT = v.toolKind === 'spear' ? SPEAR_T : SWORD_T; hurtEnemy(foe, S.dmg[k]); sfx('clash', v); } }
+  } else if (Math.hypot(hx - v.x, hz - v.z) > .35) walkTo(v, hx, hz, dt, 1, .3, 1.3 * ride);
 }
 // dawn: back to the barracks, in, out of the kit, out again to the day's work (a lost barracks: change where they stand)
 // a change of job (or to and from building) means a change of clothes, on the spot: the villager stops, bends down,
@@ -3743,7 +3942,8 @@ function hurtSoldier(v, d) {
   v.hp -= d;
   if (v.hp > 0) return;
   // fallen: out of the town's count; a villager comes back to the same home after 60 s of daylight
-  log(`<b>${SOLDIER.names[v.kitTier - 1]}</b> fallen`, 'warn'); stats.fallen++;
+  if (v.horse) stripKit(v);
+  log(`<b>${(v.cav ? RIDER : SOLDIER).names[v.kitTier - 1]}</b> fallen`, 'warn'); stats.fallen++;
   if (v.post && !v.post.fled && v.post.B.manned) v.post.B.manned[v.post.a] = false;
   release(v); villagers.splice(villagers.indexOf(v), 1); if (v.sbar) scene.remove(v.sbar.grp);
   respawns.push({ home: v.home, t: 60 }); fallen.push({ v, t: 0 });
@@ -3764,6 +3964,37 @@ function updateFallen(dt) {
 }
 // rally: the barracks card's Rally, then a tap on the ground; a blue flag marks the spot
 var rallyFor = null;
+// a catapult rolls, slowly (MOVE_SPEED m/s), to a tile picked after Move on its card: along a walkable route, cell by cell
+// (it holds the cell it is in), the engine turned to its way; it can't shoot on the move, and stops short if the way is built over
+var moveFor = null; const MOVE_SPEED = .45;
+function startMove(B, ci, cj) {
+  if (ci === B.ev.ci && cj === B.ev.cj) { B.move = null; return; }
+  const own = B.ev.cj * N + B.ev.ci; occB[own] = null; regionDirty = true;
+  const ev = evaluate(B.type, ci, cj, true), path = ev.ok ? findPath(center(B).x, center(B).z, (ci + .5) * CELL, (cj + .5) * CELL, 1) : null;
+  occB[own] = B; regionDirty = true;
+  if (!ev.ok) return setHint(ev.reason, 'bad');
+  if (!path) return setHint('No way there', 'bad');
+  B.move = { pts: [...path, { x: (ci + .5) * CELL, z: (cj + .5) * CELL }] }; setHint('Moving'); sfx('click');
+}
+function updateMoves(dt) {
+  for (const B of buildings) {
+    const mv = B.move; if (!mv || B.dead) continue;
+    const g = B.group.position, p = mv.pts[0], dx = p.x - g.x, dz = p.z - g.z, d = Math.hypot(dx, dz), st = Math.min(d, MOVE_SPEED * dt);
+    if (B.turret) B.turret.rotation.y += Math.atan2(Math.sin(Math.atan2(dx, dz) - B.group.rotation.y - B.turret.rotation.y), Math.cos(Math.atan2(dx, dz) - B.group.rotation.y - B.turret.rotation.y)) * Math.min(1, dt * 3);
+    if (d > 1e-3) { g.x += dx / d * st; g.z += dz / d * st; g.y = hAt(g.x, g.z); }
+    if (d - st < .02) mv.pts.shift();
+    const n = cellAt(g.x, g.z), own = B.ev.cj * N + B.ev.ci;
+    if (n !== own) {                                       // into the next cell: take it, or stop where it is if it is taken
+      if ((occB[n] && occB[n] !== B) || bridgeCell[n]) { g.x = center(B).x; g.z = center(B).z; g.y = hAt(g.x, g.z); B.move = null; setHint('Blocked', 'bad'); continue; }
+      occB[own] = null; occB[n] = B;
+      const ci = n % N, cj = (n / N) | 0; Object.assign(B.ev, { ci, cj, x0: ci * CELL, z0: cj * CELL, x1: (ci + 1) * CELL, z1: (cj + 1) * CELL });
+      regionDirty = true; villagers.forEach(v => v.path = null); rebuildRoads();
+      if (selected === B) { select(B); rangeKey = ''; }
+    }
+    if (!mv.pts.length) { const c = center(B); g.set(c.x, hAt(c.x, c.z), c.z); B.move = null; }
+    (B.manned || []).forEach((on, a) => on && showDefender(B, a));     // the crew walks with it
+  }
+}
 function setRally(B, pt) {
   if (B.rallyFlag) scene.remove(B.rallyFlag);
   if (!pt) { B.rally = null; B.rallyFlag = null; return; }
@@ -3773,7 +4004,8 @@ function setRally(B, pt) {
 }
 function updateDefense(dt) {
   for (const B of buildings) {
-    const T = DEF[B.type]; if (!T.range) continue;
+    const T = DEF[B.type]; if (!T.range || !B.built) continue;
+    if (T.crew) { updateSiege(B, T, dt); continue; }
     const k = B.tier - 1, n = T.archers[k], c = center(B), R = T.range[k];
     while (B.cool.length < n) B.cool.push(Math.random() * T.rate[k]);
     let best = null, bd = R;
@@ -3783,7 +4015,7 @@ function updateDefense(dt) {
       f.attackT = Math.max(0, (f.attackT || 0) - dt);
       const draw = best && !(f.attackT > 0) && B.cool[a] < DRAW;
       if (draw) f.g.rotation.y = Math.atan2(best.x - f.g.position.x, best.z - f.g.position.z);
-      bowPose(f, draw, f.attackT > 0, -.9, -.6);
+      if (T.weapon === 'crossbow') xbowPose(f, draw || f.attackT > 0); else bowPose(f, draw, f.attackT > 0, -.9, -.6);
     });
     for (let a = 0; a < n; a++) {
       if (!(B.manned && B.manned[a])) continue;
@@ -3792,11 +4024,52 @@ function updateDefense(dt) {
       B.cool[a] = T.rate[k] * (.9 + Math.random() * .2);
       const f = B.figs && B.figs[a];
       if (f) { f.g.rotation.y = Math.atan2(best.x - f.g.position.x, best.z - f.g.position.z); f.attackT = .3; }
-      const from = f ? bowPoint(f) : new THREE.Vector3(c.x, B.group.position.y + T.shootY[k], c.z);
+      const from = f ? (T.weapon === 'crossbow' ? xbowPoint(f) : bowPoint(f)) : new THREE.Vector3(c.x, B.group.position.y + T.shootY[k], c.z);
       const lead = best.walking ? .5 : 0, to = new THREE.Vector3(best.x + Math.sin(best.g.rotation.y) * lead, best.g.position.y + .7, best.z + Math.cos(best.g.rotation.y) * lead);
       const tgt = best, dmg = T.dmg[k];
-      fireArrow(from, to, () => hurtEnemy(tgt, dmg));
+      fireArrow(from, to, () => hurtEnemy(tgt, dmg), T.weapon === 'crossbow' ? .3 : 0, T.weapon === 'crossbow' ? 'qbolt' : null);
     }
+  }
+}
+// siege engines work only with both crew posted: the gunner turns the engine (or the ballista's swivel) onto the nearest raider
+// in reach (not closer than minRange), it shoots when lined up, then the loader winches it back for the reload time
+function updateSiege(B, T, dt) {
+  const k = B.tier - 1, c = center(B), R = T.range[k], mn = T.minRange || 0, crew = !!(B.manned && B.manned[0] && B.manned[1]) && !B.move;
+  if (B.partsOn !== B.group) { B.partsOn = B.group; B.turret = B.arm = B.bolt = null; B.group.traverse(o => { if (o.userData.turret) B.turret = o; if (o.userData.arm) B.arm = o; if (o.userData.bolt) B.bolt = o; }); }
+  if (B.cd === undefined) B.cd = T.rate[k];
+  if (crew && B.cd > 0) B.cd -= dt;
+  B.fireT = Math.max(0, (B.fireT || 0) - dt);
+  let best = null, bd = R;
+  if (crew) for (const e of enemies) if (!e.dead) { const d = Math.hypot(e.x - c.x, e.z - c.z); if (d < bd && d >= mn) { bd = d; best = e; } }
+  let aimed = false;
+  if (best && B.turret) {
+    const want = Math.atan2(best.x - c.x, best.z - c.z) - B.group.rotation.y, cur = B.turret.rotation.y;
+    let da = Math.atan2(Math.sin(want - cur), Math.cos(want - cur)); const step = (B.type === 'catapult' ? .7 : 1.6) * dt;
+    B.turret.rotation.y = cur + clamp(da, -step, step); aimed = Math.abs(da) < .12;
+  }
+  const loadK = clamp(1 - B.cd / T.rate[k], 0, 1);
+  if (B.arm) { const [cock, thrown] = CATA_ARM[k]; B.arm.rotation.x = B.fireT > 0 ? lerp(thrown, cock, Math.pow(B.fireT / .35, 2)) : lerp(thrown, cock, sstep(0, 1, loadK)); }
+  if (B.bolt) B.bolt.visible = loadK > .6;
+  (B.figs || []).forEach((f, a) => {
+    if (!f || !f.g.visible) return;
+    const [l, r] = f.arms;
+    if (a === 0) { const w = B.cd > 0 && crew ? Math.sin(performance.now() / 140) : 0; l.rotation.set(-1.1 + w * .5, 0, 0); r.rotation.set(-1.1 - w * .5, 0, 0); f.g.rotation.y = Math.atan2(c.x - f.g.position.x, c.z - f.g.position.z); }
+    else { l.rotation.set(-1.3, 0, .2); r.rotation.set(-1.3, 0, -.2); if (best) f.g.rotation.y = Math.atan2(best.x - f.g.position.x, best.z - f.g.position.z); }
+  });
+  if (!crew || !best || !aimed || B.cd > 0) return;
+  B.cd = T.rate[k] * (.92 + Math.random() * .16); B.fireT = .35;
+  const yaw = B.group.rotation.y + B.turret.rotation.y, dir = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw)), dmg = T.dmg[k];
+  if (B.type === 'ballista') {                                    // a bolt down the line: everyone within .7 m of it, out to full range
+    B.turret.updateMatrixWorld(true); const from = B.turret.localToWorld(new THREE.Vector3(0, .6, .7));
+    const to = from.clone().addScaledVector(dir, R); to.y = walkY(to.x, to.z) + .6;
+    fireArrow(from, to, () => { for (const e of enemies) if (!e.dead) { const ex = e.x - from.x, ez = e.z - from.z, u = clamp(ex * dir.x + ez * dir.z, 0, R); if (Math.hypot(ex - dir.x * u, ez - dir.z * u) < .7) hurtEnemy(e, dmg); } dustAt(to.x, walkY(to.x, to.z), to.z); }, .25, 'bolt');
+  } else {                                                        // a stone lobbed high onto where they will be: everyone round it
+    B.arm.updateMatrixWorld(true); const from = B.arm.localToWorld(new THREE.Vector3(0, B.tier === 3 ? 2.4 : 1.3, 0));
+    const lead = best.walking ? 1.2 : 0, tx = best.x + Math.sin(best.g.rotation.y) * lead, tz = best.z + Math.cos(best.g.rotation.y) * lead, to = new THREE.Vector3(tx, walkY(tx, tz) + .1, tz), rad = T.splash[k];
+    fireArrow(from, to, () => {
+      for (const e of enemies) if (!e.dead) { const d = Math.hypot(e.x - tx, e.z - tz); if (d < rad) hurtEnemy(e, dmg * (1 - .5 * d / rad)); }
+      for (let n = 0; n < 6; n++) dustAt(tx + (Math.random() - .5) * rad, walkY(tx, tz), tz + (Math.random() - .5) * rad); shake(.08, { x: tx, z: tz }, 'stone', .4);
+    }, Math.max(3, bd * .45), 'stone');
   }
 }
 
@@ -3985,6 +4258,10 @@ const TOOL_ICON = {
   road: '<svg viewBox="0 0 24 24"><path d="M7 21 C9 15 13 10 15 3"/><path d="M12 21 C14 16 17 12 19.5 6"/><path d="M10.2 16 L13.8 17 M12.6 10.5 L15.6 12"/></svg>',
   forester: '<svg viewBox="0 0 24 24"><path d="M12 21 V11"/><path d="M12 11 C8 11 5.5 8.5 5.5 4.8 C9.2 4.8 12 7.4 12 11 Z"/><path d="M12 14.5 C15.6 14.5 18.5 12 18.5 8 C14.8 8 12 10.6 12 14.5 Z"/><path d="M6 21 H18"/></svg>',
   mine: '<svg viewBox="0 0 24 24"><path d="M2.5 20 H21.5"/><path d="M4.5 20 C4.5 11 8 6.5 12 6.5 C16 6.5 19.5 11 19.5 20"/><path d="M9 20 V14.5 H15 V20"/><path d="M8.5 14.5 H15.5"/></svg>',
+  stables: '<svg viewBox="0 0 24 24"><path d="M7 20.5 C2.5 15.5 3.5 5 12 4 C20.5 5 21.5 15.5 17 20.5"/><path d="M5.5 20.5 H9 M15 20.5 H18.5"/><path d="M6.2 12 H6.3 M17.7 12 H17.8 M8 7 H8.1 M16 7 H16.1"/></svg>',
+  crossbow: '<svg viewBox="0 0 24 24"><path d="M12 21 V5"/><path d="M4 9 Q12 3 20 9"/><path d="M4 9 L12 14 L20 9"/><path d="M10 5 L12 2.5 L14 5"/></svg>',
+  ballista: '<svg viewBox="0 0 24 24"><path d="M3 20 H21"/><path d="M12 20 V14"/><path d="M5 12 H19"/><path d="M5 12 L8 7 M19 12 L16 7"/><path d="M8 7 L12 12 L16 7"/><path d="M12 12 V3 M10.5 4.5 L12 3 L13.5 4.5"/></svg>',
+  catapult: '<svg viewBox="0 0 24 24"><path d="M3 18 H21"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/><path d="M14 18 L7 6"/><path d="M5 6.5 a2.2 2.2 0 1 0 4 -1"/><path d="M15 18 V12 H18"/></svg>',
   farmhouse: '<svg viewBox="0 0 24 24"><path d="M3 20 V10.5 L12 4 L21 10.5 V20 Z"/><path d="M8.5 20 V13.5 H15.5 V20"/><path d="M8.5 13.5 L15.5 20 M15.5 13.5 L8.5 20"/></svg>',
   well: '<svg viewBox="0 0 24 24"><path d="M6 13 H18 V20 H6 Z"/><path d="M7 13 V7.5 M17 13 V7.5"/><path d="M4.5 8 L12 3.5 L19.5 8"/><path d="M12 8 V11"/></svg>',
   torch: '<svg viewBox="0 0 24 24"><path d="M12 21 V11"/><path d="M9 11 H15"/><path d="M12 9 C9.5 7 10.5 5 12 3 C13.5 5 14.5 7 12 9 Z"/></svg>',
@@ -4047,7 +4324,7 @@ function refreshCard() {
   $('#cardHp').parentElement.hidden = !!selected.path;
   if (selected.path) {                                 // a path tile: just a name and Demolish (no refund)
     card.hidden = false; $('#cardIco').innerHTML = TOOL_ICON.road; $('#cardTitle').textContent = 'Path'; $('#cardSub').textContent = ''; $('#cardPips').innerHTML = '';
-    $('#cardStats').innerHTML = STAT('speed', `×${PATH_SPEED}`) + STAT('charm', `+${Math.round(PATH_CHARM * 100)}%`); $('#cardRotBtn').hidden = $('#upBtn').hidden = $('#rallyBtn').hidden = $('#recallBtn').hidden = $('#volleyBtn').hidden = $('#cancelBtn').hidden = $('#cardTrade').hidden = true;   // nothing left over from the last card
+    $('#cardStats').innerHTML = STAT('speed', `×${PATH_SPEED}`) + STAT('charm', `+${Math.round(PATH_CHARM * 100)}%`); $('#moveBtn').hidden = $('#cardRotBtn').hidden = $('#upBtn').hidden = $('#rallyBtn').hidden = $('#recallBtn').hidden = $('#volleyBtn').hidden = $('#cancelBtn').hidden = $('#cardTrade').hidden = true;   // nothing left over from the last card
     const dem = $('#demBtn'), armed = demArmed.B === selected && performance.now() - demArmed.t < 3000;
     dem.hidden = false; $('#cardActs').hidden = false; dem.classList.toggle('armed', armed); if (!armed) dem.style.minWidth = ''; dem.innerHTML = armed ? PICO.tick.replace('<svg ', '<svg class="bIco" ') : DEM_ICO; dem.title = 'Remove path'; return;
   }
@@ -4078,14 +4355,14 @@ function refreshCard() {
   if (T.residents) st.push(STAT('home', `${villagers.filter(v => v.home === B && !v.homeless).length}/${B.built ? T.residents[B.tier - 1] : 0}`));   // housing: residents / room
   if (T.workers && B.built) { const w = villagers.filter(v => v.job === B).length; st.push(STAT('hammer', `${w}/${T.workers[k]}`, w < T.workers[k] ? 'warn' : '')); }
   if (T.range) {
-    const m = (B.manned || []).filter(Boolean).length;
-    st.push(STAT('guard', PH.kind === 'night' ? `${m}/${T.archers[k]}` : `${T.archers[k]}`));
-    st.push(STAT('bow', `${T.dmg[k]}`));
+    const m = (B.manned || []).filter(Boolean).length, n = (T.archers || T.crew)[k];
+    st.push(STAT('guard', PH.kind === 'night' ? `${m}/${n}` : `${n}`, T.crew && PH.kind === 'night' && m < n ? 'warn' : '', T.crew ? 'Crew' : undefined));
+    st.push(STAT(B.type === 'catapult' ? 'stone' : 'bow', `${T.dmg[k]}`, '', 'Damage'));
   }
   if (T.soldiers) {
     const m = villagers.filter(v => v.soldier && v.post && v.post.B === B).length;
     st.push(STAT('guard', PH.kind === 'night' ? `${m}/${T.soldiers[k]}` : `${T.soldiers[k]}`, '', 'Soldiers'));
-    st.push(STAT('sword', `${SOLDIER.dmg[k]}`));
+    st.push(STAT('sword', `${(T.cavalry ? RIDER : SOLDIER).dmg[k]}`));
   }
   if (T.decor) st.push(STAT('charm', `+${Math.round(T.charm * 100)}%`, 'good'));
   $('#cardStats').innerHTML = st.join('');
@@ -4099,6 +4376,7 @@ function refreshCard() {
   }
   $('#rallyBtn').hidden = $('#recallBtn').hidden = !T.soldiers || !B.built;
   $('#rallyBtn').setAttribute('aria-pressed', String(rallyFor === B)); $('#recallBtn').disabled = !B.rally;
+  $('#moveBtn').hidden = !T.movable || !B.built || !!B.site; $('#moveBtn').setAttribute('aria-pressed', String(moveFor === B));
   const vb = $('#volleyBtn'); vb.hidden = B.type !== 'castle';
   if (!vb.hidden) { const cool = volleyCd > 0, day = PH.kind !== 'night'; vb.classList.toggle('cool', cool); vb.classList.toggle('off', day && !cool); vb.disabled = cool; vb.title = day ? 'Night only' : 'Arrow volley: tap, then a spot'; vb.querySelector('.cd').textContent = cool ? Math.ceil(volleyCd) : ''; vb.setAttribute('aria-pressed', String(volleyAim)); }
   const up = $('#upBtn');
@@ -4145,7 +4423,7 @@ function syncRange() {
   if (!k) { rangeLine.visible = false; return; }
   const c = center(B); drapeCircle(rangeLine, c.x, c.z, T.range[B.tier - 1]);
 }
-function deselect() { selected = null; volleyAim = false; selLine.visible = false; $('#statTip').hidden = true; refreshCard(); }
+function deselect() { selected = null; volleyAim = false; moveFor = null; selLine.visible = false; $('#statTip').hidden = true; refreshCard(); }
 $('#upBtn').addEventListener('click', () => { if (paused) return setHint('Paused', 'bad'); selected && upgrade(selected); });
 $('#rotBtn').addEventListener('click', rotatePlacement);
 $('#cardRotBtn').addEventListener('click', () => { if (paused) return setHint('Paused', 'bad'); rotateBuilding(selected); });
@@ -4279,6 +4557,11 @@ canvas.addEventListener('pointercancel', endPtr);
 canvas.addEventListener('wheel', e => { e.preventDefault(); dist = clamp(dist * Math.exp(e.deltaY * .001), CAM_LIM.near, 95); updateCam(); }, { passive: false });
 function tap(e) {
   if (galleryOn) { galleryTap(e); return; }
+  if (moveFor) {                                      // moving a catapult: tap the tile it should roll to
+    const pt = pick(e), B = moveFor; moveFor = null;
+    if (pt && !B.dead) startMove(B, Math.floor(pt.x / CELL), Math.floor(pt.z / CELL));
+    refreshCard(); return;
+  }
   if (rallyFor) {                                     // placing a barracks' rally flag
     const pt = pick(e), B = rallyFor;
     if (!pt || !canStand(pt.x, pt.z, 1)) { setHint('Blocked', 'bad'); return; }
@@ -4421,7 +4704,7 @@ function buildGallery() {
   let z = 3;
   const row = (title, depth, fill) => { const zc = z + depth / 2; galLabel(title, '#f2c95e', 1.5, zc, true); fill(zc, depth); gRows.push({ title, z: zc, depth }); z += depth + 3.4; };
   const add = (g, x, zc, turns) => { g.position.set(x, 0, zc); g.userData.turn = 0; gScene.add(g); gItems.push({ g, turns }); return g; };
-  for (const type of ['castle', 'house', 'lodge', 'forester', 'quarry', 'mine', 'farm', 'farmhouse', 'market', 'tower', 'barracks']) {
+  for (const type of ['castle', 'house', 'lodge', 'forester', 'quarry', 'mine', 'farm', 'farmhouse', 'market', 'tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'stables']) {
     const T = DEF[type], d = T.size * CELL;
     row(T.name, d, zc => T.tiers.forEach((nm, i) => { const g = add(makeModel(type, i + 1, true, 0, 0), GAL_X[i], zc, true); galPreview(g, type, i + 1); galLabel(nm, '#fff', GAL_X[i], zc + d / 2 + 1.1); }));
   }
@@ -4432,8 +4715,8 @@ function buildGallery() {
   }));
   row('Decor', 2, zc => ['well', 'torch', 'flowers', 'statue'].forEach((t, i) => { add(makeModel(t, 1, true, 0, 0), 8 + i * 9, zc, true); galLabel(DEF[t].name, '#fff', 8 + i * 9, zc + 2.1); }));
   const people = (title, list) => (row(title, 1.2, zc => list.forEach((P, i) => {
-    const x = 6 + i * 3.3, p = P.raider ? makeRaider(P.raider) : P.guard ? makePerson({ tool: 'bow' }) : makePerson({});
-    if (P.kit) soldierKit(p, P.kit);
+    const x = 6 + i * 3.3, p = P.raider ? makeRaider(P.raider) : P.guard ? makePerson({ tool: P.xbow ? 'crossbow' : 'bow' }) : makePerson({});
+    if (P.kit) soldierKit(p, P.kit, P.cav);
     else if (P.guard) armour(p, P.guard);
     else if (!P.raider) { p.plainHat = !P.tool; p.outfitTier = P.tier || 3; addLoads(p); giveTool(p, P.tool || null); dress(p, P.tool || null); if (P.carry === 'log') p.carryLog.visible = true; if (P.carry === 'stone') p.carryStone.visible = true; }
     p.g.position.set(x, 0, zc); p.g.rotation.y = .5; gScene.add(p.g); Object.assign(p, P, { seed: i * .7 }); gPeople.push(p);
@@ -4443,7 +4726,9 @@ function buildGallery() {
   // workers by their workplace's tier: own clothes and the tool, the work tunic and a cap, the full outfit
   people('Workers', [['Farmer', 'hoe'], ['Herder', 'pail'], ['Lumberjack', 'axe'], ['Mason', 'pick']].flatMap(([n, t]) => [1, 2, 3].map(k => ({ name: `${n} ${k}`, tool: t, work: 1, tier: k }))));
   // defenders by tier: the same armour for every kind, only the weapon differs
-  people('Soldiers', [{ name: 'Archer 1', guard: 1 }, { name: 'Archer 2', guard: 2 }, { name: 'Archer 3', guard: 3 }, { name: 'Militia', kit: 1 }, { name: 'Guard', kit: 2 }, { name: 'Man-at-arms', kit: 3 }]);
+  people('Soldiers', [{ name: 'Archer 1', guard: 1 }, { name: 'Archer 2', guard: 2 }, { name: 'Archer 3', guard: 3 },
+    { name: 'Crossbow 1', guard: 1, xbow: 1 }, { name: 'Crossbow 2', guard: 2, xbow: 1 }, { name: 'Crossbow 3', guard: 3, xbow: 1 }, { name: 'Militia', kit: 1 }, { name: 'Guard', kit: 2 }, { name: 'Man-at-arms', kit: 3 },
+    { name: 'Rider', kit: 1, cav: 1 }, { name: 'Lancer', kit: 2, cav: 1 }, { name: 'Knight', kit: 3, cav: 1 }]);
   people('Raiders', [{ name: 'Spearman', raider: 'spear' }, { name: 'Swordsman', raider: 'sword' }, { name: 'Archer', raider: 'archer' }, { name: 'Captain', raider: 'captain' }]);
 }
 function openGallery() {
@@ -4475,6 +4760,7 @@ function galPose(p, t, dt) {
   else { p.legs[0].rotation.x = sw; p.legs[1].rotation.x = -sw; }
   p.body.position.y = p.horseLegs ? SADDLE : walking ? Math.abs(Math.sin(ph)) * .05 : 0;   // a rider stays in the saddle
   let L = -sw * .8, R = sw * .8, tilt = -.2, lean = 0;
+  if (p.xbow) { xbowPose(p, (t + p.seed) % 1.4 > .7); return; }   // crossbowmen: level and shoot, then down to reload
   if (p.guard || p.raider === 'archer') {                        // loose a shot every 1.8 s: idle, draw with both hands, loose
     const c = (t + p.seed) % 1.8; bowPose(p, c > .6 && c < 1.05, c >= 1.05 && c < 1.4, p.guard ? -.9 : -.35, p.guard ? -.6 : 0); return;
   }
@@ -4504,6 +4790,7 @@ function updateGallery(dt, now) {
   for (const p of gPeople) galPose(p, t, dt);
 }
 $('#adGallery').addEventListener('click', openGallery);
+$('#moveBtn').addEventListener('click', () => { if (paused) return setHint('Paused', 'bad'); if (!selected) return; moveFor = moveFor === selected ? null : selected; setHint(moveFor ? 'Tap a tile' : 'Select a building'); refreshCard(); });
 $('#rallyBtn').addEventListener('click', () => { if (!selected) return; rallyFor = rallyFor === selected ? null : selected; setHint(rallyFor ? 'Tap a spot' : 'Select a building'); refreshCard(); });
 $('#cardTrade').addEventListener('click', e => {
   const b = e.target.closest('button'), B = selected; if (!b || !B || B.type !== 'market' || !B.built) return;
@@ -4536,7 +4823,7 @@ function startGame() {
   anims.length = 0; spawnQueue = [];
   for (const B of buildings) { scene.remove(B.group); scene.remove(B.bar.grp); scene.remove(B.pbar.grp); removeScaffold(B); hideDefenders(B); if (B.rallyFlag) setRally(B, null); } buildings.length = 0;
   for (const v of villagers) { scene.remove(v.g); if (v.sbar) scene.remove(v.sbar.grp); } villagers.length = 0;
-  for (const f of fallen) scene.remove(f.v.g); fallen.length = 0; for (const c of chips) scene.remove(c.m); chips.length = 0; respawns.length = 0; rallyFor = null;
+  for (const f of fallen) scene.remove(f.v.g); fallen.length = 0; for (const c of chips) scene.remove(c.m); chips.length = 0; respawns.length = 0; rallyFor = null; moveFor = null;
   for (const e of enemies) { scene.remove(e.g); scene.remove(e.bar.grp); } enemies.length = 0;
   for (const a of arrows) scene.remove(a.m); arrows.length = 0; volleyQ = []; volleyCd = 0; volleyAim = false; volleyLine.visible = false;
   for (const f of floats) scene.remove(f.sp); floats.length = 0;
@@ -4560,6 +4847,7 @@ function startGame() {
 }
 
 // ---------- loop ----------
+for (const t in DEF) if (t !== 'castle') makeGhost(t);   // here, once every model's materials exist (stables and siege use the soldiers' and horses')
 resize(); startGame();
 if (!/[?&](gallery|debug|map=)/.test(location.search)) showMapPick(); else $('#mapPick').hidden = true;   // shown from the first paint, so the game never flashes up behind it
 const easeOut = t => 1 - Math.pow(1 - t, 3);
@@ -4764,7 +5052,7 @@ function updateDoors(dt) {
 }
 function separateUnits(dt) {
   sepUnits.length = 0;
-  for (const v of villagers) if (v.g.visible && !v.doorWalk && !v.inside && !(v.hideT > 0) && (!v.posted || v.soldier) && !v.sleeping) sepUnits.push({ u: v, r: .24, fixed: false, mode: 1, w: v.working ? .1 : v.walking ? 1 : .35 });
+  for (const v of villagers) if (v.g.visible && !v.doorWalk && !v.inside && !(v.hideT > 0) && (!v.posted || v.soldier) && !v.sleeping) sepUnits.push({ u: v, r: v.horse ? .5 : .24, fixed: false, mode: 1, w: v.working ? .1 : v.walking ? 1 : .35 });
   for (const e of enemies) sepUnits.push({ u: e, r: e.horse ? .55 : .26, fixed: e.dead, mode: 2, w: e.walking ? 1 : .35 });
   const k = Math.min(1, dt * 10);
   for (let i = 0; i < sepUnits.length; i++) for (let j = i + 1; j < sepUnits.length; j++) {
@@ -4884,7 +5172,7 @@ function frame(now) {
   if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now);
   if (paused) { renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not
-  if (!gameOver) { updatePhase(gdt); updateVillagers(gdt, now); updateEco(gdt); updateEnemies(gdt); updateDefense(gdt); separateUnits(gdt); updateDoors(gdt); updateFallen(gdt); updateChips(gdt); updateSplashes(gdt); }
+  if (!gameOver) { updatePhase(gdt); updateVillagers(gdt, now); updateEco(gdt); updateMoves(gdt); updateEnemies(gdt); updateDefense(gdt); separateUnits(gdt); updateDoors(gdt); updateFallen(gdt); updateChips(gdt); updateSplashes(gdt); }
   updateArrows(gdt); updateVolley(gdt); updateTrees(now); emitSmoke(gdt); updateBirds(gdt);
   if (anims.length) {
     for (let n = anims.length - 1; n >= 0; n--) { const a = anims[n], t = clamp((now - a.t0) / a.dur, 0, 1); applyPlan(a.plan, easeOut(t)); if (t >= 1) anims.splice(n, 1); }
