@@ -460,7 +460,7 @@ const DEF = {
             tiers: ['Horse shed', 'Stables', 'Royal stables'] },
   crossbow: { size: 1, name: 'Crossbow', maxdh: 1.8, hp: [200, 300, 430], cost: { wood: 20, gold: 15 }, noRoad: true, weapon: 'crossbow',
             up: [{ wood: 35, gold: 35 }, { stone: 45, gold: 65 }], range: [8, 9, 10], dmg: [6, 8, 10], rate: [.55, .48, .4],
-            archers: [2, 2, 2], shootY: [3.1, 3.4, 3.7], tiers: ['Bolt tower', 'Crossbow tower', 'Arbalest tower'] },
+            archers: [2, 2, 2], shootY: [2.4, 2.6, 2.85], tiers: ['Bolt tower', 'Crossbow tower', 'Arbalest tower'] },
   ballista: { size: 1, name: 'Ballista', maxdh: 1.8, hp: [170, 250, 350], cost: { wood: 30, gold: 25 }, noRoad: true,
             up: [{ wood: 40, gold: 45 }, { stone: 50, gold: 80 }], range: [14, 16, 18], dmg: [30, 42, 58], rate: [3.2, 2.9, 2.6], crew: [2, 2, 2],
             tiers: ['Scorpion', 'Ballista', 'Great ballista'] },
@@ -2019,35 +2019,36 @@ function makeFarmhouse(tier) {
 // crossbow tower: squat and solid next to the archers' tall lookout, an open fighting top behind a parapet for two crossbowmen:
 // tier 1 a log blockhouse with a plank parapet, tier 2 stone below a timber hoarding under a log canopy, tier 3 stone with
 // battlements and the blue roof on corner piers
-const XBOW_TOP = [2.05, 2.35, 2.65];
+const XBOW_K = .74, XBOW_TOP = [2.05, 2.35, 2.65].map(y => y * XBOW_K);   // fighting-top heights as drawn
 function makeCrossbowTower(tier, plinth) {
-  const g = new THREE.Group(), top = XBOW_TOP[tier - 1], HEAD = 1.55;
+  const g = new THREE.Group(), top = XBOW_TOP[tier - 1] / XBOW_K, HEAD = 1.55;
   if (plinth) g.add(box(2.0, 1.8, 2.0, tier === 2 ? M.plainStone : M.stone, 0, -.7, 0));
+  const t = new THREE.Group(); t.scale.setScalar(XBOW_K); g.add(t);   // drawn at XBOW_K: squat beside the archers' lookout, not bigger than it
   if (tier === 1) {
-    g.add(box(1.5, top - .12, 1.5, M.log, 0, (top - .12) / 2 + .06, 0));
-    for (const sx of [-1, 1]) g.add(box(.06, .3, .02, M.dark, sx * .35, 1.2, .76));
-    g.add(box(1.8, .12, 1.8, M.rough, 0, top - .06, 0));
-    for (const [x, z, w, d] of [[0, .87, 1.8, .06], [0, -.87, 1.8, .06], [.87, 0, .06, 1.8], [-.87, 0, .06, 1.8]]) g.add(box(w, .5, d, M.rough, x, top + .25, z));
-    for (let n = 0; n < 6; n++) { const r = box(.05, .05, .5, M.rough, -.9, .25 + n * .32, -.2); r.rotation.x = 0; g.add(r); }   // ladder rungs up the side
-    for (const sz of [-.42, .02]) g.add(box(.05, top, .05, M.rough, -.92, top / 2, sz - .2));
+    t.add(box(1.5, top - .12, 1.5, M.log, 0, (top - .12) / 2 + .06, 0));
+    for (const sx of [-1, 1]) t.add(box(.06, .3, .02, M.dark, sx * .35, 1.2, .76));
+    t.add(box(1.8, .12, 1.8, M.rough, 0, top - .06, 0));
+    for (const [x, z, w, d] of [[0, .87, 1.8, .06], [0, -.87, 1.8, .06], [.87, 0, .06, 1.8], [-.87, 0, .06, 1.8]]) t.add(box(w, .5, d, M.rough, x, top + .25, z));
+    for (let n = 0; n < 6; n++) { const r = box(.05, .05, .5, M.rough, -.9, .25 + n * .32, -.2); r.rotation.x = 0; t.add(r); }   // ladder rungs up the side
+    for (const sz of [-.42, .02]) t.add(box(.05, top, .05, M.rough, -.92, top / 2, sz - .2));
   } else if (tier === 2) {
-    g.add(box(1.55, top - 1.0, 1.55, M.plainStone, 0, (top - 1.0) / 2 + .2, 0));
-    g.add(box(1.75, .85, 1.75, M.wood, 0, top - .55, 0));
-    for (const sx of [-1, 1]) g.add(box(.05, .26, .02, M.dark, sx * .36, top - .55, .88));
-    g.add(box(1.85, .1, 1.85, M.timber, 0, top - .07, 0));
-    for (const [x, z, w, d] of [[0, .9, 1.85, .06], [0, -.9, 1.85, .06], [.9, 0, .06, 1.85], [-.9, 0, .06, 1.85]]) g.add(box(w, .5, d, M.timber, x, top + .25, z));
-    for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.08, HEAD, .08, M.timber, sx * .85, top + HEAD / 2, sz * .85));
-    g.add(pyramid(1.45, .7, 1, M.thatch, top + HEAD + .35));
+    t.add(box(1.55, top - 1.0, 1.55, M.plainStone, 0, (top - 1.0) / 2 + .2, 0));
+    t.add(box(1.75, .85, 1.75, M.wood, 0, top - .55, 0));
+    for (const sx of [-1, 1]) t.add(box(.05, .26, .02, M.dark, sx * .36, top - .55, .88));
+    t.add(box(1.85, .1, 1.85, M.timber, 0, top - .07, 0));
+    for (const [x, z, w, d] of [[0, .9, 1.85, .06], [0, -.9, 1.85, .06], [.9, 0, .06, 1.85], [-.9, 0, .06, 1.85]]) t.add(box(w, .5, d, M.timber, x, top + .25, z));
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) t.add(box(.08, HEAD, .08, M.timber, sx * .85, top + HEAD / 2, sz * .85));
+    t.add(pyramid(1.45, .7, 1, M.thatch, top + HEAD + .35));
   } else {
-    g.add(box(1.6, top, 1.6, M.stone, 0, top / 2 + .2, 0));
-    for (const sx of [-1, 1]) g.add(box(.06, .3, .03, M.dark, sx * .38, top * .6, .81));
-    g.add(box(1.85, .14, 1.85, M.stone2, 0, top + .13, 0));
+    t.add(box(1.6, top, 1.6, M.stone, 0, top / 2 + .2, 0));
+    for (const sx of [-1, 1]) t.add(box(.06, .3, .03, M.dark, sx * .38, top * .6, .81));
+    t.add(box(1.85, .14, 1.85, M.stone2, 0, top + .13, 0));
     for (let n = 0; n < 4; n++) for (const k of [-1, 0, 1]) {               // battlements: merlons with gaps on every side
       const a = n * Math.PI / 2, [x, z] = [Math.sin(a) * .86 + Math.cos(a) * k * .62, Math.cos(a) * .86 - Math.sin(a) * k * .62];
-      g.add(box(.3, .45, .3, M.stone2, x, top + .42, z));
+      t.add(box(.3, .45, .3, M.stone2, x, top + .42, z));
     }
-    for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.18, HEAD, .18, M.stone2, sx * .82, top + .2 + HEAD / 2, sz * .82));
-    g.add(pyramid(1.5, .85, 1, M.roofBlue, top + .2 + HEAD + .42));
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) t.add(box(.18, HEAD, .18, M.stone2, sx * .82, top + .2 + HEAD / 2, sz * .82));
+    t.add(pyramid(1.5, .85, 1, M.roofBlue, top + .2 + HEAD + .42));
   }
   return g;
 }
@@ -2059,9 +2060,16 @@ function ballistaTurret(k) {
   const t = new THREE.Group(); t.userData.turret = true;
   t.add(cyl(.07, .1, .45, 6, M.timber, 0, .22, 0));
   t.add(box(.16, .13, 1.15, M.wood, 0, .5, .05));                                    // the stock
-  for (const sx of [-1, 1]) { const arm = box(.06, .07, .62, M.timber, sx * .27, .52, .42); arm.rotation.y = sx * 1.05; t.add(arm); }
+  // curved bow arms: out from the springs, bowing forward, the tips swept back to the string
+  for (const sx of [-1, 1]) {
+    const P = k => { const u = k / 6; return [sx * (.1 + .42 * u), .52, .5 + .16 * Math.sin(Math.PI * u * .8) - .3 * u * u]; };
+    for (let k = 0; k < 6; k++) {
+      const [x0, y0, z0] = P(k), [x1, , z1] = P(k + 1), L = Math.hypot(x1 - x0, z1 - z0);
+      const sg = box(.065 - k * .006, .07 - k * .005, L + .02, M.timber, (x0 + x1) / 2, y0, (z0 + z1) / 2); sg.rotation.y = Math.atan2(x1 - x0, z1 - z0); t.add(sg);
+    }
+  }
   for (const sx of [-1, 1]) t.add(box(.13, .16, .13, ropeM, sx * .09, .52, .52));      // torsion springs either side of the stock
-  t.add(box(.86, .015, .015, ropeM, 0, .56, .2));                                      // the drawn string
+  t.add(box(1.04, .015, .015, ropeM, 0, .52, .26));                                     // the drawn string, between the arm tips
   const bolt = new THREE.Group(); bolt.userData.bolt = true; t.add(bolt);
   bolt.add(box(.035, .035, .95, M.timber, 0, .6, .15)); const tip = cone(.045, .14, 4, M.iron, 0, .6, .68); tip.rotation.x = Math.PI / 2; bolt.add(tip);
   const w = cyl(.06, .06, .3, 6, M.timber, 0, .5, -.52); w.rotation.z = Math.PI / 2; t.add(w);
@@ -2103,8 +2111,10 @@ function makeCatapult(tier) {
     const tb = cyl(.13, .13, .62, 8, ropeM, 0, .4, -.32); tb.rotation.z = Math.PI / 2; e.add(tb);
     arm.position.set(0, .4, -.32); e.add(arm);
     arm.add(box(.09, 1.25, .09, M.timber, 0, .62, 0));
-    if (tier === 1) arm.add(cyl(.13, .09, .1, 8, M.wood, 0, 1.25, 0));
-    else { arm.add(box(.012, .3, .012, ropeM, .05, 1.38, 0)); arm.add(box(.15, .05, .12, M.canvas, .05, 1.52, 0)); }
+    // the cup opens off the arm's face (+z), so cocked back it holds its stone face up and flings it forward
+    if (tier === 1) { const cup = cyl(.13, .09, .1, 8, M.wood, 0, 1.22, .07); cup.rotation.x = Math.PI / 2; arm.add(cup); }
+    else { const sl = box(.16, .14, .03, M.canvas, 0, 1.22, .1); arm.add(sl); for (const sx of [-1, 1]) arm.add(box(.012, .012, .1, ropeM, sx * .07, 1.22, .05)); }
+    const shot = new THREE.Mesh(new THREE.DodecahedronGeometry(.09, 0), M.stone2); shot.position.set(0, 1.22, .16); shot.userData.bolt = true; shot.castShadow = true; arm.add(shot);
     if (tier === 2) for (const sx of [-1, 1]) e.add(box(.04, .04, 1.52, M.iron, sx * .36, .4, 0));
     const ball = new THREE.Mesh(new THREE.DodecahedronGeometry(.13, 0), M.stone2); ball.position.set(.5, .2, -.75); ball.castShadow = true; e.add(ball);
   } else {
@@ -2115,7 +2125,8 @@ function makeCatapult(tier) {
     arm.position.set(0, 2.15, 0); e.add(arm);
     arm.add(box(.11, 2.7, .11, M.timber, 0, .7, 0));                                  // long end up (+y), short end down
     arm.add(box(.5, .5, .5, M.wood, 0, -.82, 0)); for (const y of [-.65, -1.0]) arm.add(box(.52, .05, .52, M.iron, 0, y, 0));   // counterweight
-    arm.add(box(.012, .5, .012, ropeM, 0, 2.25, 0)); arm.add(box(.16, .06, .14, M.canvas, 0, 2.5, 0));
+    arm.add(box(.012, .5, .012, ropeM, 0, 2.25, .04)); arm.add(box(.18, .16, .04, M.canvas, 0, 2.5, .08));   // sling pouch on the arm's face
+    const shot = new THREE.Mesh(new THREE.DodecahedronGeometry(.11, 0), M.stone2); shot.position.set(0, 2.5, .17); shot.userData.bolt = true; shot.castShadow = true; arm.add(shot);
     for (let n = 0; n < 3; n++) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(.15, 0), M.stone2); st.position.set(.75, .15, -.6 + n * .3); st.castShadow = true; e.add(st); }
     const wn = cyl(.12, .12, .5, 8, M.wood, -.75, .35, -.6); wn.rotation.z = Math.PI / 2; e.add(wn);
   }
@@ -3877,7 +3888,7 @@ const POSTS = {
   ].map((L, i) => L.map(([x, y, z]) => [x * CASTLE_K[i], y, z * CASTLE_K[i]])),
 };
 // crossbowmen on the fighting top; siege crews: the loader at the winch, the gunner behind (ballista on its deck, catapult on the ground)
-POSTS.crossbow = XBOW_TOP.map(y => [[.35, y, .22], [-.35, y, -.22]]);
+POSTS.crossbow = XBOW_TOP.map(y => [[.3, y, .18], [-.3, y, -.18]]);
 POSTS.ballista = BALLISTA_DECK.map((y, i) => [[.55 * BALLISTA_K[i], y, -.3], [-.2, y, -.7 * BALLISTA_K[i]]]);
 POSTS.catapult = [[[.72, 0, -.4], [-.62, 0, .15]], [[.8, 0, -.45], [-.7, 0, .15]], [[-.85, 0, -.62], [.85, 0, .5]]];
 function postOffset(B, a) { const L = POSTS[B.type][B.tier - 1], [x, y, z] = L[a % L.length], [rx, rz] = faceRot(B.face || 0, x, z); return [rx, y, rz]; }
@@ -4719,8 +4730,8 @@ const LOAD_SLOTS = {
   eco: [['food', ['farm', 'farmhouse']], ['wood', ['lodge', 'forester']], ['stone', ['quarry', 'mine']]],
   def: [['ranged', ['tower', 'crossbow']], ['siege', ['ballista', 'catapult']], ['barracks', ['barracks', 'stables']]],
 };
-const DECOR_ALL = ['well', 'torch', 'flowers', 'statue', 'banner', 'campfire', 'rack'], DECOR_PICK = 5;
-const LOAD_DEFAULT = { food: 'farm', wood: 'lodge', stone: 'quarry', ranged: 'tower', siege: 'ballista', barracks: 'barracks', decor: ['well', 'torch', 'flowers', 'statue', 'banner'] };
+const DECOR_ALL = ['well', 'torch', 'flowers', 'statue', 'banner', 'campfire', 'rack'], DECOR_PICK = 4;   // plus the path: five tools in every tab, one row in the dock
+const LOAD_DEFAULT = { food: 'farm', wood: 'lodge', stone: 'quarry', ranged: 'tower', siege: 'ballista', barracks: 'barracks', decor: ['well', 'torch', 'flowers', 'statue'] };
 var LOADOUT = { ...LOAD_DEFAULT, decor: LOAD_DEFAULT.decor.slice() };
 try {   // last game's picks; anything unknown falls back to the default
   const L = JSON.parse(localStorage.getItem('mtd-loadout') || 'null');
@@ -4796,7 +4807,7 @@ function keyCamera(dt) {
 // ---------- design gallery (Admin → Gallery, or open with ?gallery): every building at every tier and every character, on a lawn ----------
 // its own scene, lit like midday; the game is paused underneath and comes back untouched on Back
 var galleryOn = false;
-let gScene = null, gSaved = null, gDoors = 0, gDoorK = 0, gWalk = false;
+let galEnd = 0, gScene = null, gSaved = null, gDoors = 0, gDoorK = 0, gWalk = false;
 const gItems = [], gPeople = [], gRows = [], GAL_X = [10, 22, 34];     // gRows: { title, z, depth } for tools/render
 function galLabel(text, color, x, z, big, k = 1) {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: textTex(text, color), transparent: true, depthWrite: false, toneMapped: false }));
@@ -4844,13 +4855,18 @@ function buildGallery() {
     { name: 'Crossbow 1', guard: 1, xbow: 1 }, { name: 'Crossbow 2', guard: 2, xbow: 1 }, { name: 'Crossbow 3', guard: 3, xbow: 1 }, { name: 'Militia', kit: 1 }, { name: 'Guard', kit: 2 }, { name: 'Man-at-arms', kit: 3 },
     { name: 'Rider', kit: 1, cav: 1 }, { name: 'Lancer', kit: 2, cav: 1 }, { name: 'Knight', kit: 3, cav: 1 }]);
   people('Raiders', [{ name: 'Spearman', raider: 'spear' }, { name: 'Swordsman', raider: 'sword' }, { name: 'Archer', raider: 'archer' }, { name: 'Captain', raider: 'captain' }]);
+  // the lawn, the sun's shadow box and the camera's reach all grow with the rows (they used to stop short of the people)
+  galEnd = z; const mid = z / 2, half = z / 2 + 14;
+  ground.geometry.dispose(); ground.geometry = new THREE.PlaneGeometry(260, z + 160).rotateX(-Math.PI / 2); ground.position.set(24, 0, mid);
+  s.target.position.set(24, 0, mid); s.position.set(-12, 46, mid - 36);
+  Object.assign(s.shadow.camera, { left: -half, right: half, top: half, bottom: -half, far: half * 2 + 90 }); s.shadow.camera.updateProjectionMatrix();
 }
 function openGallery() {
   if (galleryOn) return;
   if (!gScene) buildGallery();
   gSaved = { target: target.clone(), yaw, pitch, dist, paused, lim: { ...CAM_LIM } };
   paused = true; galleryOn = true; hideGhost();
-  Object.assign(CAM_LIM, { lo: -10, hi: 110, near: 4 });
+  Object.assign(CAM_LIM, { lo: -10, hi: Math.max(110, galEnd + 10), near: 4 });   // as far as the rows run
   target.set(22, 0, 16); yaw = 0; pitch = .75; dist = 34; updateCam();
   $('#app').classList.add('gallery'); $('#galBar').hidden = false;
 }
