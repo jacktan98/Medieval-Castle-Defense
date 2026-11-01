@@ -124,6 +124,22 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .sheet h2.lost{color:var(--bad)}
 .mapSheet{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;width:min(560px,100%)}
 /* the title screen: dark over everything, the game isn't shown until a map is picked */
+/* before each game: one of each pair for the economy and the defences, any five decor */
+#loadPick{z-index:50;background:radial-gradient(ellipse at 50% 30%, #23271f 0%, #121410 70%, #0b0c09 100%);align-items:flex-start;overflow-y:auto}
+.loadSheet{display:flex;flex-direction:column;gap:10px;width:min(520px,100%);margin:auto 0;padding:6px 0 10px}
+.loadSheet section{display:flex;flex-direction:column;gap:6px}
+.loadSheet h3{margin:0;font-family:var(--display);font-weight:400;font-size:20px;color:var(--gold)} .loadSheet h3 span{font-family:var(--body);font-size:14px;color:var(--muted)} .loadSheet h3 span.short{color:var(--bad)}
+.ldRows{display:flex;flex-direction:column;gap:6px}
+.ldRow{display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;align-items:stretch}
+.ldCat{display:flex;align-items:center;justify-content:center} .ldCat .ico{width:20px;height:20px} .ldCat .tag{font-size:10px;line-height:1.05;color:var(--muted);text-align:center;letter-spacing:.02em}
+.ldOpt{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;padding:5px 8px;border-radius:9px;background:#24261f;border-color:#4a4838;text-align:left;min-height:0;height:auto}
+.ldOpt .tIco{width:24px;height:24px;flex:0 0 auto;display:inline-flex;color:#cfc4a6} .ldOpt .tIco svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round} .ldOpt[aria-pressed="true"] .tIco{color:var(--gold)} .ldOpt b{font-family:var(--display);font-weight:400;font-size:16px;color:var(--parch);line-height:1.05;display:block}
+.ldOpt small{display:block;font-size:11px;color:var(--muted)} .ldOpt small .cost .ico{width:11px;height:11px}
+.ldOpt[aria-pressed="true"]{border-color:var(--gold);background:#2e2b1e} .ldOpt[aria-pressed="true"] b{color:var(--gold)}
+.ldGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
+.ldGrid .ldOpt{flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:3px;padding:6px 4px} .ldGrid .ldOpt b{font-size:14px}
+.ldBtns{display:flex;justify-content:space-between;gap:8px;margin-top:4px} .ldBtns button{min-width:110px;min-height:42px;font-size:16px}
+@media (max-height:520px){ .loadSheet{gap:6px;width:min(780px,100%)} .ldRows{display:grid;grid-template-columns:1fr 1fr;gap:6px} .ldOpt{min-height:38px;padding:4px 6px} .loadSheet h3{font-size:17px} }
 #mapPick{z-index:50;background:radial-gradient(ellipse at 50% 35%, #23271f 0%, #121410 70%, #0b0c09 100%)}
 .gameTitle{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(34px,10vw,52px);line-height:1.05;color:var(--gold);text-shadow:0 2px 18px rgba(0,0,0,.6);text-wrap:balance}
 .mapSub{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
@@ -345,6 +361,15 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
         <button class="mapBtn" data-map="isle"><img src="maps/isle.jpg" alt=""><b>River isle</b></button>
         <button class="mapBtn" data-map="pass"><img src="maps/pass.jpg" alt=""><b>Mountain pass</b></button>
       </div>
+    </div>
+  </div>
+  <div class="modal" id="loadPick" hidden>
+    <div class="loadSheet">
+      <div class="mapSub">Choose your town</div>
+      <section><h3>Economy</h3><div class="ldRows" id="ldEco"></div></section>
+      <section><h3>Defences</h3><div class="ldRows" id="ldDef"></div></section>
+      <section><h3>Decor <span id="ldDecN"></span></h3><div class="ldGrid" id="ldDecor"></div></section>
+      <div class="ldBtns"><button id="ldBack">Maps</button><button class="primary" id="ldStart">Start</button></div>
     </div>
   </div>
   <div class="modal" id="summary" hidden>
@@ -4689,6 +4714,54 @@ $('#reset').addEventListener('click', () => {
   setTimeout(() => { if (resetArmed && performance.now() - resetArmed >= 2900) { resetArmed = 0; $('#reset').innerHTML = PICO.restart; $('#reset').classList.remove('armed'); } }, 3000);
 });
 $('#again').addEventListener('click', showMapPick);
+// ---------- the town's buildings for this game: one of each pair for the economy and the defences, any five decor ----------
+const LOAD_SLOTS = {
+  eco: [['food', ['farm', 'farmhouse']], ['wood', ['lodge', 'forester']], ['stone', ['quarry', 'mine']]],
+  def: [['ranged', ['tower', 'crossbow']], ['siege', ['ballista', 'catapult']], ['barracks', ['barracks', 'stables']]],
+};
+const DECOR_ALL = ['well', 'torch', 'flowers', 'statue', 'banner', 'campfire', 'rack'], DECOR_PICK = 5;
+const LOAD_DEFAULT = { food: 'farm', wood: 'lodge', stone: 'quarry', ranged: 'tower', siege: 'ballista', barracks: 'barracks', decor: ['well', 'torch', 'flowers', 'statue', 'banner'] };
+var LOADOUT = { ...LOAD_DEFAULT, decor: LOAD_DEFAULT.decor.slice() };
+try {   // last game's picks; anything unknown falls back to the default
+  const L = JSON.parse(localStorage.getItem('mtd-loadout') || 'null');
+  if (L) { for (const k of ['eco', 'def']) for (const [slot, opts] of LOAD_SLOTS[k]) if (opts.includes(L[slot])) LOADOUT[slot] = L[slot];
+    if (Array.isArray(L.decor) && L.decor.length === DECOR_PICK && L.decor.every(t => DECOR_ALL.includes(t))) LOADOUT.decor = L.decor.slice(); }
+} catch (e) {}
+const LOAD_TAG = { ranged: 'Ranged', siege: 'Siege', barracks: 'Troops' };
+function applyLoadout() {
+  const L = LOADOUT;
+  CATS.eco = ['house', L.food, L.wood, L.stone, 'market']; CATS.def = [L.ranged, L.siege, L.barracks, 'wall', 'gate']; CATS.decor = ['road', ...L.decor];
+  // the first day's guide follows the picks
+  GUIDE = [];
+  GUIDE.push({ text: 'Build a house', tool: 'house', cat: 'eco', done: () => buildings.some(B => B.type === 'house') },
+    { text: `${DEF[L.wood].name} for wood`, tool: L.wood, cat: 'eco', done: () => buildings.some(B => B.type === L.wood) },
+    { text: `${DEF[L.food].name} for food`, tool: L.food, cat: 'eco', done: () => buildings.some(B => B.type === L.food) },
+    { text: DEF[L.ranged].name, tool: L.ranged, cat: 'def', done: () => buildings.some(B => B.type === L.ranged) },
+    { text: 'Upgrade a building', tool: 'select', done: () => buildings.some(B => B.tier > 1 || (B.site && B.site.kind === 'up')) });
+}
+function renderLoadPick() {
+  const L = LOADOUT, opt = (t, on, slot) => `<button class="ldOpt" data-slot="${slot}" data-t="${t}" aria-pressed="${on}"><span class="tIco">${TOOL_ICON[t]}</span><span><b>${DEF[t].name}</b><small>${costHTML(DEF[t].cost)}</small></span></button>`;
+  for (const k of ['eco', 'def']) $(k === 'eco' ? '#ldEco' : '#ldDef').innerHTML = LOAD_SLOTS[k].map(([slot, opts]) =>
+    `<div class="ldRow"><span class="ldCat">${k === 'eco' ? `<span class="ico">${ICON[slot]}</span>` : `<span class="tag">${LOAD_TAG[slot]}</span>`}</span>${opts.map(t => opt(t, L[slot] === t, slot)).join('')}</div>`).join('');
+  $('#ldDecor').innerHTML = DECOR_ALL.map(t => `<button class="ldOpt" data-slot="decor" data-t="${t}" aria-pressed="${L.decor.includes(t)}"><span class="tIco">${TOOL_ICON[t]}</span><b>${DEF[t].name}</b></button>`).join('');
+  const n = L.decor.length; $('#ldDecN').textContent = `${n}/${DECOR_PICK}`; $('#ldDecN').classList.toggle('short', n !== DECOR_PICK); $('#ldStart').disabled = n !== DECOR_PICK;
+}
+$('#loadPick').addEventListener('click', e => {
+  const b = e.target.closest('.ldOpt'); if (!b) return;
+  const L = LOADOUT, t = b.dataset.t;
+  if (b.dataset.slot !== 'decor') L[b.dataset.slot] = t;
+  else if (L.decor.includes(t)) L.decor = L.decor.filter(x => x !== t);
+  else if (L.decor.length < DECOR_PICK) L.decor.push(t);
+  else { sfx('nope'); return; }
+  sfx('click'); renderLoadPick();
+});
+function showLoadPick() { renderLoadPick(); $('#loadPick').hidden = false; $('#loadPick').scrollTop = 0; }
+$('#ldBack').addEventListener('click', () => { $('#loadPick').hidden = true; showMapPick(); });
+$('#ldStart').addEventListener('click', () => {
+  if (LOADOUT.decor.length !== DECOR_PICK) return;
+  try { localStorage.setItem('mtd-loadout', JSON.stringify(LOADOUT)); } catch (e) {}
+  $('#loadPick').hidden = true; paused = false; startGame();
+});
 // map picker: shown on entry and on Restart / Play again; the game waits (paused) underneath
 function showMapPick() {
   if (paused && !$('#pausedTag').hidden) setPaused(false);
@@ -4697,11 +4770,11 @@ function showMapPick() {
 }
 document.querySelectorAll('.mapBtn').forEach(b => b.addEventListener('click', () => {
   MAP = b.dataset.map; try { localStorage.setItem('mtd-map', MAP); } catch (e) {}
-  $('#mapPick').hidden = true; paused = false; startGame();
+  $('#mapPick').hidden = true; showLoadPick();          // then the town's buildings, then the game
 }));
 addEventListener('keydown', e => {
   if (/^(w|a|s|d|q|e|arrow)/i.test(e.key)) { heldKeys.add(e.key.toLowerCase()); return; }
-  const map = { v: 'select', V: 'select', 1: 'house', 2: 'farm', 3: 'lodge', 4: 'quarry', 5: 'tower', 6: 'wall', 7: 'gate', 8: 'barracks', 9: 'market', r: 'road', R: 'road' };
+  const L = LOADOUT, map = { v: 'select', V: 'select', 1: 'house', 2: L.food, 3: L.wood, 4: L.stone, 5: L.ranged, 6: 'wall', 7: 'gate', 8: L.barracks, 9: 'market', 0: L.siege, r: 'road', R: 'road' };
   if (map[e.key]) setTool(map[e.key]);
   else if (e.key === 'g' || e.key === 'G') $('#gridBtn').click();
   else if (e.key === 'Escape') { deselect(); setTool('select'); }
@@ -4884,7 +4957,7 @@ function startGame() {
   log(`Survive <b>${NIGHTS} nights</b>`);
   log('<b>Day 1</b>', 'good');
   banner('Day 1', 'Build before dark');
-  cat = 'eco'; renderTools(); setTool('select');
+  applyLoadout(); cat = 'eco'; renderTools(); setTool('select');
 }
 
 // ---------- loop ----------
@@ -5167,13 +5240,7 @@ function coinFly(x, y, z, n, kind = 'gold') {
 }
 
 // ---------- guided first day: one short step at a time, the button to press pulses; shown once per device ----------
-var GUIDE = [
-  { text: 'Build a house', tool: 'house', cat: 'eco', done: () => buildings.some(B => B.type === 'house') },
-  { text: 'Lumber by trees', tool: 'lodge', cat: 'eco', done: () => buildings.some(B => B.type === 'lodge') },
-  { text: 'Farm for food', tool: 'farm', cat: 'eco', done: () => buildings.some(B => B.type === 'farm') },
-  { text: 'Archers', tool: 'tower', cat: 'def', done: () => buildings.some(B => B.type === 'tower') },
-  { text: 'Upgrade a building', tool: 'select', done: () => buildings.some(B => B.tier > 1 || (B.site && B.site.kind === 'up')) },
-];
+var GUIDE;   // filled per game from the picks (applyLoadout)
 var guideOn = false, guideStep = -1, guideEndT = 0;
 try { guideOn = localStorage.getItem('mtd-guide') !== 'done'; } catch (e) { guideOn = true; }
 function guideFinish() { guideOn = false; try { localStorage.setItem('mtd-guide', 'done'); } catch (e) {} guideMark(); }
