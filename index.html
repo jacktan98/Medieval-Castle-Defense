@@ -943,7 +943,7 @@ for (const m of [M.wood, M.rough, M.timber, M.log, M.dark]) addGrit(m, 'wood');
 addGrit(M.stone, 'stone'); addGrit(M.stone2, 'stone'); addGrit(M.court, 'earth');   // tier 1 slabs: mottled packed earth with pebbles
 M.plainStone = mat('#8f8a80'); addGrit(M.plainStone, 'rock');   // tier 2 bases: rough grey stone without block joints
 // doors by tier, the same on every building of that tier: weathered planks, dark oak, painted the town's blue like tier-3 roofs
-const DOOR_M = [null, mat('#3f2a1a'), mat('#6b4628'), mat('#9a7350')]; DOOR_M.slice(1).forEach(m => addGrit(m, 'wood'));
+const DOOR_M = [null, mat('#4a301c'), mat('#8f5e34'), mat('#c49b66')]; DOOR_M.slice(1).forEach(m => addGrit(m, 'wood'));
 M.drape = mat('#2f4f8a');
 M.awning = mat('#3466b0');   // market awning stripes: the town's blue (no flag wave)
 M.drape.onBeforeCompile = sh => {
@@ -2029,8 +2029,10 @@ function makeCrossbowTower(tier, plinth) {
     for (const sx of [-1, 1]) t.add(box(.06, .3, .02, M.dark, sx * .35, 1.2, .76));
     t.add(box(1.8, .12, 1.8, M.rough, 0, top - .06, 0));
     for (const [x, z, w, d] of [[0, .87, 1.8, .06], [0, -.87, 1.8, .06], [.87, 0, .06, 1.8], [-.87, 0, .06, 1.8]]) t.add(box(w, .5, d, M.rough, x, top + .25, z));
-    for (let n = 0; n < 6; n++) { const r = box(.05, .05, .5, M.rough, -.9, .25 + n * .32, -.2); r.rotation.x = 0; t.add(r); }   // ladder rungs up the side
-    for (const sz of [-.42, .02]) t.add(box(.05, top, .05, M.rough, -.92, top / 2, sz - .2));
+    // a ladder up the left side: two rails clear of the deck's edge, rising past the parapet, rungs between them
+    const LX = -.97, LH = top + .45;
+    for (const z of [-.45, .05]) t.add(box(.05, LH, .05, M.rough, LX, LH / 2, z));
+    for (let y = .25; y < top + .3; y += .3) t.add(box(.04, .04, .5, M.rough, LX, y, -.2));
   } else if (tier === 2) {
     t.add(box(1.55, top - 1.0, 1.55, M.plainStone, 0, (top - 1.0) / 2 + .2, 0));
     t.add(box(1.75, .85, 1.75, M.wood, 0, top - .55, 0));
