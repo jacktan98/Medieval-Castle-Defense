@@ -2693,7 +2693,7 @@ function stride(u, dt, rate) { u.amp = (u.amp || 0) + ((u.walking ? 1 : 0) - (u.
 function cellPass(n, mode) {
   if (MAP === 'pass' && !passOpen((n % N + .5) * CELL, (((n / N) | 0) + .5) * CELL)) return false;
   if (bridgeCell[n]) return true;
-  const o = occB[n]; if (o && !WALK[o.type] && !(o.type === 'gate' && mode !== 2)) return false;
+  const o = mode === 3 ? null : occB[n]; if (o && !WALK[o.type] && !(o.type === 'gate' && mode !== 2)) return false;   // mode 3: raiders' ground, buildings count as open (they break through)
   // a farm cell whose middle is the hut, barn, hay or a scarecrow is routed round (people still walk the open ground by it)
   if (o && o.type === 'farm' && farmBlocked(o, (n % N + .5) * CELL, (((n / N) | 0) + .5) * CELL)) return false;
   return cH[n] > (mode === 1 ? .2 : .45) && cS[n] < (mode === 1 ? 4 : 2.6);
@@ -2876,7 +2876,8 @@ function walkTo(v, tx, tz, dt, mode, stop = .2, mult = 1) {
   if (v.stuck > 2) { unstick(v, mode); v.stuck = 0; v.path = null; }
   v.repathT = (v.repathT || 0) - dt;
   if (!v.path || Math.hypot(v.pathX - tx, v.pathZ - tz) > .6 || (v.stuck > 1.2 && v.repathT <= 0)) {
-    v.path = findPath(v.x, v.z, tx, tz, mode) || []; v.pathX = tx; v.pathZ = tz; v.repathT = 2; v.skipT = 0;
+    // raiders with every way blocked by buildings or walls head for whatever is in the way and break it, instead of walking straight at the target (into rivers)
+    v.path = findPath(v.x, v.z, tx, tz, mode) || (mode === 2 && findPath(v.x, v.z, tx, tz, 3)) || []; v.pathX = tx; v.pathZ = tz; v.repathT = 2; v.skipT = 0;
   }
   if (v.path.length && (v.skipT = (v.skipT || 0) - dt) <= 0) {
     v.skipT = .25;
@@ -3223,11 +3224,12 @@ function edgePoint() {
     }
     return { x: 27, z: SIZE - 1.5 };
   }
-  for (let n = 0; n < 80; n++) {
+  // somewhere they can walk to the castle from; a walled-in town: somewhere they can reach by breaking walls (mode 3)
+  for (const m of [2, 3]) for (let n = 0; n < 80; n++) {
     const side = Math.floor(Math.random() * 4), t = 2 + Math.random() * (SIZE - 4);
     const [x, z] = side === 0 ? [t, 1.2] : side === 1 ? [SIZE - 1.2, t] : side === 2 ? [t, SIZE - 1.2] : [1.2, t];
     if (hAt(x, z) > .5 && slopeAt(x, z) < 1.6 && buildings.every(B => distRect(B, x, z) > 10)
-      && cellPass(cellAt(x, z), 2) && (!dp || findPath(x, z, dp.x, dp.z, 2))) return { x, z };   // somewhere they can actually walk to the castle from
+      && cellPass(cellAt(x, z), 2) && (!dp || findPath(x, z, dp.x, dp.z, m))) return { x, z };
   }
   return { x: 1.5, z: SIZE / 2 };
 }
@@ -3312,11 +3314,43 @@ function hurtEnemy(e, d) {
 // who goes for what: spearmen hit the nearest building, swordsmen hunt archer towers, the captain rides for the castle,
 // archers aim past walls and gates at what lies behind them
 const NOT_WALL = B => B.type !== 'wall' && B.type !== 'gate';
+// how many cells a raider at (x, z) must walk to each cell: over land and bridges (ends only), buildings counted as open
+// (they break through); water with no bridge is Infinity. Targets are picked by this, never by a straight line across a river
+function landField(x, z) {
+  const f = new Float32Array(N * N).fill(Infinity), q = new Int32Array(N * N), s = cellAt(x, z); let h = 0, t = 0; f[s] = 0; q[t++] = s;
+  while (h < t) {
+    const c = q[h++], a = c % N, b = (c / N) | 0, bc = bridgeCell[c];
+    for (let k = 0; k < 4; k++) {
+      const na = a + ND[k][0], nb = b + ND[k][1]; if (na < 0 || nb < 0 || na >= N || nb >= N) continue;
+      const nn = nb * N + na; if (f[nn] !== Infinity || !cellPass(nn, 3)) continue;
+      const bn = bridgeCell[nn]; if (bc !== bn && ((bc && !bridges[bc - 1].ends.has(c)) || (bn && !bridges[bn - 1].ends.has(nn)))) continue;
+      f[nn] = f[c] + 1; q[t++] = nn;
+    }
+  }
+  return f;
+}
+// the nearest building by walking distance (straight-line distance only breaks ties); also where to stand: the cell beside it
+// the raider reaches first, so e.tp is on the side they actually arrive at
+function reachTarget(e, ok) {
+  const f = e.field || (e.field = landField(e.x, e.z));
+  let best = null, bd = Infinity, bc = -1;
+  for (const B of buildings) {
+    if (DEF[B.type].decor || (ok && !ok(B))) continue;
+    let m = Infinity, mc = -1;
+    for (const n of ringCells(B.ev)) if (f[n] < m) { m = f[n]; mc = n; }
+    if (m === Infinity) continue;
+    const d = m + distRect(B, e.x, e.z) * .01;
+    if (d < bd) { bd = d; best = B; bc = mc; }
+  }
+  if (best) { const cx = (bc % N + .5) * CELL, cz = (((bc / N) | 0) + .5) * CELL; e.tpNew = { x: clamp(cx, best.ev.x0, best.ev.x1), z: clamp(cz, best.ev.z0, best.ev.z1) }; }
+  return best;
+}
 function pickTarget(e) {
-  if (e.kind === 'captain') return castleB() || nearestBuilding(e.x, e.z);
-  if (e.kind === 'sword') return nearestBuilding(e.x, e.z, 1e9, B => B.type === 'tower') || nearestBuilding(e.x, e.z);
-  if (e.kind === 'archer') return nearestBuilding(e.x, e.z, 1e9, NOT_WALL) || nearestBuilding(e.x, e.z);
-  return nearestBuilding(e.x, e.z);
+  e.field = null; e.tpNew = null;
+  if (e.kind === 'captain') { const K = castleB(); return K && reachTarget(e, B => B === K) || reachTarget(e) || nearestBuilding(e.x, e.z); }
+  if (e.kind === 'sword') return reachTarget(e, B => B.type === 'tower') || reachTarget(e) || nearestBuilding(e.x, e.z);
+  if (e.kind === 'archer') return reachTarget(e, NOT_WALL) || reachTarget(e) || nearestBuilding(e.x, e.z);
+  return reachTarget(e) || nearestBuilding(e.x, e.z);
 }
 function updateEnemies(dt) {
   for (let n = enemies.length - 1; n >= 0; n--) {
@@ -3329,7 +3363,7 @@ function updateEnemies(dt) {
     e.walking = false; e.aiming = false; e.running = false;
     if (!e.target || e.target.dead || (e.retarget -= dt) < 0) {
       const t = pickTarget(e); if (t !== e.target) e.lob = false; e.target = t; e.retarget = 3;
-      if (t) e.tp = { x: clamp(e.x, t.ev.x0, t.ev.x1), z: clamp(e.z, t.ev.z0, t.ev.z1) };   // the near side of it, fixed until the next retarget
+      if (t) e.tp = e.tpNew || { x: clamp(e.x, t.ev.x0, t.ev.x1), z: clamp(e.z, t.ev.z0, t.ev.z1) };   // the side they reach first, fixed until the next retarget
     }
     const B = e.target, foe = e.kind !== 'archer' ? nearestSoldier(e.x, e.z, e.horse ? 2.6 : 2.2) : null;
     if (foe) {                                               // a soldier in the way: fight them first
@@ -3344,7 +3378,9 @@ function updateEnemies(dt) {
         e.running = e.kind !== 'archer' && !e.horse && d < 6;
         // route on the cell grid like villagers (round water, over bridges, round walls); straight in once close
         const tp = e.tp || { x: clamp(e.x, B.ev.x0, B.ev.x1), z: clamp(e.z, B.ev.z0, B.ev.z1) };
-        if (d < 3) steer(e, clamp(e.x, B.ev.x0, B.ev.x1), clamp(e.z, B.ev.z0, B.ev.z1), dt, 2, e.range * .9, e.running ? 1.6 : 1);
+        const qx = clamp(e.x, B.ev.x0, B.ev.x1), qz = clamp(e.z, B.ev.z0, B.ev.z1), ql = Math.hypot(e.x - qx, e.z - qz) || 1;
+        // straight in only over open ground (never across a stream or round a corner into a wall)
+        if (d < 3 && clearLine(e.x, e.z, qx + (e.x - qx) / ql * .35, qz + (e.z - qz) / ql * .35, 2)) steer(e, qx, qz, dt, 2, e.range * .9, e.running ? 1.6 : 1);
         else walkTo(e, tp.x, tp.z, dt, 2, e.range * .9, e.running ? 1.6 : 1);
         if (e.stuck > 2 || e.noProg > 3.5) {
           const blk = nearestBuilding(e.x, e.z, 1.6);         // a wall is in the way: attack it
