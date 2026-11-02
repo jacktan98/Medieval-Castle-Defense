@@ -5,7 +5,7 @@
 | `Click_sound.mp3` | Any button, and placing a building or wall |
 | `Building_built.mp3` | A building finishes, an upgrade finishes, a repair finishes (softer) |
 | `Building_sold.mp3` | You demolish a building |
-| `Building_destroyed.mp3` | Raiders destroy a building |
+| `Building_destroyed.mp3` | Raiders destroy a building; a raider siege engine is broken |
 | `Coins_payout.mp3` | Every 20 s payout |
 | `Arrow_shot.mp3` | Any archer shoots (yours or the raiders') |
 | `Enemy_attack_1.mp3`, `Enemy_attack_2.mp3` | A raider strikes a building; one of the two at random, never the same twice running |
@@ -28,12 +28,16 @@
 | `Rock_hit_ground.mp3` | The stone lands |
 | `Fire_sound.mp3` | Loops near torches and campfires: louder the closer the camera looks and the further it zooms in |
 | `River_water_flow.mp3` | Loops near rivers the same way |
+| `Battleram_hit.mp3` | A battering ram's log strikes a wall, gate or building |
+| `Chicken_cluck.mp3`, `Pig_oink.mp3`, `Cow_moo.mp3` | Now and then from a farmhouse yard (only the animals it keeps), when the camera is close in on it |
+| `Horse_neigh.mp3` | Now and then from the stables, when the camera is close in on them |
+| `Horse_gallop.mp3` | Loops while horses (mounted raiders, your riders) are on the move near where the camera looks; loud only zoomed in |
 
 **Volume balance:** every clip is measured when it loads (loudness of its loudest 0.3 s) and brought to one
 common level, then trimmed by how prominent it should be, like medieval-td. So re-uploading a file at a
 different recording level needs no code change. World sounds also get quieter the further they are from
 where the camera looks. To add or rename a sound, edit the `SND` table in `index.html`.
 
-`Bird_chirping.m4a`, `Fire_sound.m4a` and `River_water_flow.m4a` are compressed copies of their `.mp3` for faster phone loading; if you replace an `.mp3`, delete its `.m4a` too (or remake it: `ffmpeg -i x.mp3 -c:a aac -b:a 96k x.m4a`).
+`Bird_chirping.m4a`, `Fire_sound.m4a`, `River_water_flow.m4a` and `Horse_gallop.m4a` are compressed copies of their `.mp3` for faster phone loading; if you replace an `.mp3`, delete its `.m4a` too (or remake it: `ffmpeg -i x.mp3 -c:a aac -b:a 96k x.m4a`).
 
 Leading silence in a clip is skipped automatically when it loads, so a sound lands right on its event.

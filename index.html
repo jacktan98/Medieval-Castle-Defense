@@ -4366,7 +4366,7 @@ function updateVolley(dt) {
 // a raider falling grunts at most every 3 s (SFX_GAP); otherwise the thud of the arrow hit plays
 // a siege engine broken: timbers fly, dust, a small shake; it slumps to one side and its crew fall
 function engineWreck(e, y) {
-  e.fallDir = Math.random() < .5 ? -1 : 1; shake(.08, e); sfx('attack', e);
+  e.fallDir = Math.random() < .5 ? -1 : 1; shake(.08, e); sfx('destroyed', e);
   for (let i = 0; i < 12 && debris.length < 120; i++) {
     const sz = .07 + Math.random() * .12, o = box(sz, sz * .5, sz * (1.5 + Math.random() * 2), i % 3 ? M.timber : M.wood, e.x + (Math.random() - .5), y + .5 + Math.random() * .6, e.z + (Math.random() - .5));
     scene.add(o); debris.push({ o, vx: (Math.random() - .5) * 4, vy: 2.5 + Math.random() * 3, vz: (Math.random() - .5) * 4, life: 1.4 + Math.random() * .6, spin: (Math.random() - .5) * 12 });
@@ -4638,7 +4638,7 @@ function updateEnemies(dt) {
     if (e.kind === 'ram' && e.ramHit && e.attackT > 0 && 1 - e.attackT / RAM_T > RAM_HIT) {   // the ram strikes home
       const T = e.ramHit; e.ramHit = null;
       if (!T.dead) {
-        hurtBuilding(T, e.dmg); sfx('attack', e); shake(.05, e);
+        hurtBuilding(T, e.dmg); sfx('ramHit', e); shake(.05, e);
         const hx = e.x + Math.sin(e.g.rotation.y) * 1.5, hz = e.z + Math.cos(e.g.rotation.y) * 1.5;
         for (let i = 0; i < 3; i++) dustAt(hx + (Math.random() - .5) * .5, walkY(hx, hz), hz + (Math.random() - .5) * .5);
       }
@@ -6349,6 +6349,12 @@ var SND = {   // game event -> file in audio/sfx (or audio/music) and its trim a
   qbolt:     { file: 'sfx/Crossbow_quiver_shot.mp3', trim: .8 },     // a crossbow shoots (yours or the raiders')
   rockFire:  { file: 'sfx/Rock_fired.mp3',           trim: .9 },     // a catapult, mangonel or trebuchet lets its stone go
   rockHit:   { file: 'sfx/Rock_hit_ground.mp3',      trim: 1, reach: 40 },   // the stone lands
+  ramHit:    { file: 'sfx/Battleram_hit.mp3',        trim: 1 },      // a battering ram's log strikes home
+  // animals, heard only close up (updateAmbience): the farmhouse's yard by what it keeps, the stables' horses
+  hen:       { file: 'sfx/Chicken_cluck.mp3',        trim: .45, reach: 16 },
+  pig:       { file: 'sfx/Pig_oink.mp3',             trim: .55, reach: 16 },
+  cow:       { file: 'sfx/Cow_moo.mp3',              trim: .55, reach: 16 },
+  neigh:     { file: 'sfx/Horse_neigh.mp3',          trim: .5,  reach: 16 },
   victory:   { file: 'music/Victory_sound.mp3',      trim: 1 },
   defeat:    { file: 'music/Defeat_sound.mp3',       trim: 1 },
 };
@@ -6364,15 +6370,16 @@ var LOOPS = {
   // vol is the most they reach (loudest 0.3 s RMS measured: fire .019, crackles peaking .7; river .035)
   fire:  { file: 'sfx/Fire_sound.mp3',             vol: 1.3, amb: true },
   river: { file: 'sfx/River_water_flow.mp3',       vol: 1.0, amb: true },
+  gallop: { file: 'sfx/Horse_gallop.mp3',          vol: .4, amb: true },   // horses on the move (loudest .3 s RMS .126)
 };
 // bump when a sound file is replaced, so phones fetch the new file instead of a cached copy
-var AUDIO_V = 3;
+var AUDIO_V = 4;
 var TARGET_LOUD = .09, LOUD_WINDOW = .3, GAIN_MIN = .1, GAIN_MAX = 6, MASTER = .9, PEAK_CEILING = .95 / MASTER;
-var SFX_GAP = { bolt: .1, qbolt: .06, rockFire: .15, rockHit: .15, path: .12, clash: .12, arrowHit: .08, grunt: 3, yawn: 3, nope: .3, rooster: 2, chop: .15, pick: .15, hoe: .2, hammer: .12, arrow: .08, attack: .1, coins: .3, click: .05 };   // min seconds between repeats
+var SFX_GAP = { ramHit: .3, hen: 2, pig: 1.5, cow: 4, neigh: 3, bolt: .1, qbolt: .06, rockFire: .15, rockHit: .15, path: .12, clash: .12, arrowHit: .08, grunt: 3, yawn: 3, nope: .3, rooster: 2, chop: .15, pick: .15, hoe: .2, hammer: .12, arrow: .08, attack: .1, coins: .3, click: .05 };   // min seconds between repeats
 var STROKE_SFX = { axe: 'chop', pick: 'pick', hoe: 'hoe', hammer: 'hammer' };
 var muted = false; try { muted = localStorage.getItem('mtd-muted') === '1'; } catch (e) {}
 // var: sfx()/setMusic() can run during the startup reset, before this block executes
-var loopWanted = {}, loopNode = {}, ambK = { fire: 0, river: 0 }, actx = null, master = null, audioUnlocked = false, musicWant = 'day', clips = {}, sfxLast = {}, lastPick = {}, loopEl = {}, stinger = null;
+var loopWanted = {}, loopNode = {}, ambK = { fire: 0, river: 0, gallop: 0 }, actx = null, master = null, audioUnlocked = false, musicWant = 'day', clips = {}, sfxLast = {}, lastPick = {}, loopEl = {}, stinger = null;
 try { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = MASTER; master.connect(actx.destination); } catch (e) { actx = null; }
 // loudness = RMS of the loudest LOUD_WINDOW; the gain brings it to TARGET_LOUD x trim without the peak passing the ceiling
 function levelOf(b, from = 0, to = b.length) {
@@ -6442,7 +6449,7 @@ function sfx(name, at, vol = 1) {
 }
 // fire and running water: how loud each should be from where the camera looks (the nearest torch or campfire, the nearest bit of
 // shoreline) and how close it is zoomed in; eased so panning past doesn't jump; the loop only plays while it is audible
-var ambT = 0;
+var ambT = 0, ambCallT = 3;
 function updateAmbience(dt) {
   if (!actx || galleryOn) return;
   if ((ambT -= dt) <= 0) {
@@ -6450,17 +6457,28 @@ function updateAmbience(dt) {
     const zoom = clamp((60 - dist) / 40, .12, 1);
     let df = 1e9; for (const B of buildings) if ((B.type === 'torch' || B.type === 'campfire') && B.built) { const c = center(B); df = Math.min(df, Math.hypot(c.x - target.x, c.z - target.z) * (B.type === 'torch' ? 1.4 : 1)); }
     let dr = 1e9; for (let i = 0; i < shore.length; i += 7) { const p = shore[i]; dr = Math.min(dr, Math.hypot(p[0] - target.x, p[1] - target.z)); }
-    const want = { fire: Math.pow(clamp(1 - df / 16, 0, 1), 1.5) * zoom, river: Math.pow(clamp(1 - dr / 22, 0, 1), 1.3) * zoom };
-    const was = ambK.fire > .01, wasR = ambK.river > .01;
-    ambK.fireGoal = want.fire; ambK.riverGoal = want.river;
-    if ((want.fire > .01) !== was || (want.river > .01) !== wasR) { ambK.fire = Math.max(ambK.fire, want.fire > .01 ? .011 : 0); ambK.river = Math.max(ambK.river, want.river > .01 ? .011 : 0); syncMusic(); }
+    // horses moving at a fair pace: mounted raiders and the stables' riders
+    let dh = 1e9; const near = u => { dh = Math.min(dh, Math.hypot(u.rx - target.x, u.rz - target.z)); };
+    for (const e of enemies) if (e.horse && !e.dead && e.walking) near(e);
+    for (const v of villagers) if (v.horse && v.g.visible && v.walking) near(v);
+    const want = { fire: Math.pow(clamp(1 - df / 16, 0, 1), 1.5) * zoom, river: Math.pow(clamp(1 - dr / 22, 0, 1), 1.3) * zoom, gallop: Math.pow(clamp(1 - dh / 18, 0, 1), 1.3) * zoom };
+    let flip = false;
+    for (const k of ['fire', 'river', 'gallop']) { ambK[k + 'Goal'] = want[k]; if ((want[k] > .01) !== (ambK[k] > .01)) { flip = true; ambK[k] = Math.max(ambK[k], want[k] > .01 ? .011 : 0); } }
+    if (flip) syncMusic();
+    // now and then an animal calls, when the camera is close in on a farmhouse yard or the stables
+    if ((ambCallT -= .25) <= 0 && zoom > .3) {
+      ambCallT = 2.5 + Math.random() * 4;
+      const pens = buildings.filter(B => B.built && (B.type === 'farmhouse' || B.type === 'stables') && Math.hypot(center(B).x - target.x, center(B).z - target.z) < 14);
+      const B = pens[Math.floor(Math.random() * pens.length)];
+      if (B) { const kinds = B.type === 'stables' ? ['neigh'] : [...new Set(HERD[B.tier])]; sfx(kinds[Math.floor(Math.random() * kinds.length)], center(B), zoom); }
+    }
   }
-  for (const k of ['fire', 'river']) {
+  for (const k of ['fire', 'river', 'gallop']) {
     const goal = ambK[k + 'Goal'] || 0; ambK[k] += (goal - ambK[k]) * Math.min(1, dt * 2.5); if (goal <= .01 && ambK[k] < .012) ambK[k] = 0;
     const v = LOOPS[k].vol * ambK[k];
     if (loopNode[k]) loopNode[k].gain.value = v; else if (loopEl[k]) loopEl[k].volume = Math.min(1, v);
   }
-  if (ambK.fire === 0 || ambK.river === 0) { const want = { fire: ambK.fire > .01, river: ambK.river > .01 }; if (Object.keys(want).some(k => loopEl[k] && !want[k] && !loopEl[k].paused)) syncMusic(); }
+  if (ambK.fire === 0 || ambK.river === 0 || ambK.gallop === 0) { const want = { fire: ambK.fire > .01, river: ambK.river > .01, gallop: ambK.gallop > .01 }; if (Object.keys(want).some(k => loopEl[k] && !want[k] && !loopEl[k].paused)) syncMusic(); }
 }
 // the theme loops day and night with birdsong under it by day; victory and defeat stop it and play once
 function setMusic(name) { musicWant = name; syncMusic(); }
@@ -6468,7 +6486,7 @@ function syncMusic() {
   if (!loopEl) return;
   const on = !muted && audioUnlocked && !document.hidden, end = musicWant === 'victory' || musicWant === 'defeat';
   const nightOn = on && musicWant === 'night' && loopEl.night;   // falls back to the day theme if the night track is missing
-  const want = { music: on && !end && !nightOn, night: !!nightOn, birds: on && musicWant === 'day', fire: on && !end && ambK.fire > .01, river: on && !end && ambK.river > .01 };
+  const want = { music: on && !end && !nightOn, night: !!nightOn, birds: on && musicWant === 'day', fire: on && !end && ambK.fire > .01, river: on && !end && ambK.river > .01, gallop: on && !end && ambK.gallop > .01 };
   loopWanted = want;
   for (const k in loopEl) { const el = loopEl[k]; if (want[k] && el.paused) el.play().catch(() => {}); else if (!want[k] && !el.paused) el.pause(); }
   if (on && end && !stinger) stinger = sfx(musicWant) || 1;
