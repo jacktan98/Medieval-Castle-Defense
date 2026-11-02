@@ -454,7 +454,7 @@ const N = 28, CELL = 2, SIZE = N * CELL, V = SIZE + 1;
 const F = 3, TICK = 20;
 let KX = 19, KZ = 27;                  // castle site: Meadow cells 8–10, 12–14; River isle 12–14, 12–14 (set per map in startGame)
 // MAP: 'meadow' (the original map) or 'isle' (the castle on an island ringed by a river, three fixed bridges); ?map=isle skips the picker
-var MAP = (location.search.match(/[?&]map=(meadow|isle|pass|vale)\b/) || [])[1] || (() => { try { const m = localStorage.getItem('mtd-map'); return /^(meadow|isle|pass)$/.test(m) ? m : null; } catch (e) { return null; } })() || 'meadow';
+var MAP = (location.search.match(/[?&]map=(meadow|isle|pass|vale|bridge)\b/) || [])[1] || (() => { try { const m = localStorage.getItem('mtd-map'); return /^(meadow|isle|pass)$/.test(m) ? m : null; } catch (e) { return null; } })() || 'meadow';
 // river isle: the river's centre line wobbles round the castle; ISLE.r is its mean radius in metres
 const ISLE = { r: 16.6 }, ISLE_BRIDGES = [-90, 30, 150], ISLE_ROCKS = [-30, 90, 210], MEADOW_BRIDGES = [0];   // Meadow: one bridge east from the castle over its river
 const isleOutN = z => 41 + 2.5 * Math.sin(z * .22 + .5), isleOutS = z => 18 + 2.5 * Math.sin(z * .2 + 2);   // the isle's two outflows: centre x by z
@@ -588,9 +588,22 @@ const MAP_RULES = {
   // Greenvale, the campaign's first stop and its tutorial: three short nights of tier-1 spearmen and archers, from the north-east
   vale: { waves: [{ spear: [4] }, { spear: [6], archer: [2] }, { spear: [8], archer: [3] }], day: [300, 180, 180], spawnGap: 1.6,
           res: { gold: 60, wood: 70, stone: 10, food: 30 } },
+  // Stonebridge (stage 2): raiders from the north over the stone bridge; from night 3 some come by the ford upstream; a ram on night 4
+  bridge: { waves: [{ spear: [5] }, { spear: [6], sword: [3] }, { spear: [6], sword: [3], archer: [3] }, { spear: [8], sword: [4], archer: [3], ram: [1] }],
+            day: [300, 180, 180, 180], spawnGap: 1.4, res: { gold: 80, wood: 90, stone: 20, food: 30 } },
 };
 // campaign stops' own maps: the buildings each one has (the stop's and every earlier stop's), and where it sits on the overview
-const CAMP_MAPS = { vale: { stop: 0, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower'], decor: ['road', 'flowers', 'torch'] } } };
+const CAMP_MAPS = {
+  vale: { stop: 0, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower'], decor: ['road', 'flowers', 'torch'] } },
+  bridge: { stop: 1, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack'] },
+    // its own guided first day: the new buildings, and closing the half-built wall along the bank
+    guide: () => [
+      { text: 'Build barracks', tool: 'barracks', cat: 'def', done: () => buildings.some(B => B.type === 'barracks') },
+      { text: 'Gate at the bridge', tool: 'gate', cat: 'def', done: () => { const b = bridges[0]; return !!b && buildings.some(B => B.type === 'gate' && Math.hypot(center(B).x - b.ex, center(B).z - b.ez) < 4.5); } },
+      { text: 'Close the wall', tool: 'wall', cat: 'def', done: () => BANK_WALL.length > 0 && BANK_WALL.every(n => occB[n] && WALLY[occB[n].type]) },
+      { text: 'Rally by the gate', tool: 'select', done: () => buildings.some(B => B.rally) },
+      { text: 'Weapon rack', tool: 'rack', cat: 'decor', done: () => buildings.some(B => B.type === 'rack') }] },
+};
 var WAVES = WAVES_STD, NIGHTS = WAVES.length, DAYLEN = [300, 150, 150, 150, 150], SPAWN_GAP = 1.1;
 function mapRules() { const R = MAP_RULES[MAP]; WAVES = R ? R.waves : WAVES_STD; NIGHTS = WAVES.length; DAYLEN = R ? R.day : [300, 150, 150, 150, 150]; SPAWN_GAP = R ? R.spawnGap : 1.1; }
 const ENEMY = {
@@ -672,11 +685,25 @@ function valeHeight(x, z) {
   const hill = 5 + 4 * fbm(x * .1 + 2, z * .1 + 6) + 1.2 * vnoise(x * .35, z * .35);
   return lerp(hill, floor, sstep(-5.5, .4, d));                 // the hills rise gently from the valley's rim
 }
+// Stonebridge (stage 2): a river winding from the east edge to the west; the town on the south bank, the raiders' woods on the
+// north bank; one old stone bridge (BRIDGE_X) and, upstream, a ford (FORD_X: a gravel bar raiders can wade); low hills to the south
+const BRIDGE_X = 28.5, FORD_X = 46.5;
+const BANK_D = 7.2;   // the wall line runs this far south of the river's middle, on flat dry ground past the bank's slope
+const stoneRiverZ = x => 16.5 - (x - 28) * .14 + 1.5 * Math.sin(x * .13 + 1) + .7 * Math.sin(x * .31);
+function bridgeHeight(x, z) {
+  let h = 2 + 2.4 * fbm(x * .06, z * .06) + Math.max(0, fbm(x * .14 + 9, z * .14 + 3) - .6) * 6;
+  h += 3.2 * sstep(43, 55, z) * (.6 + .6 * fbm(x * .1 + 4, z * .1));          // low hills along the south edge
+  h = lerp(3.0 + (h - 3.0) * .35, h, sstep(6, 12, Math.hypot(x - KX, z - KZ)));   // open meadow round the castle
+  const ford = sstep(3.6, 2.4, Math.abs(x - FORD_X)), ramp = sstep(6, 3.5, Math.abs(x - FORD_X));   // the ford: the bed rises to a gravel bar
+  const d = Math.abs(z - stoneRiverZ(x)), river = lerp(-1.4, h, lerp(sstep(2.2, 6, d), sstep(2.4, 12, d), ramp));   // with gentle banks down to it
+  return d < 6 ? Math.max(river, lerp(river, .6 + .06 * vnoise(x * .9, z * .9), ford)) : river;   // .6: above the .45 raiders' routes need
+}
 // the maps with ground nobody may walk or build on (Mountain pass's mountains, Greenvale's hills)
 const mapOpen = (x, z) => MAP === 'pass' ? passOpen(x, z) : MAP === 'vale' ? valeOpen(x, z) : true;
 function genHeight(x, z) {
   if (MAP === 'pass') return passHeight(x, z);
   if (MAP === 'vale') return valeHeight(x, z);
+  if (MAP === 'bridge') return bridgeHeight(x, z);
   let h = 1.6 + fbm(x * .06, z * .06) * 4.2;
   h += Math.max(0, fbm(x * .14 + 9, z * .14 + 3) - .6) * 16;
   h += Math.max(0, 10 - x) * .35 * fbm(x * .1, z * .1 + 7);
@@ -709,6 +736,10 @@ const bridgeCell = new Uint8Array(N * N), BRIDGE_RISE = .45, DECK_W = 1.9;
 // where each map's bridges cross: a start point and a direction, marched along until the river is crossed
 function bridgeRays() {
   if (MAP === 'pass' || MAP === 'vale') return [];
+  if (MAP === 'bridge') {                       // the stone bridge, square across the river north of the castle
+    const e = .01, sl = (stoneRiverZ(BRIDGE_X + e) - stoneRiverZ(BRIDGE_X - e)) / (2 * e), m = Math.hypot(1, sl), dx = -sl / m, dz = 1 / m;
+    return [{ ox: BRIDGE_X - dx * 10, oz: stoneRiverZ(BRIDGE_X) - dz * 10, dx, dz, stone: true }];
+  }
   if (MAP === 'isle') return ISLE_BRIDGES.map(deg => { const a = deg * Math.PI / 180, r = isleR(a); return { ox: KX + Math.cos(a) * (r - 7), oz: KZ + Math.sin(a) * (r - 7), dx: Math.cos(a), dz: Math.sin(a) }; });
   // Meadow: square across its river where it passes the castle's row
   const zc = KZ, drx = .6 * Math.cos(zc * .12) + .15 * Math.cos(zc * .05 + 1), m = Math.hypot(1, drx), dx = 1 / m, dz = -drx / m;
@@ -727,7 +758,8 @@ function genBridges() {
     while (a > sA - 6 && !flat(a)) a -= .2;
     while (c < sB + 6 && !flat(c)) c += .2;
     a -= .3; c += .3;
-    const b = { x0: ray.ox + ray.dx * a, z0: ray.oz + ray.dz * a, dx: ray.dx, dz: ray.dz, L: c - a, ends: new Set() };
+    const b = { x0: ray.ox + ray.dx * a, z0: ray.oz + ray.dz * a, dx: ray.dx, dz: ray.dz, L: c - a, ends: new Set(), stone: !!ray.stone };
+    b.ex = b.x0 + b.dx * b.L; b.ez = b.z0 + b.dz * b.L;   // its far (here: southern) end
     b.h0 = hAt(b.x0, b.z0) + .05; b.h1 = hAt(b.x0 + b.dx * b.L, b.z0 + b.dz * b.L) + .05;
     b.mx = b.x0 + b.dx * b.L / 2; b.mz = b.z0 + b.dz * b.L / 2;
     bridges.push(b);
@@ -838,7 +870,7 @@ hTex.magFilter = hTex.minFilter = THREE.LinearFilter;
 const waterU = { uIsle: { value: 0 }, uC: { value: new THREE.Vector2() } };
 function syncWaterTex() {
   for (let k = 0; k < V * V; k++) hData[k * 4] = clamp(Math.round((H[k] + 3) / 6 * 255), 0, 255);
-  hTex.needsUpdate = true; waterU.uIsle.value = MAP === 'isle' ? 1 : 0; waterU.uC.value.set(KX, KZ);
+  hTex.needsUpdate = true; waterU.uIsle.value = MAP === 'isle' ? 1 : MAP === 'bridge' ? 2 : 0; waterU.uC.value.set(KX, KZ);
 }
 waterMat.onBeforeCompile = sh => {
   sh.uniforms.uTime = windU; sh.uniforms.uH = { value: hTex }; sh.uniforms.uIsle = waterU.uIsle; sh.uniforms.uC = waterU.uC;
@@ -848,6 +880,7 @@ waterMat.onBeforeCompile = sh => {
     float wn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
       return mix(mix(wh(i), wh(i + vec2(1, 0)), f.x), mix(wh(i + vec2(0, 1)), wh(i + vec2(1, 1)), f.x), f.y); }
     vec2 flowAt(vec2 p, float k) {            // where this point's water was k seconds-ish ago: drift with the current
+      if (uIsle > 1.5) return p + vec2(uTime * .55 * k, 0.0);   // Stonebridge: the river runs west
       if (uIsle > .5) { vec2 d = p - uC;
         if (length(d) > 19.5) return p - vec2(0.0, sign(d.y) * uTime * .55 * k);   // the outflows run away to the map's edge
         float a = -uTime * .045 * k; return uC + mat2(cos(a), -sin(a), sin(a), cos(a)) * d; }
@@ -878,6 +911,7 @@ function recolor() {
     tmpC.copy(C.grass2).lerp(C.grass, clamp((gvar[k] - .25) * 2, 0, 1));
     tmpC.lerp(C.dry, sstep(.55, .72, dvar[k]) * .4);
     tmpC.lerp(C.sand, sstep(.8, .2, h)); tmpC.lerp(C.bed, sstep(-.1, -.8, h));
+    if (MAP === 'bridge') tmpC.lerp(C.bed, sstep(4, 2.5, Math.abs(i - FORD_X)) * sstep(1.1, .7, h) * .8);   // the ford's gravel bar, under its shallow water
     tmpC.lerp(C.rock, MAP === 'vale' ? sstep(1.4, 2.2, Math.hypot(hx, hz)) * .6 : sstep(.55, 1.1, Math.hypot(hx, hz)));   // Greenvale's hills stay green if (h > 15) tmpC.lerp(SNOW_C, sstep(16.2, 18.5, h) * .7); tmpC.lerp(C.dirt, dirt[k]);
     tmpC.multiplyScalar(.94 + .1 * hash(i * 1.7, j * 2.3));
     tCol[k * 3] = tmpC.r; tCol[k * 3 + 1] = tmpC.g; tCol[k * 3 + 2] = tmpC.b;
@@ -1153,6 +1187,17 @@ function genTrees() {
       if (woods || lone) trees.push({ x, z, s: .75 + hash(z, x) * .5, k: 1 });
       continue;
     }
+    if (MAP === 'bridge') {
+      // good timber on the raiders' north bank, a wood in the south-west and one in the south-east, lone trees about the meadow;
+      // clear of the river's banks, the bridge, the ford and round the castle
+      const d = z - stoneRiverZ(x), h = hAt(x, z), mask = fbm(x * .08 + 20, z * .08 + 11);
+      if (Math.abs(d) < 5 || h < .8 || nearBridge(x, z, 3) || Math.abs(x - FORD_X) < 5 && Math.abs(d) < 9 || dk < 8) continue;
+      const north = d < 0 && hash(x * 1.3, z * .7) < .5 + (mask - .45) * 1.5;
+      const sw = Math.hypot((x - 7) / 7, (z - 38) / 9) < 1 && hash(x * .9, z * 1.9) < .7, se = Math.hypot((x - 49) / 7, (z - 34) / 9) < 1 && hash(x * .9, z * 1.9) < .7;
+      const lone = d > 0 && hash(x * 2.1, z * 1.7) < .05;
+      if (north || sw || se || lone) trees.push({ x, z, s: .75 + hash(z, x) * .5, k: 1 });
+      continue;
+    }
     if (MAP === 'vale') {
       // plenty of wood: woods all along the valley's rim and up the corridor's sides, copses about the meadow, clear round the
       // castle and down the corridor's middle; (out of reach, for looks) woods all over the hills
@@ -1232,6 +1277,15 @@ const valeRockSite = (x, z, d) => VALE_ROCK_C.some(([cx, cz]) => Math.hypot(x - 
 function genRocks() {
   rocks.forEach(r => scene.remove(r.mesh)); rocks = [];
   const addRock = (x, z, s0, rot) => { const mesh = new THREE.Mesh(rockGeo, rockMat); mesh.castShadow = mesh.receiveShadow = true; mesh.rotation.set(...rot); rocks.push({ x, z, amount: ROCK_STONE, s0, mesh }); scene.add(mesh); };
+  if (MAP === 'bridge') {
+    // a stony stretch of the town's bank west of the bridge, rocks by the southern hills, a few on the north bank
+    const put = (x0, x1, z0, z1, want, gap) => { for (let n = 0, k = 0; n < 2000 && k < want; n++) {
+      const x = x0 + Math.random() * (x1 - x0), z = z0 + Math.random() * (z1 - z0), d = z - stoneRiverZ(x);
+      if (Math.abs(d) < 4.5 || Math.abs(d - BANK_D) < 3 || hAt(x, z) < .8 || nearBridge(x, z, 2.5) || Math.hypot(x - KX, z - KZ) < 7.5 || rocks.some(r => Math.hypot(r.x - x, r.z - z) < gap)) continue;   // never on the wall's line
+      addRock(x, z, .75 + Math.random() * .6, [Math.random() * 3, Math.random() * 3, Math.random() * 3]); k++; } };
+    put(5, 21, 26, 36, 10, 2.2); put(18, 52, 44, 53, 9, 3.5); put(4, 50, 2, 11, 5, 5);   // just inside the wall west of the castle; the hills; the north bank
+    return;
+  }
   if (MAP === 'vale') {
     // loose groups of 3–5 spread over 8 m, then single rocks scattered about the valley (Jack found tight clusters unnatural)
     for (const [cx, cz] of VALE_ROCK_C) for (let n = 0, k = 0, want = 3 + Math.floor(Math.random() * 3); n < 300 && k < want; n++) {
@@ -2003,6 +2057,7 @@ function makeStatue() {
 // a timber footbridge over the river: planks across a gentle arch, two log stringers, trestles standing in the water,
 // log railings, grey stone landings at both ends. Built along local z, then turned onto its axis.
 function makeBridge(b) {
+  if (b.stone) return makeStoneBridge(b);
   const g = new THREE.Group(), L = b.L, W = DECK_W;
   const yAt = z => deckY(b, (z + L / 2) / L), wx = z => b.mx + b.dx * z, wz = z => b.mz + b.dz * z;
   for (const s of [-1, 1]) {                      // stone landings set into each bank
@@ -2037,6 +2092,51 @@ function makeBridge(b) {
   }
   g.position.set(b.mx, 0, b.mz); g.rotation.y = Math.atan2(b.dx, b.dz);   // local z onto the bridge's direction
   return g;
+}
+// an old stone bridge (Stonebridge): a paved deck on a solid stone span, low parapets along both sides, round piers standing in the
+// water with cutwaters, stone landings on each bank; the same deck line (deckY) the units walk on
+function makeStoneBridge(b) {
+  const g = new THREE.Group(), L = b.L, W = DECK_W;
+  const yAt = z => deckY(b, (z + L / 2) / L), wx = z => b.mx + b.dx * z, wz = z => b.mz + b.dz * z;
+  const piece = (z0, z1, w, h, dy, m, x = 0) => {      // a block following the deck from z0 to z1, its top dy above the deck
+    const y0 = yAt(z0), y1 = yAt(z1), len = Math.hypot(z1 - z0, y1 - y0) + .02, o = box(w, h, len, m, x, (y0 + y1) / 2 + dy - h / 2, (z0 + z1) / 2);
+    o.rotation.x = -Math.atan2(y1 - y0, z1 - z0); g.add(o); return o;
+  };
+  const n = Math.max(6, Math.round(L / .6));
+  for (let i = 0; i < n; i++) {
+    const z0 = -L / 2 + i * L / n, z1 = z0 + L / n;
+    piece(z0, z1, W + .5, .55, -.015, M.stone2);                                    // the span
+    piece(z0 + .02, z1 - .02, W - .1, .05, .03, i % 2 ? M.plainStone : M.stone2);   // paving, the slabs a shade apart
+    for (const sx of [-1, 1]) piece(z0, z1, .22, .42, .42, M.stone2, sx * (W / 2 + .1));   // parapets
+  }
+  for (const s of [-1, 1]) {                       // landings set into each bank, a post at each end of the parapets
+    const z = s * (L / 2 - .5), y = yAt(z);
+    g.add(box(W + .8, 1.6, 1.1, M.plainStone, 0, y - .85, z));
+    for (const x of [-1, 1]) g.add(box(.36, .6, .36, M.stone2, x * (W / 2 + .1), y + .3, s * (L / 2 - .15)));
+  }
+  for (let z = -L / 2 + 1.8; z < L / 2 - 1.7; z += 2.6) {   // piers where it stands in the water, a pointed cutwater upstream
+    const gy = hAt(wx(z), wz(z)); if (gy > yAt(z) - 1.2) continue;
+    const top = yAt(z) - .5, bot = gy - .4, ph = top - bot;
+    g.add(box(W + .3, ph, .7, M.stone2, 0, bot + ph / 2, z));
+    const cw = cyl(.5, .5, ph, 4, M.stone2, 0, bot + ph / 2, z); cw.scale.set(1.25, 1, .5); cw.rotation.y = Math.PI / 4; cw.position.x = (W / 2 + .2); g.add(cw);
+  }
+  g.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = true; });
+  g.position.set(b.mx, 0, b.mz); g.rotation.y = Math.atan2(b.dx, b.dz);
+  return g;
+}
+// Stonebridge's ford: a sheet of shallow water laid over the gravel bar, so it reads as shallows raiders wade through, not dry land
+let fordWater = null;
+const fordWaterM = new THREE.MeshStandardMaterial({ color: '#4f8aa0', transparent: true, opacity: .62, roughness: .55, depthWrite: false });
+function buildFord() {
+  if (fordWater) { scene.remove(fordWater); fordWater.geometry.dispose(); fordWater = null; }
+  if (MAP !== 'bridge') return;
+  const zc = stoneRiverZ(FORD_X), geo = new THREE.PlaneGeometry(6, 13, 16, 26).rotateX(-Math.PI / 2), pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {   // a little above the bar where it's low, faded out up the banks
+    const x = FORD_X + pos.getX(i), z = zc + pos.getZ(i), edge = sstep(2.1, 3, Math.abs(pos.getX(i)));   // its sides slope down into the river
+    pos.setY(i, edge > 0 ? lerp(.68, -.02, edge) : Math.max(.68, hAt(x, z) - .05));
+  }
+  geo.computeVertexNormals(); fordWater = new THREE.Mesh(geo, fordWaterM); fordWater.position.set(FORD_X, 0, zc); fordWater.receiveShadow = true;
+  fordWater.renderOrder = 1; scene.add(fordWater);
 }
 function buildBridges() { for (const b of bridges) { b.g = makeBridge(b); scene.add(b.g); } }
 
@@ -3321,7 +3421,7 @@ function genShore() {
   for (let z = .5; z < SIZE; z += .5) for (let x = .5; x < SIZE; x += .5) { const h = hAt(x, z); if (h > -.12 && h < .02 && !bridgeCell[cellAt(x, z)]) shore.push([x, z]); }
 }
 // the water's drift at a point, matching the shader's: down the Meadow's river, round the isle's ring
-function flowVel(x, z) { return MAP !== 'isle' ? [0, .55] : Math.hypot(x - KX, z - KZ) > 19.5 ? [0, Math.sign(z - KZ) * .55] : [.045 * (z - KZ), -.045 * (x - KX)]; }
+function flowVel(x, z) { return MAP === 'bridge' ? [-.55, 0] : MAP !== 'isle' ? [0, .55] : Math.hypot(x - KX, z - KZ) > 19.5 ? [0, Math.sign(z - KZ) * .55] : [.045 * (z - KZ), -.045 * (x - KX)]; }
 let sprayT = 0;
 function sprayAt(x, z) {
   if (puffs.length > 170) return;
@@ -4132,6 +4232,14 @@ function distRect(B, x, z) { const e = B.ev; return Math.hypot(Math.max(e.x0 - x
 function nearestBuilding(x, z, maxD = 1e9, ok = null) { let best = null, bd = maxD; for (const B of buildings) { if (DEF[B.type].decor || (ok && !ok(B))) continue; const d = distRect(B, x, z); if (d < bd) { bd = d; best = B; } } return best; }
 function edgePoint() {
   const C = castleB(), dp = C && doorPoint(C);   // a spawn must have a walkable route to the castle's door
+  if (MAP === 'bridge') {                        // the north edge: toward the bridge; from night 3 some from the north-east, toward the ford
+    const ford = PH.wave >= 3 && Math.random() < .4;
+    for (const needRoute of [true, false]) for (let n = 0; n < 80; n++) {
+      const x = ford ? 40 + Math.random() * 14 : 10 + Math.random() * 24, z = 1.2;
+      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return { x, z };
+    }
+    return { x: 22, z: 1.5 };
+  }
   if (MAP === 'vale') {                          // the corridor's mouth, where it meets the top or right edge near the north-east corner
     const pts = [];
     for (let t = 1.2; t < SIZE - 1.2; t += .5) { if (valeAt(t, 1.2) > 1.4 && valeAt(t, 2.4) > 1.4) pts.push({ x: t, z: 1.2 }); if (valeAt(SIZE - 1.2, t) > 1.4 && valeAt(SIZE - 2.4, t) > 1.4) pts.push({ x: SIZE - 1.2, z: t }); }   // well inside the corridor
@@ -5716,8 +5824,9 @@ function applyLoadout() {
   const CM = CAMP_MAPS[MAP], L = CM ? { ...LOADOUT, food: 'farm', wood: 'lodge', stone: 'quarry', ranged: 'tower' } : LOADOUT;
   if (CM) Object.assign(CATS, JSON.parse(JSON.stringify(CM.cats)));
   else { CATS.eco = ['house', L.food, L.wood, L.stone, 'market']; CATS.def = [L.ranged, L.siege, L.barracks, 'wall', 'gate']; CATS.decor = ['road', ...L.decor]; }
-  // the first day's guide follows the picks
+  // the first day's guide follows the picks (a stage may have its own)
   GUIDE = [];
+  if (CM && CM.guide) { GUIDE = CM.guide(); return; }
   GUIDE.push({ text: 'Build a house', tool: 'house', cat: 'eco', done: () => buildings.some(B => B.type === 'house') },
     { text: `${DEF[L.wood].name} for wood`, tool: L.wood, cat: 'eco', done: () => buildings.some(B => B.type === L.wood) },
     { text: `${DEF[L.food].name} for food`, tool: L.food, cat: 'eco', done: () => buildings.some(B => B.type === L.food) },
@@ -5748,6 +5857,28 @@ $('#ldStart').addEventListener('click', () => {
   $('#loadPick').hidden = true; paused = false; startGame();
 });
 // map picker: shown on entry and on Restart / Play again; the game waits (paused) underneath
+// Stonebridge's half-built palisade along the town's bank: a line of wall cells from the west edge to the east edge just south of the
+// river, joined where it steps; left open at the bridge's southern end (for a gate), at the ford and in one stretch to the west, so a
+// new player closes it with a gate and a few walls. BANK_WALL lists every cell of the full line (gaps too), for the guide
+var BANK_WALL = [];
+function bankWall() {
+  const b = bridges[0], line = [];
+  let prev = -1;
+  for (let ci = 0; ci < N; ci++) {
+    const x = (ci + .5) * CELL;
+    let cj = Math.floor((stoneRiverZ(x) + BANK_D) / CELL);
+    for (let k = 0; k < 3 && cj < N - 1 && (bridgeCell[cj * N + ci] || !evaluate('wall', ci, cj).ok); k++) cj++;   // off the bridge, the bank's slope and the wet
+    // join a step with cells on its southern side, away from the river's bank: down the previous column when the line steps south,
+    // down this one when it steps north
+    if (prev >= 0 && cj > prev) for (let k = prev + 1; k <= cj; k++) line.push([ci - 1, k]);
+    if (prev >= 0 && cj < prev) for (let k = cj + 1; k <= prev; k++) line.push([ci, k]);
+    line.push([ci, cj]); prev = cj;
+  }
+  const bci = b ? Math.floor(b.ex / CELL) : -1, fci = Math.floor(FORD_X / CELL);
+  BANK_WALL = line.map(([ci, cj]) => cj * N + ci);
+  const gap = ([ci, cj]) => ci === bci || Math.abs(ci - fci) <= 1 || ci === 6 || ci === 7;
+  for (const c of line) if (!gap(c)) { const ev = evaluate('wall', c[0], c[1]); if (ev.ok) place('wall', c[0], c[1], { instant: true, free: true, quiet: true }); }
+}
 // back to where this game was chosen: the campaign for a campaign map, else the map picker
 function showStart() { if (CAMP_MAPS[MAP]) { showMapPick(); $('#mapPick').hidden = true; openCampaign(CAMP_MAPS[MAP].stop); } else showMapPick(); }
 function showMapPick() {
@@ -5759,7 +5890,7 @@ function markMapStars() { document.querySelectorAll('.mapBtn').forEach(b => { b.
 // ---------- campaign: an overview map with twelve stops, each bringing in a few new buildings (only Greenvale, stop 1, is playable so far)
 const CAMPAIGN = [
   { name: 'Greenvale', sub: 'Tutorial', map: 'vale', at: [140, 820], adds: ['house', 'farm', 'lodge', 'quarry', 'tower', 'road', 'flowers', 'torch'] },
-  { name: 'Stonebridge', at: [250, 700], land: 'A bridge town', adds: ['barracks', 'wall', 'gate', 'rack'] },
+  { name: 'Stonebridge', map: 'bridge', at: [250, 700], land: 'A bridge town', adds: ['barracks', 'wall', 'gate', 'rack'] },
   { name: 'Market Cross', at: [420, 785], adds: ['market', 'statue'] },
   { name: 'Watchhill', at: [580, 735], land: 'Dry hills', adds: ['ballista', 'campfire'] },
   { name: 'Dunewell', at: [668, 590], land: 'Desert · few trees', adds: ['forester', 'well'] },
@@ -5866,7 +5997,7 @@ function campaignSVG() {
   </svg>`;
 }
 // a stage's preview: its picture (the real stage where it's built, else its sketch), what it brings in, stars, Play
-const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'design/stages/stage2-stonebridge.png', tag: 'Sketch' } };
+const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' } };
 function openStage(i) {
   const c = CAMPAIGN[i], pic = STAGE_PIC[i];
   document.querySelectorAll('#campMap .mk').forEach(m => m.classList.toggle('sel', +m.dataset.i === i));
@@ -6081,16 +6212,18 @@ function startGame() {
   for (const p of puffs) scene.remove(p.sp); puffs.length = 0;
   mapRules();
   PH = { kind: 'day', wave: 1, t: DAYLEN[0] }; econT = TICK; gameOver = false; light = 1; if (paused) setPaused(false); setMusic('day');
-  if (MAP === 'isle') { KX = 27; KZ = 27; } else if (MAP === 'pass') { KX = 27; KZ = 21; } else if (MAP === 'vale') { KX = 25; KZ = 33; } else { KX = 19; KZ = 27; }
-  genTerrain(); genBridges(); genTrees(); genRocks(); genClutter(); syncTerrain(); buildBridges(); genShore(); hideGhost(); deselect();
+  if (MAP === 'isle') { KX = 27; KZ = 27; } else if (MAP === 'pass') { KX = 27; KZ = 21; } else if (MAP === 'vale') { KX = 25; KZ = 33; } else if (MAP === 'bridge') { KX = 29; KZ = 37; } else { KX = 19; KZ = 27; }
+  genTerrain(); genBridges(); genTrees(); genRocks(); genClutter(); syncTerrain(); buildBridges(); buildFord(); genShore(); hideGhost(); deselect();
   Object.assign(res, (MAP_RULES[MAP] || {}).res || { gold: 40, wood: 45, stone: 0, food: 20 });
   stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, t0: performance.now() };
   $('#summary').hidden = true; $('#log').innerHTML = '';
-  const ev = MAP === 'isle' ? findValid('castle', 12, 12, { free: true }) : MAP === 'pass' ? findValid('castle', 12, 9, { free: true }) : MAP === 'vale' ? findValid('castle', 11, 15, { free: true }) : findValid('castle', 8, 12, { free: true });
+  const ev = MAP === 'isle' ? findValid('castle', 12, 12, { free: true }) : MAP === 'pass' ? findValid('castle', 12, 9, { free: true }) : MAP === 'vale' ? findValid('castle', 11, 15, { free: true }) : MAP === 'bridge' ? findValid('castle', 13, 17, { free: true }) : findValid('castle', 8, 12, { free: true });
   if (ev) { const B = place('castle', ev.ci, ev.cj, { instant: true, free: true, quiet: true }); const c = center(B); target.set(c.x, 2, c.z); }
   if (MAP === 'pass') { yaw = 0; target.z += 4.5; }   // looking up the pass at the castle
   if (MAP === 'vale') { yaw = -Math.PI / 4; target.x += 2; target.z -= 2; }   // from the south-west, the way in (north-east) at the top of the screen
-  if (MAP === 'vale') guideOn = true;               // the tutorial: the guided first day every time (Skip ends it)
+  if (MAP === 'bridge') { yaw = 0; target.z -= 4; bankWall(); }   // from the south, the river and the raiders' bank at the top
+  BANK_WALL = MAP === 'bridge' ? BANK_WALL : [];
+  if (CAMP_MAPS[MAP]) guideOn = true;              // a stage: its guided first day every time (Skip ends it)
   updateCam();
   log('Drag · twist · pinch');
   log(`Survive <b>${NIGHTS} nights</b>`);
