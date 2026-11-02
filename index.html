@@ -478,7 +478,7 @@ const DEF = {
             up: [{ wood: 25, gold: 30 }, { stone: 25, gold: 50 }], tiers: ['Market stall', 'Market', 'Market hall'], key: '9' },
   // the other economy picks (one of each pair before a game): a grove grown on its own plot, a mine dug down into its own ground,
   // a yard of animals; none of them needs forest or rock nearby
-  forester: { size: 2, name: 'Forester', maxdh: 1.6, plot: true, hp: [100, 140, 200], cost: { gold: 30, wood: 5 },
+  forester: { size: 2, dz: 3, faces: [0, 2], name: 'Forester', maxdh: 1.6, plot: true, hp: [100, 140, 200], cost: { gold: 30, wood: 5 },
             up: [{ gold: 55, stone: 10 }, { gold: 85, stone: 25 }], workers: [1, 2, 3], grove: [5, 7, 8], grow: [40, 34, 28], chop: [4, 5.7, 6.5],
             tiers: ["Forester's hut", 'Coppice', 'Tree farm'] },
   mine:   { size: 2, name: 'Mine', maxdh: 2.6, hp: [160, 230, 320], cost: { gold: 30, wood: 20 },
@@ -1310,7 +1310,7 @@ const DOOR = {
   barracks: [[-1, .42], [-1, .42], [-1, .42]],
   mine: [[-.55, .55], [-.55, .55], [-.55, .55]],
   stables: [[-1, .4], [-1, .4], [-1, .4]],         // the armoury hut at the front left
-  forester: [[-1.05, -.62], [-1.05, -.62], [-1.05, -.62]],   // the hut at the back of the plot: log carriers cross the plot to it     // the adit: in through the timber (stone) portal in the face of the mound
+  forester: [[-1.05, -1.66], [-1.05, -1.66], [-1.05, -1.66]],   // the hut at the back of the plot: log carriers cross the plot to it     // the adit: in through the timber (stone) portal in the face of the mound
 };
 // buildings the player can turn (walls and gates have their own E–W / N–S rotation); face 0 = +z, 1 = +x, 2 = -z, 3 = -x
 const FACING = { market: 1, house: 1, lodge: 1, quarry: 1, barracks: 1, farm: 1, tower: 1, castle: 1, well: 1, torch: 1, flowers: 1, statue: 1 };
@@ -1319,7 +1319,7 @@ const faceRot = (f, x, z) => { const a = f * Math.PI / 2, c = Math.round(Math.co
 // the tile in front of the door when the building faces f, lined up with the door so villagers walk straight in
 function doorCell(ev, type, f) {
   const lat = DOOR[type] ? DOOR[type][0][0] : ev.s === 2 ? -1 : 0, cx = (ev.x0 + ev.x1) / 2, cz = (ev.z0 + ev.z1) / 2;
-  const [dx, dz] = faceRot(f, lat, 0), [nx, nz] = faceRot(f, 0, ev.s * CELL / 2 + CELL / 2);
+  const [dx, dz] = faceRot(f, lat, 0), [nx, nz] = faceRot(f, 0, (f % 2 ? ev.s : ev.sz || ev.s) * CELL / 2 + CELL / 2);
   return { a: Math.floor((cx + dx + nx) / CELL), b: Math.floor((cz + dz + nz) / CELL), bit: [1, 8, 4, 2][f], f };
 }
 // someone has to be able to stand in front of the door
@@ -1738,7 +1738,8 @@ function makeFarm(tier) {
     const hd = new THREE.Mesh(new THREE.SphereGeometry(.12, 6, 5), M.hay); hd.position.set(1.1, 1.25, -.9); g.add(hd);
   }
   if (tier === 3) { // barn + hay
-    g.add(box(1.1, 1.3, .9, M.wood, -1.15, .7, -1.15)); g.add(pyramid(.85, .7, .85, M.roofBlue, 1.7, -1.15, -1.15)); g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[1], -1.15, .08 + DOOR_H / 2, -.69));   // farm doors are all the old dark brown
+    g.add(box(1.1, 1.3, .9, M.plaster, -1.15, .7, -1.15)); g.add(pyramid(.85, .7, .85, M.roofBlue, 1.7, -1.15, -1.15));
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.08, 1.32, .08, M.timber, -1.15 + sx * .53, .71, -1.15 + sz * .43));   // brown corner posts g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[1], -1.15, .08 + DOOR_H / 2, -.69));   // farm doors are all the old dark brown
     for (const [sx, sz] of [[1.35, 1.35], [.75, 1.42]]) {     // stooks: sheaves leaned together
       for (let n = 0; n < 4; n++) { const a = n / 4 * Math.PI * 2, sh = cyl(.06, .09, .55, 6, M.hay, sx + Math.cos(a) * .08, .32, sz + Math.sin(a) * .08); sh.rotation.z = Math.cos(a) * .25; sh.rotation.x = -Math.sin(a) * .25; g.add(sh); }
     }
@@ -1888,21 +1889,23 @@ const mineRockM = mat('#79746b'), penM = mat('#7c6b4a'), henM = mat('#efe8da'), 
   groveTrunkM = mat('#5a3e26'), groveLeafM = mat('#3f6a2c'), groveLeaf2M = mat('#4f7d34');
 addGrit(mineRockM, 'rock');
 // a fence round a 2x2 plot (open at the front left, where the plot's door tile is); rough leaning stakes at tier 1, posts and rails after
-function plotFence(g, tier) {
-  const gap = (x, z) => z > 1.7 && x > -1.5 && x < -.5;
-  for (let s = -1.75; s <= 1.76; s += .5) for (const [x, z] of [[s, -1.75], [s, 1.75], [-1.75, s], [1.75, s]]) {
+function plotFence(g, tier, hd = 1.75) {                 // hd: half the plot's depth (a 2x3 plot is deeper than it is wide)
+  const gap = (x, z) => z > hd - .05 && x > -1.5 && x < -.5, posts = [];
+  for (let s = -1.75; s <= 1.76; s += .5) posts.push([s, -hd], [s, hd]);
+  for (let s = -hd; s <= hd + .01; s += .5) posts.push([-1.75, s], [1.75, s]);
+  for (const [x, z] of posts) {
     if (gap(x, z) || (tier === 1 && hash(x * 3, z * 5) < .3)) continue;
     const p = box(.07, .55, .07, tier === 1 ? M.rough : M.timber, x, .27, z); if (tier === 1) p.rotation.z = (hash(x, z) - .5) * .35; g.add(p);
   }
-  if (tier > 1) for (const [x, z, w, d] of [[0, -1.75, 3.5, .05], [-1.75, 0, .05, 3.5], [1.75, 0, .05, 3.5], [.6, 1.75, 2.3, .05], [-1.6, 1.75, .3, .05]])
+  if (tier > 1) for (const [x, z, w, d] of [[0, -hd, 3.5, .05], [-1.75, 0, .05, hd * 2], [1.75, 0, .05, hd * 2], [.6, hd, 2.3, .05], [-1.6, hd, .3, .05]])
     for (const y of [.25, .45]) g.add(box(w, .05, d, M.timber, x, y, z));
 }
 // a small hut at the plot's back left with its door to the front (the door everyone uses): tier 1 daub or logs under old thatch,
 // tier 2 a log roof, tier 3 plastered with the blue roof
-function plotHut(g, tier, wallM, w = 1.2, d = .9) {
-  const x = -1.05, z = -1.15, h = 1.28;
+function plotHut(g, tier, wallM, w = 1.2, d = .9, z = -1.15) {
+  const x = -1.05, h = 1.28;
   g.add(box(w, h, d, tier === 3 ? M.plaster : wallM, x, h / 2 + .06, z));
-  if (tier === 3) for (const sx of [-1, 1]) g.add(box(.08, h, .08, M.timber, x + sx * (w / 2 - .02), h / 2 + .06, z + d / 2 - .02));
+  if (tier >= 2) for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.08, h + .02, .08, M.timber, x + sx * (w / 2 - .02), h / 2 + .06, z + sz * (d / 2 - .02)));   // brown corner posts
   g.add(pyramid(w * .78, .8, d / w * 1.05, tier === 1 ? M.thatchOld : tier === 2 ? M.thatch : M.roofBlue, h + .06 + .4, x, z));
   g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[tier], x, .08 + DOOR_H / 2, z + d / 2 + .02));
   g.add(box(.2, .18, .04, M.glow, x + .38, .85, z + d / 2 + .02));
@@ -1910,7 +1913,9 @@ function plotHut(g, tier, wallM, w = 1.2, d = .9) {
 // forester: a fenced plot of young trees planted in rows (the trees are drawn by updateEco so they grow and get felled), the
 // forester's hut at the back left; tier 1 a sapling bundle and a chopping block, tier 2 a stack of cut poles, tier 3 a log pile
 // and a sawhorse on the far side
-const GROVE_AT = [[.3, -1.2], [1.25, -1.2], [-1.2, .05], [.05, .05], [1.25, .05], [-.6, 1.25], [.55, 1.25], [-.1, -.55]];
+// the plot is 2 x 3 tiles (4 m wide, 6 m deep): room for trees nearer the size of the woods' own
+const FOREST_HD = 2.75, GROVE_K = 1.5;
+const GROVE_AT = [[.5, -2.1], [1.3, -.9], [-.9, -.9], [.2, .1], [-1.1, .95], [1.25, .95], [-.45, 1.9], [.6, 2.25]];
 function makeGroveTree() {
   const t = new THREE.Group();
   t.add(cyl(.035, .06, .6, 5, groveTrunkM, 0, .3, 0));
@@ -1919,18 +1924,18 @@ function makeGroveTree() {
 }
 function makeForester(tier) {
   const g = new THREE.Group();
-  g.add(box(3.5, .07, 3.5, M.soil, 0, .045, 0));
-  GROVE_AT.forEach(([x, z]) => g.add(cyl(.24, .27, .03, 8, M.court, x, .09, z)));   // hoed rings where the trees stand
-  plotFence(g, tier); plotHut(g, tier, M.log, 1.15, .85);
+  g.add(box(3.5, .07, FOREST_HD * 2, M.soil, 0, .045, 0));
+  GROVE_AT.forEach(([x, z]) => g.add(cyl(.3, .34, .03, 8, M.court, x, .09, z)));   // hoed rings where the trees stand
+  plotFence(g, tier, FOREST_HD); plotHut(g, tier, tier === 2 ? M.plaster : M.log, 1.15, .85, -2.15);   // the coppice: cream walls, brown posts
   if (tier === 1) {
-    g.add(cyl(.2, .22, .3, 8, M.log, -.2, .2, -1.45)); g.add(box(.03, .14, .18, M.iron, -.2, .44, -1.45));     // chopping block with the axe in it
-    for (let n = 0; n < 5; n++) { const s = box(.03, .7, .03, M.rough, 1.55 + n * .04, .4, -.3 + n * .05); s.rotation.z = .25; g.add(s); }   // bundled saplings
+    g.add(cyl(.2, .22, .3, 8, M.log, -.15, .2, -2.45)); g.add(box(.03, .14, .18, M.iron, -.15, .44, -2.45));     // chopping block with the axe in it
+    for (let n = 0; n < 5; n++) { const s = box(.03, .7, .03, M.rough, 1.55 + n * .04, .4, -1.9 + n * .05); s.rotation.z = .25; g.add(s); }   // bundled saplings
   } else {
-    for (let r = 0; r < 3; r++) for (let n = 0; n < 4 - r; n++) { const l = cyl(.07, .07, 1.0, 6, M.log, 1.5, .14 + r * .12, -.6 + n * .15 + r * .075); l.rotation.x = Math.PI / 2; g.add(l); }
+    for (let r = 0; r < 3; r++) for (let n = 0; n < 4 - r; n++) { const l = cyl(.07, .07, 1.0, 6, M.log, 1.5, .14 + r * .12, -2.3 + n * .15 + r * .075); l.rotation.x = Math.PI / 2; g.add(l); }
   }
   if (tier === 3) {
-    for (const sx of [-1, 1]) { const l = box(.05, .45, .05, M.timber, 1.45 + sx * .2, .25, 1.5); l.rotation.z = sx * .35; g.add(l); }
-    g.add(box(.6, .05, .06, M.timber, 1.45, .45, 1.5)); const lg = cyl(.08, .08, .7, 6, M.log, 1.45, .55, 1.5); lg.rotation.z = Math.PI / 2; g.add(lg);
+    for (const sx of [-1, 1]) { const l = box(.05, .45, .05, M.timber, 1.35 + sx * .2, .25, 2.45); l.rotation.z = sx * .35; g.add(l); }
+    g.add(box(.6, .05, .06, M.timber, 1.35, .45, 2.45)); const lg = cyl(.08, .08, .7, 6, M.log, 1.35, .55, 2.45); lg.rotation.z = Math.PI / 2; g.add(lg);
   }
   return g;
 }
@@ -2033,7 +2038,7 @@ function makeFarmhouse(tier) {
 // crossbow tower: squat and solid next to the archers' tall lookout, an open fighting top behind a parapet for two crossbowmen:
 // tier 1 a log blockhouse with a plank parapet, tier 2 stone below a timber hoarding under a log canopy, tier 3 stone with
 // battlements and the blue roof on corner piers
-const XBOW_K = .74, XBOW_TOP = [2.05, 2.35, 2.65].map(y => y * XBOW_K);   // fighting-top heights as drawn
+const XBOW_K = .74, XBOW_TOP = [2.45, 2.8, 3.15].map(y => y * XBOW_K);   // fighting-top heights as drawn
 // the town's blue flag on a short pole from the roof's peak, flying from the pole's top
 function xbowFlag(t, peak) { t.add(box(.04, 1.0, .04, M.timber, 0, peak + .4, 0)); t.add(flagBox(.42, .26, .02, M.flag, .23, peak + .76, 0)); }
 function makeCrossbowTower(tier, plinth) {
@@ -2075,7 +2080,7 @@ function makeCrossbowTower(tier, plinth) {
 // ballista: a great crossbow on a swivel (userData.turret, turned to the target by its gunner), a bolt laid in it when loaded
 // (userData.bolt): tier 1 a scorpion on a low timber deck, tier 2 a ballista up on a raised timber platform, tier 3 a great
 // ballista on a stone platform with a low battlement
-const BALLISTA_DECK = [.32, 1.16, 1.5], BALLISTA_K = [.85, 1, 1.28];
+const BALLISTA_DECK = XBOW_TOP.slice(), BALLISTA_K = [.85, 1, 1.28];
 // the ballista's draw (turret frame): the arm tips, the slider at rest (string straight) and drawn back; crew spots on the deck
 const BAL_TIP = [.52, .52, .294], BAL_REST = .29, BAL_DRAWN = -.22, BAL_LOADER = [.42, -.5], BAL_GUNNER = [-.34, -.6];
 function ballistaTurret(k) {
@@ -2107,17 +2112,32 @@ function ballistaTurret(k) {
 function makeBallista(tier, plinth) {
   const g = new THREE.Group(), deck = BALLISTA_DECK[tier - 1];
   if (plinth) g.add(box(2.0, 1.8, 2.0, tier === 2 ? M.plainStone : M.stone, 0, -.7, 0));
-  if (tier === 1) { g.add(box(1.7, .24, 1.7, M.rough, 0, .2, 0)); for (const sx of [-1, 1]) g.add(box(1.7, .06, .12, M.timber, 0, .31, sx * .6)); }
-  else if (tier === 2) {
+  // a ladder up the back to the deck: two rails standing clear of the platform's edge and rising past the deck, rungs between
+  const ladder = (z, m, y0) => {
+    const H = deck + .5 - y0;
+    for (const sx of [-1, 1]) g.add(box(.05, H, .05, m, sx * .22, y0 + H / 2, z));
+    for (let y = y0 + .25; y < deck + .05; y += .3) g.add(box(.44, .04, .04, m, 0, y, z));
+  };
+  if (tier === 1) {            // a scorpion on a rough log stage: four posts, cross-braced, a log deck, a low rail
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.14, deck, .14, M.rough, sx * .72, deck / 2, sz * .72));
+    for (const sz of [-1, 1]) { const x = box(1.6, .07, .07, M.rough, 0, deck * .48, sz * .72); x.rotation.z = Math.atan2(deck * .8, 1.44); g.add(x); }
+    for (const sx of [-1, 1]) { const x = box(.07, .07, 1.6, M.rough, sx * .72, deck * .48, 0); x.rotation.x = -Math.atan2(deck * .8, 1.44); g.add(x); }
+    g.add(box(1.75, .14, 1.75, M.rough, 0, deck - .07, 0));
+    for (const [x, z, w, d] of [[.86, 0, .07, 1.75], [-.86, 0, .07, 1.75], [0, .86, 1.75, .07]]) g.add(box(w, .07, d, M.rough, x, deck + .28, z));
+    for (const [x, z] of [[.86, .86], [-.86, .86], [.86, -.86], [-.86, -.86]]) g.add(box(.07, .32, .07, M.rough, x, deck + .14, z));
+    ladder(-.95, M.rough, SLAB_TOP);
+  } else if (tier === 2) {
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.15, deck, .15, M.timber, sx * .72, deck / 2, sz * .72));
-    for (const sz of [-1, 1]) { const x = box(1.5, .08, .08, M.timber, 0, deck * .5, sz * .72); x.rotation.z = .55; g.add(x); }
+    for (const sz of [-1, 1]) { const x = box(1.6, .08, .08, M.timber, 0, deck * .5, sz * .72); x.rotation.z = Math.atan2(deck * .8, 1.44); g.add(x); }
+    for (const sx of [-1, 1]) { const x = box(.08, .08, 1.6, M.timber, sx * .72, deck * .5, 0); x.rotation.x = -Math.atan2(deck * .8, 1.44); g.add(x); }
     g.add(box(1.85, .12, 1.85, M.wood, 0, deck - .06, 0));
     for (const [x, z, w, d] of [[.9, 0, .06, 1.85], [-.9, 0, .06, 1.85], [0, .9, 1.85, .06]]) g.add(box(w, .35, d, M.timber, x, deck + .17, z));
-    for (let n = 0; n < 4; n++) g.add(box(.5, .05, .07, M.rough, 0, .2 + n * .27, -.95 - n * .02));   // steps up the back
+    ladder(-1.0, M.timber, .2);
   } else {
     g.add(box(1.8, deck - .2, 1.8, M.stone, 0, (deck - .2) / 2 + .2, 0)); g.add(box(1.9, .1, 1.9, M.stone2, 0, deck - .05, 0));
     for (const [x, z] of [[.8, .8], [-.8, .8], [.8, -.8], [-.8, -.8], [.8, 0], [-.8, 0], [0, .8]]) g.add(box(.26, .38, .26, M.stone2, x, deck + .19, z));
-    for (let n = 0; n < 5; n++) g.add(box(.45, .1, .22, M.stone2, 0, .25 + n * .27, -1.0 - n * .0));
+    for (const sx of [-1, 1]) g.add(box(.06, .3, .03, M.dark, sx * .38, deck * .55, .91));   // arrow slits
+    ladder(-1.02, M.timber, .2);                                                               // through the gap in the battlement at the back
   }
   const t = ballistaTurret(BALLISTA_K[tier - 1]); t.position.y = deck; g.add(t);
   return g;
@@ -2220,10 +2240,11 @@ function makeStables(tier, plinth) {
   if (!STALL_COATS.length) STALL_COATS.push(horseM, mat('#3b2a1e'), mat('#8a6a4a'));
   const g = new THREE.Group(), b = plinth ? .2 : SLAB_TOP;
   if (plinth) g.add(box(4.0, 1.8, 4.0, tier === 2 ? M.plainStone : M.stone, 0, -.7, 0));
-  const wallM = tier === 1 ? M.rough : tier === 2 ? M.wood : M.stone2, roofM = tier === 1 ? M.thatchOld : tier === 2 ? M.thatch : M.roofBlue;
+  const wallM = M.plaster, roofM = tier === 1 ? M.thatchOld : tier === 2 ? M.thatch : M.roofBlue;
   const sx0 = -.25, sx1 = 1.9, sz0 = -1.75, sz1 = .1, h = 1.45, cx = (sx0 + sx1) / 2, w = sx1 - sx0, dpt = sz1 - sz0;
   g.add(box(w, h, .12, wallM, cx, b + h / 2, sz0 + .06));                                   // back wall
   for (const x of [sx0 + .06, sx1 - .06]) g.add(box(.12, h, dpt, wallM, x, b + h / 2, (sz0 + sz1) / 2));
+  for (const x of [sx0 + .04, sx1 - .04]) for (const z of [sz0 + .04, sz1 - .02]) g.add(box(.1, h + .02, .1, M.timber, x, b + h / 2, z));   // brown corner posts
   const stalls = tier === 3 ? 3 : 2;
   for (let n = 1; n < stalls; n++) g.add(box(.08, .9, dpt - .2, M.timber, sx0 + n * w / stalls, b + .45, (sz0 + sz1) / 2));
   for (let n = 0; n < stalls; n++) {                                                        // half doors and a horse looking over each
@@ -2233,8 +2254,9 @@ function makeStables(tier, plinth) {
   g.add(box(w + .1, .1, .1, M.timber, cx, b + h - .05, sz1));
   const rf = pyramid(w * .74, .75, dpt / w * 1.25, roofM, b + h + .37, cx, (sz0 + sz1) / 2); g.add(rf);
   // the armoury hut at the front left, its door the building's
-  const hx = -1.05, hz = .2, hw = 1.05, hd = .85, hh = 1.25;
-  g.add(box(hw, hh, hd, tier === 3 ? M.stone2 : wallM, hx, b + hh / 2, hz));
+  const hx = -1, hz = .2, hw = 1.05, hd = .85, hh = 1.25;                                    // centred on the door (x -1)
+  g.add(box(hw, hh, hd, wallM, hx, b + hh / 2, hz));
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.08, hh + .02, .08, M.timber, hx + sx * (hw / 2 - .02), b + hh / 2, hz + sz * (hd / 2 - .02)));
   g.add(pyramid(hw * .78, .6, hd / hw * 1.05, roofM, b + hh + .3, hx, hz));
   g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[tier], -1, b + DOOR_H / 2, .4 + .23));
   g.add(cyl(.3, .32, .4, 8, M.hay, -1.45, b + .2, -1.1)); g.add(box(.7, .2, .25, M.wood, -.65, b + .1, -1.2));   // hay and a trough
@@ -2546,13 +2568,13 @@ function countRes(type, cx, cz) {
   return 0;
 }
 function evaluate(type, ci, cj, free) {
-  const T = DEF[type], s = T.size, x0 = ci * CELL, z0 = cj * CELL, x1 = x0 + s * CELL, z1 = z0 + s * CELL;
-  const r = { type, ci, cj, s, x0, z0, x1, z1, ok: true, reason: '' };
-  if (ci < 0 || cj < 0 || ci + s > N || cj + s > N) return { ...r, ok: false, reason: 'Off the map' };
-  if (MAP === 'pass') for (let b = cj; b < cj + s; b++) for (let a = ci; a < ci + s; a++) if (!passOpen((a + .5) * CELL, (b + .5) * CELL)) return { ...r, ok: false, reason: 'Too steep' };
-  for (let b = cj; b < cj + s; b++) for (let a = ci; a < ci + s; a++) { if (occB[b * N + a]) return { ...r, ok: false, reason: 'Occupied' }; if (bridgeCell[b * N + a]) return { ...r, ok: false, reason: 'Bridge' }; }
+  const T = DEF[type], s = T.size, sz = T.dz || s, x0 = ci * CELL, z0 = cj * CELL, x1 = x0 + s * CELL, z1 = z0 + sz * CELL;
+  const r = { type, ci, cj, s, sz, x0, z0, x1, z1, ok: true, reason: '' };
+  if (ci < 0 || cj < 0 || ci + s > N || cj + sz > N) return { ...r, ok: false, reason: 'Off the map' };
+  if (MAP === 'pass') for (let b = cj; b < cj + sz; b++) for (let a = ci; a < ci + s; a++) if (!passOpen((a + .5) * CELL, (b + .5) * CELL)) return { ...r, ok: false, reason: 'Too steep' };
+  for (let b = cj; b < cj + sz; b++) for (let a = ci; a < ci + s; a++) { if (occB[b * N + a]) return { ...r, ok: false, reason: 'Occupied' }; if (bridgeCell[b * N + a]) return { ...r, ok: false, reason: 'Bridge' }; }
   // solid buildings can't sit on another building's door cell, or villagers coming out get trapped there
-  if (!WALK[type] && type !== 'gate' && buildings.some(B => !B.dead && B.door && B.door.a >= ci && B.door.a < ci + s && B.door.b >= cj && B.door.b < cj + s))
+  if (!WALK[type] && type !== 'gate' && buildings.some(B => !B.dead && B.door && B.door.a >= ci && B.door.a < ci + s && B.door.b >= cj && B.door.b < cj + sz))
     return { ...r, ok: false, reason: type === 'wall' ? 'Blocks a door · use a gate' : 'Blocks a door' };
   // rocks stay: building over one would bury stone the masons can't mine any more
   if (rocks.some(q => q.amount > 0 && q.x > x0 - .5 && q.x < x1 + .5 && q.z > z0 - .5 && q.z < z1 + .5)) return { ...r, ok: false, reason: 'Rocks' };
@@ -2568,7 +2590,7 @@ function evaluate(type, ci, cj, free) {
   }
   // smart rotate: keep the player's facing if its door tile is open, else the nearest turn whose door is
   r.face = FACING[type] ? placeFace : 0;
-  const faces = T.noRoad ? [r.face] : [0, 3, 1, 2].map(k => (placeFace + k) % 4).filter(f => doorOk(doorCell(r, type, f)));
+  const faces = T.noRoad ? [r.face] : [0, 3, 1, 2].map(k => (placeFace + k) % 4).filter(f => (!T.faces || T.faces.includes(f)) && doorOk(doorCell(r, type, f)));
   if (!faces.length) return { ...r, ok: false, reason: 'Door blocked' };
   // and nobody may end up sealed in: the first of those turns that keeps every door, site and tower joined to the castle
   let cut = '';
@@ -2657,7 +2679,7 @@ function place(type, ci, cj, opts = {}) {
   const T = DEF[type];
   if (!opts.free) pay(T.cost);
   const B = { id: nextId++, type, tier: 1, ev, plinth: adapt, max: T.hp[0], hp: T.hp[0], cool: [], fed: true, mask: 0, rot: ROTATES[type] ? placeRot : 0, rotFixed: false };
-  for (let b = cj; b < cj + ev.s; b++) for (let a = ci; a < ci + ev.s; a++) { occB[b * N + a] = B; if (type !== 'gate') road[b * N + a] = 0; }
+  for (let b = cj; b < cj + (ev.sz || ev.s); b++) for (let a = ci; a < ci + ev.s; a++) { occB[b * N + a] = B; if (type !== 'gate') road[b * N + a] = 0; }
   const c = center(B), now = performance.now();
   const g = makeModel(type, 1, adapt, 0, B.rot); g.userData.B = B; B.group = g;
   if (adapt && type !== 'wall' && !T.movable) {          // walls follow the slope; a movable engine leaves the ground as it is
@@ -2823,7 +2845,7 @@ const skin = mat('#d6a982'), hatM = mat('#6b5236'), legM = mat('#3a2e22');
 // [x, z, half-width, half-depth] from the plot centre, by tier
 const OBST = {
   farm: { 1: [[-1.0, -1.2, .55, .4], [.9, -1.2, .3, .3]], 2: [[-1.0, -1.2, .55, .4], [-.15, -1.45, .28, .28], [1.1, -.9, .2, .2]], 3: [[-1.15, -1.15, .55, .45], [1.35, 1.35, .2, .2], [.75, 1.42, .2, .2]] },
-  forester: { 1: [[-1.05, -1.15, .55, .42]], 2: [[-1.05, -1.15, .6, .45]], 3: [[-1.05, -1.15, .6, .45], [1.45, 1.5, .3, .2]] },
+  forester: { 1: [[-1.05, -2.15, .55, .42]], 2: [[-1.05, -2.15, .6, .45]], 3: [[-1.05, -2.15, .6, .45], [1.35, 2.45, .3, .2]] },
   farmhouse: { 1: [[-1.0, -1.15, .6, .45], [1.15, -1.3, .32, .28]], 2: [[-1.0, -1.15, .65, .5], [1.15, -1.3, .32, .28], [1.25, -.25, .4, .35]],
     3: [[-1.0, -1.15, .65, .5], [1.15, -1.3, .32, .28], [1.25, -.25, .4, .35], [-1.3, .75, .3, .55]] },
 };
@@ -3285,7 +3307,9 @@ const mainRegion = (R = regions()) => doorRegion(castleB(), R);          // the 
 // the cells round a footprint, where builders stand
 function ringCells(ev) {
   const o = [], add = (a, b) => { if (a >= 0 && b >= 0 && a < N && b < N) o.push(b * N + a); };
-  for (let k = 0; k < ev.s; k++) { add(ev.ci + k, ev.cj - 1); add(ev.ci + k, ev.cj + ev.s); add(ev.ci - 1, ev.cj + k); add(ev.ci + ev.s, ev.cj + k); }
+  const sz = ev.sz || ev.s;
+  for (let k = 0; k < ev.s; k++) { add(ev.ci + k, ev.cj - 1); add(ev.ci + k, ev.cj + sz); }
+  for (let k = 0; k < sz; k++) { add(ev.ci - 1, ev.cj + k); add(ev.ci + ev.s, ev.cj + k); }
   return o;
 }
 const ringIn = (ev, R, id) => !!id && ringCells(ev).some(n => R[n] === id);
@@ -3300,7 +3324,7 @@ function villagerRegion(v, R = regions()) {
 function cutsOff(r, type, f) {
   const R = regions(), id = mainRegion(R); if (!id) return '';
   const pass = regPass.slice();
-  for (let b = r.cj; b < r.cj + r.s; b++) for (let a = r.ci; a < r.ci + r.s; a++) {
+  for (let b = r.cj; b < r.cj + (r.sz || r.s); b++) for (let a = r.ci; a < r.ci + r.s; a++) {
     const n = b * N + a, x = (a + .5) * CELL, z = (b + .5) * CELL;
     if (OBST[type] ? farmBlocked({ type, ev: r, face: f, tier: 1 }, x, z) : !WALK[type] && type !== 'gate') pass[n] = 0;
   }
@@ -4478,7 +4502,7 @@ function updateEco(dt) {
       for (const t of B.grove) {
         if (day && t.g < 1) t.g = Math.min(1, t.g + dt / T.grow[k]);
         t.cut = t.g < 1; const [wx, wz] = faceRot(B.face || 0, t.lx, t.lz); t.x = c.x + wx; t.z = c.z + wz;
-        t.m.position.set(t.lx, .07, t.lz); t.m.scale.setScalar(.22 + .78 * t.g); t.m.rotation.y = t.lx * 3.7;
+        t.m.position.set(t.lx, .07, t.lz); t.m.scale.setScalar((.22 + .78 * t.g) * GROVE_K); t.m.rotation.y = t.lx * 3.7;
       }
     } else if (B.type === 'farmhouse') {
       const G = ecoGroup(B);
@@ -4852,7 +4876,7 @@ $('#nightBtn').addEventListener('click', () => { if (PH.kind === 'day' && !gameO
 // ---------- ghost ----------
 const isTouch = matchMedia('(pointer: coarse)').matches;
 function hideGhost() { for (const t in ghosts) ghosts[t].visible = false; footLine.visible = ringLine.visible = reachLine.visible = false; cur = null; }
-const cellFor = (p, s) => s === 1 ? [Math.floor(p.x / CELL), Math.floor(p.z / CELL)] : [Math.round(p.x / CELL - s / 2), Math.round(p.z / CELL - s / 2)];
+const cellFor = (p, s, sz = s) => s === 1 && sz === 1 ? [Math.floor(p.x / CELL), Math.floor(p.z / CELL)] : [s === 1 ? Math.floor(p.x / CELL) : Math.round(p.x / CELL - s / 2), sz === 1 ? Math.floor(p.z / CELL) : Math.round(p.z / CELL - sz / 2)];
 function showGhostAt(point) {
   if (!tool || tool === 'select' || paused) return hideGhost();
   if (tool === 'road') {
@@ -4862,7 +4886,7 @@ function showGhostAt(point) {
     if (ev.ok) setHint(`<b>Path</b><i class="gap"></i>${costHTML(PATH_COST)}<i class="gap"></i><span class="cost" title="Walk speed"><span class="ico">${ICON.speed}</span>×${PATH_SPEED}</span>`, 'ok'); else setHint(ev.reason, 'bad');
     return;
   }
-  const T = DEF[tool], [ci, cj] = cellFor(point, T.size), ev = evaluate(tool, ci, cj);
+  const T = DEF[tool], [ci, cj] = cellFor(point, T.size, T.dz), ev = evaluate(tool, ci, cj);
   for (const t in ghosts) ghosts[t].visible = t === tool;
   const g = ghosts[tool], cx = (ev.x0 + ev.x1) / 2, cz = (ev.z0 + ev.z1) / 2;
   g.position.set(cx, adapt && tool !== 'wall' && ev.target != null ? ev.target : hAt(cx, cz), cz);
@@ -4987,7 +5011,7 @@ function tap(e) {
   if (hb) { select(hb); return; }
   if (!building) { const pt = pick(e), c = pt && cellAt(pt.x, pt.z); if (pt && road[c]) selectPath(c % N, Math.floor(c / N)); else deselect(); return; }
   const pt = pick(e); if (!pt) return;
-  const [ci, cj] = cellFor(pt, DEF[tool].size);
+  const [ci, cj] = cellFor(pt, DEF[tool].size, DEF[tool].dz);
   if (e.pointerType !== 'mouse' && !(cur && cur.ci === ci && cur.cj === cj && cur.type === tool && ghosts[tool].visible)) { showGhostAt(pt); return; }
   if (place(tool, ci, cj)) { sfx('click'); if (e.pointerType === 'mouse') showGhostAt(pt); else { hideGhost(); setHint('Placed'); } }
 }
@@ -5141,7 +5165,7 @@ function galLabel(text, color, x, z, big, k = 1) {
 }
 // the living parts drawn in place for the gallery: a full-grown grove, the yard's animals
 function galPreview(g, type, tier) {
-  if (type === 'forester') GROVE_AT.slice(0, DEF.forester.grove[tier - 1]).forEach(([x, z], i) => { const t = makeGroveTree(); t.position.set(x, .07, z); t.scale.setScalar(i % 3 === 2 ? .5 : 1); g.add(t); });
+  if (type === 'forester') GROVE_AT.slice(0, DEF.forester.grove[tier - 1]).forEach(([x, z], i) => { const t = makeGroveTree(); t.position.set(x, .07, z); t.scale.setScalar((i % 3 === 2 ? .5 : 1) * GROVE_K); g.add(t); });
   if (type === 'farmhouse') HERD[tier].forEach((kind, i) => { const a = makeAnimal(kind); a.position.set(-1.1 + (i % 3) * .9, .07, .1 + Math.floor(i / 3) * .8); a.rotation.y = i * 1.3; g.add(a); });
 }
 function buildGallery() {
@@ -5156,7 +5180,7 @@ function buildGallery() {
   const row = (title, depth, fill) => { const zc = z + depth / 2; galLabel(title, '#f2c95e', 1.5, zc, true); fill(zc, depth); gRows.push({ title, z: zc, depth }); z += depth + 3.4; };
   const add = (g, x, zc, turns) => { g.position.set(x, 0, zc); g.userData.turn = 0; gScene.add(g); gItems.push({ g, turns }); return g; };
   for (const type of ['castle', 'house', 'lodge', 'forester', 'quarry', 'mine', 'farm', 'farmhouse', 'market', 'tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'stables']) {
-    const T = DEF[type], d = T.size * CELL;
+    const T = DEF[type], d = (T.dz || T.size) * CELL;
     row(T.name, d, zc => T.tiers.forEach((nm, i) => { const g = add(makeModel(type, i + 1, true, 0, 0), GAL_X[i], zc, true); galPreview(g, type, i + 1); galLabel(nm, '#fff', GAL_X[i], zc + d / 2 + 1.1); }));
   }
   // walls run into a gate from both sides: E–W wall, gate, wall
