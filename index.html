@@ -156,8 +156,8 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #campMap svg{max-height:calc(100dvh - 120px)!important}
 #stagePrev{background:rgba(12,13,9,.94);z-index:62}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
-.ncCard{width:min(420px,94vw);background:var(--panel);border:1px solid #6b5a2e;border-radius:14px;padding:12px;display:flex;flex-direction:row;align-items:stretch;gap:12px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
-.ncPic{flex:0 0 auto;width:min(150px,38vw);aspect-ratio:1/1;align-self:center;background:#efe6cf;border-radius:10px;overflow:hidden} .ncPic img{width:100%;height:100%;display:block;object-fit:cover}
+.ncCard{width:min(300px,90vw);background:var(--panel);border:1px solid #6b5a2e;border-radius:14px;padding:12px;display:flex;flex-direction:row;align-items:stretch;gap:12px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
+
 .ncInfo{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:7px;text-align:left}
 .ncStep{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .ncIcon svg{width:64px;height:64px;stroke:var(--gold);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
@@ -422,7 +422,6 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
   </div>
   <div class="modal" id="newCards" hidden>
     <div class="ncCard">
-      <div class="ncPic"><img id="ncPic" alt=""></div>
       <div class="ncInfo">
         <div class="ncStep" id="ncStep"></div>
         <h3 id="ncName"></h3>
@@ -5935,43 +5934,20 @@ function newCardStats(t) {
   if (T.decor) { st.push(...fxStats(t, (i, v, n) => STAT(i, v, 'good', n))); if (T.charm) st.push(STAT('charm', `+${Math.round(T.charm * 100)}%`, 'good')); }
   return st.join('');
 }
-// a building's picture for its card: its tier-1 model drawn once in the main renderer, on cream (set as sRGB values: the clear
-// colour skips the output encoding), from the front-left and a little above, framed on its bounding box; cached per type
-const picCache = {};
-function buildingPic(t) {
-  if (picCache[t]) return picCache[t];
-  const sc = new THREE.Scene(), cream = new THREE.Color('#efe6cf').convertLinearToSRGB(); sc.background = cream;
-  sc.add(new THREE.HemisphereLight('#fff6e0', '#7a6a50', .85));
-  const sun = new THREE.DirectionalLight('#fff1d6', 1.15); sun.position.set(-5, 9, 7); sc.add(sun);
-  const g = makeModel(t, 1, false, WALLY[t] ? 10 : 0); sc.add(g);
-  const aos = []; g.traverse(o => { if (o.userData.ao) aos.push(o); }); aos.forEach(o => o.parent.remove(o));   // out of the framing too
-  // cream ground at y 0 hides whatever runs below it (wall posts, footings), so every model stands on the card's own colour
-  const gnd = new THREE.Mesh(new THREE.PlaneGeometry(60, 60).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#efe6cf', toneMapped: false })); gnd.position.y = .005; sc.add(gnd);
-  const box3 = new THREE.Box3().setFromObject(g); box3.min.y = Math.max(box3.min.y, -.05);
-  const c = box3.getCenter(new THREE.Vector3()), sz = box3.getSize(new THREE.Vector3()), r = Math.max(sz.x, sz.y * 1.1, sz.z) * .62 + .12;
-  const cam = new THREE.PerspectiveCamera(30, 1, .1, 200), d = r / Math.tan(15 * Math.PI / 180);
-  cam.position.set(c.x - Math.sin(.6) * Math.cos(.5) * d, c.y + Math.sin(.5) * d, c.z + Math.cos(.6) * Math.cos(.5) * d); cam.lookAt(c);
-  const px = 320, was = renderer.getSize(new THREE.Vector2()), pr = renderer.getPixelRatio();
-  renderer.setPixelRatio(1); renderer.setSize(px, px, false);
-  renderer.render(sc, cam);
-  const cv = document.createElement('canvas'); cv.width = cv.height = px; cv.getContext('2d').drawImage(renderer.domElement, 0, 0, px, px);
-  renderer.setPixelRatio(pr); renderer.setSize(was.x, was.y, false);
-  return picCache[t] = cv.toDataURL('image/jpeg', .9);
-}
 function showNewCards(list) {
   newCards = list.slice(); newCardI = 0; if (!newCards.length) return;
-  paused = true; hideGhost(); renderNewCard(); $('#newCards').hidden = false;
+  paused = true; hideGhost(); renderNewCard(); $('#newCards').hidden = false; sfx('alert');
 }
 function renderNewCard() {
   const t = newCards[newCardI], last = newCardI === newCards.length - 1;
-  $('#ncPic').src = buildingPic(t); $('#ncName').textContent = t === 'road' ? 'Path' : DEF[t].name;
+  $('#ncName').textContent = t === 'road' ? 'Path' : DEF[t].name;
   $('#ncStep').textContent = `New · ${newCardI + 1}/${newCards.length}`;
   $('#ncCost').innerHTML = costHTML(DEF[t].cost || {}); $('#ncStats').innerHTML = newCardStats(t);
   $('#ncNext').textContent = last ? 'Play' : 'Next';
 }
 $('#ncNext').addEventListener('click', () => {
   sfx('click');
-  if (++newCardI < newCards.length) { renderNewCard(); return; }
+  if (++newCardI < newCards.length) { renderNewCard(); sfx('alert'); return; }
   $('#newCards').hidden = true; paused = false;
 });
 // Market Cross: the old roads laid as paths cell by cell (stepping round corners so they join), the stone cross by the junction
@@ -6430,6 +6406,7 @@ var SND = {   // game event -> file in audio/sfx (or audio/music) and its trim a
   coins:     { file: 'sfx/Coins_payout.mp3',         trim: .7 },
   arrow:     { file: 'sfx/Arrow_shot.mp3',           trim: .889 },
   horn:      { file: 'sfx/Wave_horn.mp3',            trim: 1 },      // nightfall: the raiders' horn
+  alert:     { file: 'sfx/Alert_sound.mp3',          trim: .6 },     // each new-building card as it pops up
   attack:    { files: ['sfx/Enemy_attack_1.mp3', 'sfx/Enemy_attack_2.mp3'], trim: .445 },   // a raider's strike on a building, one of the two at random
   clash:     { file: 'sfx/Attack_clash.mp3',         trim: .445 },   // soldier and raider trading blows
   arrowHit:  { file: 'sfx/Arrow_hit.mp3',            trim: .6 },     // a raider falls while the grunt is resting

@@ -29,6 +29,7 @@
 | `Fire_sound.mp3` | Loops near torches and campfires: louder the closer the camera looks and the further it zooms in |
 | `River_water_flow.mp3` | Loops near rivers the same way |
 | `Battleram_hit.mp3` | A battering ram's log strikes a wall, gate or building |
+| `Alert_sound.mp3` | Each new-building card as it pops up at the start of a stage |
 | `Chicken_cluck.mp3`, `Pig_oink.mp3`, `Cow_moo.mp3` | Now and then from a farmhouse yard (only the animals it keeps), when the camera is close in on it |
 | `Horse_neigh.mp3` | Now and then from the stables, when the camera is close in on them |
 | `Horse_gallop.mp3` | Loops while horses (mounted raiders, your riders) are on the move near where the camera looks; loud only zoomed in |
