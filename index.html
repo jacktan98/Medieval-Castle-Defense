@@ -619,9 +619,9 @@ const MAP_RULES = {
 };
 // campaign stops' own maps: the buildings each one has (the stop's and every earlier stop's), and where it sits on the overview
 const CAMP_MAPS = {
-  vale: { stop: 0, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower'], decor: ['road', 'flowers', 'torch'] } },
-  bridge: { stop: 1, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack'] } },
-  cross: { stop: 2, cats: { eco: ['house', 'farm', 'lodge', 'quarry', 'market'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue'] } },
+  vale: { stop: 0, maxTier: 1, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower'], decor: ['road', 'flowers', 'torch'] } },
+  bridge: { stop: 1, maxTier: 1, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack'] } },
+  cross: { stop: 2, maxTier: 2, newTier: 2, cats: { eco: ['house', 'farm', 'lodge', 'quarry', 'market'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue'] } },
 };
 var WAVES = WAVES_STD, NIGHTS = WAVES.length, DAYLEN = [300, 150, 150, 150, 150], SPAWN_GAP = 1.1;
 function mapRules() { const R = MAP_RULES[MAP]; WAVES = R ? R.waves : WAVES_STD; NIGHTS = WAVES.length; DAYLEN = R ? R.day : [300, 150, 150, 150, 150]; SPAWN_GAP = R ? R.spawnGap : 1.1; }
@@ -3146,9 +3146,11 @@ function completeSite(B) {
   }
   syncResidents(B); assignJobs(); if (WALLY[B.type]) refreshWalls(); refreshCard();
 }
+// the highest tier a stage allows (Stages 1 and 2 stay at tier 1, Stage 3 opens tier 2); free play has all three
+const tierCap = () => (CAMP_MAPS[MAP] && CAMP_MAPS[MAP].maxTier) || 3;
 function upgrade(B) {
   const T = DEF[B.type];
-  if (!T.up || B.tier >= 3 || B.dead || B.site) return;
+  if (!T.up || B.tier >= 3 || B.tier >= tierCap() || B.dead || B.site) return;
   const cost = T.up[B.tier - 1];
   if (!canAfford(cost)) { setHint(`Need ${shortfall(cost)}`, 'bad'); return; }
   pay(cost);
@@ -5575,7 +5577,7 @@ function refreshCard() {
   if (!vb.hidden) { const cool = volleyCd > 0, day = PH.kind !== 'night'; vb.classList.toggle('cool', cool); vb.classList.toggle('off', day && !cool); vb.disabled = cool; vb.title = day ? 'Night only' : 'Arrow volley: tap, then a spot'; vb.querySelector('.cd').textContent = cool ? Math.ceil(volleyCd) : ''; vb.setAttribute('aria-pressed', String(volleyAim)); }
   const up = $('#upBtn');
   if (!T.up) up.hidden = true;
-  else if (B.tier >= 3 || B.site) up.hidden = true;
+  else if (B.tier >= 3 || B.tier >= tierCap() || B.site) up.hidden = true;
   else { const c = T.up[k]; up.hidden = false; up.innerHTML = B.site ? '…' : `<svg class="bIco" viewBox="0 0 24 24"><path d="M5 14 L12 7 L19 14"/><path d="M5 19 L12 12 L19 19"/></svg>${costHTML(c)}`; up.disabled = !!B.site || !canAfford(c); up.title = `Upgrade to ${T.tiers[k + 1]}`; }
   $('#cardRotBtn').hidden = !canRotate(B);
   const dem = $('#demBtn');
@@ -5875,6 +5877,7 @@ function applyLoadout() {
     { text: `${DEF[L.food].name} for food`, tool: L.food, cat: 'eco', done: () => buildings.some(B => B.type === L.food) },
     { text: DEF[L.ranged].name, tool: L.ranged, cat: 'def', done: () => buildings.some(B => B.type === L.ranged) },
     { text: 'Upgrade a building', tool: 'select', done: () => buildings.some(B => B.tier > 1 || (B.site && B.site.kind === 'up')) });
+  if (tierCap() < 2) GUIDE.pop();   // no upgrades on this stage
 }
 function renderLoadPick() {
   const L = LOADOUT, opt = (t, on, slot) => `<button class="ldOpt" data-slot="${slot}" data-t="${t}" aria-pressed="${on}"><span class="tIco">${TOOL_ICON[t]}</span><span><b>${DEF[t].name}</b><small>${costHTML(DEF[t].cost)}</small></span></button>`;
@@ -5938,10 +5941,18 @@ function showNewCards(list) {
   newCards = list.slice(); newCardI = 0; if (!newCards.length) return;
   paused = true; hideGhost(); renderNewCard(); $('#newCards').hidden = false; sfx('alert');
 }
+const UP_ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 14 L12 7 L19 14"/><path d="M5 19 L12 12 L19 19"/></svg>';
 function renderNewCard() {
   const t = newCards[newCardI], last = newCardI === newCards.length - 1;
+  $('#ncStep').textContent = `New · ${newCardI + 1}/${newCards.length}`; $('#ncNext').textContent = last ? 'Play' : 'Next';
+  if (/^tier\d$/.test(t)) {   // a tier opening up: what an upgrade brings, house and archer tower as examples
+    const k = +t[4] - 1, H = DEF.house, W = DEF.tower;
+    $('#ncName').textContent = `Tier ${k + 1}`;
+    $('#ncCost').innerHTML = `<span class="cost"><span class="ico">${UP_ICO}</span>Upgrades</span>`;
+    $('#ncStats').innerHTML = STAT('home', `${H.residents[k - 1]} → ${H.residents[k]}`) + STAT('gold', `+${H.gold[k - 1]} → +${H.gold[k]}`) + STAT('bow', `${W.dmg[k - 1]} → ${W.dmg[k]}`);
+    return;
+  }
   $('#ncName').textContent = t === 'road' ? 'Path' : DEF[t].name;
-  $('#ncStep').textContent = `New · ${newCardI + 1}/${newCards.length}`;
   $('#ncCost').innerHTML = costHTML(DEF[t].cost || {}); $('#ncStats').innerHTML = newCardStats(t);
   $('#ncNext').textContent = last ? 'Play' : 'Next';
 }
@@ -6098,7 +6109,7 @@ function campaignSVG() {
   </svg>`;
 }
 // a stage's preview: its picture (the real stage where it's built, else its sketch), what it brings in, stars, Play
-const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' }, 2: { src: 'maps/cross.jpg' } };
+const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' }, 2: { src: 'maps/cross.jpg' }, 3: { src: 'design/stages/stage4-watchhill.png', tag: 'Sketch' } };
 function openStage(i) {
   const c = CAMPAIGN[i], pic = STAGE_PIC[i];
   document.querySelectorAll('#campMap .mk').forEach(m => m.classList.toggle('sel', +m.dataset.i === i));
@@ -6327,7 +6338,7 @@ function startGame() {
   BANK_WALL = MAP === 'bridge' ? BANK_WALL : [];
   if (MAP === 'vale') guideOn = true;               // the tutorial stage: the guided first day every time (Skip ends it)
   else if (CAMP_MAPS[MAP]) { guideOn = false; guideMark(); }
-  if (CAMP_MAPS[MAP] && CAMP_MAPS[MAP].stop > 0) showNewCards(CAMPAIGN[CAMP_MAPS[MAP].stop].adds);   // a later stage: its new buildings, one card each, before play
+  if (CAMP_MAPS[MAP] && CAMP_MAPS[MAP].stop > 0) showNewCards(CAMPAIGN[CAMP_MAPS[MAP].stop].adds.concat(CAMP_MAPS[MAP].newTier ? ['tier' + CAMP_MAPS[MAP].newTier] : []));   // a later stage: its new buildings, one card each, before play
   updateCam();
   log('Drag · twist · pinch');
   log(`Survive <b>${NIGHTS} nights</b>`);
@@ -6350,8 +6361,8 @@ function setPaused(on) {
   $('#pauseBtn').innerHTML = on ? '<svg viewBox="0 0 24 24"><path class="solid" d="M8 5 L19 12 L8 19 Z"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M8 5 V19 M16 5 V19" stroke-width="3.2"/></svg>';
   $('#pauseBtn').setAttribute('aria-label', on ? 'Resume' : 'Pause'); $('#pauseBtn').title = on ? 'Resume (P)' : 'Pause (P)';
 }
-$('#pauseBtn').addEventListener('click', () => !gameOver && setPaused(!paused));
-$('#resumeBtn').addEventListener('click', () => setPaused(false));
+$('#pauseBtn').addEventListener('click', () => !gameOver && !menuOn() && setPaused(!paused));
+$('#resumeBtn').addEventListener('click', () => !menuOn() && setPaused(false));
 $('#speedBtn').addEventListener('click', () => {
   gameSpeed = gameSpeed === 1 ? 2 : 1;
   $('#speedBtn').innerHTML = `<span class="spd">${gameSpeed}×</span>`; $('#speedBtn').setAttribute('aria-pressed', String(gameSpeed > 1)); $('#speedBtn').setAttribute('aria-label', `Game speed ${gameSpeed}×`);
@@ -6392,7 +6403,7 @@ $('#adRaid').addEventListener('click', () => openRaidDash(true));
 $('#rdClose').addEventListener('click', () => openRaidDash(false));
 
 setPaused(false);
-addEventListener('keydown', e => { if (e.key === 'p' || e.key === 'P') !gameOver && setPaused(!paused); });
+addEventListener('keydown', e => { if (e.key === 'p' || e.key === 'P') !gameOver && !menuOn() && setPaused(!paused); });
 
 // ---------- audio ----------
 // Every effect is LEVELLED when it loads, the way medieval-td does it: measure the RMS of its loudest 0.3 s,
@@ -6725,12 +6736,16 @@ function adaptResolution(raw) {
   const ms = fpsAcc / fpsN * 1000; fpsAcc = fpsN = 0;
   if (ms > 24 && pixelK > 1.5) { pixelK = Math.max(1.5, pixelK - .5); renderer.setPixelRatio(pixelK); resize(); }
 }
+// a title screen, map or town picker, campaign or stage preview, or the new-building cards is up: the game underneath stands still
+// (setPaused(false) at startup used to set it running under the title screen, paying out gold)
+const MENUS = ['#mapPick', '#loadPick', '#campaign', '#stagePrev', '#newCards'].map(q => $(q));
+const menuOn = () => MENUS.some(m => !m.hidden);
 function frame(now) {
   adaptResolution((now - last) / 1000);
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   keyCamera(dt);
   if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now);
-  if (paused) { renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
+  if (paused || menuOn()) { renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not
   if (!gameOver) { updatePhase(gdt); updateVillagers(gdt, now); updateEco(gdt); updateMoves(gdt); updateEnemies(gdt); updateDefense(gdt); separateUnits(gdt); updateDoors(gdt); updateFallen(gdt); updateChips(gdt); updateSplashes(gdt); }
   updateArrows(gdt); updateAmbience(dt); updateVolley(gdt); updateTrees(now); emitSmoke(gdt); updateBirds(gdt);
