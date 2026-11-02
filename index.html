@@ -3372,6 +3372,7 @@ function steer(v, tx, tz, dt, mode, stop = .2, mult = 1) {
     if (!loose && look > step && !canStand(v.x + sa * look, v.z + ca * look, mode)) continue;
     // face the smoothed direction of travel, not each step's: small corrections along an edge don't swing the body
     const k = Math.min(1, dt * 7); v.hx = lerp(v.hx || sa, sa, k); v.hz = lerp(v.hz || ca, ca, k);
+    if (v.fresh) { v.hx = sa; v.hz = ca; v.g.rotation.y = a; v.fresh = false; }   // a raider just spawned: already facing the way it sets off
     v.x = nx; v.z = nz; turnTo(v, Math.atan2(v.hx, v.hz), dt); v.walking = true;
     if (off === 0) v.stuck = Math.max(0, v.stuck - dt);
     else { v.stuck += dt * .4; if (!v.side) v.side = Math.sign(off); v.sideT = .8; }
@@ -4036,7 +4037,7 @@ function spawnEnemy(kind, sp, wave, tier = 1) {
   const hp = E.hp * RAIDER_T.hp[k] * (w.hp || 1);
   const e = Object.assign(p, { kind, tier, x: clamp(sp.x + (Math.random() - .5) * 2, 1, SIZE - 1), z: clamp(sp.z + (Math.random() - .5) * 2, 1, SIZE - 1),
     hp, max: hp, speed: E.speed * (.9 + Math.random() * .2), range: E.range, dmg: E.dmg * RAIDER_T.dmg[k], rate: E.rate,
-    cool: E.engine ? E.rate * .5 : Math.random(), target: null, retarget: 0, dead: false, deadT: 0, phase: Math.random() * 6,
+    cool: E.engine ? E.rate * .5 : Math.random(), fresh: true, target: null, retarget: 0, dead: false, deadT: 0, phase: Math.random() * 6,
     bar: makeBar(E.engine ? 1.3 : E.mounted ? 1.0 : .8), barY: E.engine ? (kind === 'catapult' ? [1.6, 1.8, 3.3][k] : kind === 'ram' ? 2.1 : 1.5) : 1.6 * UNIT_K + (E.mounted ? SADDLE : 0) });
   enemies.push(e);
 }
