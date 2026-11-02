@@ -2091,7 +2091,7 @@ function makeCrossbowTower(tier, plinth) {
       for (const sx of [-1, 1]) t.add(box(.13, dh + .12, .14, M.stone2, sx * (dw / 2 + .065), y0 + (dh + .12) / 2, -.86));
       t.add(box(dw + .39, .16, .16, M.stone2, 0, y0 + dh + .16, -.86)); }
     for (const sx of [-1, 1]) t.add(box(.06, .3, .03, M.dark, sx * .38, top * .6, .81));
-    t.add(box(1.85, .14, 1.85, M.stone2, 0, top + .13, 0));
+    t.add(box(1.85, .14, 1.85, M.stone2, 0, top + .15, 0));   // its top clear of the shaft's (they shared a face and flickered)
     for (let n = 0; n < 4; n++) for (const k of [-1, 0, 1]) {               // battlements: merlons with gaps on every side
       const a = n * Math.PI / 2, [x, z] = [Math.sin(a) * .86 + Math.cos(a) * k * .62, Math.cos(a) * .86 - Math.sin(a) * k * .62];
       t.add(box(.3, .45, .3, M.stone2, x, top + .42, z));
@@ -2163,7 +2163,7 @@ function makeBallista(tier, plinth) {
     for (const [x, z, w, d] of [[.9, 0, .06, 1.85], [-.9, 0, .06, 1.85], [0, .9, 1.85, .06]]) g.add(box(w, .35, d, M.timber, x, deck + .17, z));
     ladder(-1.0, M.timber, .2);
   } else {
-    g.add(box(1.8, deck - .2, 1.8, M.stone, 0, (deck - .2) / 2 + .2, 0)); g.add(box(1.9, .1, 1.9, M.stone2, 0, deck - .05, 0));
+    g.add(box(1.8, deck - .22, 1.8, M.stone, 0, (deck - .22) / 2 + .2, 0)); g.add(box(1.9, .1, 1.9, M.stone2, 0, deck - .05, 0));   // shaft stops short of the slab's top: no shared face
     for (const [x, z] of [[.8, .8], [-.8, .8], [.8, -.8], [-.8, -.8], [.8, 0], [-.8, 0], [0, .8]]) g.add(box(.26, .38, .26, M.stone2, x, deck + .19, z));
     for (const sx of [-1, 1]) g.add(box(.06, .3, .03, M.dark, sx * .38, deck * .55, .91));   // arrow slits
     for (let y = .32; y < deck - .1; y += .27) g.add(box(.45, .1, .22, M.stone2, 0, y, -1.0));   // a stone ladder: rungs set in the back wall, up to the gap in the battlement
