@@ -455,8 +455,8 @@ const DEF = {
   // gunner) to work at all: the ballista's bolt runs through every raider in its line, the catapult's stone hits all round where
   // it lands (not too close: minRange) and the engine can be moved, slowly, to another tile (Move on its card)
   // stables: like the barracks, but its soldiers ride (fast, tough, dear); they gear up in the armoury hut at the front left
-  stables: { size: 2, name: 'Stables', maxdh: 1.8, hp: [240, 340, 480], cost: { wood: 40, gold: 50 }, cavalry: true,
-            up: [{ wood: 45, gold: 70, stone: 15 }, { stone: 60, gold: 110 }], soldiers: [2, 2, 3],
+  stables: { size: 2, name: 'Stables', maxdh: 1.8, hp: [300, 430, 620], cost: { wood: 30, gold: 30 }, cavalry: true,
+            up: [{ wood: 35, gold: 45, stone: 10 }, { stone: 45, gold: 75 }], soldiers: [2, 3, 3],
             tiers: ['Horse shed', 'Stables', 'Royal stables'] },
   crossbow: { size: 1, name: 'Crossbow', maxdh: 1.8, hp: [200, 300, 430], cost: { wood: 20, gold: 15 }, noRoad: true, weapon: 'crossbow',
             up: [{ wood: 35, gold: 35 }, { stone: 45, gold: 65 }], range: [8, 9, 10], dmg: [6, 8, 10], rate: [.55, .48, .4],
@@ -2076,6 +2076,8 @@ function makeCrossbowTower(tier, plinth) {
 // (userData.bolt): tier 1 a scorpion on a low timber deck, tier 2 a ballista up on a raised timber platform, tier 3 a great
 // ballista on a stone platform with a low battlement
 const BALLISTA_DECK = [.32, 1.16, 1.5], BALLISTA_K = [.85, 1, 1.28];
+// the ballista's draw (turret frame): the arm tips, the slider at rest (string straight) and drawn back; crew spots on the deck
+const BAL_TIP = [.52, .52, .294], BAL_REST = .29, BAL_DRAWN = -.22, BAL_LOADER = [.42, -.5], BAL_GUNNER = [-.34, -.6];
 function ballistaTurret(k) {
   const t = new THREE.Group(); t.userData.turret = true;
   t.add(cyl(.07, .1, .45, 6, M.timber, 0, .22, 0));
@@ -2089,11 +2091,17 @@ function ballistaTurret(k) {
     }
   }
   for (const sx of [-1, 1]) t.add(box(.13, .16, .13, ropeM, sx * .09, .52, .52));      // torsion springs either side of the stock
-  t.add(box(1.04, .015, .015, ropeM, 0, .52, .26));                                     // the drawn string, between the arm tips
-  const bolt = new THREE.Group(); bolt.userData.bolt = true; t.add(bolt);
+  // the string runs from each arm tip to the claw on a slider in the stock's groove; the winch at the back hauls the slider (and
+  // the string) back by the pulley rope, the trigger line from the claw lets it go (all set each frame by ballistaCrew)
+  const sl = new THREE.Group(); sl.userData.slider = true; sl.position.set(0, .585, BAL_DRAWN); t.add(sl);
+  sl.add(box(.12, .05, .08, M.iron, 0, 0, 0)); sl.add(box(.03, .06, .03, M.iron, 0, -.04, -.05));
+  for (const key of ['bsL', 'bsR', 'prope', 'trope']) { const r = box(key[0] === 'b' ? .016 : .013, 1, key[0] === 'b' ? .016 : .013, ropeM, 0, 0, 0); r.userData[key] = true; r.visible = false; t.add(r); }
+  for (const sx of [-1, 1]) { rA.set(sx * BAL_TIP[0], BAL_TIP[1], BAL_TIP[2]); rB.set(0, .585, BAL_DRAWN); const st = box(.016, 1, .016, ropeM, 0, 0, 0); setRope(st, rA, rB); st.userData.staticString = true; t.add(st); }
+  const bolt = new THREE.Group(); bolt.userData.bolt = true; bolt.position.z = BAL_DRAWN + .325; t.add(bolt);
   bolt.add(box(.035, .035, .95, M.timber, 0, .6, .15)); const tip = cone(.045, .14, 4, M.iron, 0, .6, .68); tip.rotation.x = Math.PI / 2; bolt.add(tip);
-  const w = cyl(.06, .06, .3, 6, M.timber, 0, .5, -.52); w.rotation.z = Math.PI / 2; t.add(w);
-  for (const sx of [-1, 1]) t.add(box(.03, .18, .03, M.iron, sx * .16, .5, -.52));     // winch handles
+  const cr = new THREE.Group(); cr.position.set(0, .5, -.52); cr.userData.crank = true; t.add(cr);   // the winch: drum and two crank handles
+  const w = cyl(.06, .06, .3, 6, ropeM, 0, 0, 0); w.rotation.z = Math.PI / 2; cr.add(w);
+  for (const sx of [-1, 1]) { cr.add(box(.025, .14, .025, M.iron, sx * .17, .07, 0)); cr.add(box(.08, .03, .03, M.timber, sx * .21, .14, 0)); }
   t.scale.setScalar(k); return t;
 }
 function makeBallista(tier, plinth) {
@@ -2509,7 +2517,7 @@ function emitSmoke(dt) {
       p.sp.scale.setScalar(.35 + f * 1.1); p.sp.material.opacity = Math.min(1, f * 5) * (1 - f) * .5 * (.3 + .7 * light);
     } else if (p.ember) { p.sp.position.y += dt * 1.1; p.sp.position.x += p.dx * dt + Math.sin(p.t * 9 + p.dx * 40) * .004; p.sp.scale.setScalar(.07 * (1 - f * .7)); p.sp.material.opacity = 1 - f; }
     else {
-      p.sp.position.y += dt * (p.dust ? .3 : .55); p.sp.position.x += p.dx * dt; p.sp.scale.setScalar(p.dust ? .25 + f * .8 : .3 + f * 1.3);
+      p.sp.position.y += dt * (p.dust ? .3 : .55); p.sp.position.x += p.dx * dt; p.sp.scale.setScalar((p.dust ? .25 + f * .8 : .3 + f * 1.3) * (p.k || 1));
       p.sp.material.opacity = Math.min(1, f * 6) * (1 - f) * (p.dust ? .55 : .45);
     }
     if (f >= 1) { scene.remove(p.sp); p.sp.material.dispose(); puffs.splice(n, 1); }
@@ -3809,7 +3817,7 @@ function bowPoint(p) {
 }
 // kind: an arrow (default), 'qbolt' a crossbow's short bolt, 'bolt' a ballista's, 'stone' a catapult's (slow, high)
 const CATA_SHOT = [.65, .95, 1.35];     // the catapult's stone grows with the engine (×.17 m)
-const SHOT = { qbolt: { geo: new THREE.BoxGeometry(.035, .035, .42), speed: 26 }, bolt: { geo: new THREE.BoxGeometry(.075, .075, 1.3), speed: 30 },
+const SHOT = { qbolt: { geo: new THREE.BoxGeometry(.035, .035, .42), speed: 26 }, bolt: { geo: new THREE.BoxGeometry(.075, .075, 1.3), speed: 25 },
   stone: { geo: new THREE.DodecahedronGeometry(.17, 0), speed: 13, m: M.stone2 } };
 function fireArrow(from, to, onHit, arc, kind) {
   const K = SHOT[kind], m = new THREE.Mesh(K ? K.geo : arrowGeo, K && K.m || arrowMat); m.castShadow = true; m.position.copy(from); scene.add(m);
@@ -4085,7 +4093,7 @@ function armour(p, tier) {
 // ---------- barracks soldiers: villagers who muster at a barracks at night, gear up by its tier and fight raiders hand to hand ----------
 const SOLDIER = { hp: [70, 100, 140], dmg: [7, 10, 14], rate: .9, names: ['Militia', 'Guard', 'Man-at-arms'] };
 // the stables' riders: tougher and harder hitting, and they ride at RIDER.speed times a soldier's pace
-const RIDER = { hp: [110, 150, 200], dmg: [9, 13, 18], rate: .8, speed: 2.1, names: ['Rider', 'Lancer', 'Knight'] };
+const RIDER = { hp: [170, 240, 330], dmg: [9, 13, 18], rate: .8, speed: 2.1, names: ['Rider', 'Lancer', 'Knight'] };
 const ridingM = mat('#2f4f86');   // the town's blue saddle cloth
 const SQUAD = [[0, 0], [-.8, -.5], [.8, -.5]];      // where the three stand round their spot
 var respawns = [], fallen = [];                     // fallen soldiers come back as villagers after 60 s of daylight
@@ -4342,9 +4350,60 @@ function catapultCrew(B, k, crew, moving, dt, best) {
     else rig.trope.visible = false;
   }
 }
+// siege effects that grow with the tier, kept modest: a thump of dust (and from tier 2 a puff of smoke) as it looses, and at the
+// strike dust thrown up round the spot, clods of earth flung out, and at tier 3 a darker plume
+function bigPuff(x, y, z, col, k, life, dust) {
+  if (puffs.length > 170) return;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: smokeTex, color: col, transparent: true, depthWrite: false, opacity: 0 }));
+  sp.position.set(x, y, z); sp.scale.setScalar(.25 * k); scene.add(sp); puffs.push({ sp, t: 0, life, dx: (Math.random() - .5) * .3, dust, k });
+}
+function blastFx(x, z, tier, r) {
+  const y = walkY(x, z);
+  for (let n = 0; n < 2 + 2 * tier; n++) { const a = Math.random() * 6.28, d = Math.random() * r; bigPuff(x + Math.cos(a) * d, y + .05, z + Math.sin(a) * d, '#b9a582', .9 + .3 * tier, 1.2 + Math.random() * .6, true); }
+  if (debris.length < 90) for (let n = 0; n < 1 + 2 * tier; n++) {
+    const s = .05 + Math.random() * .05, o = box(s, s * .8, s, M.soil, x, y + .1, z); scene.add(o);
+    debris.push({ o, vx: (Math.random() - .5) * (2 + tier), vy: 1.6 + Math.random() * (1 + tier), vz: (Math.random() - .5) * (2 + tier), life: .9 + Math.random() * .4, spin: (Math.random() - .5) * 12 });
+  }
+  if (tier === 3) for (let n = 0; n < 2; n++) bigPuff(x + (Math.random() - .5) * .6, y + .2, z + (Math.random() - .5) * .6, '#7a7064', 1.6, 1.8, false);
+}
+function siegeLaunchFx(B, from, dir) {
+  const c = B.group.position, gy = c.y + (B.type === 'ballista' ? BALLISTA_DECK[B.tier - 1] : 0);
+  for (let n = 0; n < B.tier; n++) bigPuff(c.x + (Math.random() - .5) * .9, gy + .05, c.z + (Math.random() - .5) * .9, '#b9a582', .8 + .2 * B.tier, 1, true);
+  if (B.tier >= 2) bigPuff(from.x + dir.x * .3, from.y, from.z + dir.z * .3, '#d9d2c4', .6 + .25 * B.tier, .9, false);
+}
+// the ballista's crew on the deck, working the engine itself: the loader turns the winch, which hauls the slider (claw, string and
+// all) back down the stock by the pulley rope; the bolt is laid in the groove once it is drawn; the gunner holds the trigger line
+// from the claw and yanks it to loose, and the slider flies forward with the string
+function ballistaCrew(B, k, crew, dt, loadK) {
+  const rig = B.rig, t = B.turret; if (!rig.slider) return;
+  rig.statics.forEach(o => o.visible = false);
+  const winding = crew && B.cd > 0 && B.fireT <= 0;
+  const zs = B.fireT > 0 ? BAL_REST : lerp(BAL_REST, BAL_DRAWN, sstep(0, 1, loadK));
+  rig.slider.position.z = zs;
+  for (const [m, sx] of [[rig.bsL, -1], [rig.bsR, 1]]) { rA.set(sx * BAL_TIP[0], BAL_TIP[1], BAL_TIP[2]); rB.set(0, .585, zs); setRope(m, rA, rB); }
+  if (B.bolt) { B.bolt.visible = loadK > .97 && B.fireT <= 0; B.bolt.position.z = zs + .325; }
+  if (winding) rig.crank.rotation.x -= dt * 7;
+  if (rig.prope) { rA.set(0, .56, -.52); rB.set(0, .585, zs - .04); setRope(rig.prope, rA, rB); rig.prope.visible = winding || loadK > .97; }
+  B.group.updateMatrixWorld(true);
+  const figs = B.figs || [], L = figs[0] && figs[0].g.visible ? figs[0] : null, G = figs[1] && figs[1].g.visible ? figs[1] : null, gy = B.group.position.y + BALLISTA_DECK[k];
+  const put = (f, x, z, fx, fz) => { const p = engPt(B, x, 0, z), q = engPt(B, fx, 0, fz); f.g.position.set(p.x, gy, p.z); f.g.rotation.y = Math.atan2(q.x - p.x, q.z - p.z); };
+  if (L) {
+    put(L, ...BAL_LOADER, .17, -.52); kneel(L, .3); L.body.rotation.x = 0; L.g.updateMatrixWorld(true);
+    const h = rig.crank.localToWorld(new THREE.Vector3(.21, .14, 0)); aimArm(L, L.arms[1], h); aimArm(L, L.arms[0], h);
+  }
+  if (G) {
+    put(G, ...BAL_GUNNER, 0, zs);
+    const yank = B.fireT > 0 ? Math.sin(Math.PI * clamp(1 - B.fireT / .35, 0, 1)) : 0;
+    G.arms[0].rotation.set(-1.0 + .6 * yank, 0, .12); G.arms[1].rotation.set(-1.05 + .6 * yank, 0, -.12); G.body.rotation.x = -.18 * yank;
+  }
+  if (rig.trope) {
+    if (G) { G.g.updateMatrixWorld(true); const h = G.arms[1].localToWorld(new THREE.Vector3(0, -.33, 0)); t.worldToLocal(h); rA.set(0, .56, zs - .05); setRope(rig.trope, rA, h); }
+    else rig.trope.visible = false;
+  }
+}
 function updateSiege(B, T, dt) {
   const k = B.tier - 1, c = center(B), R = T.range[k], mn = T.minRange || 0, crew = !!(B.manned && B.manned[0] && B.manned[1]) && !B.move && !(B.figs || []).some(f => f && f.crewT > 0);
-  if (B.partsOn !== B.group) { B.partsOn = B.group; B.turret = B.arm = B.bolt = null; B.rig = { ammo: [] }; B.group.traverse(o => { const u = o.userData; if (u.turret) B.turret = o; if (u.arm) B.arm = o; if (u.bolt) B.bolt = o; if (u.crank) B.rig.crank = o; if (u.wrope) B.rig.wrope = o; if (u.trope) B.rig.trope = o; if (u.ammo) B.rig.ammo.push(o); }); }
+  if (B.partsOn !== B.group) { B.partsOn = B.group; B.turret = B.arm = B.bolt = null; B.rig = { ammo: [], statics: [] }; B.group.traverse(o => { const u = o.userData; if (u.turret) B.turret = o; if (u.arm) B.arm = o; if (u.bolt) B.bolt = o; if (u.crank) B.rig.crank = o; if (u.wrope) B.rig.wrope = o; if (u.trope) B.rig.trope = o; if (u.ammo) B.rig.ammo.push(o); if (u.slider) B.rig.slider = o; if (u.bsL) B.rig.bsL = o; if (u.bsR) B.rig.bsR = o; if (u.prope) B.rig.prope = o; if (u.staticString) B.rig.statics.push(o); }); }
   if (B.cd === undefined) B.cd = T.rate[k];
   const moving = !!(B.move && !B.move.wait);
   if (moving) B.cd = T.rate[k];                                   // rolled unloaded, the arm let up; it is winched down again after
@@ -4360,8 +4419,9 @@ function updateSiege(B, T, dt) {
   }
   const loadK = clamp(1 - B.cd / T.rate[k], 0, 1);
   if (B.arm) { const [cock, thrown] = CATA_ARM[k]; B.arm.rotation.x = B.fireT > 0 ? lerp(thrown, cock, Math.pow(B.fireT / .35, 2)) : lerp(thrown, cock, sstep(0, 1, loadK)); }
-  if (B.bolt) B.bolt.visible = loadK > .6;
+  if (B.bolt && B.type !== 'ballista') B.bolt.visible = loadK > .6;
   if (B.type === 'catapult') catapultCrew(B, k, crew, moving, dt, best);
+  else if (B.type === 'ballista') ballistaCrew(B, k, crew, dt, loadK);
   else (B.figs || []).forEach((f, a) => {
     if (!f || !f.g.visible) return;
     const [l, r] = f.arms;
@@ -4376,22 +4436,22 @@ function updateSiege(B, T, dt) {
     // the bolt drives into the ground just past its target: everyone along its line is hit, and the strike throws up earth round it
     const L = clamp(Math.hypot(best.x - from.x, best.z - from.z) + 1, 2, R), to = from.clone().addScaledVector(dir, L); to.y = walkY(to.x, to.z);
     const rad = T.splash[k];
+    siegeLaunchFx(B, from, dir);
     fireArrow(from, to, () => {
+      blastFx(to.x, to.z, B.tier, .7 + .25 * B.tier); shake(.03 + .02 * B.tier, { x: to.x, z: to.z }, 'bolt', .4);
       for (const e of enemies) if (!e.dead) {
         const ex = e.x - from.x, ez = e.z - from.z, u = clamp(ex * dir.x + ez * dir.z, 0, L), dl = Math.hypot(e.x - to.x, e.z - to.z);
         const hit = Math.hypot(ex - dir.x * u, ez - dir.z * u) < .7 ? dmg : dl < rad ? dmg * (1 - .5 * dl / rad) : 0;
         if (hit) hurtEnemy(e, hit);
       }
-      for (let n = 0; n < 5; n++) dustAt(to.x + (Math.random() - .5) * rad, walkY(to.x, to.z), to.z + (Math.random() - .5) * rad);
-      shake(.05, { x: to.x, z: to.z }, 'bolt', .4);
       stickBolt(to, dir);
-    }, .45, 'bolt');
+    }, .001, 'bolt');                                                // dead straight: a heavy bolt, not an arrow's arc
   } else {                                                        // a stone lobbed high onto where they will be: everyone round it
-    B.arm.updateMatrixWorld(true); const from = B.arm.localToWorld(new THREE.Vector3(0, B.tier === 3 ? 2.4 : 1.3, 0));
+    B.arm.updateMatrixWorld(true); const from = B.arm.localToWorld(new THREE.Vector3(0, B.tier === 3 ? 2.4 : 1.3, 0)); siegeLaunchFx(B, from, dir);
     const lead = best.walking ? 1.2 : 0, tx = best.x + Math.sin(best.g.rotation.y) * lead, tz = best.z + Math.cos(best.g.rotation.y) * lead, to = new THREE.Vector3(tx, walkY(tx, tz) + .1, tz), rad = T.splash[k];
     fireArrow(from, to, () => {
       for (const e of enemies) if (!e.dead) { const d = Math.hypot(e.x - tx, e.z - tz); if (d < rad) hurtEnemy(e, dmg * (1 - .5 * d / rad)); }
-      for (let n = 0; n < 6; n++) dustAt(tx + (Math.random() - .5) * rad, walkY(tx, tz), tz + (Math.random() - .5) * rad); shake(.08, { x: tx, z: tz }, 'stone', .4);
+      blastFx(tx, tz, B.tier, rad); shake(.05 + .03 * B.tier, { x: tx, z: tz }, 'stone', .4);
     }, Math.max(3, bd * .45), 'stone').scale.setScalar(CATA_SHOT[k]);
   }
 }
