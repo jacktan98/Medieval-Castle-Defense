@@ -156,6 +156,19 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #campInfo{width:100%;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 #campMap svg{max-height:calc(100dvh - 120px)!important}
 #stagePrev{background:rgba(12,13,9,.94);z-index:62}
+/* the menus on old paper (Jack: to try): a warm parchment with fibres and stains (svg noise), darker burnt edges; dark ink text */
+.modal.paper{--parch:#2e2112;--muted:#6e5838;--gold:#7a2c14;--line:#9c8058;color:#2e2112;
+  background-color:#dcc796!important;background-image:radial-gradient(ellipse at 50% 45%, rgba(255,246,214,.55) 0%, rgba(255,240,200,0) 55%, rgba(120,78,30,.28) 85%, rgba(70,40,12,.55) 100%),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .24 0 0 0 0 .1 0 0 0 .28 0'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23f)'/%3E%3C/svg%3E"),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='4' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .3 0 0 0 0 .12 0 0 0 .55 -.18'/%3E%3C/filter%3E%3Crect width='600' height='600' filter='url(%23g)'/%3E%3C/svg%3E")!important;
+  background-size:cover,320px 320px,600px 600px!important}
+.modal.paper .gameTitle{color:#6e2410;text-shadow:0 1px 0 rgba(255,240,200,.6),0 2px 6px rgba(80,40,10,.25)}
+.modal.paper button{border-color:#9c8058}
+.modal.paper .mapBtn,.modal.paper .ldOpt{background:rgba(255,246,220,.42);border-color:#9c8058}
+.modal.paper .ldOpt[aria-pressed="true"]{background:rgba(255,236,190,.75)}
+.modal.paper .ldOpt .tIco{color:#5a4428}
+.modal.paper .stars{color:#a89770} .modal.paper .stars .on{color:#b07a12}
+.modal.paper #campMap svg,.modal.paper .stPic{border-color:#7a5f38;box-shadow:0 2px 10px rgba(60,35,10,.35)}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
@@ -401,7 +414,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
     </div>
   </div>
   <div class="galBar" id="galBar" hidden><b>Gallery</b><button id="galTurn">Turn</button><button id="galDoors">Doors</button><button id="galWalk">Walk</button><button class="primary" id="galBack">Back</button></div>
-  <div class="modal" id="mapPick">
+  <div class="modal paper" id="mapPick">
     <div class="mapSheet">
       <h1 class="gameTitle">Medieval Town Defense</h1>
       <div class="mapSub">Choose map</div>
@@ -413,7 +426,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
       <button id="campBtn">Campaign</button>
     </div>
   </div>
-  <div class="modal" id="campaign" hidden>
+  <div class="modal paper" id="campaign" hidden>
     <div class="campSheet">
       <div class="mapSub">Campaign <span id="campStars"></span></div>
       <div id="campMap"></div>
@@ -433,7 +446,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
       </div>
     </div>
   </div>
-  <div class="modal" id="stagePrev" hidden>
+  <div class="modal paper" id="stagePrev" hidden>
     <div class="stageSheet">
       <div class="stPic" id="stPic"></div>
       <div class="stSide">
@@ -444,7 +457,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
       </div>
     </div>
   </div>
-  <div class="modal" id="loadPick" hidden>
+  <div class="modal paper" id="loadPick" hidden>
     <div class="loadSheet">
       <div class="mapSub">Choose your town</div>
       <section><h3>Economy</h3><div class="ldRows" id="ldEco"></div></section>
@@ -6721,28 +6734,52 @@ function campaignSVG() {
   const nearRiver = (x, y, r) => rivPts.some(([a, b]) => Math.hypot(a - x, b - y) < r);
   const LAND = 'M40 880 C20 700 60 560 40 420 C25 300 60 160 120 40 L700 30 C760 160 770 330 750 480 C735 620 780 760 740 880 Z';
   const onLand = (x, y) => x > 55 + (y > 420 ? 0 : (420 - y) * .12) && x < 745 && y > 60 && y < 868;
-  let road = `M${P[0][0]} ${P[0][1]}`;
-  for (let i = 1; i < P.length; i++) { const [x0, y0] = P[i - 1], [x1, y1] = P[i]; road += ` Q${(x0 + x1) / 2 + (i % 2 ? 40 : -40)} ${(y0 + y1) / 2 + (i % 2 ? -25 : 25)} ${x1} ${y1}`; }
-  // a painted treasure-map cross, raised: a soft shadow cast down-right, a dark rim, the red strokes shaded light to dark, a highlight
-  // along their upper edges (two slightly bowed brush strokes, thicker in the middle)
-  const XS = ['M-16 -14 Q-1 -4 16 15', 'M15 -16 Q3 -1 -15 15'];
-  const XMARK = `<g transform="translate(3.5 4.5)" filter="url(#xShade)">${XS.map(d => `<path d="${d}" stroke="#000" stroke-opacity=".55" stroke-width="13" stroke-linecap="round" fill="none"/>`).join('')}</g>` +
-    XS.map(d => `<path d="${d}" stroke="#4a0b07" stroke-width="13" stroke-linecap="round" fill="none"/>`).join('') +
-    XS.map(d => `<path d="${d}" stroke="url(#xRed)" stroke-width="9" stroke-linecap="round" fill="none"/>`).join('') +
-    XS.map(d => `<path d="${d}" transform="translate(-1.4 -1.8)" stroke="#ffb49e" stroke-opacity=".75" stroke-width="2.4" stroke-linecap="round" fill="none"/>`).join('');
+  const S = P.map(([x, y]) => [x, y * CAMP_CY]);
+  // stages won (stars kept) get a hand-painted red X; the first stage not yet won is where the player is: the town's blue rally flag
+  const won = CAMPAIGN.map(c => !!(c.map && STARS[c.map] > 0));
+  let cur = CAMPAIGN.findIndex((c, i) => !won[i]); if (cur < 0) cur = CAMPAIGN.length - 1;
+  // a brush stroke: a filled outline round a slightly bowed line, thick through the middle and tapering to points at both ends (Jack's reference)
+  const brush = (x0, y0, x1, y1, bow, W, seed) => { const L = [], R = [], dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy), nx = -dy / len, ny = dx / len;
+    for (let k = 0; k <= 24; k++) { const t = k / 24, b = Math.sin(t * Math.PI) * bow, cx = x0 + dx * t + nx * b, cy = y0 + dy * t + ny * b;
+      const hw = W * Math.pow(Math.sin(Math.PI * (.03 + .94 * t)), .55) * (1 - .35 * t) * (.9 + .2 * hash2(seed, k));
+      L.push(`${(cx + nx * hw).toFixed(1)} ${(cy + ny * hw).toFixed(1)}`); R.push(`${(cx - nx * hw).toFixed(1)} ${(cy - ny * hw).toFixed(1)}`); }
+    return `M${L.join(' L')} L${R.reverse().join(' L')} Z`; };
+  const XB = [brush(-26, -23, 25, 24, 4, 8.5, 1), brush(23, -26, -23, 23, -3.5, 8, 2)];
+  const XMARK = `<g transform="translate(2.5 3.5)" filter="url(#xShade)" fill="#000" fill-opacity=".45">${XB.map(d => `<path d="${d}"/>`).join('')}</g>` +
+    XB.map(d => `<path d="${d}" fill="#d0281c" stroke="#8e140c" stroke-width="1.2" stroke-linejoin="round"/>`).join('');
+  // the trail: irregular red dashes winding from the first stage through every one won, up to the flag
+  let trail = '';
+  for (let i = 1; i <= cur; i++) {
+    const [x0, y0] = S[i - 1], [x1, y1] = S[i], dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy), nx = -dy / len, ny = dx / len, sd = i % 2 ? 1 : -1;
+    const pt = t => { const m = 1 - t, a = len * .22 * sd, bx = x0 + dx / 3 + nx * a, by = y0 + dy / 3 + ny * a, cx = x0 + dx * 2 / 3 - nx * a * .8, cy = y0 + dy * 2 / 3 - ny * a * .8;
+      const wob = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 3 + i) * len * .05;
+      return [m * m * m * x0 + 3 * m * m * t * bx + 3 * m * t * t * cx + t * t * t * x1 + nx * wob, m * m * m * y0 + 3 * m * m * t * by + 3 * m * t * t * cy + t * t * t * y1 + ny * wob]; };
+    let acc = 0, next = 6, prev = pt(0), n = 0;
+    for (let k = 1; k <= 300; k++) { const q = pt(k / 300); acc += Math.hypot(q[0] - prev[0], q[1] - prev[1]);
+      if (acc >= next) { const r = hash2(i * 7.1, n), w = 6 + r * 5, ang = Math.atan2(q[1] - prev[1], q[0] - prev[0]) * 180 / Math.PI;
+        if (Math.hypot(q[0] - x0, q[1] - y0) > 38 && Math.hypot(q[0] - x1, q[1] - y1) > 38)
+          trail += `<ellipse cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" rx="${w.toFixed(1)}" ry="${(3.4 + hash2(n, i) * 1.4).toFixed(1)}" transform="rotate(${(ang + (hash2(n * 3, i) - .5) * 14).toFixed(0)} ${q[0].toFixed(1)} ${q[1].toFixed(1)})"/>`;
+        next = acc + w * 2 + 6 + hash2(n, i * 3) * 6; n++; }
+      prev = q; }
+  }
+  // the town's blue rally flag on the stage the player is at
+  const FLAG = `<ellipse cx="2" cy="6" rx="9" ry="3.5" fill="#000" fill-opacity=".4"/><path d="M0 6 V-50" stroke="#3a2716" stroke-width="3.6" stroke-linecap="round"/>` +
+    `<path d="M1.5 -48 C12 -53 20 -42 32 -46 L33 -24 C21 -20 13 -31 1.5 -26 Z" fill="#2f63c4" stroke="#163a7a" stroke-width="1.6" stroke-linejoin="round"/>` +
+    `<path d="M3 -44 C12 -48 20 -38 30 -41" stroke="#7ea6ec" stroke-width="1.6" fill="none" stroke-opacity=".8"/><circle cy="-51" r="3" fill="#e3b341" stroke="#6b4a12" stroke-width="1"/>`;
   // the ground is one 3D landscape rendered from the game's own terrain, trees, rocks and buildings, seen straight down (maps/overview.jpg,
-  // tools/render/overview.js); the road, the rings round each stop's little town and the names are drawn over it
-  const marks = CAMPAIGN.map((c, i) => { const [x, y] = c.at, col = c.boss ? '#e2715b' : '#e3b341', R = 46;
+  // tools/render/overview.js); the trail, the crosses, the flag and the names are drawn over it
+  const marks = CAMPAIGN.map((c, i) => { const [x, y] = S[i], col = c.boss ? '#e2715b' : '#e3b341', R = 46;
     const badge = `<g transform="translate(${R * .72} ${-R * .72})"><circle r="15" fill="${c.boss ? '#6b2a24' : '#2a2b22'}" stroke="${col}" stroke-width="2.5"/>` +
       (c.boss ? `<path d="M-6 -4 L6 7 M6 -4 L-6 7" stroke="#f3d5c8" stroke-width="2.6" stroke-linecap="round"/>` : `<text y="6" text-anchor="middle" font-size="17" font-family="Georgia,serif" fill="#f2e6c4">${i + 1}</text>`) + `</g>`;
-    // a red cross on the spot (Jack), over the stage's own ground; an invisible disc keeps the tap target big
-    return `<g class="mk" data-i="${i}" transform="translate(${x} ${y * CAMP_CY})"><circle r="${R}" fill="#000" fill-opacity=".001"/><circle class="ring" r="${R}" fill="none" stroke="#fff" stroke-width="0"/>` +
-      XMARK + badge +
+    const spot = won[i] ? XMARK : i === cur ? `<g transform="scale(1.35)">${FLAG}</g>` : `<circle r="6" fill="#f2e6c4" fill-opacity=".85" stroke="#2a2b22" stroke-width="2.5"/>`;
+    // an invisible disc keeps the tap target big
+    return `<g class="mk${won[i] ? ' won' : ''}${i === cur ? ' cur' : ''}" data-i="${i}" transform="translate(${x} ${y})"><circle r="${R}" fill="#000" fill-opacity=".001"/><circle class="ring" r="${R}" fill="none" stroke="#fff" stroke-width="0"/>` +
+      spot + badge +
       `<text y="${R + 28}" text-anchor="middle" font-size="25" font-family="Georgia,serif" fill="#f2e6c4" stroke="#1a1a14" stroke-width="5" paint-order="stroke">${c.name}</text></g>`; }).join('');
   return `<svg viewBox="0 0 800 ${900 * CAMP_CY}" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="xRed" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f05a3f"/><stop offset=".55" stop-color="#c8261b"/><stop offset="1" stop-color="#7e130c"/></linearGradient>
-      <filter id="xShade" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
+    <defs><filter id="xShade" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
     <image href="maps/overview.jpg" x="0" y="0" width="800" height="${900 * CAMP_CY}" preserveAspectRatio="none"/>
+    <g fill="#000" fill-opacity=".35" transform="translate(1.5 2)">${trail}</g><g fill="#c8261b" stroke="#7e130c" stroke-width=".8">${trail}</g>
     ${marks}
   </svg>`;
 }
@@ -6769,7 +6806,7 @@ $('#stBack').addEventListener('click', () => { sfx('click'); $('#stagePrev').hid
 $('#campMap').innerHTML = campaignSVG();
 markMapStars();
 $('#campMap').addEventListener('click', e => { const m = e.target.closest('.mk'); if (m) { sfx('click'); openStage(+m.dataset.i); } });
-function openCampaign(i) { $('#mapPick').hidden = true; $('#campaign').hidden = false; $('#campStars').innerHTML = `· ★ ${starTotal()}`; if (i !== undefined) openStage(i); }
+function openCampaign(i) { $('#campMap').innerHTML = campaignSVG(); $('#mapPick').hidden = true; $('#campaign').hidden = false; $('#campStars').innerHTML = `· ★ ${starTotal()}`; if (i !== undefined) openStage(i); }
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
 $('#campBack').addEventListener('click', () => { sfx('click'); $('#campaign').hidden = true; $('#mapPick').hidden = false; });
 document.querySelectorAll('.mapBtn').forEach(b => b.addEventListener('click', () => {

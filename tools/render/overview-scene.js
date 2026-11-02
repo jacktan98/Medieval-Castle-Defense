@@ -3,7 +3,7 @@
 // The overview's plan is 800 × 900 (CAMPAIGN[].at, CAMP_LAND, CAMP_RIVER), shown stretched to 800 × 1350 (CAMP_CY);
 // the world here is that plan at a quarter scale across and 3/8 down: 200 m × 337.5 m, seen straight down.
 (() => {
-  const WX = .25, WZ = .25 * CAMP_CY, W = 800 * WX, D = 900 * WZ, PXW = 1200, PXH = Math.round(PXW * D / W);
+  const WX = .25, WZ = .25 * CAMP_CY, W = 800 * WX, D = 900 * WZ, PXW = 2400, PXH = Math.round(PXW * D / W);
   const toW = (px, py) => [px * WX, py * WZ], toP = (x, z) => [x / WX, z / WZ];
   // the coast and the river, in plan coordinates
   const bez = (p0, a, b, c, d, e, f, n, out) => { for (let i = out.length ? 1 : 0; i <= n; i++) {   // no repeated points: a zero-length segment gives NaN distances
@@ -38,8 +38,10 @@
   const stSample = (st, x, z) => {   // the stage's own height (scaled) and colour under an overview point
     const sx = clamp((x - st.cx) / st.k + st.SIZE / 2, 0, st.SIZE), sz = clamp((z - st.cz) / st.k + st.SIZE / 2, 0, st.SIZE), i = Math.floor(sx), j = Math.floor(sz), fx = sx - i, fz = sz - j;
     const at = (a, b) => st.H[Math.min(b, st.V - 1) * st.V + Math.min(a, st.V - 1)];
-    const h = lerp(lerp(at(i, j), at(i + 1, j), fx), lerp(at(i, j + 1), at(i + 1, j + 1), fx), fz) * st.k, n = (Math.min(Math.round(sz), st.V - 1) * st.V + Math.min(Math.round(sx), st.V - 1)) * 3;
-    return [h, st.C[n], st.C[n + 1], st.C[n + 2]];
+    const h = lerp(lerp(at(i, j), at(i + 1, j), fx), lerp(at(i, j + 1), at(i + 1, j + 1), fx), fz) * st.k;
+    const ci = (a, b, q) => st.C[(Math.min(b, st.V - 1) * st.V + Math.min(a, st.V - 1)) * 3 + q];
+    const cb = q => lerp(lerp(ci(i, j, q), ci(i + 1, j, q), fx), lerp(ci(i, j + 1, q), ci(i + 1, j + 1, q), fx), fz);
+    return [h, cb(0), cb(1), cb(2)];
   };
   // each stage's rim: its height and colour all round, just inside the patch's edge; the land outside carries it on, so hills keep going
   const NA = 90;
@@ -77,7 +79,7 @@
   const ownWater = (x, z) => STG.some(st => st.wetRim.some(Boolean) && Math.hypot(x - st.cx, z - st.cz) < PATCH * .95);
   const tribD = (px, py) => TRIB.length ? Math.min(...TRIB.map(r => polyDist(r, px, py))) : 1e9;
   // ---------- ground: heights and colours by land
-  const NX = 201, NZ = Math.round(D) + 1, Hh = new Float32Array(NX * NZ), Cc = new Float32Array(NX * NZ * 3);
+  const GS = .5, NX = Math.round(W / GS) + 1, NZ = Math.round(D / GS) + 1, Hh = new Float32Array(NX * NZ), Cc = new Float32Array(NX * NZ * 3);
   const col = new THREE.Color(), tmp = new THREE.Color();
   const C_ = h => new THREE.Color(h);
   const GR = C_('#5a7338'), GR2 = C_('#46602e'), WOOD = C_('#3a5528'), DRY = C_('#a39a5e'), SAND = C_('#c9ad72'), PLAIN = C_('#7e9b45'), HIGH = C_('#7f7a5e'),
@@ -97,8 +99,8 @@
     const [wx, wz] = toW(px, py), rd = Math.min(ownWater(wx, wz) ? 1e9 : rivD(px, py), tribD(px, py) * 1.15); h = lerp(-1.2, h, sstep(5, 13, rd));
     return h;
   };
-  for (let j = 0; j < NZ; j++) for (let i = 0; i < NX; i++) {
-    const [px, py] = toP(i, j), k = j * NX + i, h = hgt(px, py); Hh[k] = h;
+  for (let jj = 0; jj < NZ; jj++) for (let ii = 0; ii < NX; ii++) {
+    const i = ii * GS, j = jj * GS, [px, py] = toP(i, j), k = jj * NX + ii, h = hgt(px, py); Hh[k] = h;
     const wF = landW('woods', px, py, .45, 1.2), wS = landW('dry', px, py, .45, 1.1), wD = landW('desert', px, py, .3, 1.05), wP = landW('plains', px, py, .4, 1.1), wH = landW('high', px, py, .4, 1.1), wM = landW('marsh', px, py, .3, 1.05);
     col.copy(GR2).lerp(GR, fbm(px * .03, py * .03));
     col.lerp(WOOD, wF * .8); col.lerp(DRY, wS * .7); col.lerp(PLAIN, wP * .6); col.lerp(HIGH, wH * .75); col.lerp(MARSH, wM * .8); col.lerp(SAND, wD * .9);
@@ -119,14 +121,14 @@
     Cc.set([tmp.r, tmp.g, tmp.b], k * 3);
   }
   const g = new THREE.BufferGeometry(), pos = new Float32Array(NX * NZ * 3), idxs = [];
-  for (let j = 0; j < NZ; j++) for (let i = 0; i < NX; i++) { const k = j * NX + i; pos[k * 3] = i; pos[k * 3 + 1] = Hh[k]; pos[k * 3 + 2] = j; }
+  for (let j = 0; j < NZ; j++) for (let i = 0; i < NX; i++) { const k = j * NX + i; pos[k * 3] = i * GS; pos[k * 3 + 1] = Hh[k]; pos[k * 3 + 2] = j * GS; }
   for (let j = 0; j < NZ - 1; j++) for (let i = 0; i < NX - 1; i++) { const a = j * NX + i, b = a + 1, c = a + NX, d = c + 1; idxs.push(a, c, b, b, c, d); }
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(Cc, 3)); g.setIndex(idxs); g.computeVertexNormals();
   const sc = new THREE.Scene(); sc.background = C_('#1f3442');
   const ground = new THREE.Mesh(g, terrain.material); ground.receiveShadow = true; ground.castShadow = true; sc.add(ground);
   const sea = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.2, D * 1.2).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#3e6e86', roughness: .55, transparent: true, opacity: .9 }));
   sea.position.set(W / 2, 0, D / 2); sea.receiveShadow = true; sc.add(sea);
-  const hAtO = (x, z) => { const i = clamp(Math.round(x), 0, NX - 1), j = clamp(Math.round(z), 0, NZ - 1); return Hh[j * NX + i]; };
+  const hAtO = (x, z) => { const i = clamp(Math.round(x / GS), 0, NX - 1), j = clamp(Math.round(z / GS), 0, NZ - 1); return Hh[j * NX + i]; };
   // ---------- light: the game's warm sun from the south-west, long soft shadows
   sc.add(new THREE.HemisphereLight('#d6e6ff', '#4a3d28', .62));
   const sun = new THREE.DirectionalLight('#ffe7c4', 1.1); sun.position.set(W / 2 - 90, 120, D / 2 + 60); sun.target.position.set(W / 2, 0, D / 2);
@@ -180,7 +182,7 @@
   cam.left = 0; cam.right = W; cam.top = 0; cam.bottom = -D; cam.updateProjectionMatrix();
   const was = renderer.getSize(new THREE.Vector2()), pr = renderer.getPixelRatio();
   renderer.setPixelRatio(1); renderer.setSize(PXW, PXH, false); renderer.render(sc, cam);
-  const url = renderer.domElement.toDataURL('image/jpeg', .86);
+  const url = renderer.domElement.toDataURL('image/jpeg', .9);
   renderer.setPixelRatio(pr); renderer.setSize(was.x, was.y, false);
   return url;
 })()
