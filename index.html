@@ -156,14 +156,16 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #campMap svg{max-height:calc(100dvh - 120px)!important}
 #stagePrev{background:rgba(12,13,9,.94);z-index:62}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
-.ncCard{width:min(300px,86vw);background:var(--panel);border:1px solid #6b5a2e;border-radius:14px;padding:16px 16px 14px;display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.5)}
+.ncCard{width:min(420px,94vw);background:var(--panel);border:1px solid #6b5a2e;border-radius:14px;padding:12px;display:flex;flex-direction:row;align-items:stretch;gap:12px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
+.ncPic{flex:0 0 auto;width:min(150px,38vw);aspect-ratio:1/1;align-self:center;background:#efe6cf;border-radius:10px;overflow:hidden} .ncPic img{width:100%;height:100%;display:block;object-fit:cover}
+.ncInfo{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:7px;text-align:left}
 .ncStep{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .ncIcon svg{width:64px;height:64px;stroke:var(--gold);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
 .ncCard h3{margin:0;font-family:var(--display);font-weight:400;font-size:22px;color:var(--gold)}
-.ncCost{display:flex;gap:12px;justify-content:center;font-size:16px;color:var(--parch)} .ncCost .cost,.ncStats .stat{display:inline-flex;align-items:center;gap:4px} .ncCost .ico svg,.ncStats .ico svg{width:20px;height:20px}
-.ncStats{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;font-size:17px;color:var(--parch)}
+.ncCost{display:flex;gap:12px;justify-content:flex-start;font-size:16px;color:var(--parch)} .ncCost .cost,.ncStats .stat{display:inline-flex;align-items:center;gap:4px} .ncCost .ico svg,.ncStats .ico svg{width:20px;height:20px}
+.ncStats{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:8px 16px;font-size:17px;color:var(--parch)}
 #ncStats .stat{font-size:17px;gap:5px} #ncStats .stat .ico,#ncCost .ico{width:20px;height:20px}
-.ncCard button{min-width:120px;margin-top:4px}
+.ncCard button{min-width:110px;margin-top:auto;align-self:flex-end}
 .stageSheet{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(520px,100%);max-height:100%;overflow:auto}
 .stPic{width:100%;max-width:min(520px,62dvh);aspect-ratio:1/1;border-radius:10px;border:1px solid #4a4838;overflow:hidden;background:#2a2b22;display:flex;align-items:center;justify-content:center;position:relative;flex:0 0 auto}
 .stPic img{width:100%;height:100%;object-fit:cover;display:block} .stPic .tag{position:absolute;left:8px;top:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--parch);background:rgba(20,21,15,.75);padding:2px 7px;border-radius:5px} .stPic .soon{color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-size:13px}
@@ -420,12 +422,14 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
   </div>
   <div class="modal" id="newCards" hidden>
     <div class="ncCard">
-      <div class="ncStep" id="ncStep"></div>
-      <div class="ncIcon" id="ncIcon"></div>
-      <h3 id="ncName"></h3>
-      <div class="ncCost" id="ncCost"></div>
-      <div class="ncStats" id="ncStats"></div>
-      <button class="primary" id="ncNext">Next</button>
+      <div class="ncPic"><img id="ncPic" alt=""></div>
+      <div class="ncInfo">
+        <div class="ncStep" id="ncStep"></div>
+        <h3 id="ncName"></h3>
+        <div class="ncCost" id="ncCost"></div>
+        <div class="ncStats" id="ncStats"></div>
+        <button class="primary" id="ncNext">Next</button>
+      </div>
     </div>
   </div>
   <div class="modal" id="stagePrev" hidden>
@@ -473,7 +477,7 @@ const N = 28, CELL = 2, SIZE = N * CELL, V = SIZE + 1;
 const F = 3, TICK = 20;
 let KX = 19, KZ = 27;                  // castle site: Meadow cells 8–10, 12–14; River isle 12–14, 12–14 (set per map in startGame)
 // MAP: 'meadow' (the original map) or 'isle' (the castle on an island ringed by a river, three fixed bridges); ?map=isle skips the picker
-var MAP = (location.search.match(/[?&]map=(meadow|isle|pass|vale|bridge)\b/) || [])[1] || (() => { try { const m = localStorage.getItem('mtd-map'); return /^(meadow|isle|pass)$/.test(m) ? m : null; } catch (e) { return null; } })() || 'meadow';
+var MAP = (location.search.match(/[?&]map=(meadow|isle|pass|vale|bridge|cross)\b/) || [])[1] || (() => { try { const m = localStorage.getItem('mtd-map'); return /^(meadow|isle|pass)$/.test(m) ? m : null; } catch (e) { return null; } })() || 'meadow';
 // river isle: the river's centre line wobbles round the castle; ISLE.r is its mean radius in metres
 const ISLE = { r: 16.6 }, ISLE_BRIDGES = [-90, 30, 150], ISLE_ROCKS = [-30, 90, 210], MEADOW_BRIDGES = [0];   // Meadow: one bridge east from the castle over its river
 const isleOutN = z => 41 + 2.5 * Math.sin(z * .22 + .5), isleOutS = z => 18 + 2.5 * Math.sin(z * .2 + 2);   // the isle's two outflows: centre x by z
@@ -607,14 +611,18 @@ const MAP_RULES = {
   // Greenvale, the campaign's first stop and its tutorial: three short nights of tier-1 spearmen and archers, from the north-east
   vale: { waves: [{ spear: [4] }, { spear: [6], archer: [2] }, { spear: [8], archer: [3] }], day: [180, 120, 120], spawnGap: 1.6,
           res: { gold: 60, wood: 70, stone: 10, food: 30 } },
-  // Stonebridge (stage 2): raiders from the north over the stone bridge; from night 3 some come by the ford upstream; a ram on night 4
-  bridge: { waves: [{ spear: [5] }, { spear: [6], sword: [3] }, { spear: [6], sword: [3], archer: [3] }, { spear: [8], sword: [4], archer: [3], ram: [1] }],
+  // Stonebridge (stage 2): raiders from the north over the stone bridge; from night 3 some come by the ford upstream
+  bridge: { waves: [{ spear: [5] }, { spear: [6], sword: [3] }, { spear: [6], sword: [3], archer: [3] }, { spear: [10], sword: [6], archer: [3] }],   // no ram yet (Jack: later stages)
             day: [240, 120, 120, 120], spawnGap: 1.4, res: { gold: 80, wood: 90, stone: 20, food: 30 } },
+  // Market Cross (stage 3): down the north road, from night 3 along the east road too; horsemen on nights 3 and 4 (Jack: more horses)
+  cross: { waves: [{ spear: [6] }, { spear: [6], sword: [4] }, { spear: [6], sword: [4], archer: [3], lancer: [3] }, { spear: [8], sword: [5], archer: [4], lancer: [4], rider: [2] }],
+           day: [240, 120, 120, 120], spawnGap: 1.3, res: { gold: 80, wood: 60, stone: 0, food: 30 } },
 };
 // campaign stops' own maps: the buildings each one has (the stop's and every earlier stop's), and where it sits on the overview
 const CAMP_MAPS = {
   vale: { stop: 0, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower'], decor: ['road', 'flowers', 'torch'] } },
   bridge: { stop: 1, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack'] } },
+  cross: { stop: 2, cats: { eco: ['house', 'farm', 'lodge', 'quarry', 'market'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue'] } },
 };
 var WAVES = WAVES_STD, NIGHTS = WAVES.length, DAYLEN = [300, 150, 150, 150, 150], SPAWN_GAP = 1.1;
 function mapRules() { const R = MAP_RULES[MAP]; WAVES = R ? R.waves : WAVES_STD; NIGHTS = WAVES.length; DAYLEN = R ? R.day : [300, 150, 150, 150, 150]; SPAWN_GAP = R ? R.spawnGap : 1.1; }
@@ -710,12 +718,29 @@ function bridgeHeight(x, z) {
   const d = Math.abs(z - stoneRiverZ(x)), river = lerp(-1.4, h, lerp(sstep(2.2, 6, d), sstep(2.4, 12, d), ramp));   // with gentle banks down to it
   return d < 6 ? Math.max(river, lerp(river, .6 + .06 * vnoise(x * .9, z * .9), ford)) : river;   // .6: above the .45 raiders' routes need
 }
+// Market Cross (stage 3): a gentle meadow, a low rise to the north-east, a brook through the south-east corner; two old roads
+// (already laid as paths) cross north-east of the castle at an old stone market cross, a hamlet of three houses round it
+const CROSS_AT = [24, 30];
+const CROSS_ROADS = [
+  [[27, -1], [26.5, 8], [25, 16], [24.4, 24], [24, 30]],          // the north road (the raiders' way in)
+  [[57, 25], [48, 26.5], [40, 28.5], [31, 29.6], [24, 30]],       // the east road (from night 3)
+  [[24, 30], [16, 31.5], [8, 33], [-1, 34]],                      // west, the trade road
+  [[24, 30], [23, 38], [21.5, 47], [21, 57]]];                    // south
+const CROSS_BROOK = [[57, 36], [50, 40], [46, 47], [44, 57]];
+const polyDist = (pts, x, z) => { let d = 1e9; for (let i = 0; i < pts.length - 1; i++) { const [ax, az] = pts[i], [bx, bz] = pts[i + 1], dx = bx - ax, dz = bz - az, t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1); d = Math.min(d, Math.hypot(x - ax - dx * t, z - az - dz * t)); } return d; };
+const nearCrossRoad = (x, z, r) => CROSS_ROADS.some(p => polyDist(p, x, z) < r);
+function crossHeight(x, z) {
+  let h = 2 + 2 * fbm(x * .06, z * .06) + 3.2 * Math.pow(clamp(1 - Math.hypot((x - 50) / 15, (z - 4) / 12), 0, 1), 1.5);
+  h = lerp(3 + (h - 3) * .35, h, sstep(6, 12, Math.hypot(x - KX, z - KZ)));
+  return lerp(-.9, h, sstep(.8, 2.8, polyDist(CROSS_BROOK, x, z)));   // a narrow brook
+}
 // the maps with ground nobody may walk or build on (Mountain pass's mountains, Greenvale's hills)
 const mapOpen = (x, z) => MAP === 'pass' ? passOpen(x, z) : MAP === 'vale' ? valeOpen(x, z) : true;
 function genHeight(x, z) {
   if (MAP === 'pass') return passHeight(x, z);
   if (MAP === 'vale') return valeHeight(x, z);
   if (MAP === 'bridge') return bridgeHeight(x, z);
+  if (MAP === 'cross') return crossHeight(x, z);
   let h = 1.6 + fbm(x * .06, z * .06) * 4.2;
   h += Math.max(0, fbm(x * .14 + 9, z * .14 + 3) - .6) * 16;
   h += Math.max(0, 10 - x) * .35 * fbm(x * .1, z * .1 + 7);
@@ -747,7 +772,7 @@ let bridges = [];
 const bridgeCell = new Uint8Array(N * N), BRIDGE_RISE = .45, DECK_W = 1.9;
 // where each map's bridges cross: a start point and a direction, marched along until the river is crossed
 function bridgeRays() {
-  if (MAP === 'pass' || MAP === 'vale') return [];
+  if (MAP === 'pass' || MAP === 'vale' || MAP === 'cross') return [];
   if (MAP === 'bridge') {                       // the stone bridge, square across the river north of the castle
     const e = .01, sl = (stoneRiverZ(BRIDGE_X + e) - stoneRiverZ(BRIDGE_X - e)) / (2 * e), m = Math.hypot(1, sl), dx = -sl / m, dz = 1 / m;
     return [{ ox: BRIDGE_X - dx * 10, oz: stoneRiverZ(BRIDGE_X) - dz * 10, dx, dz, stone: true }];
@@ -1198,6 +1223,15 @@ function genTrees() {
       if (woods || lone) trees.push({ x, z, s: .75 + hash(z, x) * .5, k: 1 });
       continue;
     }
+    if (MAP === 'cross') {
+      // plenty of wood: woods west and south-west, along the north-east rise and in the south-east; lone trees; never on the roads,
+      // by the brook, round the castle or the cross
+      const h = hAt(x, z);
+      if (h < .8 || nearCrossRoad(x, z, 2.6) || polyDist(CROSS_BROOK, x, z) < 4 || dk < 7.5 || Math.hypot(x - CROSS_AT[0], z - CROSS_AT[1]) < 7) continue;
+      const wood = [[7, 16, 7, 10], [9, 48, 8, 6], [42, 8, 9, 5], [48, 50, 6, 4]].some(([cx, cz, rx, rz]) => Math.hypot((x - cx) / rx, (z - cz) / rz) < 1) && hash(x * 1.3, z * .7) < .62;
+      if (wood || hash(x * 2.1, z * 1.7) < .045) trees.push({ x, z, s: .75 + hash(z, x) * .5, k: 1 });
+      continue;
+    }
     if (MAP === 'bridge') {
       // good timber on the raiders' north bank, a wood in the south-west and one in the south-east, lone trees about the meadow;
       // clear of the river's banks, the bridge, the ford and round the castle
@@ -1288,6 +1322,10 @@ const valeRockSite = (x, z, d) => VALE_ROCK_C.some(([cx, cz]) => Math.hypot(x - 
 function genRocks() {
   rocks.forEach(r => scene.remove(r.mesh)); rocks = [];
   const addRock = (x, z, s0, rot) => { const mesh = new THREE.Mesh(rockGeo, rockMat); mesh.castShadow = mesh.receiveShadow = true; mesh.rotation.set(...rot); rocks.push({ x, z, amount: ROCK_STONE, s0, mesh }); scene.add(mesh); };
+  if (MAP === 'cross') {   // stone is short here: five rocks, three of them under the north-east rise (trade for the rest)
+    for (const [x, z] of [[46, 15], [48.5, 17], [45, 18.5], [12, 26], [35, 47]]) addRock(x, z, .9 + Math.random() * .4, [Math.random() * 3, Math.random() * 3, Math.random() * 3]);
+    return;
+  }
   if (MAP === 'bridge') {
     // a stony stretch of the town's bank west of the bridge, rocks by the southern hills, a few on the north bank
     const put = (x0, x1, z0, z1, want, gap) => { for (let n = 0, k = 0; n < 2000 && k < want; n++) {
@@ -4229,6 +4267,14 @@ function distRect(B, x, z) { const e = B.ev; return Math.hypot(Math.max(e.x0 - x
 function nearestBuilding(x, z, maxD = 1e9, ok = null) { let best = null, bd = maxD; for (const B of buildings) { if (DEF[B.type].decor || (ok && !ok(B))) continue; const d = distRect(B, x, z); if (d < bd) { bd = d; best = B; } } return best; }
 function edgePoint() {
   const C = castleB(), dp = C && doorPoint(C);   // a spawn must have a walkable route to the castle's door
+  if (MAP === 'cross') {                         // the top of the north road; from night 3 some on the east road too
+    const east = PH.wave >= 3 && Math.random() < .45;
+    for (const needRoute of [true, false]) for (let n = 0; n < 60; n++) {
+      const [x, z] = east ? [SIZE - 1.2, 22 + Math.random() * 6] : [24 + Math.random() * 6, 1.2];
+      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return { x, z };
+    }
+    return east ? { x: SIZE - 1.5, z: 25 } : { x: 27, z: 1.5 };
+  }
   if (MAP === 'bridge') {                        // the north edge: toward the bridge; from night 3 some from the north-east, toward the ford
     const ford = PH.wave >= 3 && Math.random() < .4;
     for (const needRoute of [true, false]) for (let n = 0; n < 80; n++) {
@@ -5889,13 +5935,36 @@ function newCardStats(t) {
   if (T.decor) { st.push(...fxStats(t, (i, v, n) => STAT(i, v, 'good', n))); if (T.charm) st.push(STAT('charm', `+${Math.round(T.charm * 100)}%`, 'good')); }
   return st.join('');
 }
+// a building's picture for its card: its tier-1 model drawn once in the main renderer, on cream (set as sRGB values: the clear
+// colour skips the output encoding), from the front-left and a little above, framed on its bounding box; cached per type
+const picCache = {};
+function buildingPic(t) {
+  if (picCache[t]) return picCache[t];
+  const sc = new THREE.Scene(), cream = new THREE.Color('#efe6cf').convertLinearToSRGB(); sc.background = cream;
+  sc.add(new THREE.HemisphereLight('#fff6e0', '#7a6a50', .85));
+  const sun = new THREE.DirectionalLight('#fff1d6', 1.15); sun.position.set(-5, 9, 7); sc.add(sun);
+  const g = makeModel(t, 1, false, WALLY[t] ? 10 : 0); sc.add(g);
+  const aos = []; g.traverse(o => { if (o.userData.ao) aos.push(o); }); aos.forEach(o => o.parent.remove(o));   // out of the framing too
+  // cream ground at y 0 hides whatever runs below it (wall posts, footings), so every model stands on the card's own colour
+  const gnd = new THREE.Mesh(new THREE.PlaneGeometry(60, 60).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#efe6cf', toneMapped: false })); gnd.position.y = .005; sc.add(gnd);
+  const box3 = new THREE.Box3().setFromObject(g); box3.min.y = Math.max(box3.min.y, -.05);
+  const c = box3.getCenter(new THREE.Vector3()), sz = box3.getSize(new THREE.Vector3()), r = Math.max(sz.x, sz.y * 1.1, sz.z) * .62 + .12;
+  const cam = new THREE.PerspectiveCamera(30, 1, .1, 200), d = r / Math.tan(15 * Math.PI / 180);
+  cam.position.set(c.x - Math.sin(.6) * Math.cos(.5) * d, c.y + Math.sin(.5) * d, c.z + Math.cos(.6) * Math.cos(.5) * d); cam.lookAt(c);
+  const px = 320, was = renderer.getSize(new THREE.Vector2()), pr = renderer.getPixelRatio();
+  renderer.setPixelRatio(1); renderer.setSize(px, px, false);
+  renderer.render(sc, cam);
+  const cv = document.createElement('canvas'); cv.width = cv.height = px; cv.getContext('2d').drawImage(renderer.domElement, 0, 0, px, px);
+  renderer.setPixelRatio(pr); renderer.setSize(was.x, was.y, false);
+  return picCache[t] = cv.toDataURL('image/jpeg', .9);
+}
 function showNewCards(list) {
   newCards = list.slice(); newCardI = 0; if (!newCards.length) return;
   paused = true; hideGhost(); renderNewCard(); $('#newCards').hidden = false;
 }
 function renderNewCard() {
   const t = newCards[newCardI], last = newCardI === newCards.length - 1;
-  $('#ncIcon').innerHTML = TOOL_ICON[t] || ''; $('#ncName').textContent = t === 'road' ? 'Path' : DEF[t].name;
+  $('#ncPic').src = buildingPic(t); $('#ncName').textContent = t === 'road' ? 'Path' : DEF[t].name;
   $('#ncStep').textContent = `New · ${newCardI + 1}/${newCards.length}`;
   $('#ncCost').innerHTML = costHTML(DEF[t].cost || {}); $('#ncStats').innerHTML = newCardStats(t);
   $('#ncNext').textContent = last ? 'Play' : 'Next';
@@ -5905,6 +5974,36 @@ $('#ncNext').addEventListener('click', () => {
   if (++newCardI < newCards.length) { renderNewCard(); return; }
   $('#newCards').hidden = true; paused = false;
 });
+// Market Cross: the old roads laid as paths cell by cell (stepping round corners so they join), the stone cross by the junction
+// (it works as a statue: its charm lifts the hamlet's gold), and the hamlet's three houses round it
+function crossTown() {
+  for (const pts of CROSS_ROADS) {
+    let prev = -1;
+    for (let i = 0; i < pts.length - 1; i++) for (let t = 0; t <= 1; t += .05) {
+      const x = clamp(lerp(pts[i][0], pts[i + 1][0], t), .5, SIZE - .5), z = clamp(lerp(pts[i][1], pts[i + 1][1], t), .5, SIZE - .5), n = cellAt(x, z);
+      if (n === prev) continue;
+      if (prev >= 0 && n % N !== prev % N && ((n / N) | 0) !== ((prev / N) | 0)) { const m = ((prev / N) | 0) * N + n % N; if (!occB[m]) road[m] = 1; }   // a diagonal step: join it
+      if (!occB[n]) road[n] = 1; prev = n;
+    }
+  }
+  const c = cellAt(CROSS_AT[0] - 1.6, CROSS_AT[1] - 1.6), ci = c % N, cj = (c / N) | 0;
+  road[c] = 0;
+  const S = place('statue', ci, cj, { instant: true, free: true, quiet: true });
+  if (S) { S.group.children.forEach(o => o.visible = false); S.group.add(makeMarketCross()); S.marketCross = true; }
+  for (const [x, z] of [[20.5, 26.5], [28, 33.5], [20.5, 35]]) {
+    const n = cellAt(x, z); let done = false;
+    for (const [da, db] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) { const a = n % N + da, b = ((n / N) | 0) + db; if (!done && !road[b * N + a] && evaluate('house', a, b).ok) { place('house', a, b, { instant: true, free: true, quiet: true }); done = true; } }
+  }
+  rebuildRoads();
+}
+// the old market cross: three stone steps, a shaft and a cross head
+function makeMarketCross() {
+  const g = new THREE.Group();
+  g.add(box(1.5, .18, 1.5, M.stone2, 0, .09, 0)); g.add(box(1.1, .18, 1.1, M.plainStone, 0, .27, 0)); g.add(box(.72, .2, .72, M.stone2, 0, .46, 0));
+  g.add(box(.2, 1.5, .2, M.plainStone, 0, 1.31, 0)); g.add(box(.72, .17, .17, M.plainStone, 0, 1.7, 0)); g.add(box(.26, .1, .26, M.stone2, 0, .6, 0));
+  g.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = true; });
+  return g;
+}
 // back to where this game was chosen: the campaign for a campaign map, else the map picker
 function showStart() { if (CAMP_MAPS[MAP]) { showMapPick(); $('#mapPick').hidden = true; openCampaign(CAMP_MAPS[MAP].stop); } else showMapPick(); }
 function showMapPick() {
@@ -5917,7 +6016,7 @@ function markMapStars() { document.querySelectorAll('.mapBtn').forEach(b => { b.
 const CAMPAIGN = [
   { name: 'Greenvale', sub: 'Tutorial', map: 'vale', at: [140, 820], adds: ['house', 'farm', 'lodge', 'quarry', 'tower', 'road', 'flowers', 'torch'] },
   { name: 'Stonebridge', map: 'bridge', at: [250, 700], land: 'A bridge town', adds: ['barracks', 'wall', 'gate', 'rack'] },
-  { name: 'Market Cross', at: [420, 785], adds: ['market', 'statue'] },
+  { name: 'Market Cross', map: 'cross', at: [420, 785], adds: ['market', 'statue'] },
   { name: 'Watchhill', at: [580, 735], land: 'Dry hills', adds: ['ballista', 'campfire'] },
   { name: 'Dunewell', at: [668, 590], land: 'Desert · few trees', adds: ['forester', 'well'] },
   { name: 'Riverbend', at: [345, 600], land: 'Between two rivers', adds: ['crossbow', 'butts'] },
@@ -6023,7 +6122,7 @@ function campaignSVG() {
   </svg>`;
 }
 // a stage's preview: its picture (the real stage where it's built, else its sketch), what it brings in, stars, Play
-const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' }, 2: { src: 'design/stages/stage3-market-cross.png', tag: 'Sketch' } };
+const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' }, 2: { src: 'maps/cross.jpg' } };
 function openStage(i) {
   const c = CAMPAIGN[i], pic = STAGE_PIC[i];
   document.querySelectorAll('#campMap .mk').forEach(m => m.classList.toggle('sel', +m.dataset.i === i));
@@ -6238,16 +6337,17 @@ function startGame() {
   for (const p of puffs) scene.remove(p.sp); puffs.length = 0;
   mapRules();
   PH = { kind: 'day', wave: 1, t: DAYLEN[0] }; econT = TICK; gameOver = false; light = 1; if (paused) setPaused(false); setMusic('day');
-  if (MAP === 'isle') { KX = 27; KZ = 27; } else if (MAP === 'pass') { KX = 27; KZ = 21; } else if (MAP === 'vale') { KX = 25; KZ = 33; } else if (MAP === 'bridge') { KX = 29; KZ = 37; } else { KX = 19; KZ = 27; }
+  if (MAP === 'isle') { KX = 27; KZ = 27; } else if (MAP === 'pass') { KX = 27; KZ = 21; } else if (MAP === 'vale') { KX = 25; KZ = 33; } else if (MAP === 'bridge') { KX = 29; KZ = 37; } else if (MAP === 'cross') { KX = 17; KZ = 39; } else { KX = 19; KZ = 27; }
   genTerrain(); genBridges(); genTrees(); genRocks(); genClutter(); syncTerrain(); buildBridges(); genShore(); hideGhost(); deselect();
   Object.assign(res, (MAP_RULES[MAP] || {}).res || { gold: 40, wood: 45, stone: 0, food: 20 });
   stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, t0: performance.now() };
   $('#summary').hidden = true; $('#log').innerHTML = '';
-  const ev = MAP === 'isle' ? findValid('castle', 12, 12, { free: true }) : MAP === 'pass' ? findValid('castle', 12, 9, { free: true }) : MAP === 'vale' ? findValid('castle', 11, 15, { free: true }) : MAP === 'bridge' ? findValid('castle', 13, 17, { free: true }) : findValid('castle', 8, 12, { free: true });
+  const ev = MAP === 'isle' ? findValid('castle', 12, 12, { free: true }) : MAP === 'pass' ? findValid('castle', 12, 9, { free: true }) : MAP === 'vale' ? findValid('castle', 11, 15, { free: true }) : MAP === 'bridge' ? findValid('castle', 13, 17, { free: true }) : MAP === 'cross' ? findValid('castle', 7, 18, { free: true }) : findValid('castle', 8, 12, { free: true });
   if (ev) { const B = place('castle', ev.ci, ev.cj, { instant: true, free: true, quiet: true }); const c = center(B); target.set(c.x, 2, c.z); }
   if (MAP === 'pass') { yaw = 0; target.z += 4.5; }   // looking up the pass at the castle
   if (MAP === 'vale') { yaw = -Math.PI / 4; target.x += 2; target.z -= 2; }   // from the south-west, the way in (north-east) at the top of the screen
   if (MAP === 'bridge') { yaw = 0; target.z -= 4; bankWall(); }   // from the south, the river and the raiders' bank at the top
+  if (MAP === 'cross') { yaw = 0; target.x += 4; target.z -= 5; crossTown(); }   // from the south, the cross and the north road ahead
   BANK_WALL = MAP === 'bridge' ? BANK_WALL : [];
   if (MAP === 'vale') guideOn = true;               // the tutorial stage: the guided first day every time (Skip ends it)
   else if (CAMP_MAPS[MAP]) { guideOn = false; guideMark(); }
@@ -6616,7 +6716,8 @@ function coinFly(x, y, z, n, kind = 'gold') {
 // ---------- guided first day: one short step at a time, the button to press pulses; shown once per device ----------
 var GUIDE;   // filled per game from the picks (applyLoadout)
 var guideOn = false, guideStep = -1, guideEndT = 0;
-try { guideOn = localStorage.getItem('mtd-guide') !== 'done'; } catch (e) { guideOn = true; }
+// (startGame may already have run: a campaign stage after the first keeps its guide off, the tutorial keeps it on)
+try { guideOn = MAP === 'vale' || (!CAMP_MAPS[MAP] && localStorage.getItem('mtd-guide') !== 'done'); } catch (e) { guideOn = !CAMP_MAPS[MAP]; }
 function guideFinish() { guideOn = false; try { localStorage.setItem('mtd-guide', 'done'); } catch (e) {} guideMark(); }
 function guideMark() {
   document.querySelectorAll('.guidePulse').forEach(el => el.classList.remove('guidePulse'));
