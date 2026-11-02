@@ -3967,7 +3967,7 @@ function makeRaider(kind, tier = 1) {
 // raider siege engines on wheels, pushed by two of their crew (dressed by the engine's tier) walking behind; a red pennant from
 // tier 2. ballista: the town's swivel bow on a wheeled carriage; catapult: the town's engine of the same tier (it has wheels);
 // ram: a log slung from a frame on four wheels, under a plank roof from tier 2, hides and an iron head at tier 3
-const RAM_Y = .62, RAM_ROPE = .78, RAM_T = 1.1;   // the ram's log height, rope length, one swing
+const RAM_Y = .62, RAM_ROPE = .78, RAM_T = 2.0;   // the ram's log height, rope length, one charge (drawn back, driven in, knocked back)
 const ENG_LEN = { ballista: 1.7, catapult: [1.6, 1.8, 2.0], ram: 2.3 };
 function wheel(g, r, x, y, z, iron) {
   const w = cyl(r, r, .08, 12, M.wood, x, y, z); w.rotation.z = Math.PI / 2; g.add(w);
@@ -3991,11 +3991,13 @@ function makeEngine(kind, tier) {
     if (tier === 3) for (const sx of [-1, 1]) m.add(box(.04, .04, 1.52, M.iron, sx * .38, .5, 0));
     if (tier >= 2) { const sh = box(1.0, .4, .06, M.wood, 0, .73, .8); sh.rotation.x = -.25; m.add(sh); }       // a timber mantlet at the front
     const t = ballistaTurret(BALLISTA_K[tier - 1] * .9); t.position.y = .5; m.add(t); P.turret = t;
-    t.traverse(o => { if (o.userData.bolt) P.bolt = o; });
+    P.rig = { statics: [], k: BALLISTA_K[tier - 1] * .9 };
+    t.traverse(o => { const u = o.userData; if (u.bolt) P.bolt = o; for (const key of ['slider', 'bsL', 'bsR', 'prope', 'trope', 'crank']) if (u[key]) P.rig[key] = o; if (u.staticString) P.rig.statics.push(o); });
   } else if (kind === 'catapult') {
     len = ENG_LEN.catapult[tier - 1];
     const c = makeCatapult(tier); m.add(c);
-    c.traverse(o => { if (o.userData.arm) P.arm = o; if (o.userData.bolt) P.bolt = o; if (o.userData.wrope || o.userData.trope) o.visible = false; });
+    P.rig = { ammo: [], k: tier === 1 ? 1 : tier === 2 ? 1.15 : 1 };
+    c.traverse(o => { const u = o.userData; if (u.arm) P.arm = o; if (u.bolt) P.bolt = o; if (u.turret) P.turret = o; if (u.crank) P.rig.crank = o; if (u.wrope) P.rig.wrope = o; if (u.trope) P.rig.trope = o; if (u.ammo) P.rig.ammo.push(o); });
   } else {
     len = ENG_LEN.ram;
     for (const sx of [-1, 1]) m.add(box(.1, .12, 2.0, fm, sx * .45, .36, 0));
@@ -4229,34 +4231,132 @@ function engineShot(e, B, c) {
   if (e.kind === 'ballista') {
     const from = e.turret.localToWorld(new THREE.Vector3(0, .6, .75));
     fireArrow(from, to, () => { hurtBuilding(tgt, dmg); dustAt(c.x, tgt.group.position.y, c.z); }, .01, 'bolt');
+    e.load = 0; e.fireT = .35;
     for (let n = 0; n < e.tier; n++) dustAt(e.x + (Math.random() - .5), walkY(e.x, e.z), e.z + (Math.random() - .5));
   } else {
     const from = e.bolt ? e.bolt.getWorldPosition(new THREE.Vector3()) : new THREE.Vector3(e.x, e.g.position.y + 1.5, e.z), d = from.distanceTo(to);
     const m = fireArrow(from, to, () => { hurtBuilding(tgt, dmg); blastFx(c.x, c.z, e.tier, ENEMY.catapult.splash * .6); shake(.03 + .02 * e.tier, c); }, 3 + d * .25, 'stone');
     m.scale.setScalar(CATA_SHOT[e.tier - 1]);
-    e.thrownAt = 0; for (let n = 0; n < e.tier; n++) dustAt(e.x + (Math.random() - .5), walkY(e.x, e.z), e.z + (Math.random() - .5));
+    e.load = 0; e.fireT = .35; for (let n = 0; n < e.tier; n++) dustAt(e.x + (Math.random() - .5), walkY(e.x, e.z), e.z + (Math.random() - .5));
   }
 }
-// engines: the crew lean in and push while it rolls, stand by while it shoots; the ballista shows its bolt once reloaded, the
-// catapult's arm flies up and is winched back down over the reload, the ram's log swings back and drives forward on its ropes
+// raider engines' crew (their figures stand in the engine's own frame, e.g): while it rolls both push from behind; once it is in
+// range they walk to their work: the loader kneels at the winch and turns the crank, which draws the ballista's slider and string
+// back by the pulley rope (the catapult's arm is winched down by its rope), and the reload only runs while he winds; the gunner
+// holds the trigger line and yanks it to loose. The ram's pair drive the whole ram at the wall: they haul it back, run it in,
+// it is knocked back by the blow, and they push it up again
+const _cv = new THREE.Vector3(), _cw = new THREE.Vector3();
+const ENG_LOAD = { ballista: .8, catapult: .75 };   // the winding takes this share of the engine's rate
+function crewGo(c, x, z, dt) {
+  const p = c.g.position, dx = x - p.x, dz = z - p.z, d = Math.hypot(dx, dz), st = Math.min(d, dt * 1.3);
+  if (d > 1e-4) { p.x += dx / d * st; p.z += dz / d * st; }
+  c.going = d > .03; if (c.going) c.g.rotation.y = Math.atan2(dx, dz);
+  return !c.going;
+}
+function crewFace(c, x, z) { const p = c.g.position; c.g.rotation.y = Math.atan2(x - p.x, z - p.z); }
+// point a crewman's arm at a point in the world, worked out in the engine's frame (aimArm's maths)
+function crewAim(e, c, arm, w) {
+  e.g.worldToLocal(_cw.copy(w)); arm.getWorldPosition(_cv); e.g.worldToLocal(_cv);
+  const y = c.g.rotation.y, dx = _cw.x - _cv.x, dz = _cw.z - _cv.z, dy = _cw.y - _cv.y;
+  const fwd = dx * Math.sin(y) + dz * Math.cos(y), side = dx * Math.cos(y) - dz * Math.sin(y), L = Math.hypot(fwd, dy, side) || 1;
+  arm.rotation.set(Math.atan2(-fwd, -dy), 0, clamp(side / L, -.8, .8));
+}
+// a rope from a point of its parent's frame to a crewman's hand
+function crewRope(rope, a, c) { c.g.updateMatrixWorld(true); const h = c.arms[1].localToWorld(_cw.set(0, -.33, 0)); rope.parent.worldToLocal(h); setRope(rope, a, h); }
+// one ram charge over p (0–1): the offset of the whole ram along its facing: hauled back, run in (faster and faster), knocked
+// back by the blow at p .55, pushed up to the wall again
+function ramOffset(p) {
+  if (p < .35) return -.6 * sstep(0, .35, p);
+  if (p < .55) { const u = (p - .35) / .2; return lerp(-.6, .12, u * u); }
+  if (p < .7) return lerp(.12, -.35, Math.sin((p - .55) / .15 * Math.PI / 2));
+  return lerp(-.35, 0, sstep(.7, 1, p));
+}
+const RAM_HIT = .55;
 function animEngine(e, dt, sw) {
-  e.crew.forEach((c, i) => {
-    const s = (i ? -sw : sw) * .9; c.legs[0].rotation.x = s; c.legs[1].rotation.x = -s;
-    c.body.rotation.x += ((e.walking ? .28 : 0) - c.body.rotation.x) * Math.min(1, dt * 6);
-    c.arms.forEach(a => a.rotation.x += ((e.walking ? -1.35 : -.25) - a.rotation.x) * Math.min(1, dt * 6));
-  });
-  const el = e.thrownAt === undefined ? 1e9 : (e.thrownAt += dt);
-  if (e.kind === 'ballista' && e.bolt) e.bolt.visible = el > e.rate * .6;
-  if (e.kind === 'catapult' && e.arm) {
-    const [ck, th] = CATA_ARM[e.tier - 1];
-    e.arm.rotation.x = el < .25 ? lerp(ck, th, el / .25) : lerp(th, ck, sstep(.8, e.rate * .7, el));
-    if (e.bolt) e.bolt.visible = el > e.rate * .75;
-  }
+  e.g.updateMatrixWorld(true);
+  const t = performance.now() / 1000, rig = e.rig || {}, back = -e.len / 2 - .32, k = rig.k || 1;
+  const work = e.aiming && !e.walking && e.kind !== 'ram';
+  if (e.load === undefined) e.load = 1;
+  e.fireT = Math.max(0, (e.fireT || 0) - dt);
+  const [L, G] = e.crew, pose = (c, lean, arms) => { c.body.rotation.x += (lean - c.body.rotation.x) * Math.min(1, dt * 8); c.arms.forEach(a => { a.rotation.x += (arms - a.rotation.x) * Math.min(1, dt * 8); a.rotation.z *= .8; }); };
+  const legs = (c, on, ph) => { const s = on ? Math.sin(ph) * .55 : 0; c.legs[0].rotation.x = s; c.legs[1].rotation.x = -s; c.body.position.y = 0; };
   if (e.kind === 'ram') {
-    let phi = 0;
-    if (e.attackT > 0) { const p = 1 - e.attackT / RAM_T; phi = p < .55 ? -.65 * sstep(0, .55, p) : p < .66 ? lerp(-.65, .4, sstep(.55, .66, p)) : .4 * (1 - sstep(.66, 1, p)); }
-    e.ram.position.set(0, RAM_Y + RAM_ROPE * (1 - Math.cos(phi)), RAM_ROPE * Math.sin(phi));
-    e.ropes.forEach(r => r.rotation.x = -phi);
+    // the charge: the offset (e.ramO, applied to the whole ram where it is drawn), its speed swings the log a little on its ropes
+    const p = e.attackT > 0 ? 1 - e.attackT / RAM_T : 0, o = e.attackT > 0 ? ramOffset(p) : 0, v = (o - (e.ramO || 0)) / Math.max(dt, 1e-3);
+    e.ramO = o; e.ramPhi = (e.ramPhi || 0) + (clamp(-v * .3, -.45, .45) - (e.ramPhi || 0)) * Math.min(1, dt * 6);
+    const phi = e.ramPhi; e.ram.position.set(0, RAM_Y + RAM_ROPE * (1 - Math.cos(phi)), RAM_ROPE * Math.sin(phi)); e.ropes.forEach(r => r.rotation.x = -phi);
+    const hauling = e.attackT > 0 && p < .35, running = e.attackT > 0 && p >= .35 && p < .55, knocked = e.attackT > 0 && p >= .55 && p < .7;
+    e.crew.forEach((c, i) => {
+      c.g.position.set((i ? .3 : -.3), 0, back); c.g.rotation.y = 0; kneel(c, 0);
+      const moving = e.walking || Math.abs(v) > .05;
+      legs(c, moving, (e.walking ? e.phase : t * (running ? 16 : 9)) + i * Math.PI);
+      if (hauling) pose(c, -.18, -1.2);                // leaning back, hauling it off the wall
+      else if (running) pose(c, .42, -1.45);           // shoulders down, driving it in
+      else if (knocked) pose(c, -.05, -1.1);           // thrown back with it
+      else pose(c, e.walking || e.attackT > 0 ? .3 : .1, -1.35);
+    });
+    return;
+  }
+  // the reload runs only while the loader is at the winch
+  const loaderAt = work && L && !L.going;
+  const winding = loaderAt && e.load < 1 && e.fireT <= 0;
+  if (winding) e.load = Math.min(1, e.load + dt / (e.rate * ENG_LOAD[e.kind]));
+  e.crewReady = work && L && G && !L.going && !G.going;
+  const yank = e.fireT > 0 ? Math.sin(Math.PI * clamp(1 - e.fireT / .35, 0, 1)) : 0;
+  if (e.kind === 'ballista') {
+    rig.statics.forEach(o => o.visible = false);
+    const zs = e.fireT > 0 ? BAL_REST : lerp(BAL_REST, BAL_DRAWN, sstep(0, 1, e.load));
+    rig.slider.position.z = zs;
+    for (const [m, sx] of [[rig.bsL, -1], [rig.bsR, 1]]) { rA.set(sx * BAL_TIP[0], BAL_TIP[1], BAL_TIP[2]); rB.set(0, .585, zs); setRope(m, rA, rB); }
+    if (e.bolt) { e.bolt.visible = e.load > .97 && e.fireT <= 0; e.bolt.position.z = zs + .325; }
+    if (winding) rig.crank.rotation.x -= dt * 7;
+    rA.set(0, .56, -.52); rB.set(0, .585, zs - .04); setRope(rig.prope, rA, rB); rig.prope.visible = winding || e.load > .97;
+  } else {
+    const [ck, th] = CATA_ARM[e.tier - 1], Rg = CATA_RIG[e.tier - 1];
+    e.arm.rotation.x = e.fireT > 0 ? lerp(th, ck, Math.pow(e.fireT / .35, 2)) : lerp(th, ck, sstep(0, 1, e.load));
+    if (e.bolt) e.bolt.visible = e.load > .6;
+    rig.ammo.forEach(o => o.visible = !e.walking);
+    if (winding) rig.crank.rotation.x -= dt * 6;
+    if (rig.wrope) {                                 // drum to the arm; gone while the arm flies or it rolls
+      const a = e.arm.rotation.x; rA.set(0, Rg.drum[1] + Rg.dr, Rg.drum[2]); rB.set(0, e.arm.position.y + Rg.armR * Math.cos(a), e.arm.position.z + Rg.armR * Math.sin(a));
+      setRope(rig.wrope, rA, rB); if (e.fireT > 0 || !work) rig.wrope.visible = false;
+    }
+  }
+  // the crew's spots (engine frame) and the points they work at
+  let lx, lz, gx, gz, crankW, catchW;
+  if (e.kind === 'ballista') {
+    lx = .18; lz = -.95; gx = -.36; gz = -.98;
+    crankW = rig.crank.localToWorld(new THREE.Vector3(.21, .14, 0)); catchW = e.turret.localToWorld(new THREE.Vector3(0, .56, rig.slider.position.z - .05));
+  } else {
+    const Rg = CATA_RIG[e.tier - 1]; lx = Rg.loader[0] * k; lz = Rg.loader[1] * k; gx = Rg.gunner[0] * k; gz = Rg.gunner[1] * k;
+    crankW = rig.crank.localToWorld(new THREE.Vector3(.1, Rg.cr, 0)); catchW = e.turret.localToWorld(new THREE.Vector3(...Rg.catch));
+  }
+  e.crew.forEach((c, i) => {
+    const pushX = i ? .3 : -.3;
+    if (!work) {                                      // pushing (or standing behind it, hands on the frame)
+      const at = crewGo(c, pushX, back, dt);
+      if (at) c.g.rotation.y = 0;
+      kneel(c, 0); legs(c, e.walking || c.going, (e.walking ? e.phase : t * 9) + i * Math.PI);
+      pose(c, e.walking ? .28 : 0, c.going ? -.3 : -1.35);
+      return;
+    }
+    const [x, z] = i === 0 ? [lx, lz] : [gx, gz];
+    if (!crewGo(c, x, z, dt)) { kneel(c, 0); legs(c, true, t * 9 + i * Math.PI); pose(c, 0, -.3); return; }
+    e.g.worldToLocal(_cw.copy(i === 0 ? crankW : catchW)); crewFace(c, _cw.x, _cw.z);
+    if (i === 0) {                                    // the loader at the crank, hands on the handle as it turns
+      kneel(c, e.kind === 'catapult' ? .55 : .3); c.body.rotation.x = 0; c.g.updateMatrixWorld(true);
+      const h = rig.crank.localToWorld(new THREE.Vector3(e.kind === 'ballista' ? .21 : .1, e.kind === 'ballista' ? .14 : CATA_RIG[e.tier - 1].cr, 0));
+      crewAim(e, c, c.arms[1], h); crewAim(e, c, c.arms[0], h);
+    } else {                                          // the gunner, the trigger line in both hands: a sharp pull looses it
+      kneel(c, 0); legs(c, false, 0);
+      c.arms[0].rotation.set(-1.0 + .6 * yank, 0, .12); c.arms[1].rotation.set(-1.05 + .6 * yank, 0, -.12); c.body.rotation.x = -.18 * yank;
+    }
+  });
+  if (rig.trope) {                                    // the trigger line from the claw (ballista) or the catch (catapult) to the gunner
+    if (work && G && !G.going) {
+      if (e.kind === 'ballista') rA.set(0, .56, rig.slider.position.z - .05); else rA.set(...CATA_RIG[e.tier - 1].catch);
+      crewRope(rig.trope, rA, G);
+    } else rig.trope.visible = false;
   }
 }
 function updateEnemies(dt) {
@@ -4307,7 +4407,7 @@ function updateEnemies(dt) {
         const c = center(B), yaw = Math.atan2(c.x - e.x, c.z - e.z); e.aiming = true;
         if (E.engine) turnTo(e, yaw, dt * .35); else e.g.rotation.y = yaw;    // an engine wheels round slowly
         let ad = Math.abs(Math.atan2(Math.sin(yaw - e.g.rotation.y), Math.cos(yaw - e.g.rotation.y)));
-        if ((e.cool -= dt) <= 0 && ad < .25) {
+        if ((e.cool -= dt) <= 0 && ad < .25 && (!ENG_LOAD[e.kind] || (e.crewReady && e.load >= 1))) {   // engines: crew at their posts, wound
           e.cool = e.rate;
           if (e.kind === 'archer') {
             e.attackT = .35; const tgt = B, dmg = e.dmg;
@@ -4322,11 +4422,11 @@ function updateEnemies(dt) {
         if (e.cool < 0) e.cool = 0;
       }
     }
-    if (e.kind === 'ram' && e.ramHit && e.attackT > 0 && 1 - e.attackT / RAM_T > .62) {   // the log strikes home
+    if (e.kind === 'ram' && e.ramHit && e.attackT > 0 && 1 - e.attackT / RAM_T > RAM_HIT) {   // the ram strikes home
       const T = e.ramHit; e.ramHit = null;
       if (!T.dead) {
         hurtBuilding(T, e.dmg); sfx('attack', e); shake(.05, e);
-        const hx = e.x + Math.sin(e.g.rotation.y) * 1.4, hz = e.z + Math.cos(e.g.rotation.y) * 1.4;
+        const hx = e.x + Math.sin(e.g.rotation.y) * 1.5, hz = e.z + Math.cos(e.g.rotation.y) * 1.5;
         for (let i = 0; i < 3; i++) dustAt(hx + (Math.random() - .5) * .5, walkY(hx, hz), hz + (Math.random() - .5) * .5);
       }
     }
@@ -4349,6 +4449,7 @@ function updateEnemies(dt) {
     }
     smoothPos(e, dt, performance.now()); const y = walkY(e.rx, e.rz);
     e.g.position.set(e.rx, y < 0 ? y * .4 - .2 : y, e.rz);
+    if (e.ramO) { e.g.position.x += Math.sin(e.g.rotation.y) * e.ramO; e.g.position.z += Math.cos(e.g.rotation.y) * e.ramO; }   // the ram's charge
     e.bar.grp.visible = e.hp < e.max; e.bar.set(e.hp / e.max); e.bar.grp.position.set(e.rx, e.g.position.y + e.barY, e.rz);
   }
 }
@@ -5694,8 +5795,9 @@ function galleryTap(e) {
 }
 function galPose(p, t, dt) {
   if (p.engine) {                                                 // engines: roll with Walk, else shoot (or swing the ram) on their own clock
-    p.walking = gWalk; p.thrownAt = gWalk ? 1e9 : (t + p.seed) % p.rate; p.attackT = gWalk ? 0 : Math.max(0, RAM_T - (t + p.seed) % 2.4);
-    animEngine(p, dt, gWalk ? Math.sin(t * 6 + p.seed) * .6 : 0); return;
+    p.walking = gWalk; p.aiming = !gWalk; p.phase = t * 6 + p.seed; p.attackT = gWalk ? 0 : Math.max(0, RAM_T - (t + p.seed) % 2.4);
+    if (ENG_LOAD[p.kind] && p.crewReady && p.load >= 1) { p.load = 0; p.fireT = .35; }   // loose as soon as it is wound
+    animEngine(p, dt, 0); return;
   }
   const ease = (o, v) => o + (v - o) * Math.min(1, dt * 14), walking = gWalk || p.carry || (!p.work && !p.guard && !p.raider && !p.kit);
   const ph = t * 9 + p.seed, sw = walking ? Math.sin(ph) * .6 : 0;
