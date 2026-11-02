@@ -5002,12 +5002,12 @@ function select(B) { selected = B; drape(selLine, B.ev.x0 - .1, B.ev.z0 - .1, B.
 // archers' reach round a selected castle or archer tower; redrawn when the tier changes
 let rangeKey = '';
 function syncRange() {
-  const B = selected, T = B && !B.path && DEF[B.type], k = T && (T.range || T.decor) ? B.id + ':' + B.tier + ':' + Math.round(center(B).x * 10) + ':' + Math.round(center(B).z * 10) : '';
+  const B = selected, T = B && !B.path && DEF[B.type], k = T && (T.range || T.decor || T.reach) ? B.id + ':' + B.tier + ':' + (T.range ? rangeOf(B) : 0) + ':' + Math.round(center(B).x * 10) + ':' + Math.round(center(B).z * 10) : '';
   if (k === rangeKey) return; rangeKey = k;
   if (!k) { rangeLine.visible = false; selDisc.visible = false; return; }
   const c = center(B);
-  if (T.decor) { drapeCircle(rangeLine, c.x, c.z, BOOST_R); drapeDisc(selDisc, c.x, c.z, BOOST_R); }
-  else { drapeCircle(rangeLine, c.x, c.z, rangeOf(B)); selDisc.visible = false; }
+  const r = T.decor ? BOOST_R : T.range ? rangeOf(B) : T.reach;
+  drapeCircle(rangeLine, c.x, c.z, r); drapeDisc(selDisc, c.x, c.z, r);
 }
 function deselect() { selected = null; volleyAim = false; moveFor = null; selLine.visible = false; $('#statTip').hidden = true; refreshCard(); }
 $('#upBtn').addEventListener('click', () => { if (paused) return setHint('Paused', 'bad'); selected && upgrade(selected); });
@@ -5056,7 +5056,9 @@ function showGhostAt(point) {
   const FO = T.falloff || F;
   if (adapt && ev.ok) drape(ringLine, Math.max(0, ev.x0 - FO), Math.max(0, ev.z0 - FO), Math.min(SIZE, ev.x1 + FO), Math.min(SIZE, ev.z1 + FO)); else ringLine.visible = false;
   if (T.reach) drapeCircle(reachLine, cx, cz, T.reach); else if (T.range) drapeCircle(reachLine, cx, cz, T.range[0]); else if (T.charm) drapeCircle(reachLine, cx, cz, CHARM_R); else reachLine.visible = false;
-  if (T.decor) drapeDisc(boostDisc, cx, cz, BOOST_R); else boostDisc.visible = false;
+  // the soft disc under the ring: a decor's reach, a tower's or siege engine's range, a camp's reach for trees or rock
+  const dr = T.decor ? BOOST_R : T.reach || (T.range && T.range[0]) || 0;
+  if (dr) drapeDisc(boostDisc, cx, cz, dr); else boostDisc.visible = false;
   cur = ev;
   if (!ev.ok) { setHint(ev.reason, 'bad'); return; }
   // short: name, cost, then only what matters for this spot, each as an icon and a number (no instructions, no dots)
