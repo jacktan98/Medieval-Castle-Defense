@@ -3986,9 +3986,10 @@ function makeEngine(kind, tier) {
   if (kind === 'ballista') {
     len = ENG_LEN.ballista;
     for (const sx of [-1, 1]) m.add(box(.1, .14, 1.5, fm, sx * .38, .42, 0));
-    for (const z of [-.55, .55]) { m.add(box(.86, .1, .12, fm, 0, .42, z)); const ax = cyl(.03, .03, 1.0, 6, M.iron, 0, .26, z); ax.rotation.z = Math.PI / 2; m.add(ax); for (const sx of [-1, 1]) wheel(m, .26, sx * .5, .26, z, iron); }
-    m.add(box(.84, .06, 1.3, M.wood, 0, .5, 0));
-    if (tier === 3) for (const sx of [-1, 1]) m.add(box(.04, .04, 1.52, M.iron, sx * .38, .5, 0));
+    // the deck stops short of the back (and the rear axle sits under its edge), so the crew stand in between the rails under the winch
+    for (const z of [-.3, .55]) { m.add(box(.86, .1, .12, fm, 0, .42, z)); const ax = cyl(.03, .03, 1.0, 6, M.iron, 0, .26, z); ax.rotation.z = Math.PI / 2; m.add(ax); for (const sx of [-1, 1]) wheel(m, .26, sx * .5, .26, z, iron); }
+    m.add(box(.84, .06, .87, M.wood, 0, .5, .215));
+    if (tier === 3) for (const sx of [-1, 1]) m.add(box(.04, .04, 1.52, M.iron, sx * .38, .49, 0));
     if (tier >= 2) { const sh = box(1.0, .4, .06, M.wood, 0, .73, .8); sh.rotation.x = -.25; m.add(sh); }       // a timber mantlet at the front
     const t = ballistaTurret(BALLISTA_K[tier - 1] * .9); t.position.y = .5; m.add(t); P.turret = t;
     P.rig = { statics: [], k: BALLISTA_K[tier - 1] * .9 };
@@ -4263,13 +4264,13 @@ function crewAim(e, c, arm, w) {
 }
 // a rope from a point of its parent's frame to a crewman's hand
 function crewRope(rope, a, c) { c.g.updateMatrixWorld(true); const h = c.arms[1].localToWorld(_cw.set(0, -.33, 0)); rope.parent.worldToLocal(h); setRope(rope, a, h); }
-// one ram charge over p (0–1): the offset of the whole ram along its facing: hauled back, run in (faster and faster), knocked
-// back by the blow at p .55, pushed up to the wall again
-function ramOffset(p) {
+// one ram blow over p (0–1): the log's swing on its ropes (phi): the crew haul it back, drive it in faster and faster, the blow
+// at p .55 knocks it back, and they push it up again
+function ramSwing(p) {
   if (p < .35) return -.6 * sstep(0, .35, p);
-  if (p < .55) { const u = (p - .35) / .2; return lerp(-.6, .12, u * u); }
-  if (p < .7) return lerp(.12, -.35, Math.sin((p - .55) / .15 * Math.PI / 2));
-  return lerp(-.35, 0, sstep(.7, 1, p));
+  if (p < .55) { const u = (p - .35) / .2; return lerp(-.6, .38, u * u); }
+  if (p < .7) return lerp(.38, -.25, Math.sin((p - .55) / .15 * Math.PI / 2));
+  return lerp(-.25, 0, sstep(.7, 1, p));
 }
 const RAM_HIT = .55;
 function animEngine(e, dt, sw) {
@@ -4281,19 +4282,24 @@ function animEngine(e, dt, sw) {
   const [L, G] = e.crew, pose = (c, lean, arms) => { c.body.rotation.x += (lean - c.body.rotation.x) * Math.min(1, dt * 8); c.arms.forEach(a => { a.rotation.x += (arms - a.rotation.x) * Math.min(1, dt * 8); a.rotation.z *= .8; }); };
   const legs = (c, on, ph) => { const s = on ? Math.sin(ph) * .55 : 0; c.legs[0].rotation.x = s; c.legs[1].rotation.x = -s; c.body.position.y = 0; };
   if (e.kind === 'ram') {
-    // the charge: the offset (e.ramO, applied to the whole ram where it is drawn), its speed swings the log a little on its ropes
-    const p = e.attackT > 0 ? 1 - e.attackT / RAM_T : 0, o = e.attackT > 0 ? ramOffset(p) : 0, v = (o - (e.ramO || 0)) / Math.max(dt, 1e-3);
-    e.ramO = o; e.ramPhi = (e.ramPhi || 0) + (clamp(-v * .3, -.45, .45) - (e.ramPhi || 0)) * Math.min(1, dt * 6);
-    const phi = e.ramPhi; e.ram.position.set(0, RAM_Y + RAM_ROPE * (1 - Math.cos(phi)), RAM_ROPE * Math.sin(phi)); e.ropes.forEach(r => r.rotation.x = -phi);
-    const hauling = e.attackT > 0 && p < .35, running = e.attackT > 0 && p >= .35 && p < .55, knocked = e.attackT > 0 && p >= .55 && p < .7;
+    // stationed at the wall the pair take the log's end and swing it on its ropes; rolling, they push the frame from behind
+    const at = e.aiming && !e.walking, p = e.attackT > 0 ? 1 - e.attackT / RAM_T : 0, phi = at && e.attackT > 0 ? ramSwing(p) : 0;
+    const v = (phi - (e.ramPhi || 0)) / Math.max(dt, 1e-3); e.ramPhi = phi;
+    e.ram.position.set(0, RAM_Y + RAM_ROPE * (1 - Math.cos(phi)), RAM_ROPE * Math.sin(phi)); e.ropes.forEach(r => r.rotation.x = -phi);
+    const endZ = e.ram.position.z - 1.05, endY = e.ram.position.y;           // the log's back end (frame of e.g)
     e.crew.forEach((c, i) => {
-      c.g.position.set((i ? .3 : -.3), 0, back); c.g.rotation.y = 0; kneel(c, 0);
-      const moving = e.walking || Math.abs(v) > .05;
-      legs(c, moving, (e.walking ? e.phase : t * (running ? 16 : 9)) + i * Math.PI);
-      if (hauling) pose(c, -.18, -1.2);                // leaning back, hauling it off the wall
-      else if (running) pose(c, .42, -1.45);           // shoulders down, driving it in
-      else if (knocked) pose(c, -.05, -1.1);           // thrown back with it
-      else pose(c, e.walking || e.attackT > 0 ? .3 : .1, -1.35);
+      const sx = i ? .2 : -.2;
+      if (!at) {
+        const there = crewGo(c, i ? .3 : -.3, back, dt); if (there) c.g.rotation.y = 0;
+        kneel(c, 0); legs(c, e.walking || c.going, (e.walking ? e.phase : t * 9) + i * Math.PI);
+        pose(c, e.walking ? .28 : 0, c.going ? -.3 : -1.35); c.atLog = false; return;
+      }
+      if (!c.atLog) { if (!crewGo(c, sx, endZ - .34, dt)) { kneel(c, 0); legs(c, true, t * 9 + i * Math.PI); pose(c, 0, -.3); return; } c.atLog = true; }
+      c.g.position.set(sx, 0, endZ - .34); c.g.rotation.y = 0; kneel(c, 0);
+      legs(c, Math.abs(v) > .4, t * (v > 2 ? 16 : 9) + i * Math.PI);           // stepping with the log
+      c.body.rotation.x += ((p < .35 && e.attackT > 0 ? -.15 : p < .55 && e.attackT > 0 ? .38 : p < .7 && e.attackT > 0 ? -.08 : .22) - c.body.rotation.x) * Math.min(1, dt * 10);
+      c.g.updateMatrixWorld(true); const h = e.g.localToWorld(_cv.set(sx * .35, endY, endZ));   // both hands on the log's end
+      crewAim(e, c, c.arms[0], h); crewAim(e, c, c.arms[1], h);
     });
     return;
   }
@@ -4325,7 +4331,7 @@ function animEngine(e, dt, sw) {
   // the crew's spots (engine frame) and the points they work at
   let lx, lz, gx, gz, crankW, catchW;
   if (e.kind === 'ballista') {
-    lx = .18; lz = -.95; gx = -.36; gz = -.98;
+    lz = -.52 * rig.k - .26; gz = lz - .06; lx = .14; gx = -.17;   // in between the rails, under the winch
     crankW = rig.crank.localToWorld(new THREE.Vector3(.21, .14, 0)); catchW = e.turret.localToWorld(new THREE.Vector3(0, .56, rig.slider.position.z - .05));
   } else {
     const Rg = CATA_RIG[e.tier - 1]; lx = Rg.loader[0] * k; lz = Rg.loader[1] * k; gx = Rg.gunner[0] * k; gz = Rg.gunner[1] * k;
@@ -4399,8 +4405,11 @@ function updateEnemies(dt) {
           const blk = nearestBuilding(e.x, e.z, E.engine ? 2.4 : 1.6);   // a wall is in the way: attack it
           if (blk && shoots && !NOT_WALL(blk) && d <= e.range + 3.5) e.lob = true;   // archers and engines shoot over it instead
           else if (blk) { e.target = blk; e.retarget = 8; }
-          else if (enemies.some(o => o !== e && !o.dead && Math.hypot(o.x - e.x, o.z - e.z) < 1.3)) { /* held up in a crowd (a queue at a bridge): wait, don't wander off */ }
-          else { const a = Math.random() * 6.283; e.detour = { x: clamp(e.x + Math.cos(a) * 5, 1, SIZE - 1), z: clamp(e.z + Math.sin(a) * 5, 1, SIZE - 1), t: 2 }; }
+          else if (E.engine || enemies.some(o => o !== e && !o.dead && Math.hypot(o.x - e.x, o.z - e.z) < 1.3 + (o.engine ? ENEMY[o.kind].r : 0))) { /* held up in a crowd (a queue at a bridge) or an engine: wait, don't wander off */ }
+          else {                                             // a short step aside (never back the way they came), then on again
+            const a = Math.atan2(tp.x - e.x, tp.z - e.z) + (Math.random() < .5 ? 1 : -1) * (1.2 + Math.random() * .5);
+            e.detour = { x: clamp(e.x + Math.sin(a) * 1.8, 1, SIZE - 1), z: clamp(e.z + Math.cos(a) * 1.8, 1, SIZE - 1), t: 1.2 };
+          }
           e.stuck = 0; e.prog = null; e.noProg = 0; e.path = null;
         }
       } else {
@@ -4449,7 +4458,6 @@ function updateEnemies(dt) {
     }
     smoothPos(e, dt, performance.now()); const y = walkY(e.rx, e.rz);
     e.g.position.set(e.rx, y < 0 ? y * .4 - .2 : y, e.rz);
-    if (e.ramO) { e.g.position.x += Math.sin(e.g.rotation.y) * e.ramO; e.g.position.z += Math.cos(e.g.rotation.y) * e.ramO; }   // the ram's charge
     e.bar.grp.visible = e.hp < e.max; e.bar.set(e.hp / e.max); e.bar.grp.position.set(e.rx, e.g.position.y + e.barY, e.rz);
   }
 }
