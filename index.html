@@ -136,7 +136,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .ldOpt .tIco{width:24px;height:24px;flex:0 0 auto;display:inline-flex;color:#cfc4a6} .ldOpt .tIco svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round} .ldOpt[aria-pressed="true"] .tIco{color:var(--gold)} .ldOpt b{font-family:var(--display);font-weight:400;font-size:16px;color:var(--parch);line-height:1.05;display:block}
 .ldOpt small{display:block;font-size:11px;color:var(--muted)} .ldOpt small .cost .ico{width:11px;height:11px}
 .ldOpt[aria-pressed="true"]{border-color:var(--gold);background:#2e2b1e} .ldOpt[aria-pressed="true"] b{color:var(--gold)}
-.ldOpt.locked{opacity:.5;cursor:default} .ldOpt.locked b{color:var(--muted)} .lockIco{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;vertical-align:-2px} .ldOpt .tIco .lockIco{width:100%;height:100%;stroke-width:1.7}
+.ldOpt.locked{opacity:.5;cursor:default;justify-content:center} .ldOpt.locked b{color:var(--muted)} .lockIco{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;vertical-align:-2px} .ldOpt .tIco .lockIco{width:100%;height:100%;stroke-width:1.7}
 .ldGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
 .ldGrid .ldOpt{flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:3px;padding:6px 4px} .ldGrid .ldOpt b{font-size:14px}
 .ldBtns{display:flex;justify-content:space-between;gap:8px;margin-top:4px} .ldBtns button{min-width:110px;min-height:42px;font-size:16px}
@@ -5957,10 +5957,13 @@ function renderLoadPick() {
   const SM = stagePick && CAMP_MAPS[stagePick], open = SM ? new Set([...SM.cats.eco, ...SM.cats.def, ...SM.cats.decor]) : null;
   const L = SM ? { ...Object.fromEntries([...LOAD_SLOTS.eco, ...LOAD_SLOTS.def].map(([slot, opts]) => [slot, opts.find(t => open.has(t))])), decor: STAGE_DECOR[stagePick] } : LOADOUT;
   const lk = t => open && !open.has(t);
-  const opt = (t, on, slot) => `<button class="ldOpt${lk(t) ? ' locked' : ''}" data-slot="${slot}" data-t="${t}" aria-pressed="${on}"><span class="tIco">${TOOL_ICON[t]}</span><span><b>${DEF[t].name}</b><small>${lk(t) ? LOCK_ICO : costHTML(DEF[t].cost)}</small></span></button>`;
+  // a locked option shows only a padlock: no name, no icon, no cost
+  const opt = (t, on, slot) => lk(t) ? `<button class="ldOpt locked" data-slot="${slot}" data-t="${t}" aria-pressed="false" aria-label="Locked"><span class="tIco">${LOCK_ICO}</span></button>`
+    : `<button class="ldOpt" data-slot="${slot}" data-t="${t}" aria-pressed="${on}"><span class="tIco">${TOOL_ICON[t]}</span><span><b>${DEF[t].name}</b><small>${costHTML(DEF[t].cost)}</small></span></button>`;
   for (const k of ['eco', 'def']) $(k === 'eco' ? '#ldEco' : '#ldDef').innerHTML = LOAD_SLOTS[k].map(([slot, opts]) =>
     `<div class="ldRow"><span class="ldCat">${k === 'eco' ? `<span class="ico">${ICON[slot]}</span>` : `<span class="tag">${LOAD_TAG[slot]}</span>`}</span>${opts.map(t => opt(t, L[slot] === t, slot)).join('')}</div>`).join('');
-  $('#ldDecor').innerHTML = DECOR_ALL.map(t => `<button class="ldOpt${lk(t) ? ' locked' : ''}" data-slot="decor" data-t="${t}" aria-pressed="${!lk(t) && L.decor.includes(t)}"><span class="tIco">${lk(t) ? LOCK_ICO : TOOL_ICON[t]}</span><b>${t === 'road' ? 'Path' : DEF[t].name}</b></button>`).join('');
+  $('#ldDecor').innerHTML = DECOR_ALL.map(t => lk(t) ? `<button class="ldOpt locked" data-slot="decor" data-t="${t}" aria-pressed="false" aria-label="Locked"><span class="tIco">${LOCK_ICO}</span></button>`
+    : `<button class="ldOpt" data-slot="decor" data-t="${t}" aria-pressed="${L.decor.includes(t)}"><span class="tIco">${TOOL_ICON[t]}</span><b>${t === 'road' ? 'Path' : DEF[t].name}</b></button>`).join('');
   $('#ldBack').textContent = SM ? 'Back' : 'Maps';
   const n = (L.decor || []).length; $('#ldDecN').textContent = `${n}/${DECOR_PICK}`; $('#ldDecN').classList.toggle('short', n !== DECOR_PICK); $('#ldStart').disabled = n !== DECOR_PICK;
 }
