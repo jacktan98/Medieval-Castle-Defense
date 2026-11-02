@@ -964,6 +964,11 @@ for (const fm of [M.flag, M.banner]) fm.onBeforeCompile = sh => {
 const FLOWER = ['#d4483b', '#f0c84a', '#9a5ad0', '#f2efe6', '#e27aa8'].map(mat);
 function box(w, h, d, m, x, y, z) { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; return o; }
 function drapeBox(w, h, d, m, x, y, z) { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d, 2, 10, 1), m); o.position.set(x, y, z); o.castShadow = true; return o; }
+// every flag on a roof is the same size: a 1 m pole from y up, the town's flag at its top; k undoes a scaled parent (crossbow towers)
+function roofFlag(parent, x, y, z, k = 1) {
+  const f = new THREE.Group(); f.position.set(x, y, z); f.scale.setScalar(1 / k); parent.add(f);
+  f.add(box(.05, 1.0, .05, M.timber, 0, .5, 0)); f.add(flagBox(.45, .3, .03, M.flag, .25, .85, 0)); return f;
+}
 function flagBox(w, h, d, m, x, y, z) { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d, 10, 2, 1), m); o.position.set(x, y, z); o.castShadow = true; return o; }
 function cyl(rt, rb, h, seg, m, x, y, z) { const o = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; return o; }
 // a round roof (tower cones) with the same thick eave band as pyramid roofs
@@ -1395,7 +1400,7 @@ function makeTower(tier, plinth) {
     kk.add(box(.12, .6, 2.2, M.wood, 1.05, 4.9, 0)); kk.add(box(.12, .6, 2.2, M.wood, -1.05, 4.9, 0));
     const s2 = .74 * k, P = 4.625 * s2; posts(.95 * s2, P, M.timber, .09);
     const R = P + HEAD; top.add(pyramid(1.75 * s2, 1.3 * s2, 1, M.thatch, R + .65 * s2));
-    top.add(box(.06, 1.0, .06, M.timber, 0, R + 1.3 * s2 + .4, 0)); top.add(flagBox(.6, .36, .04, M.flag, .32, R + 1.3 * s2 + .75, 0));
+    roofFlag(top, 0, R + 1.3 * s2 - .1, 0);
   } else {                     // stone tower: round masonry, an open platform with a low parapet, blue roof on stone columns
     t.add(cyl(.82, 1.0, 4.6, 8, M.stone2, 0, 2.3, 0));
     t.add(cyl(1.05, 1.05, .2, 8, M.stone, 0, 4.6, 0));
@@ -1405,7 +1410,7 @@ function makeTower(tier, plinth) {
     for (const a of [Math.PI / 4, Math.PI * 3 / 4, Math.PI * 5 / 4, Math.PI * 7 / 4]) top.add(cyl(.08, .1, HEAD, 6, M.stone2, Math.cos(a) * .92 * k, P + HEAD / 2, Math.sin(a) * .92 * k));
     const R = P + HEAD; top.add(cyl(1.1 * k, 1.1 * k, .1, 8, M.stone, 0, R + .05, 0));
     top.add(coneRoof(1.4 * k, 1.5 * k, 8, M.roofBlue, 0, R + .1 + .75 * k, 0));
-    top.add(box(.06, 1.0, .06, M.timber, 0, R + 1.5 * k + .5, 0)); top.add(flagBox(.6, .36, .04, M.banner, .32, R + 1.5 * k + .85, 0));
+    roofFlag(top, 0, R + 1.5 * k, 0);
   }
   return g;
 }
@@ -1634,7 +1639,7 @@ function makeBarracks(tier, plinth) {
     g.add(box(2.34, .08, .08, M.timber, X, 1.55, F + .01));
     g.add(pyramid(1.95, 1.05, .86, M.thatch, 2.08, X, -.65));
     g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[2], -1, .2 + DOOR_H / 2, F + .03)); for (const x of [-.25, .2]) g.add(box(.2, .2, .04, M.glow, x, 1.1, F + .03));
-    g.add(box(.05, 1.0, .05, M.timber, X, 3.0, -.65)); g.add(flagBox(.45, .3, .03, M.flag, X + .25, 3.35, -.65));   // flag on the roof peak
+    roofFlag(g, X, 2.5, -.65);   // flag on the roof peak
     rack('spear', 'round'); dummy(true);
   } else {                     // garrison: stone hall, blue tiled roof, swords and blue shields, a hanging banner
     g.add(box(2.3, 1.3, 1.9, M.stone2, X, .7, -.65));
@@ -1643,7 +1648,7 @@ function makeBarracks(tier, plinth) {
     g.add(box(DOOR_W, DOOR_H, .06, DOOR_M[3], -1, .2 + DOOR_H / 2, F + .02));
     for (const y of [.45, .95]) g.add(box(.56, .04, .07, M.iron, -1, y, F + .04));
     for (const x of [-.4, .2]) g.add(box(.18, .26, .04, M.glow, x, .95, F + .02));
-    g.add(box(.05, 1.0, .05, M.timber, X, 2.95, -.65)); g.add(flagBox(.45, .3, .03, M.flag, X + .25, 3.3, -.65));
+    roofFlag(g, X, 2.45, -.65);
     rack('sword', 'kite'); dummy(true);
   }
   return g;
@@ -2042,7 +2047,7 @@ function makeFarmhouse(tier) {
 // battlements and the blue roof on corner piers
 const XBOW_K = .74, XBOW_TOP = [2.45, 2.8, 3.15].map(y => y * XBOW_K);   // fighting-top heights as drawn
 // the town's blue flag on a short pole from the roof's peak, flying from the pole's top
-function xbowFlag(t, peak) { t.add(box(.04, 1.0, .04, M.timber, 0, peak + .4, 0)); t.add(flagBox(.42, .26, .02, M.flag, .23, peak + .76, 0)); }
+function xbowFlag(t, peak) { roofFlag(t, 0, peak - .1, 0, XBOW_K); }
 function makeCrossbowTower(tier, plinth) {
   const g = new THREE.Group(), top = XBOW_TOP[tier - 1] / XBOW_K, HEAD = 1.55;
   if (plinth) g.add(box(2.0, 1.8, 2.0, tier === 2 ? M.plainStone : M.stone, 0, -.7, 0));
@@ -2139,7 +2144,7 @@ function makeBallista(tier, plinth) {
     g.add(box(1.8, deck - .2, 1.8, M.stone, 0, (deck - .2) / 2 + .2, 0)); g.add(box(1.9, .1, 1.9, M.stone2, 0, deck - .05, 0));
     for (const [x, z] of [[.8, .8], [-.8, .8], [.8, -.8], [-.8, -.8], [.8, 0], [-.8, 0], [0, .8]]) g.add(box(.26, .38, .26, M.stone2, x, deck + .19, z));
     for (const sx of [-1, 1]) g.add(box(.06, .3, .03, M.dark, sx * .38, deck * .55, .91));   // arrow slits
-    ladder(-1.02, M.timber, .2);                                                               // through the gap in the battlement at the back
+    for (let y = .32; y < deck - .1; y += .27) g.add(box(.45, .1, .22, M.stone2, 0, y, -1.0));   // a stone ladder: rungs set in the back wall, up to the gap in the battlement
   }
   const t = ballistaTurret(BALLISTA_K[tier - 1]); t.position.y = deck; g.add(t);
   return g;
@@ -2184,11 +2189,10 @@ function makeCatapult(tier) {
     arm.position.set(0, 2.15, 0); e.add(arm);
     arm.add(box(.11, 2.7, .11, M.timber, 0, .7, 0));                                  // long end up (+y), short end down
     arm.add(box(.5, .5, .5, M.wood, 0, -.82, 0)); for (const y of [-.65, -1.0]) arm.add(box(.52, .05, .52, M.iron, 0, y, 0));   // counterweight
-    // a big sling pouch hung from the arm's tip by two ropes and an iron ring
-    arm.add(box(.15, .06, .15, M.iron, 0, 2.06, .02));
-    for (const sx of [-1, 1]) { const dx = sx * .15, dy = .26, rp = box(.014, Math.hypot(dx, dy), .014, ropeM, dx / 2, 2.08 + dy / 2, .06); rp.rotation.z = Math.atan2(-dx, dy); arm.add(rp); }
-    arm.add(box(.36, .32, .06, M.canvas, 0, 2.48, .08));
-    const shot = new THREE.Mesh(new THREE.DodecahedronGeometry(.2, 0), M.stone2); shot.position.set(0, 2.48, .26); shot.userData.bolt = true; shot.castShadow = true; arm.add(shot);
+    // a big iron-bound cup at the arm's tip, like the catapult's and mangonel's, for the biggest stone
+    const cr = .27, cup = cyl(cr, cr * .7, cr * .75, 10, M.wood, 0, 1.9, .15); cup.rotation.x = Math.PI / 2; arm.add(cup);
+    for (const dz of [.05, .23]) { const band = cyl(cr * (dz > .1 ? .97 : .78) + .012, cr * (dz > .1 ? .97 : .78) + .012, .03, 10, M.iron, 0, 1.9, .15 + (dz - .15)); band.rotation.x = Math.PI / 2; arm.add(band); }
+    const shot = new THREE.Mesh(new THREE.DodecahedronGeometry(.2, 0), M.stone2); shot.position.set(0, 1.9, .15 + cr * .38 + .15); shot.userData.bolt = true; shot.castShadow = true; arm.add(shot);
     for (let n = 0; n < 3; n++) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(.15, 0), M.stone2); st.position.set(-.85, .12, .2 + n * .3); st.castShadow = true; st.userData.ammo = true; e.add(st); }
     for (const sz of [-1, 1]) {                                                       // wheels on iron-bound axles under the frame
       e.add(box(1.36, .06, .06, M.iron, 0, .24, sz * .62));
@@ -2265,7 +2269,7 @@ function makeStables(tier, plinth) {
   if (tier >= 2) {
     g.add(box(.5, .06, .08, M.timber, .6, b + .7, .75)); for (const x of [.4, .8]) g.add(box(.06, .7, .06, M.timber, x, b + .35, .75));   // saddle rack
     g.add(box(.22, .12, .3, saddleM, .6, b + .78, .75));
-    g.add(box(.04, 1.1, .04, M.timber, cx, b + h + .75 + .5, (sz0 + sz1) / 2)); g.add(flagBox(.42, .26, .02, M.flag, cx + .23, b + h + 1.65, (sz0 + sz1) / 2));   // the flag at the pole's top
+    roofFlag(g, cx, b + h + .8, (sz0 + sz1) / 2);
   }
   if (tier === 3) {                                                                          // a stand of armour beside the armoury
     g.add(box(.05, 1.0, .05, M.timber, -.35, b + .5, .85)); g.add(cyl(.15, .19, .4, 8, mailM, -.35, b + .85, .85)); g.add(cyl(.15, .2, .3, 8, kiteM, -.35, b + .62, .85));
@@ -4473,7 +4477,7 @@ function updateSiege(B, T, dt) {
       stickBolt(to, dir);
     }, .001, 'bolt');                                                // dead straight: a heavy bolt, not an arrow's arc
   } else {                                                        // a stone lobbed high onto where they will be: everyone round it
-    B.arm.updateMatrixWorld(true); const from = B.arm.localToWorld(new THREE.Vector3(0, B.tier === 3 ? 2.4 : 1.3, 0)); siegeLaunchFx(B, from, dir);
+    B.arm.updateMatrixWorld(true); const from = B.arm.localToWorld(new THREE.Vector3(0, B.tier === 3 ? 1.9 : 1.3, 0)); siegeLaunchFx(B, from, dir);
     const lead = best.walking ? 1.2 : 0, tx = best.x + Math.sin(best.g.rotation.y) * lead, tz = best.z + Math.cos(best.g.rotation.y) * lead, to = new THREE.Vector3(tx, walkY(tx, tz) + .1, tz), rad = T.splash[k];
     fireArrow(from, to, () => {
       for (const e of enemies) if (!e.dead) { const d = Math.hypot(e.x - tx, e.z - tz); if (d < rad) hurtEnemy(e, dmg * (1 - .5 * d / rad)); }
