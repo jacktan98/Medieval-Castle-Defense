@@ -4679,7 +4679,7 @@ function startMove(B, ci, cj) {
   if (PH.kind !== 'day' && !crewOn) return setHint('No crew', 'bad');
   // by night its crew pushes it; by day a villager has to come and push
   const was = B.move && B.move.pusher;                           // a new spot mid-move keeps the same pusher
-  B.move = { pts: [...path, { x: (ci + .5) * CELL, z: (cj + .5) * CELL }], wait: PH.kind === 'day', pusher: was || null }; setHint(PH.kind === 'day' ? 'Pusher coming' : 'Moving'); sfx('click');
+  B.move = { pts: [...path, { x: (ci + .5) * CELL, z: (cj + .5) * CELL }], dest: { x: (ci + .5) * CELL, z: (cj + .5) * CELL }, wait: PH.kind === 'day', pusher: was || null }; setHint(PH.kind === 'day' ? 'Pusher coming' : 'Moving'); sfx('click');
 }
 // the nearest ground someone may stand on, from a spot that may be inside a building's cell
 function standNear(x, z) {
@@ -4702,21 +4702,40 @@ function updatePush(v, dt) {
   const B = v.push;
   if (!B.move || B.dead || !buildings.includes(B)) {
     if (v.pushOn) { const p = standNear(v.x, v.z); v.x = p.x; v.z = p.z; }     // step off the engine's tile
-    v.push = null; v.pushOn = false; v.path = null; v.stuck = 0; v.prog = null; if (v.job) v.state = 'commute'; return;
+    v.push = null; v.pushOn = false; v.pushIn = false; v.path = null; v.stuck = 0; v.prog = null; if (v.job) v.state = 'commute'; return;
   }
   if (!B.turret) return;
   const R = CATA_RIG[B.tier - 1], sp = engPt(B, R.push[0], 0, R.push[1]);
-  if (!v.pushOn) { if (walkTo(v, sp.x, sp.z, dt, 1, .3) || Math.hypot(sp.x - v.x, sp.z - v.z) < 1.6 || v.noProg > 1.5) v.pushOn = true; return; }
+  if (!v.pushOn) {
+    const d = Math.hypot(sp.x - v.x, sp.z - v.z);
+    if (!v.pushIn) { const q = standNear(sp.x, sp.z); if (walkTo(v, q.x, q.z, dt, 1, .15) || Math.hypot(q.x - v.x, q.z - v.z) < .3 || (d < 1.6 && v.noProg > 1.5)) v.pushIn = true; return; }
+    // the last bit onto the spot behind the engine, at a walk (the spot can be on the engine's own tile)
+    const st = Math.min(d, dt * 1.1 * v.speed); if (d > 1e-3) { v.x += (sp.x - v.x) / d * st; v.z += (sp.z - v.z) / d * st; turnTo(v, Math.atan2(sp.x - v.x, sp.z - v.z), dt); }
+    v.walking = true; if (d - st < .03) { v.pushOn = true; v.pushIn = false; }
+    return;
+  }
   v.x = sp.x; v.z = sp.z; v.walking = !B.move.wait; v.pushing = true; v.g.rotation.y = engYaw(B, [0, 0, 0], [0, 0, 1]);
 }
+// a blue flag in the middle of the tile an engine is rolling to, gone once it gets there (or the move ends)
+const moveFlags = new Map();
+function syncMoveFlags() {
+  for (const [B, f] of moveFlags) if (!B.move || B.dead || !buildings.includes(B)) { scene.remove(f); moveFlags.delete(B); }
+  for (const B of buildings) {
+    const d = B.move && B.move.dest; if (!d) continue;
+    let f = moveFlags.get(B);
+    if (!f) { f = new THREE.Group(); f.add(box(.05, 1.5, .05, M.timber, 0, .75, 0)); f.add(flagBox(.46, .3, .03, M.flag, .25, 1.33, 0)); scene.add(f); moveFlags.set(B, f); }
+    f.position.set(d.x, hAt(d.x, d.z), d.z);
+  }
+}
 function updateMoves(dt) {
+  syncMoveFlags();
   for (const B of buildings) {
     const mv = B.move; if (!mv || B.dead) continue;
     const crewOn = B.manned && B.manned[0] && B.manned[1];
-    if (PH.kind !== 'day') { const u = mv.pusher; if (u) { if (u.pushOn) { const p = standNear(u.x, u.z); u.x = p.x; u.z = p.z; } u.push = null; u.pushOn = false; mv.pusher = null; } mv.wait = !crewOn; }
+    if (PH.kind !== 'day') { const u = mv.pusher; if (u) { if (u.pushOn) { const p = standNear(u.x, u.z); u.x = p.x; u.z = p.z; } u.push = null; u.pushOn = false; u.pushIn = false; mv.pusher = null; } mv.wait = !crewOn || (B.figs || []).some(f => f && (f.stepping || f.crewT > 0)); }   // the crew walk to their pushing spots first
     else if (!mv.pusher || mv.pusher.push !== B || !villagers.includes(mv.pusher)) {   // by day: wait for a villager to come and push
       mv.pusher = null; mv.wait = true;
-      if ((mv.pickT = (mv.pickT || 0) - dt) <= 0) { mv.pickT = .5; const v = pickPusher(B); if (v) { v.push = B; v.pushOn = false; mv.pusher = v; } }
+      if ((mv.pickT = (mv.pickT || 0) - dt) <= 0) { mv.pickT = .5; const v = pickPusher(B); if (v) { v.push = B; v.pushOn = false; v.pushIn = false; mv.pusher = v; } }
     } else mv.wait = !mv.pusher.pushOn;
     if (mv.wait) continue;
     const g = B.group.position, p = mv.pts[0], dx = p.x - g.x, dz = p.z - g.z, d = Math.hypot(dx, dz), st = Math.min(d, MOVE_SPEED * dt);
@@ -4797,11 +4816,14 @@ function catapultCrew(B, k, crew, moving, dt, best) {
     const th = B.arm.rotation.x; rA.set(0, R.drum[1] + R.dr, R.drum[2]); rB.set(0, B.arm.position.y + R.armR * Math.cos(th), B.arm.position.z + R.armR * Math.sin(th));
     setRope(rig.wrope, rA, rB); if (B.fireT > 0 || moving) rig.wrope.visible = false;
   }
-  const figs = B.figs || [], L = figs[0] && figs[0].g.visible ? figs[0] : null, G = figs[1] && figs[1].g.visible ? figs[1] : null;
+  const figs = B.figs || [], L = figs[0] && figs[0].g.visible ? figs[0] : null, G = figs[1] && figs[1].g.visible ? figs[1] : null, roll = !!B.move && PH.kind !== 'day';
   // the crew are villagers: they step the last bit onto their spot (never a jump), and kneel to change before they man it
   const place = (f, x, z) => {
     const p = engPt(B, x, 0, z);
-    if (f.crewOf && !moving) { const dx = p.x - f.x, dz = p.z - f.z, d = Math.hypot(dx, dz), st = Math.min(d, dt * 1.2); f.x += d > 1e-4 ? dx / d * st : 0; f.z += d > 1e-4 ? dz / d * st : 0; f.stepping = d > .03; }
+    if (f.crewOf) {                                             // walk there (to the pushing spots too): never a slide
+      const dx = p.x - f.x, dz = p.z - f.z, d = Math.hypot(dx, dz), st = Math.min(d, dt * (moving ? 1.3 : 1.2)); f.x += d > 1e-4 ? dx / d * st : 0; f.z += d > 1e-4 ? dz / d * st : 0;
+      f.stepping = d > .03 && !(moving && d < .25); if (f.stepping && d > .15) f.g.rotation.y = Math.atan2(dx, dz);
+    }
     else { f.x = p.x; f.z = p.z; f.stepping = false; }
     f.rx = f.x; f.rz = f.z; f.g.position.set(f.x, f.crewOf ? walkY(f.x, f.z) : gy, f.z);
   };
@@ -4816,24 +4838,24 @@ function catapultCrew(B, k, crew, moving, dt, best) {
   const walkLegs = (f, on) => { const sw = on ? Math.sin(now * 9) * .5 : 0; f.legs[0].rotation.set(sw, 0, 0); f.legs[1].rotation.set(-sw, 0, 0); f.body.position.y = on ? Math.abs(Math.sin(now * 9)) * .04 : 0; };
   if (L && L.crewOf && L.crewT > 0) { place(L, ...R.loader); changing(L); }
   else if (L) {
-    if (moving) { place(L, ...R.walk); L.g.rotation.y = engYaw(B, [0, 0, 0], [0, 0, 1]); walkLegs(L, true); L.body.rotation.x = 0; const sw = Math.sin(now * 9) * .4; L.arms[0].rotation.set(sw, 0, 0); L.arms[1].rotation.set(-sw, 0, 0); }
+    if (roll) { place(L, ...R.walk); if (!L.stepping) L.g.rotation.y = engYaw(B, [0, 0, 0], [0, 0, 1]); walkLegs(L, moving || L.stepping); L.body.rotation.x = 0; const sw = Math.sin(now * 9) * .4; L.arms[0].rotation.set(sw, 0, 0); L.arms[1].rotation.set(-sw, 0, 0); }
     else {
-      place(L, ...R.loader); L.g.rotation.y = engYaw(B, [R.loader[0], 0, R.loader[1]], [R.cx, 0, R.drum[2]]); walkLegs(L, L.stepping); if (!L.stepping) kneel(L, .55); L.body.rotation.x = 0;
-      L.g.updateMatrixWorld(true); const h = rig.crank.localToWorld(new THREE.Vector3(.1, R.cr, 0));
-      aimArm(L, L.arms[1], h); aimArm(L, L.arms[0], h);
+      place(L, ...R.loader); if (!L.stepping) L.g.rotation.y = engYaw(B, [R.loader[0], 0, R.loader[1]], [R.cx, 0, R.drum[2]]); walkLegs(L, L.stepping); if (!L.stepping) kneel(L, .55); L.body.rotation.x = 0;
+      if (L.stepping) { const sw = Math.sin(now * 9) * .4; L.arms[0].rotation.set(sw, 0, 0); L.arms[1].rotation.set(-sw, 0, 0); }
+      else { L.g.updateMatrixWorld(true); const h = rig.crank.localToWorld(new THREE.Vector3(.1, R.cr, 0)); aimArm(L, L.arms[1], h); aimArm(L, L.arms[0], h); }
     }
   }
   if (G && G.crewOf && G.crewT > 0) { place(G, ...R.gunner); changing(G); }
   else if (G) {
-    if (moving) { place(G, ...R.push); G.g.rotation.y = engYaw(B, [0, 0, 0], [0, 0, 1]); walkLegs(G, true); G.arms[0].rotation.set(-1.45, 0, .15); G.arms[1].rotation.set(-1.45, 0, -.15); G.body.rotation.x = .12; }
+    if (roll) { place(G, ...R.push); if (!G.stepping) G.g.rotation.y = engYaw(B, [0, 0, 0], [0, 0, 1]); walkLegs(G, moving || G.stepping); const s = G.stepping ? Math.sin(now * 9) * .4 : 0; if (G.stepping) { G.arms[0].rotation.set(s, 0, 0); G.arms[1].rotation.set(-s, 0, 0); G.body.rotation.x = 0; } else { G.arms[0].rotation.set(-1.45, 0, .15); G.arms[1].rotation.set(-1.45, 0, -.15); G.body.rotation.x = .12; } }
     else {
-      place(G, ...R.gunner); G.g.rotation.y = engYaw(B, [R.gunner[0], 0, R.gunner[1]], R.catch); walkLegs(G, G.stepping);
+      place(G, ...R.gunner); if (!G.stepping) G.g.rotation.y = engYaw(B, [R.gunner[0], 0, R.gunner[1]], R.catch); walkLegs(G, G.stepping);
       const yank = B.fireT > 0 ? Math.sin(Math.PI * clamp(1 - B.fireT / .35, 0, 1)) : 0;     // a sharp pull on the line looses the arm
       G.arms[0].rotation.set(-1.0 + .6 * yank, 0, .12); G.arms[1].rotation.set(-1.05 + .6 * yank, 0, -.12); G.body.rotation.x = -.18 * yank;
     }
   }
   if (rig.trope) {                                                 // the trigger line: from the catch to the gunner's hands
-    if (G && !moving && !(G.crewT > 0)) { G.g.updateMatrixWorld(true); const h = G.arms[1].localToWorld(new THREE.Vector3(0, -.33, 0)); e.worldToLocal(h); rA.set(...R.catch); setRope(rig.trope, rA, h); }
+    if (G && !roll && !G.stepping && !(G.crewT > 0)) { G.g.updateMatrixWorld(true); const h = G.arms[1].localToWorld(new THREE.Vector3(0, -.33, 0)); e.worldToLocal(h); rA.set(...R.catch); setRope(rig.trope, rA, h); }
     else rig.trope.visible = false;
   }
 }
