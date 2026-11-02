@@ -136,6 +136,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .ldOpt .tIco{width:24px;height:24px;flex:0 0 auto;display:inline-flex;color:#cfc4a6} .ldOpt .tIco svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round} .ldOpt[aria-pressed="true"] .tIco{color:var(--gold)} .ldOpt b{font-family:var(--display);font-weight:400;font-size:16px;color:var(--parch);line-height:1.05;display:block}
 .ldOpt small{display:block;font-size:11px;color:var(--muted)} .ldOpt small .cost .ico{width:11px;height:11px}
 .ldOpt[aria-pressed="true"]{border-color:var(--gold);background:#2e2b1e} .ldOpt[aria-pressed="true"] b{color:var(--gold)}
+.ldOpt.locked{opacity:.5;cursor:default} .ldOpt.locked b{color:var(--muted)} .lockIco{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;vertical-align:-2px} .ldOpt .tIco .lockIco{width:100%;height:100%;stroke-width:1.7}
 .ldGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
 .ldGrid .ldOpt{flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:3px;padding:6px 4px} .ldGrid .ldOpt b{font-size:14px}
 .ldBtns{display:flex;justify-content:space-between;gap:8px;margin-top:4px} .ldBtns button{min-width:110px;min-height:42px;font-size:16px}
@@ -626,7 +627,7 @@ const CAMP_MAPS = {
   vale: { stop: 0, maxTier: 1, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower'], decor: ['road', 'flowers', 'torch'] } },
   bridge: { stop: 1, maxTier: 1, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack'] } },
   cross: { stop: 2, maxTier: 2, newTier: 2, cats: { eco: ['house', 'farm', 'lodge', 'quarry', 'market'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue'] } },
-  watch: { stop: 3, maxTier: 2, cats: { eco: ['house', 'farm', 'lodge', 'quarry', 'market'], def: ['tower', 'ballista', 'barracks', 'wall', 'gate'], decor: ['road', 'torch', 'rack', 'statue', 'campfire'] } },   // five decor tools keep a phone's dock one row: flowers make way for the campfire
+  watch: { stop: 3, maxTier: 2, cats: { eco: ['house', 'farm', 'lodge', 'quarry', 'market'], def: ['tower', 'ballista', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire'] } },   // more decor than fits: the player picks four (stage picker)
 };
 var WAVES = WAVES_STD, NIGHTS = WAVES.length, DAYLEN = [300, 150, 150, 150, 150], SPAWN_GAP = 1.1;
 function mapRules() { const R = MAP_RULES[MAP]; WAVES = R ? R.waves : WAVES_STD; NIGHTS = WAVES.length; DAYLEN = R ? R.day : [300, 150, 150, 150, 150]; SPAWN_GAP = R ? R.spawnGap : 1.1; }
@@ -1507,11 +1508,20 @@ function roadMask(a, b) {
   for (const B of buildings) { const d = B.door; if (d && d.a === a && d.b === b) m |= d.bit; }
   return m;
 }
+// path looks by map (sRGB): packed brown earth on the green maps; a pale chalky gravel track on Watchhill's dry hills;
+// grey scree on Mountain pass; base = the darker worn edge, set = flat set stones, kerb = the edge stones
+const PATH_STYLE = {
+  earth:  { top: [.47, .38, .27], base: '#4e3f2a', set: [.37, .34, .29], kerb: [.4, .38, .33] },
+  gravel: { top: [.68, .6, .45], base: '#8a7754', set: [.56, .52, .45], kerb: [.58, .54, .46] },
+  scree:  { top: [.5, .48, .44], base: '#47443d', set: [.56, .55, .53], kerb: [.6, .59, .56] },
+};
+const pathStyle = () => PATH_STYLE[MAP === 'watch' ? 'gravel' : MAP === 'pass' ? 'scree' : 'earth'];
+const lin = (sc, c, h, k) => sc.setRGB(((c[0] + k * h) ** 2.2), ((c[1] + k * .85 * h) ** 2.2), ((c[2] + k * .7 * h) ** 2.2));
 // packed earth: smooth, low-contrast colour drift by position (no per-square checker), lighter where feet wear it
 const pathTmp = new THREE.Color();
 function pathCol(x, z, col) {
   const n = .5 + .25 * Math.sin(x * 2.3 + z * 1.1) + .25 * Math.sin(x * .9 - z * 2.7), j = hash(Math.round(x * 4), Math.round(z * 4));
-  pathTmp.setRGB(.47, .38, .27).multiplyScalar(.88 + .16 * n + .06 * j);    // sRGB, converted below to match the patched colours
+  pathTmp.setRGB(...pathStyle().top).multiplyScalar(.88 + .16 * n + .06 * j);    // sRGB, converted below to match the patched colours
   col.push(pathTmp.r ** 2.2, pathTmp.g ** 2.2, pathTmp.b ** 2.2);
 }
 // the stone-based building whose footprint holds this point, if any; paths stop at its edge rather than painting over it
@@ -1546,6 +1556,7 @@ function setGeo(mesh, arr, col) {
   g.computeVertexNormals(); mesh.geometry.dispose(); mesh.geometry = g;
 }
 function rebuildRoads() {
+  const PS = pathStyle(); roadMatBase.color.set(PS.base);
   const base = [], top = [], tc = [], stones = [], doors = {}, edge = [];
   for (const B of buildings) if (B.door && !B.dead) { const [sx, sz] = doorShift(B); if (sx || sz) doors[B.door.b * N + B.door.a] = { bit: B.door.bit, sx, sz }; }
   for (let b = 0; b < N; b++) for (let a = 0; a < N; a++) if (road[b * N + a]) {
@@ -1575,14 +1586,14 @@ function rebuildRoads() {
     const r = .06 + .06 * hash(k, 1.3), h = hash(k, 7.7);
     dummy.position.set(x, hAt(x, z) + .1, z); dummy.rotation.set((h - .5) * .12, h * 6.3, (hash(k, 4.4) - .5) * .12); dummy.scale.set(r, .06, r * (.75 + .4 * h)); dummy.updateMatrix();
     pathStones.setMatrixAt(n, dummy.matrix);
-    sc.setRGB(.37 + .1 * h, .34 + .09 * h, .29 + .07 * h); sc.setRGB(sc.r ** 2.2, sc.g ** 2.2, sc.b ** 2.2); pathStones.setColorAt(n, sc); n++;
+    lin(sc, PS.set, h, .1); pathStones.setColorAt(n, sc); n++;
   }
   for (const [x, z] of kerb) {
     if (n >= MAX_PSTONES) break;
     const h = hash(x * 5.1, z * 3.7), r = .05 + .045 * h;
     dummy.position.set(x, hAt(x, z) + .07, z); dummy.rotation.set((h - .5) * .2, h * 6.3, (hash(z, x) - .5) * .2); dummy.scale.set(r, .09, r * (.8 + .4 * h)); dummy.updateMatrix();
     pathStones.setMatrixAt(n, dummy.matrix);
-    sc.setRGB(.4 + .12 * h, .38 + .1 * h, .33 + .08 * h); sc.setRGB(sc.r ** 2.2, sc.g ** 2.2, sc.b ** 2.2); pathStones.setColorAt(n, sc); n++;
+    lin(sc, PS.kerb, h, .12); pathStones.setColorAt(n, sc); n++;
   }
   pathStones.count = n; pathStones.instanceMatrix.needsUpdate = true; if (pathStones.instanceColor) pathStones.instanceColor.needsUpdate = true;
   seatClutter();
@@ -5916,9 +5927,19 @@ try {   // last game's picks; anything unknown falls back to the default
     if (D && D.length === DECOR_PICK && D.every(t => DECOR_ALL.includes(t))) LOADOUT.decor = D; }
 } catch (e) {}
 const LOAD_TAG = { ranged: 'Ranged', siege: 'Siege', barracks: 'Troops' };
+// a campaign stage with more decor unlocked than DECOR_PICK lets the player choose four on the town picker (the rest shown locked);
+// the picks are kept per stage in localStorage['mtd-stage-decor'], by default the newest four
+const stageDecorAll = m => CAMP_MAPS[m].cats.decor.filter(t => t !== 'road');
+const stagePicks = m => stageDecorAll(m).length > DECOR_PICK;
+var STAGE_DECOR = {}; try { STAGE_DECOR = JSON.parse(localStorage.getItem('mtd-stage-decor') || '{}') || {}; } catch (e) {}
+function stageDecor(m) {
+  const all = stageDecorAll(m), d = STAGE_DECOR[m];
+  return Array.isArray(d) && d.length === DECOR_PICK && d.every(t => all.includes(t)) ? d.slice() : all.slice(-DECOR_PICK);
+}
+var stagePick = null;   // the stage map whose picks the town picker is showing (null: free play's loadout)
 function applyLoadout() {
   const CM = CAMP_MAPS[MAP], L = CM ? { ...LOADOUT, food: 'farm', wood: 'lodge', stone: 'quarry', ranged: 'tower' } : LOADOUT;
-  if (CM) Object.assign(CATS, JSON.parse(JSON.stringify(CM.cats)));
+  if (CM) { Object.assign(CATS, JSON.parse(JSON.stringify(CM.cats))); if (stagePicks(MAP)) { const d = stageDecor(MAP); CATS.decor = ['road', ...stageDecorAll(MAP).filter(t => d.includes(t))]; } }
   else { CATS.eco = ['house', L.food, L.wood, L.stone, 'market']; CATS.def = [L.ranged, L.siege, L.barracks, 'wall', 'gate']; CATS.decor = ['road', ...L.decor]; }
   // the first day's guide follows the picks (a stage may have its own)
   GUIDE = [];
@@ -5930,25 +5951,40 @@ function applyLoadout() {
     { text: 'Upgrade a building', tool: 'select', done: () => buildings.some(B => B.tier > 1 || (B.site && B.site.kind === 'up')) });
   if (tierCap() < 2) GUIDE.pop();   // no upgrades on this stage
 }
+const LOCK_ICO = '<svg class="lockIco" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V8 a4 4 0 0 1 8 0 V11"/></svg>';
 function renderLoadPick() {
-  const L = LOADOUT, opt = (t, on, slot) => `<button class="ldOpt" data-slot="${slot}" data-t="${t}" aria-pressed="${on}"><span class="tIco">${TOOL_ICON[t]}</span><span><b>${DEF[t].name}</b><small>${costHTML(DEF[t].cost)}</small></span></button>`;
+  // on a stage: what it has unlocked is fixed (or, for decor, picked), everything else shows a lock
+  const SM = stagePick && CAMP_MAPS[stagePick], open = SM ? new Set([...SM.cats.eco, ...SM.cats.def, ...SM.cats.decor]) : null;
+  const L = SM ? { ...Object.fromEntries([...LOAD_SLOTS.eco, ...LOAD_SLOTS.def].map(([slot, opts]) => [slot, opts.find(t => open.has(t))])), decor: STAGE_DECOR[stagePick] } : LOADOUT;
+  const lk = t => open && !open.has(t);
+  const opt = (t, on, slot) => `<button class="ldOpt${lk(t) ? ' locked' : ''}" data-slot="${slot}" data-t="${t}" aria-pressed="${on}"><span class="tIco">${TOOL_ICON[t]}</span><span><b>${DEF[t].name}</b><small>${lk(t) ? LOCK_ICO : costHTML(DEF[t].cost)}</small></span></button>`;
   for (const k of ['eco', 'def']) $(k === 'eco' ? '#ldEco' : '#ldDef').innerHTML = LOAD_SLOTS[k].map(([slot, opts]) =>
     `<div class="ldRow"><span class="ldCat">${k === 'eco' ? `<span class="ico">${ICON[slot]}</span>` : `<span class="tag">${LOAD_TAG[slot]}</span>`}</span>${opts.map(t => opt(t, L[slot] === t, slot)).join('')}</div>`).join('');
-  $('#ldDecor').innerHTML = DECOR_ALL.map(t => `<button class="ldOpt" data-slot="decor" data-t="${t}" aria-pressed="${L.decor.includes(t)}"><span class="tIco">${TOOL_ICON[t]}</span><b>${t === 'road' ? 'Path' : DEF[t].name}</b></button>`).join('');
-  const n = L.decor.length; $('#ldDecN').textContent = `${n}/${DECOR_PICK}`; $('#ldDecN').classList.toggle('short', n !== DECOR_PICK); $('#ldStart').disabled = n !== DECOR_PICK;
+  $('#ldDecor').innerHTML = DECOR_ALL.map(t => `<button class="ldOpt${lk(t) ? ' locked' : ''}" data-slot="decor" data-t="${t}" aria-pressed="${!lk(t) && L.decor.includes(t)}"><span class="tIco">${lk(t) ? LOCK_ICO : TOOL_ICON[t]}</span><b>${t === 'road' ? 'Path' : DEF[t].name}</b></button>`).join('');
+  $('#ldBack').textContent = SM ? 'Back' : 'Maps';
+  const n = (L.decor || []).length; $('#ldDecN').textContent = `${n}/${DECOR_PICK}`; $('#ldDecN').classList.toggle('short', n !== DECOR_PICK); $('#ldStart').disabled = n !== DECOR_PICK;
 }
 $('#loadPick').addEventListener('click', e => {
   const b = e.target.closest('.ldOpt'); if (!b) return;
-  const L = LOADOUT, t = b.dataset.t;
+  if (stagePick && (b.classList.contains('locked') || b.dataset.slot !== 'decor')) { if (b.classList.contains('locked')) sfx('nope'); return; }   // a stage's buildings are set
+  const L = stagePick ? { decor: STAGE_DECOR[stagePick] } : LOADOUT, t = b.dataset.t;
   if (b.dataset.slot !== 'decor') L[b.dataset.slot] = t;
   else if (L.decor.includes(t)) L.decor = L.decor.filter(x => x !== t);
   else if (L.decor.length < DECOR_PICK) L.decor.push(t);
   else { sfx('nope'); return; }
+  if (stagePick) STAGE_DECOR[stagePick] = L.decor;
   sfx('click'); renderLoadPick();
 });
-function showLoadPick() { renderLoadPick(); $('#loadPick').hidden = false; $('#loadPick').scrollTop = 0; }
-$('#ldBack').addEventListener('click', () => { $('#loadPick').hidden = true; showMapPick(); });
+function showLoadPick(stage) {
+  stagePick = stage || null; if (stagePick) STAGE_DECOR[stagePick] = stageDecor(stagePick);
+  renderLoadPick(); $('#loadPick').hidden = false; $('#loadPick').scrollTop = 0; }
+$('#ldBack').addEventListener('click', () => { $('#loadPick').hidden = true; if (stagePick) { stagePick = null; openCampaign(CAMP_MAPS[MAP].stop); } else showMapPick(); });
 $('#ldStart').addEventListener('click', () => {
+  if (stagePick) {
+    if (STAGE_DECOR[stagePick].length !== DECOR_PICK) return;
+    try { localStorage.setItem('mtd-stage-decor', JSON.stringify(STAGE_DECOR)); } catch (e) {}
+    stagePick = null; $('#loadPick').hidden = true; $('#campaign').hidden = true; paused = false; startGame(); return;
+  }
   if (LOADOUT.decor.length !== DECOR_PICK) return;
   try { localStorage.setItem('mtd-loadout', JSON.stringify(LOADOUT)); } catch (e) {}
   $('#loadPick').hidden = true; paused = false; startGame();
@@ -6187,7 +6223,11 @@ function openStage(i) {
   $('#stNew').innerHTML = c.adds.map(t => `<span>${TOOL_ICON[t] || ''}${t === 'road' ? 'Path' : DEF[t].name}</span>`).join('');
   $('#stStars').innerHTML = starsHTML(c.map ? STARS[c.map] || 0 : 0);
   $('#stPlay').innerHTML = c.map ? '<button class="primary" id="campPlay">Play</button>' : '';
-  if (c.map) $('#campPlay').addEventListener('click', () => { MAP = c.map; $('#stagePrev').hidden = true; $('#campaign').hidden = true; $('#mapPick').hidden = true; paused = false; startGame(); });
+  if (c.map) $('#campPlay').addEventListener('click', () => {
+    MAP = c.map; $('#stagePrev').hidden = true; $('#mapPick').hidden = true;
+    if (stagePicks(MAP)) { showLoadPick(MAP); return; }   // more decor than fits: choose four first
+    $('#campaign').hidden = true; paused = false; startGame();
+  });
   $('#stagePrev').hidden = false;
 }
 $('#stBack').addEventListener('click', () => { $('#stagePrev').hidden = true; });
