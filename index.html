@@ -6022,7 +6022,7 @@ function campaignSVG() {
   </svg>`;
 }
 // a stage's preview: its picture (the real stage where it's built, else its sketch), what it brings in, stars, Play
-const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' } };
+const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' }, 2: { src: 'design/stages/stage3-market-cross.png', tag: 'Sketch' } };
 function openStage(i) {
   const c = CAMPAIGN[i], pic = STAGE_PIC[i];
   document.querySelectorAll('#campMap .mk').forEach(m => m.classList.toggle('sel', +m.dataset.i === i));
