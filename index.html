@@ -538,17 +538,19 @@ DEF.well.charm = .25; DEF.torch.charm = .1; DEF.flowers.charm = .15; DEF.statue.
 const PATH_COST = { gold: 1 }, PATH_SPEED = 1.6, PATH_CHARM = .02, CHARM_R = 8, WALK = { farm: 1, forester: 1, farmhouse: 1, torch: 1, flowers: 1 };
 const CATS = { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'stables', 'wall', 'gate'], decor: ['road', 'well', 'torch', 'flowers', 'statue', 'banner', 'campfire', 'rack'] };
 const WALLY = { wall: 1, gate: 1 };   // walls join only walls and gates
-// spearmen are the basic raider and come first; swordsmen join from wave 2, captains from wave 3
+// each wave: how many of each raider kind come, by tier ([tier 1, tier 2, tier 3]); spearmen are the basic raider and come
+// first, the rest join wave by wave, tiers climb, siege engines come last in the column
 const WAVES_STD = [
-  { spear: 7, sword: 0, archer: 2, hp: 1, dmg: 1 },
-  { spear: 9, sword: 4, archer: 3, hp: 1.15, dmg: 1.1 },
-  { spear: 10, sword: 6, archer: 5, hp: 1.3, dmg: 1.2, captain: 1 },
-  { spear: 12, sword: 9, archer: 7, hp: 1.45, dmg: 1.35, captain: 1 },
-  { spear: 14, sword: 12, archer: 10, hp: 1.6, dmg: 1.5, captain: 2 },
+  { spear: [7], archer: [2] },
+  { spear: [7, 2], sword: [4], archer: [3], ram: [1] },
+  { spear: [6, 4], sword: [4, 2], archer: [3, 2], xbow: [3], lancer: [2], ballista: [1] },
+  { spear: [4, 6, 2], sword: [3, 4, 2], archer: [2, 4, 1], xbow: [2, 2], lancer: [1, 2], rider: [2], catapult: [1], ram: [0, 1] },
+  { spear: [2, 6, 6], sword: [2, 4, 6], archer: [2, 4, 4], xbow: [0, 3, 2], lancer: [0, 2, 1], rider: [0, 2, 2], ballista: [0, 1], catapult: [0, 0, 1], ram: [0, 1, 1] },
 ];
 // Mountain pass: one long day to prepare, then two huge nights
 const MAP_RULES = {
-  pass: { waves: [{ spear: 36, sword: 18, archer: 14, hp: 1.2, dmg: 1.1, captain: 2 }, { spear: 46, sword: 28, archer: 22, hp: 1.45, dmg: 1.3, captain: 4 }],
+  pass: { waves: [{ spear: [30, 6], sword: [12, 4], archer: [10, 2], xbow: [4], lancer: [1], ram: [1] },
+                  { spear: [10, 26, 10], sword: [4, 12, 8], archer: [4, 10, 6], xbow: [0, 4, 2], lancer: [0, 1], rider: [0, 0, 1], ballista: [0, 1], catapult: [0, 1] }],
           day: [900, 150], spawnGap: .5 },
 };
 var WAVES = WAVES_STD, NIGHTS = WAVES.length, DAYLEN = [300, 150, 150, 150, 150], SPAWN_GAP = 1.1;
@@ -557,8 +559,18 @@ const ENEMY = {
   sword:   { hp: 50, speed: 1.5, range: .6, dmg: 6, rate: 1.0 },
   archer:  { hp: 32, speed: 1.3, range: 4.5, dmg: 6, rate: 1.8 },
   spear:   { hp: 38, speed: 1.5, range: 1.1, dmg: 5, rate: 1.2 },               // the weakest raider, but with a longer reach than a sword
-  captain: { hp: 260, speed: 2.0, range: 1.0, dmg: 16, rate: 1.1, mounted: true },   // rides a horse, swings a sword
+  xbow:    { hp: 36, speed: 1.2, range: 5.5, dmg: 9, rate: 2.4 },               // crossbowman: slower to load, hits harder, a little further
+  lancer:  { hp: 110, speed: 2.2, range: 1.4, dmg: 8, rate: 1.2, mounted: true },   // spearman on a horse
+  rider:   { hp: 140, speed: 2.1, range: 1.0, dmg: 11, rate: 1.0, mounted: true },  // swordsman on a horse: rides for the castle
+  // siege engines, pushed by two of their crew; r: how far they keep others off (separateUnits)
+  ballista: { hp: 150, speed: .55, range: 10, dmg: 24, rate: 4.5, engine: true, r: .8 },
+  catapult: { hp: 170, speed: .45, range: 13, dmg: 30, rate: 6.5, engine: true, r: .85, splash: 1.6 },
+  ram:      { hp: 280, speed: .6, range: 1.25, dmg: 45, rate: 2.4, engine: true, r: .9 },   // goes for walls and gates (range from its middle: the head reaches 1.3 m ahead)
 };
+// raider tiers: the same three looks for every kind (raiderArmour), stronger by tier
+const RAIDER_T = { hp: [1, 1.6, 2.3], dmg: [1, 1.3, 1.65] };
+const RAIDER_NAME = { spear: 'Spearman', sword: 'Swordsman', archer: 'Archer', xbow: 'Crossbow', lancer: 'Horse spear', rider: 'Horse sword',
+  ballista: ['Scorpion', 'Ballista', 'Great ballista'], catapult: ['Catapult', 'Mangonel', 'Trebuchet'], ram: ['Ram', 'Covered ram', 'Iron ram'] };
 
 // ---------- noise ----------
 function hash(x, y) { const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return h - Math.floor(h); }
@@ -3047,9 +3059,7 @@ function makeHair(m) {
   return h;
 }
 // headgear for soldiers and raiders, rounded rather than pointed
-const steelM = mat('#a3aab2'), soldierBandM = mat('#2d4f86'), ironM = mat('#5b6067'), bandM = mat('#3b3129'), plumeM = mat('#b3261e'),
-  raiderHoodM = (() => { const m = mat('#3a2a26'); m.side = THREE.DoubleSide; return m; })();
-const captainShieldM = mat('#2a2b2e'), captainRimM = mat('#d9d6cc');
+const steelM = mat('#a3aab2'), soldierBandM = mat('#2d4f86'), ironM = mat('#5b6067'), bandM = mat('#3b3129'), darkIronM = mat('#3e4248');
 const mailM = mat('#8d939a'), kiteM = mat('#3466b0');   // soldiers' mail; their blue shields and surcoat (plain: M.flag waves)
 // tier-2 defenders' gambeson: blue-grey padded cloth quilted in rows (canvas texture)
 function quiltMat(base, line) {
@@ -3071,16 +3081,17 @@ function makeHelm(kind) {
     const d = add(new THREE.Mesh(new THREE.SphereGeometry(.153, 14, 7, 0, Math.PI * 2, 0, Math.PI * .55), steelM)); d.position.y = 1.045; d.scale.y = 1.12;
     add(cyl(.156, .156, .032, 14, soldierBandM, 0, 1.06, 0));
     add(box(.028, .12, .022, steelM, 0, 1.0, .148));
-  } else if (kind === 'hood') {              // raider archer: tall pointed iron cap on a dark coif that wraps the neck, open at the face
-    const d = add(new THREE.Mesh(new THREE.SphereGeometry(.158, 12, 8, Math.PI * .75, Math.PI * 1.5, 0, Math.PI * .66), raiderHoodM)); d.position.set(0, 1.03, -.01);
-    add(cyl(.16, .23, .1, 10, raiderHoodM, 0, .9, -.01));
-    add(cone(.162, .27, 10, ironM, 0, 1.2, 0)); add(cyl(.165, .165, .035, 12, bandM, 0, 1.075, 0));
-  } else {                                   // raider: dark iron dome with a riveted band and a nose guard; the captain adds a red crest
+  } else if (kind === 'greathelm') {         // tier-3 raider: a closed dark iron helm, flat-topped, an eye slit and breaths, a cross on the face
+    add(cyl(.158, .162, .27, 12, ironM, 0, 1.04, 0));
+    const t = add(new THREE.Mesh(new THREE.SphereGeometry(.158, 12, 5, 0, Math.PI * 2, 0, Math.PI * .3), ironM)); t.position.y = 1.15; t.scale.y = .7;
+    add(box(.2, .026, .03, M.dark, 0, 1.07, .152));
+    add(box(.03, .17, .02, darkIronM, 0, 1.01, .162)); add(box(.2, .03, .02, darkIronM, 0, 1.105, .158));
+    for (const sx of [-1, 1]) for (const y of [.97, 1.0]) add(box(.03, .012, .02, M.dark, sx * .07, y, .152));
+  } else {                                   // tier-2 raider: dark iron dome with a riveted band, a nose guard and cheek guards
     const d = add(new THREE.Mesh(new THREE.SphereGeometry(.153, 14, 7, 0, Math.PI * 2, 0, Math.PI * .55), ironM)); d.position.y = 1.045; d.scale.y = 1.12;
     add(cyl(.156, .156, .032, 14, bandM, 0, 1.06, 0));
     add(box(.028, .12, .022, ironM, 0, 1.0, .148));
     for (const sx of [-1, 1]) { const c = add(box(.02, .1, .07, ironM, sx * .14, .98, .05)); c.rotation.y = sx * .25; }
-    if (kind === 'captain') { add(box(.045, .08, .26, plumeM, 0, 1.25, -.01)); add(box(.04, .06, .12, plumeM, 0, 1.2, -.14)); }
   }
   return h;
 }
@@ -3847,9 +3858,9 @@ function updateTrees(now) {
 }
 
 // ---------- enemies + combat ----------
-const raiderRed = mat('#a32a22'), enemyTunic = { sword: raiderRed, archer: raiderRed, spear: raiderRed, captain: raiderRed };   // every raider wears the same red
+const raiderRed = mat('#a32a22');   // every raider wears the same red
 const shieldM = mat('#5a2a1e');
-// the raider captain rides: a horse under the rider, who sits astride with legs to either side
+// mounted raiders (and the stables' riders) ride: a horse under the rider, who sits astride with legs to either side
 const horseM = mat('#5a3a22'), maneM = mat('#2a1d14'), saddleM = mat('#3a2418'), blanketM = mat('#8a221c'), hoofM = mat('#1f1a16');
 const SADDLE = .72;   // lifts the rider's body so the hips sit on the saddle
 function mountHorse(p, cloth = blanketM) {
@@ -3912,20 +3923,106 @@ function swordPose(p, at, sw) {
   const cut = t > .4 && t < .85 ? Math.sin(Math.PI * (t - .4) / .45) : 0;
   p.body.position.z = .1 * cut; if (cut > 0) p.body.rotation.x = .08 * cut;
 }
-function makeRaider(kind) {
-  const p = makePerson({ tunic: enemyTunic[kind], helm: kind === 'archer' ? 'hood' : kind === 'captain' ? 'captain' : 'raider', tool: kind === 'archer' ? 'bow' : kind === 'spear' ? 'spear' : 'sword' });
-  if (kind === 'sword') armShield(p, roundShield(.19, M.wood));                                 // spearmen carry none; archers need both hands
-  if (kind === 'captain') armShield(p, heaterShield(.32, .46, captainShieldM, captainRimM));
-  if (ENEMY[kind].mounted) mountHorse(p);
+// raiders dress by tier, the same for every kind (only the weapon differs): 1 a plain red shirt and a rope belt, bare-headed;
+// 2 a red quilted gambeson with a short skirt, a leather belt and an iron helm with nose and cheek guards; 3 mail under a red
+// surcoat, a closed iron great helm and iron shoulder plates
+const raiderQuiltM = quiltMat('#9c3328', '#6c1d17'), ropeBeltM = mat('#8a7650');
+function raiderArmour(p, tier) {
+  const put = o => { o.castShadow = true; p.body.add(o); return o; };
+  const tun = tier === 3 ? mailM : tier === 2 ? raiderQuiltM : raiderRed;
+  p.torso.material = tun; p.arms.forEach(a => a.userData.sleeve.material = tun); p.baseTunic = tun;
+  if (tier === 1) put(cyl(.197, .197, .04, 10, ropeBeltM, 0, .47, 0));
+  if (tier === 2) { put(cyl(.205, .228, .13, 10, raiderQuiltM, 0, .37, 0)); put(cyl(.197, .197, .045, 10, leatherM, 0, .5, 0)); put(makeHelm('raider')); }
+  if (tier === 3) {
+    put(cyl(.15, .214, .42, 8, raiderRed, 0, .62, 0)); put(cyl(.17, .17, .05, 8, leatherM, 0, .55, 0)); put(makeHelm('greathelm'));
+    for (const sx of [-1, 1]) { const pl = put(new THREE.Mesh(new THREE.SphereGeometry(.09, 8, 5, 0, Math.PI * 2, 0, Math.PI * .5), darkIronM)); pl.position.set(sx * .19, .86, 0); pl.scale.set(1, .8, 1.15); }
+  }
+}
+const raiderShieldM = mat('#7a2019');
+const RAIDER_TOOL = { spear: 'spear', lancer: 'spear', sword: 'sword', rider: 'sword', archer: 'bow', xbow: 'crossbow' };
+function makeRaider(kind, tier = 1) {
+  if (ENEMY[kind].engine) return makeEngine(kind, tier);
+  const p = makePerson({ tunic: raiderRed, tool: RAIDER_TOOL[kind] });
+  raiderArmour(p, tier);
+  if (kind === 'sword' || kind === 'rider') armShield(p, roundShield(.19, tier === 3 ? raiderShieldM : M.wood));   // spearmen carry none; archers need both hands
+  if (ENEMY[kind].mounted) {
+    mountHorse(p);
+    if (tier === 3) { const ch = box(.17, .06, .34, darkIronM, 0, 1.3, .72); ch.rotation.x = .35; p.horse.add(ch); }   // an iron plate down the horse's face
+    if (tier >= 2) for (const sx of [-1, 1]) p.horse.add(box(.02, .3, .5, raiderRed, sx * .185, .9, -.05));               // a red cloth down its flanks
+  }
   return p;
 }
-function spawnEnemy(kind, sp, wave) {
-  const E = ENEMY[kind], w = WAVES[wave - 1], p = makeRaider(kind);
+// raider siege engines on wheels, pushed by two of their crew (dressed by the engine's tier) walking behind; a red pennant from
+// tier 2. ballista: the town's swivel bow on a wheeled carriage; catapult: the town's engine of the same tier (it has wheels);
+// ram: a log slung from a frame on four wheels, under a plank roof from tier 2, hides and an iron head at tier 3
+const RAM_Y = .62, RAM_ROPE = .78, RAM_T = 1.1;   // the ram's log height, rope length, one swing
+const ENG_LEN = { ballista: 1.7, catapult: [1.6, 1.8, 2.0], ram: 2.3 };
+function wheel(g, r, x, y, z, iron) {
+  const w = cyl(r, r, .08, 12, M.wood, x, y, z); w.rotation.z = Math.PI / 2; g.add(w);
+  const h = cyl(r * .3, r * .3, .1, 8, iron ? M.iron : M.timber, x, y, z); h.rotation.z = Math.PI / 2; g.add(h);
+  if (iron) { const t = cyl(r + .008, r + .008, .03, 12, M.iron, x + Math.sign(x) * .03, y, z); t.rotation.z = Math.PI / 2; g.add(t); }
+}
+function pennant(g, x, y, z) {
+  g.add(cyl(.02, .02, 1.0, 5, M.timber, x, y + .5, z));
+  const f = box(.02, .22, .34, raiderRed, x, y + .86, z - .18); f.castShadow = true; g.add(f);
+}
+function makeEngine(kind, tier) {
+  const g = new THREE.Group(), m = new THREE.Group(); g.add(m); scene.add(g);
+  const fm = tier === 1 ? M.rough : M.timber, iron = tier > 1;
+  const P = { g, model: m, engine: kind, tier, crew: [] };
+  let len;
+  if (kind === 'ballista') {
+    len = ENG_LEN.ballista;
+    for (const sx of [-1, 1]) m.add(box(.1, .14, 1.5, fm, sx * .38, .42, 0));
+    for (const z of [-.55, .55]) { m.add(box(.86, .1, .12, fm, 0, .42, z)); const ax = cyl(.03, .03, 1.0, 6, M.iron, 0, .26, z); ax.rotation.z = Math.PI / 2; m.add(ax); for (const sx of [-1, 1]) wheel(m, .26, sx * .5, .26, z, iron); }
+    m.add(box(.84, .06, 1.3, M.wood, 0, .5, 0));
+    if (tier === 3) for (const sx of [-1, 1]) m.add(box(.04, .04, 1.52, M.iron, sx * .38, .5, 0));
+    if (tier >= 2) { const sh = box(1.0, .4, .06, M.wood, 0, .73, .8); sh.rotation.x = -.25; m.add(sh); }       // a timber mantlet at the front
+    const t = ballistaTurret(BALLISTA_K[tier - 1] * .9); t.position.y = .5; m.add(t); P.turret = t;
+    t.traverse(o => { if (o.userData.bolt) P.bolt = o; });
+  } else if (kind === 'catapult') {
+    len = ENG_LEN.catapult[tier - 1];
+    const c = makeCatapult(tier); m.add(c);
+    c.traverse(o => { if (o.userData.arm) P.arm = o; if (o.userData.bolt) P.bolt = o; if (o.userData.wrope || o.userData.trope) o.visible = false; });
+  } else {
+    len = ENG_LEN.ram;
+    for (const sx of [-1, 1]) m.add(box(.1, .12, 2.0, fm, sx * .45, .36, 0));
+    for (const z of [-.75, .75]) { m.add(box(1.0, .1, .1, fm, 0, .36, z)); for (const sx of [-1, 1]) wheel(m, .24, sx * .56, .24, z, iron); }
+    for (const sx of [-1, 1]) for (const z of [-.7, .7]) m.add(box(.09, 1.05, .09, fm, sx * .45, .9, z));            // uprights
+    for (const z of [-.7, .7]) m.add(box(1.0, .1, .1, fm, 0, 1.42, z));
+    m.add(box(.1, .1, 1.5, fm, 0, 1.42, 0));                                                                         // the beam it hangs from
+    // the log hangs level on two ropes from the beam (a parallelogram): it swings back and drives forward without tilting
+    const sw = new THREE.Group(); sw.position.set(0, RAM_Y, 0); m.add(sw); P.ram = sw; P.ropes = [];
+    const lg = cyl(.13, .14, 2.3, 8, M.rough, 0, 0, .1); lg.rotation.x = Math.PI / 2; sw.add(lg);
+    const head = tier === 3 ? cone(.17, .32, 8, darkIronM, 0, 0, 1.38) : cyl(.15, .15, .14, 8, tier === 2 ? M.iron : M.rough, 0, 0, 1.28);
+    head.rotation.x = Math.PI / 2; sw.add(head);
+    for (const z of [-.45, .55]) { const r = new THREE.Group(); r.position.set(0, RAM_Y + RAM_ROPE, z); r.add(box(.025, RAM_ROPE, .025, ropeM, 0, -RAM_ROPE / 2, 0)); m.add(r); P.ropes.push(r); }
+    if (tier >= 2) {                                                                                                 // the roof: planks, hides on top at tier 3
+      const rm = tier === 3 ? leatherM : M.wood;
+      for (const sx of [-1, 1]) { const r = box(.78, .06, 1.9, rm, sx * .3, 1.66, 0); r.rotation.z = -sx * .62; m.add(r); }
+      if (tier === 3) for (const sx of [-1, 1]) for (const z of [-.6, 0, .6]) { const b = box(.8, .02, .04, M.iron, sx * .3, 1.69, z); b.rotation.z = -sx * .62; m.add(b); }
+    }
+  }
+  if (tier >= 2) pennant(m, kind === 'ram' ? .42 : -.42, kind === 'ram' ? 1.4 : .5, -len / 2 + .15);
+  m.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  // the crew push from behind (their own figures, dressed by the engine's tier, hands forward on the frame)
+  for (const sx of [-1, 1]) {
+    const c = makePerson({ tunic: raiderRed }); raiderArmour(c, tier);
+    c.g.position.set(sx * .3, 0, -len / 2 - .32); g.add(c.g); P.crew.push(c);
+    c.arms.forEach(a => a.rotation.x = -1.35);
+  }
+  P.len = len;
+  return P;
+}
+function spawnEnemy(kind, sp, wave, tier = 1) {
+  const E = ENEMY[kind], k = tier - 1, w = WAVES[wave - 1] || {}, p = makeRaider(kind, tier);
   // only a raider's bigger parts cast shadows: the Mountain pass sends up to 100 at once, and every shadow is another draw
   p.g.traverse(o => { if (o.isMesh) { const g = o.geometry; if (!g.boundingSphere) g.computeBoundingSphere(); if (g.boundingSphere.radius < .16) o.castShadow = false; } });
-  const e = Object.assign(p, { kind, x: clamp(sp.x + (Math.random() - .5) * 2, 1, SIZE - 1), z: clamp(sp.z + (Math.random() - .5) * 2, 1, SIZE - 1),
-    hp: E.hp * w.hp, max: E.hp * w.hp, speed: E.speed * (.9 + Math.random() * .2), range: E.range, dmg: E.dmg * w.dmg, rate: E.rate,
-    cool: Math.random(), target: null, retarget: 0, dead: false, deadT: 0, bar: makeBar(kind === 'captain' ? 1.2 : .8) });
+  const hp = E.hp * RAIDER_T.hp[k] * (w.hp || 1);
+  const e = Object.assign(p, { kind, tier, x: clamp(sp.x + (Math.random() - .5) * 2, 1, SIZE - 1), z: clamp(sp.z + (Math.random() - .5) * 2, 1, SIZE - 1),
+    hp, max: hp, speed: E.speed * (.9 + Math.random() * .2), range: E.range, dmg: E.dmg * RAIDER_T.dmg[k], rate: E.rate,
+    cool: E.engine ? E.rate * .5 : Math.random(), target: null, retarget: 0, dead: false, deadT: 0, phase: Math.random() * 6,
+    bar: makeBar(E.engine ? 1.3 : E.mounted ? 1.0 : .8), barY: E.engine ? (kind === 'catapult' ? [1.6, 1.8, 3.3][k] : kind === 'ram' ? 2.1 : 1.5) : 1.6 * UNIT_K + (E.mounted ? SADDLE : 0) });
   enemies.push(e);
 }
 function distRect(B, x, z) { const e = B.ev; return Math.hypot(Math.max(e.x0 - x, 0, x - e.x1), Math.max(e.z0 - z, 0, z - e.z1)); }
@@ -4049,12 +4146,26 @@ function updateVolley(dt) {
   });
 }
 // a raider falling grunts at most every 3 s (SFX_GAP); otherwise the thud of the arrow hit plays
+// a siege engine broken: timbers fly, dust, a small shake; it slumps to one side and its crew fall
+function engineWreck(e, y) {
+  e.fallDir = Math.random() < .5 ? -1 : 1; shake(.08, e); sfx('attack', e);
+  for (let i = 0; i < 12 && debris.length < 120; i++) {
+    const sz = .07 + Math.random() * .12, o = box(sz, sz * .5, sz * (1.5 + Math.random() * 2), i % 3 ? M.timber : M.wood, e.x + (Math.random() - .5), y + .5 + Math.random() * .6, e.z + (Math.random() - .5));
+    scene.add(o); debris.push({ o, vx: (Math.random() - .5) * 4, vy: 2.5 + Math.random() * 3, vz: (Math.random() - .5) * 4, life: 1.4 + Math.random() * .6, spin: (Math.random() - .5) * 12 });
+  }
+  for (let i = 0; i < 8; i++) dustAt(e.x + (Math.random() - .5) * 1.6, y, e.z + (Math.random() - .5) * 1.6);
+}
 function hurtEnemy(e, d) {
   if (e.dead) return; e.hp -= d; e.flashT = .14;
-  if (e.hp <= 0) { e.dead = true; e.bar.grp.visible = false; stats.slain++; sfx('grunt', e) || sfx('arrowHit', e); const y = walkY(e.x, e.z); for (let i = 0; i < 5; i++) dustAt(e.x, y, e.z); }   // a puff of dust as they fall
+  if (e.hp <= 0) {
+    e.dead = true; e.bar.grp.visible = false; stats.slain++; const y = walkY(e.x, e.z);
+    if (e.engine) { engineWreck(e, y); return; }
+    sfx('grunt', e) || sfx('arrowHit', e); for (let i = 0; i < 5; i++) dustAt(e.x, y, e.z);   // a puff of dust as they fall
+  }
 }
-// who goes for what: spearmen hit the nearest building, swordsmen hunt archer towers, the captain rides for the castle,
-// archers aim past walls and gates at what lies behind them
+// who goes for what: spearmen hit the nearest building, swordsmen and horse spearmen hunt towers and siege engines, horse
+// swordsmen ride for the castle, archers, crossbowmen and the ballista aim past walls and gates at what lies behind them, the
+// catapult goes for towers and engines, the ram for walls and gates
 const NOT_WALL = B => B.type !== 'wall' && B.type !== 'gate';
 // how many cells a raider at (x, z) must walk to each cell: over land and bridges (ends only), buildings counted as open
 // (they break through); water with no bridge is Infinity. Targets are picked by this, never by a straight line across a river
@@ -4087,18 +4198,65 @@ function reachTarget(e, ok) {
   if (best) { const cx = (bc % N + .5) * CELL, cz = (((bc / N) | 0) + .5) * CELL; e.tpNew = { x: clamp(cx, best.ev.x0, best.ev.x1), z: clamp(cz, best.ev.z0, best.ev.z1) }; }
   return best;
 }
+const DEFENCE = B => B.type !== 'castle' && (DEF[B.type].archers || DEF[B.type].crew);
 function pickTarget(e) {
   e.field = null; e.tpNew = null;
-  if (e.kind === 'captain') { const K = castleB(); return K && reachTarget(e, B => B === K) || reachTarget(e) || nearestBuilding(e.x, e.z); }
-  if (e.kind === 'sword') return reachTarget(e, B => B.type !== 'castle' && (DEF[B.type].archers || DEF[B.type].crew)) || reachTarget(e) || nearestBuilding(e.x, e.z);
-  if (e.kind === 'archer') return reachTarget(e, NOT_WALL) || reachTarget(e) || nearestBuilding(e.x, e.z);
-  return reachTarget(e) || nearestBuilding(e.x, e.z);
+  const k = e.kind, any = () => reachTarget(e) || nearestBuilding(e.x, e.z);
+  if (k === 'rider') { const K = castleB(); return K && reachTarget(e, B => B === K) || any(); }
+  if (k === 'sword' || k === 'lancer') return reachTarget(e, DEFENCE) || any();
+  if (k === 'archer' || k === 'xbow' || k === 'ballista') return reachTarget(e, NOT_WALL) || any();
+  if (k === 'catapult') return reachTarget(e, DEFENCE) || reachTarget(e, NOT_WALL) || any();
+  if (k === 'ram') { const K = castleB(); return reachTarget(e, B => WALLY[B.type]) || K && reachTarget(e, B => B === K) || any(); }
+  return any();
+}
+const SHOOTER = { archer: 1, xbow: 1 }, SPEARS = k => RAIDER_TOOL[k] === 'spear';
+// an engine's shot: the ballista's bolt flies dead straight from its bow; the catapult lobs its stone (sized by tier) high
+function engineShot(e, B, c) {
+  const tgt = B, dmg = e.dmg, to = new THREE.Vector3(c.x, B.group.position.y + .8, c.z);
+  e.g.updateMatrixWorld(true);
+  if (e.kind === 'ballista') {
+    const from = e.turret.localToWorld(new THREE.Vector3(0, .6, .75));
+    fireArrow(from, to, () => { hurtBuilding(tgt, dmg); dustAt(c.x, tgt.group.position.y, c.z); }, .01, 'bolt');
+    for (let n = 0; n < e.tier; n++) dustAt(e.x + (Math.random() - .5), walkY(e.x, e.z), e.z + (Math.random() - .5));
+  } else {
+    const from = e.bolt ? e.bolt.getWorldPosition(new THREE.Vector3()) : new THREE.Vector3(e.x, e.g.position.y + 1.5, e.z), d = from.distanceTo(to);
+    const m = fireArrow(from, to, () => { hurtBuilding(tgt, dmg); blastFx(c.x, c.z, e.tier, ENEMY.catapult.splash * .6); shake(.03 + .02 * e.tier, c); }, 3 + d * .25, 'stone');
+    m.scale.setScalar(CATA_SHOT[e.tier - 1]);
+    e.thrownAt = 0; for (let n = 0; n < e.tier; n++) dustAt(e.x + (Math.random() - .5), walkY(e.x, e.z), e.z + (Math.random() - .5));
+  }
+}
+// engines: the crew lean in and push while it rolls, stand by while it shoots; the ballista shows its bolt once reloaded, the
+// catapult's arm flies up and is winched back down over the reload, the ram's log swings back and drives forward on its ropes
+function animEngine(e, dt, sw) {
+  e.crew.forEach((c, i) => {
+    const s = (i ? -sw : sw) * .9; c.legs[0].rotation.x = s; c.legs[1].rotation.x = -s;
+    c.body.rotation.x += ((e.walking ? .28 : 0) - c.body.rotation.x) * Math.min(1, dt * 6);
+    c.arms.forEach(a => a.rotation.x += ((e.walking ? -1.35 : -.25) - a.rotation.x) * Math.min(1, dt * 6));
+  });
+  const el = e.thrownAt === undefined ? 1e9 : (e.thrownAt += dt);
+  if (e.kind === 'ballista' && e.bolt) e.bolt.visible = el > e.rate * .6;
+  if (e.kind === 'catapult' && e.arm) {
+    const [ck, th] = CATA_ARM[e.tier - 1];
+    e.arm.rotation.x = el < .25 ? lerp(ck, th, el / .25) : lerp(th, ck, sstep(.8, e.rate * .7, el));
+    if (e.bolt) e.bolt.visible = el > e.rate * .75;
+  }
+  if (e.kind === 'ram') {
+    let phi = 0;
+    if (e.attackT > 0) { const p = 1 - e.attackT / RAM_T; phi = p < .55 ? -.65 * sstep(0, .55, p) : p < .66 ? lerp(-.65, .4, sstep(.55, .66, p)) : .4 * (1 - sstep(.66, 1, p)); }
+    e.ram.position.set(0, RAM_Y + RAM_ROPE * (1 - Math.cos(phi)), RAM_ROPE * Math.sin(phi));
+    e.ropes.forEach(r => r.rotation.x = -phi);
+  }
 }
 function updateEnemies(dt) {
   for (let n = enemies.length - 1; n >= 0; n--) {
-    const e = enemies[n];
+    const e = enemies[n], E = ENEMY[e.kind];
     if (e.dead) {
-      e.deadT += dt; e.body.rotation.x = -Math.min(1.5, e.deadT * 4); e.g.position.y = walkY(e.x, e.z) - Math.max(0, e.deadT - .8) * .8;
+      e.deadT += dt;
+      if (E.engine) {                                       // slumps to one side and sinks; the crew fall
+        e.model.rotation.z = e.fallDir * Math.min(.32, e.deadT * .9);
+        e.crew.forEach(c => c.body.rotation.x = -Math.min(1.5, e.deadT * 4));
+      } else e.body.rotation.x = -Math.min(1.5, e.deadT * 4);
+      e.g.position.y = walkY(e.x, e.z) - Math.max(0, e.deadT - .8) * (E.engine ? 1.2 : .8);
       if (e.deadT > 1.9) { scene.remove(e.g); scene.remove(e.bar.grp); enemies.splice(n, 1); }
       continue;
     }
@@ -4107,17 +4265,18 @@ function updateEnemies(dt) {
       const t = pickTarget(e); if (t !== e.target) e.lob = false; e.target = t; e.retarget = 3;
       if (t) e.tp = e.tpNew || { x: clamp(e.x, t.ev.x0, t.ev.x1), z: clamp(e.z, t.ev.z0, t.ev.z1) };   // the side they reach first, fixed until the next retarget
     }
-    const B = e.target, foe = e.kind !== 'archer' ? nearestSoldier(e.x, e.z, e.horse ? 2.6 : 2.2) : null;
+    const B = e.target, foe = !SHOOTER[e.kind] && !E.engine ? nearestSoldier(e.x, e.z, e.horse ? 2.6 : 2.2) : null;
+    const strikeT = SPEARS(e.kind) ? SPEAR_T : SWORD_T;
     if (foe) {                                               // a soldier in the way: fight them first
       const d = Math.hypot(foe.x - e.x, foe.z - e.z), reach = Math.max(.75, e.range) + (e.horse ? .3 : 0);
       e.running = !e.horse && d > reach;
       if (d > reach) steer(e, foe.x, foe.z, dt, 2, reach * .9, e.running ? 1.3 : 1);
-      else { e.g.rotation.y = Math.atan2(foe.x - e.x, foe.z - e.z); if ((e.cool -= dt) <= 0) { e.cool = e.rate; e.attackT = e.kind === 'spear' ? SPEAR_T : SWORD_T; sfx('clash', e); hurtSoldier(foe, e.dmg); } }
+      else { e.g.rotation.y = Math.atan2(foe.x - e.x, foe.z - e.z); if ((e.cool -= dt) <= 0) { e.cool = e.rate; e.attackT = strikeT; sfx('clash', e); hurtSoldier(foe, e.dmg); } }
     } else if (B) {
-      const d = distRect(B, e.x, e.z);
+      const d = distRect(B, e.x, e.z), shoots = SHOOTER[e.kind] || e.kind === 'ballista' || e.kind === 'catapult';
       if (e.detour) { steer(e, e.detour.x, e.detour.z, dt, 2); if ((e.detour.t -= dt) < 0) e.detour = null; }
       else if (d > e.range + (e.lob ? 3.5 : 0)) {
-        e.running = e.kind !== 'archer' && !e.horse && d < 6;
+        e.running = !shoots && !E.engine && !e.horse && d < 6;
         // route on the cell grid like villagers (round water, over bridges, round walls); straight in once close
         const tp = e.tp || { x: clamp(e.x, B.ev.x0, B.ev.x1), z: clamp(e.z, B.ev.z0, B.ev.z1) };
         const qx = clamp(e.x, B.ev.x0, B.ev.x1), qz = clamp(e.z, B.ev.z0, B.ev.z1), ql = Math.hypot(e.x - qx, e.z - qz) || 1;
@@ -4125,40 +4284,60 @@ function updateEnemies(dt) {
         if (d < 3 && clearLine(e.x, e.z, qx + (e.x - qx) / ql * .35, qz + (e.z - qz) / ql * .35, 2)) steer(e, qx, qz, dt, 2, e.range * .9, e.running ? 1.6 : 1);
         else walkTo(e, tp.x, tp.z, dt, 2, e.range * .9, e.running ? 1.6 : 1);
         if (e.stuck > 2 || e.noProg > 3.5) {
-          const blk = nearestBuilding(e.x, e.z, 1.6);         // a wall is in the way: attack it
-          if (blk && e.kind === 'archer' && !NOT_WALL(blk) && d <= e.range + 3.5) e.lob = true;   // archers loose over it instead
+          const blk = nearestBuilding(e.x, e.z, E.engine ? 2.4 : 1.6);   // a wall is in the way: attack it
+          if (blk && shoots && !NOT_WALL(blk) && d <= e.range + 3.5) e.lob = true;   // archers and engines shoot over it instead
           else if (blk) { e.target = blk; e.retarget = 8; }
           else if (enemies.some(o => o !== e && !o.dead && Math.hypot(o.x - e.x, o.z - e.z) < 1.3)) { /* held up in a crowd (a queue at a bridge): wait, don't wander off */ }
           else { const a = Math.random() * 6.283; e.detour = { x: clamp(e.x + Math.cos(a) * 5, 1, SIZE - 1), z: clamp(e.z + Math.sin(a) * 5, 1, SIZE - 1), t: 2 }; }
           e.stuck = 0; e.prog = null; e.noProg = 0; e.path = null;
         }
       } else {
-        const c = center(B); e.g.rotation.y = Math.atan2(c.x - e.x, c.z - e.z); e.aiming = true;
-        if ((e.cool -= dt) <= 0) {
-          e.cool = e.rate; e.attackT = e.kind === 'spear' ? SPEAR_T : e.kind === 'archer' ? .35 : SWORD_T;
+        const c = center(B), yaw = Math.atan2(c.x - e.x, c.z - e.z); e.aiming = true;
+        if (E.engine) turnTo(e, yaw, dt * .35); else e.g.rotation.y = yaw;    // an engine wheels round slowly
+        let ad = Math.abs(Math.atan2(Math.sin(yaw - e.g.rotation.y), Math.cos(yaw - e.g.rotation.y)));
+        if ((e.cool -= dt) <= 0 && ad < .25) {
+          e.cool = e.rate;
           if (e.kind === 'archer') {
-            const tgt = B, dmg = e.dmg;
+            e.attackT = .35; const tgt = B, dmg = e.dmg;
             fireArrow(bowPoint(e), new THREE.Vector3(c.x, B.group.position.y + 1.2, c.z), () => hurtBuilding(tgt, dmg));
-          } else { sfx('attack', e); hurtBuilding(B, e.dmg); }
+          } else if (e.kind === 'xbow') {
+            e.attackT = .35; const tgt = B, dmg = e.dmg;
+            fireArrow(xbowPoint(e), new THREE.Vector3(c.x, B.group.position.y + 1.2, c.z), () => hurtBuilding(tgt, dmg), .3, 'qbolt');
+          } else if (e.kind === 'ballista' || e.kind === 'catapult') engineShot(e, B, c);
+          else if (e.kind === 'ram') { e.attackT = RAM_T; e.ramHit = B; }
+          else { e.attackT = strikeT; sfx('attack', e); hurtBuilding(B, e.dmg); }
         }
+        if (e.cool < 0) e.cool = 0;
+      }
+    }
+    if (e.kind === 'ram' && e.ramHit && e.attackT > 0 && 1 - e.attackT / RAM_T > .62) {   // the log strikes home
+      const T = e.ramHit; e.ramHit = null;
+      if (!T.dead) {
+        hurtBuilding(T, e.dmg); sfx('attack', e); shake(.05, e);
+        const hx = e.x + Math.sin(e.g.rotation.y) * 1.4, hz = e.z + Math.cos(e.g.rotation.y) * 1.4;
+        for (let i = 0; i < 3; i++) dustAt(hx + (Math.random() - .5) * .5, walkY(hx, hz), hz + (Math.random() - .5) * .5);
       }
     }
     e.attackT = Math.max(0, (e.attackT || 0) - dt);
     if (e.flashT !== undefined) {                          // a red flash where an arrow lands
       const on = (e.flashT -= dt) > 0, m = on ? hitFlashM : e.baseTunic;
-      if (e.torso.material !== m) { e.torso.material = m; e.arms.forEach(a => a.userData.sleeve.material = m); }
+      if (e.torso && e.torso.material !== m) { e.torso.material = m; e.arms.forEach(a => a.userData.sleeve.material = m); }
       if (!on) e.flashT = undefined;
     }
-    const sw = Math.sin(e.phase) * (e.running ? .95 : .6) * stride(e, dt, e.running ? 14 : 9);
-    e.body.rotation.x = e.running && e.walking ? .22 : 0;      // leaning into the charge
-    if (e.horse) e.horseLegs.forEach((l, i) => { l.rotation.x = (i === 0 || i === 3 ? 1 : -1) * sw * .8; });   // diagonal pairs move together
-    else { e.legs[0].rotation.x = sw; e.legs[1].rotation.x = -sw; }
-    if (e.kind === 'archer') bowPose(e, e.aiming && !(e.attackT > 0) && e.cool < DRAW, e.attackT > 0, -.35 - sw * .3, -sw * .6);
-    else if (e.kind === 'spear') { e.arms[0].rotation.x = -.55 - sw * .2; spearPose(e, e.attackT, sw); }   // level at the hip, thrust out
-    else { e.arms[0].rotation.x = -.55 - sw * .2; swordPose(e, e.attackT, sw); }
+    const sw = Math.sin(e.phase) * (e.running ? .95 : .6) * stride(e, dt, e.running ? 14 : E.engine ? 6 : 9);
+    if (E.engine) animEngine(e, dt, sw);
+    else {
+      e.body.rotation.x = e.running && e.walking ? .22 : 0;      // leaning into the charge
+      if (e.horse) e.horseLegs.forEach((l, i) => { l.rotation.x = (i === 0 || i === 3 ? 1 : -1) * sw * .8; });   // diagonal pairs move together
+      else { e.legs[0].rotation.x = sw; e.legs[1].rotation.x = -sw; }
+      if (e.kind === 'archer') bowPose(e, e.aiming && !(e.attackT > 0) && e.cool < DRAW, e.attackT > 0, -.35 - sw * .3, -sw * .6);
+      else if (e.kind === 'xbow') xbowPose(e, e.aiming && (e.attackT > 0 || e.cool < .7));
+      else if (SPEARS(e.kind)) { e.arms[0].rotation.x = -.55 - sw * .2; spearPose(e, e.attackT, sw); }   // level at the hip, thrust out
+      else { e.arms[0].rotation.x = -.55 - sw * .2; swordPose(e, e.attackT, sw); }
+    }
     smoothPos(e, dt, performance.now()); const y = walkY(e.rx, e.rz);
     e.g.position.set(e.rx, y < 0 ? y * .4 - .2 : y, e.rz);
-    e.bar.grp.visible = e.hp < e.max; e.bar.set(e.hp / e.max); e.bar.grp.position.set(e.rx, e.g.position.y + 1.6 * UNIT_K + (e.horse ? SADDLE : 0), e.rz);
+    e.bar.grp.visible = e.hp < e.max; e.bar.set(e.hp / e.max); e.bar.grp.position.set(e.rx, e.g.position.y + e.barY, e.rz);
   }
 }
 // ---------- night watch: villagers walk to the castle and towers and shoot from the top ----------
@@ -4313,7 +4492,7 @@ function updateSoldier(v, dt) {
   if (foe !== v.foe) v.prog = null;
   v.foe = foe;
   if (foe) {
-    const reach = (v.toolKind === 'spear' ? 1.15 : .9) + (foe.horse ? .3 : 0) + (v.cav ? .35 : 0), d = Math.hypot(foe.x - v.x, foe.z - v.z);
+    const reach = (v.toolKind === 'spear' ? 1.15 : .9) + (foe.horse ? .3 : 0) + (foe.engine ? ENEMY[foe.kind].r : 0) + (v.cav ? .35 : 0), d = Math.hypot(foe.x - v.x, foe.z - v.z);
     if (d > reach) { walkTo(v, foe.x, foe.z, dt, 1, reach * .9, 1.25 * ride); if (v.noProg > 4) { v.skip = { e: foe, t: 4 }; v.foe = null; } }    // can't reach that one
     else { turnTo(v, Math.atan2(foe.x - v.x, foe.z - v.z), dt); if (v.cool <= 0) { v.cool = S.rate * (1 - decorFx(v.x, v.z, 'troopRate')); v.attackT = v.toolKind === 'spear' ? SPEAR_T : SWORD_T; hurtEnemy(foe, S.dmg[k] * (1 + decorFx(v.x, v.z, 'troopDmg'))); sfx('clash', v); } }
   } else if (Math.hypot(hx - v.x, hz - v.z) > .35) walkTo(v, hx, hz, dt, 1, .3, 1.3 * ride);
@@ -4754,9 +4933,11 @@ function startNight() {
   const w = WAVES[PH.wave - 1];
   PH.kind = 'night'; spawnQueue = []; sfx('horn');
   const pts = [edgePoint(), edgePoint()];
-  for (let n = 0; n < w.spear; n++) spawnQueue.push(['spear', pts[n % 2]]);
-  for (const k of ['archer', 'sword']) for (let n = 0; n < (w[k] || 0); n++) spawnQueue.splice(Math.floor(Math.random() * (spawnQueue.length + 1)), 0, [k, pts[n % 2]]);
-  for (let n = 0; n < (w.captain || 0); n++) spawnQueue.push(['captain', pts[n % 2]]);
+  // foot and horse mixed through the column (spearmen first), siege engines at its tail; each entry [kind, spawn point, tier]
+  const each = (k, f) => (w[k] || []).forEach((c, t) => { for (let n = 0; n < c; n++) f(t + 1, n); });
+  each('spear', (t, n) => spawnQueue.push(['spear', pts[n % 2], t]));
+  for (const k of ['archer', 'sword', 'xbow', 'lancer', 'rider']) each(k, (t, n) => spawnQueue.splice(Math.floor(Math.random() * (spawnQueue.length + 1)), 0, [k, pts[n % 2], t]));
+  for (const k of ['ram', 'ballista', 'catapult']) each(k, (t, n) => spawnQueue.push([k, pts[n % 2], t]));
   spawnT = 1;
   const ps = assignPosts();
   banner(`Night ${PH.wave}`, `${spawnQueue.length} raiders`, true); setMusic('night');
@@ -4819,7 +5000,7 @@ function updatePhase(dt) {
     if (PH.t <= 0) startNight();
   }
   else {
-    if (spawnQueue.length && (spawnT -= dt) <= 0) { const [k, p] = spawnQueue.shift(); spawnEnemy(k, p, PH.wave); spawnT = SPAWN_GAP; }
+    if (spawnQueue.length && (spawnT -= dt) <= 0) { const [k, p, t] = spawnQueue.shift(); spawnEnemy(k, p, PH.wave, t); spawnT = SPAWN_GAP; }
     if (!spawnQueue.length && !enemies.some(e => !e.dead)) { if (PH.wave >= NIGHTS) endGame(true); else startDay(); }
   }
   if (PH.kind === 'day' && (econT -= dt) <= 0) { econT = TICK; econTick(); }   // no payouts at night: the ring waits for dawn
@@ -5447,7 +5628,7 @@ function buildGallery() {
   }));
   row('Decor', 2, zc => ['well', 'torch', 'flowers', 'statue', 'banner', 'campfire', 'rack', 'butts', 'stores'].forEach((t, i) => { add(makeModel(t, 1, true, 0, 0), 4 + i * 4.6, zc, true); galLabel(DEF[t].name, '#fff', 4 + i * 4.6, zc + 2.1); }));
   const people = (title, list) => (row(title, 1.2, zc => list.forEach((P, i) => {
-    const x = 6 + i * 3.3, p = P.raider ? makeRaider(P.raider) : P.guard ? makePerson({ tool: P.xbow ? 'crossbow' : 'bow' }) : makePerson({});
+    const x = 6 + i * 3.3, p = P.raider ? makeRaider(P.raider, P.rt) : P.guard ? makePerson({ tool: P.xbow ? 'crossbow' : 'bow' }) : makePerson({});
     if (P.kit) soldierKit(p, P.kit, P.cav);
     else if (P.guard) armour(p, P.guard);
     else if (!P.raider) { p.plainHat = !P.tool; p.outfitTier = P.tier || 3; addLoads(p); giveTool(p, P.tool || null); dress(p, P.tool || null); if (P.carry === 'log') p.carryLog.visible = true; if (P.carry === 'stone') p.carryStone.visible = true; }
@@ -5461,7 +5642,15 @@ function buildGallery() {
   people('Soldiers', [{ name: 'Archer 1', guard: 1 }, { name: 'Archer 2', guard: 2 }, { name: 'Archer 3', guard: 3 },
     { name: 'Crossbow 1', guard: 1, xbow: 1 }, { name: 'Crossbow 2', guard: 2, xbow: 1 }, { name: 'Crossbow 3', guard: 3, xbow: 1 }, { name: 'Militia', kit: 1 }, { name: 'Guard', kit: 2 }, { name: 'Man-at-arms', kit: 3 },
     { name: 'Rider', kit: 1, cav: 1 }, { name: 'Lancer', kit: 2, cav: 1 }, { name: 'Knight', kit: 3, cav: 1 }]);
-  people('Raiders', [{ name: 'Spearman', raider: 'spear' }, { name: 'Swordsman', raider: 'sword' }, { name: 'Archer', raider: 'archer' }, { name: 'Captain', raider: 'captain' }]);
+  // raiders by tier: the same look for every kind (plain red shirt; red gambeson and iron helm; mail, red surcoat, great helm)
+  for (const rt of [1, 2, 3]) people(`Raiders ${rt}`, ['spear', 'sword', 'archer', 'xbow', 'lancer', 'rider'].map(k => ({ name: `${RAIDER_NAME[k]} ${rt}`, raider: k, rt })));
+  // raider siege engines by tier, each pushed by two of its crew
+  row('Raider siege', 3, zc => ['ballista', 'catapult', 'ram'].forEach((k, j) => [1, 2, 3].forEach(rt => {
+    const i = j * 3 + rt - 1, x = 6 + i * 4.4, p = makeRaider(k, rt);
+    p.g.position.set(x, 0, zc); p.g.rotation.y = .5; gScene.add(p.g); Object.assign(p, { kind: k, tier: rt, rate: ENEMY[k].rate, seed: i * .7 }); gPeople.push(p);
+    galLabel(RAIDER_NAME[k][rt - 1], '#ff9a8a', x, zc + 2.0, false, .75);
+  })));
+  gRows[gRows.length - 1].n = 9;
   // the lawn, the sun's shadow box and the camera's reach all grow with the rows (they used to stop short of the people)
   galEnd = z; const mid = z / 2, half = z / 2 + 14;
   ground.geometry.dispose(); ground.geometry = new THREE.PlaneGeometry(260, z + 160).rotateX(-Math.PI / 2); ground.position.set(24, 0, mid);
@@ -5491,21 +5680,25 @@ function galleryTap(e) {
   if (it && it.turns) it.g.userData.turn++;
 }
 function galPose(p, t, dt) {
+  if (p.engine) {                                                 // engines: roll with Walk, else shoot (or swing the ram) on their own clock
+    p.walking = gWalk; p.thrownAt = gWalk ? 1e9 : (t + p.seed) % p.rate; p.attackT = gWalk ? 0 : Math.max(0, RAM_T - (t + p.seed) % 2.4);
+    animEngine(p, dt, gWalk ? Math.sin(t * 6 + p.seed) * .6 : 0); return;
+  }
   const ease = (o, v) => o + (v - o) * Math.min(1, dt * 14), walking = gWalk || p.carry || (!p.work && !p.guard && !p.raider && !p.kit);
   const ph = t * 9 + p.seed, sw = walking ? Math.sin(ph) * .6 : 0;
   if (p.horseLegs) p.horseLegs.forEach((l, i) => { l.rotation.x = (i === 0 || i === 3 ? 1 : -1) * sw * .8; });
   else { p.legs[0].rotation.x = sw; p.legs[1].rotation.x = -sw; }
   p.body.position.y = p.horseLegs ? SADDLE : walking ? Math.abs(Math.sin(ph)) * .05 : 0;   // a rider stays in the saddle
   let L = -sw * .8, R = sw * .8, tilt = -.2, lean = 0;
-  if (p.xbow) { xbowPose(p, (t + p.seed) % 1.4 > .7); return; }   // crossbowmen: level and shoot, then down to reload
+  if (p.xbow || p.raider === 'xbow') { xbowPose(p, (t + p.seed) % 1.4 > .7); return; }   // crossbowmen: level and shoot, then down to reload
   if (p.guard || p.raider === 'archer') {                        // loose a shot every 1.8 s: idle, draw with both hands, loose
     const c = (t + p.seed) % 1.8; bowPose(p, c > .6 && c < 1.05, c >= 1.05 && c < 1.4, p.guard ? -.9 : -.35, p.guard ? -.6 : 0); return;
   }
   if (p.raider || p.kit) {                                        // a strike every 1.2 s, as in a fight
-    const T0 = p.raider === 'spear' || (p.kit && p.kit < 3) ? SPEAR_T : SWORD_T, at = gWalk ? 0 : Math.max(0, T0 - (t + p.seed) % 1.6);
+    const T0 = (p.raider && SPEARS(p.raider)) || (p.kit && p.kit < 3) ? SPEAR_T : SWORD_T, at = gWalk ? 0 : Math.max(0, T0 - (t + p.seed) % 1.6);
     p.arms[0].rotation.x = -.55 - sw * .2;
     if (p.kit === 3) swordPose(p, at, sw);
-    else if (p.raider === 'spear' || p.kit) spearPose(p, at, sw);
+    else if ((p.raider && SPEARS(p.raider)) || p.kit) spearPose(p, at, sw);
     else swordPose(p, at, sw);
     return;
   }
@@ -5791,7 +5984,7 @@ function updateDoors(dt) {
 function separateUnits(dt) {
   sepUnits.length = 0;
   for (const v of villagers) if (v.g.visible && !v.doorWalk && !v.inside && !(v.hideT > 0) && (!v.posted || v.soldier) && !v.sleeping) sepUnits.push({ u: v, r: v.horse ? .5 : .24, fixed: false, mode: 1, w: v.working ? .1 : v.walking ? 1 : .35 });
-  for (const e of enemies) sepUnits.push({ u: e, r: e.horse ? .55 : .26, fixed: e.dead, mode: 2, w: e.walking ? 1 : .35 });
+  for (const e of enemies) sepUnits.push({ u: e, r: e.engine ? ENEMY[e.kind].r : e.horse ? .55 : .26, fixed: e.dead, mode: 2, w: e.walking ? 1 : .35 });
   const k = Math.min(1, dt * 10);
   for (let i = 0; i < sepUnits.length; i++) for (let j = i + 1; j < sepUnits.length; j++) {
     const A = sepUnits[i], B = sepUnits[j]; if (A.fixed && B.fixed) continue;
