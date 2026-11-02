@@ -5,10 +5,10 @@ const path = require('path'), fs = require('fs');
 const { openGame } = require('./serve');
 const ROOT = path.resolve(__dirname, '../..');
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
-const VIEW = { meadow: [28, 0, 28, 0, 1.56, 64], isle: [28, 0, 28, 0, 1.56, 64], pass: [28, 4, 28, 0, 1.56, 64], vale: [28, 0, 28, 0, 1.56, 64], bridge: [28, 0, 28, 0, 1.56, 64], cross: [28, 0, 28, 0, 1.56, 64], watch: [28, 2, 28, 0, 1.56, 64], dune: [28, 1, 28, 0, 1.56, 64], bend: [28, 0, 28, 0, 1.56, 64] };   // stage previews framed like the map cards: no sky past the edges   // vale: Stage 1's preview (top-down too, sharper: PX)    // straight down over the whole map    // target x, y, z, yaw, pitch, dist
+const VIEW = { meadow: [28, 0, 28, 0, 1.56, 64], isle: [28, 0, 28, 0, 1.56, 64], pass: [28, 4, 28, 0, 1.56, 64], vale: [28, 0, 28, 0, 1.56, 64], bridge: [28, 0, 28, 0, 1.56, 64], cross: [28, 0, 28, 0, 1.56, 64], watch: [28, 2, 28, 0, 1.56, 64], dune: [28, 1, 28, 0, 1.56, 64], bend: [28, 0, 28, 0, 1.56, 64], crag: [28, 1, 28, 0, 1.56, 64], ford: [28, 1, 28, 0, 1.56, 64] };   // stage previews framed like the map cards: no sky past the edges   // vale: Stage 1's preview (top-down too, sharper: PX)    // straight down over the whole map    // target x, y, z, yaw, pitch, dist
 (async () => {
   const { page, close, errors } = await openGame('index.html?debug&map=meadow', { three: arg('--three'), viewport: { width: 400, height: 400 } });
-  const PX = { vale: 1080, bridge: 1080, cross: 1080, watch: 1080, dune: 1080, bend: 1080 };   // stage previews are drawn bigger: they fill a phone's width at 3× pixels
+  const PX = { vale: 1080, bridge: 1080, cross: 1080, watch: 1080, dune: 1080, bend: 1080, crag: 1080, ford: 1080 };   // stage previews are drawn bigger: they fill a phone's width at 3× pixels
   const only = process.argv.slice(2).filter(a => VIEW[a]);   // e.g. `node tools/render/maps.js vale` renders just that one
   for (const m of only.length ? only : Object.keys(VIEW)) {
     const v = VIEW[m];
