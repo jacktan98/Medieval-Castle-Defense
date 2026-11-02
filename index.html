@@ -2099,7 +2099,15 @@ function makeBallista(tier, plinth) {
 // catapult (tier 1, a torsion arm on a wheeled frame), mangonel (tier 2, bigger, a sling, iron-shod), trebuchet (tier 3, a tall
 // A-frame and a counterweighted arm on skids); the whole engine turns to aim (userData.turret), the arm (userData.arm) swings
 // up to throw and is winched back down while the crew reloads
-const CATA_ARM = [[-1.35, .15], [-1.35, .2], [-2.2, .35]];   // the arm's angle about x: cocked, and at the end of the throw
+const CATA_ARM = [[-1.35, .15], [-1.35, .2], [-2.2, .35]];
+// the catapult's crew rig, in the engine's own frame (front +z, before its tier scale): the winch drum (centre, radius, length), its
+// crank's x and throw, the arm point the winch rope pulls, the loader at the crank, the gunner by the release catch, where the
+// gunner pushes from (behind) and where the loader walks (beside) on a move
+const CATA_RIG = [
+  { drum: [0, .36, -.72], dr: .055, dl: .6, cx: .46, cr: .11, armR: .5, catch: [-.33, .42, -.5], loader: [.78, -.72], gunner: [-.9, -.25], push: [0, -1.0], walk: [.9, 0] },
+  { drum: [0, .36, -.72], dr: .06, dl: .6, cx: .46, cr: .11, armR: .5, catch: [-.33, .42, -.5], loader: [.78, -.72], gunner: [-.9, -.25], push: [0, -1.0], walk: [.9, 0] },
+  { drum: [0, .38, -.85], dr: .09, dl: .76, cx: .6, cr: .14, armR: 1.5, catch: [-.5, .28, -.7], loader: [.98, -.85], gunner: [-1.05, -.3], push: [0, -1.4], walk: [1.1, 0] },
+];   // the arm's angle about x: cocked, and at the end of the throw
 function makeCatapult(tier) {
   const g = new THREE.Group(), e = new THREE.Group(); e.userData.turret = true; g.add(e);
   const arm = new THREE.Group(); arm.userData.arm = true;
@@ -2119,7 +2127,7 @@ function makeCatapult(tier) {
     if (tier === 2) { const band = cyl(cr + .012, cr + .012, .03, 9, M.iron, 0, 1.22, .07 + cr * .3); band.rotation.x = Math.PI / 2; arm.add(band); }
     const sr = tier === 1 ? .1 : .14, shot = new THREE.Mesh(new THREE.DodecahedronGeometry(sr, 0), M.stone2); shot.position.set(0, 1.22, .07 + cr * .38 + sr * .75); shot.userData.bolt = true; shot.castShadow = true; arm.add(shot);
     if (tier === 2) for (const sx of [-1, 1]) e.add(box(.04, .04, 1.52, M.iron, sx * .36, .4, 0));
-    const ball = new THREE.Mesh(new THREE.DodecahedronGeometry(.13, 0), M.stone2); ball.position.set(.5, .2, -.75); ball.castShadow = true; e.add(ball);
+    for (const [x, z, r] of tier === 1 ? [[-.58, .7, .11]] : [[-.58, .7, .13], [-.72, .5, .12]]) { const ball = new THREE.Mesh(new THREE.DodecahedronGeometry(r, 0), M.stone2); ball.position.set(x, r * .8, z); ball.castShadow = true; ball.userData.ammo = true; e.add(ball); }
   } else {
     for (const sx of [-1, 1]) e.add(box(.14, .16, 1.9, M.timber, sx * .5, .1, 0));
     for (const z of [-.8, .8]) e.add(box(1.14, .12, .14, M.timber, 0, .12, z));
@@ -2128,11 +2136,27 @@ function makeCatapult(tier) {
     arm.position.set(0, 2.15, 0); e.add(arm);
     arm.add(box(.11, 2.7, .11, M.timber, 0, .7, 0));                                  // long end up (+y), short end down
     arm.add(box(.5, .5, .5, M.wood, 0, -.82, 0)); for (const y of [-.65, -1.0]) arm.add(box(.52, .05, .52, M.iron, 0, y, 0));   // counterweight
-    for (const sx of [-1, 1]) arm.add(box(.012, .5, .012, ropeM, sx * .13, 2.25, .04)); arm.add(box(.36, .32, .06, M.canvas, 0, 2.5, .08));   // a big sling pouch on the arm's face
-    const shot = new THREE.Mesh(new THREE.DodecahedronGeometry(.2, 0), M.stone2); shot.position.set(0, 2.5, .26); shot.userData.bolt = true; shot.castShadow = true; arm.add(shot);
-    for (let n = 0; n < 3; n++) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(.15, 0), M.stone2); st.position.set(.75, .15, -.6 + n * .3); st.castShadow = true; e.add(st); }
-    const wn = cyl(.12, .12, .5, 8, M.wood, -.75, .35, -.6); wn.rotation.z = Math.PI / 2; e.add(wn);
+    // a big sling pouch hung from the arm's tip by two ropes and an iron ring
+    arm.add(box(.15, .06, .15, M.iron, 0, 2.06, .02));
+    for (const sx of [-1, 1]) { const dx = sx * .15, dy = .26, rp = box(.014, Math.hypot(dx, dy), .014, ropeM, dx / 2, 2.08 + dy / 2, .06); rp.rotation.z = Math.atan2(-dx, dy); arm.add(rp); }
+    arm.add(box(.36, .32, .06, M.canvas, 0, 2.48, .08));
+    const shot = new THREE.Mesh(new THREE.DodecahedronGeometry(.2, 0), M.stone2); shot.position.set(0, 2.48, .26); shot.userData.bolt = true; shot.castShadow = true; arm.add(shot);
+    for (let n = 0; n < 3; n++) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(.15, 0), M.stone2); st.position.set(-.85, .12, .2 + n * .3); st.castShadow = true; st.userData.ammo = true; e.add(st); }
+    for (const sz of [-1, 1]) {                                                       // wheels on iron-bound axles under the frame
+      e.add(box(1.36, .06, .06, M.iron, 0, .24, sz * .62));
+      for (const sx of [-1, 1]) { const w = cyl(.24, .24, .08, 12, M.wood, sx * .64, .24, sz * .62); w.rotation.z = Math.PI / 2; e.add(w); const r = cyl(.245, .245, .03, 12, M.iron, sx * .69, .24, sz * .62); r.rotation.z = Math.PI / 2; e.add(r); }
+    }
+    for (const sx of [-1, 1]) e.add(box(.08, .2, .08, M.timber, sx * .42, .26, -.85));   // posts carrying the winch drum
   }
+  // the winch at the back: a rope-wound drum and a crank on its right end the loader turns to haul the arm down; a rope from
+  // the drum to the arm (set each frame), and the trigger line from the release catch to the gunner's hands
+  const R = CATA_RIG[tier - 1];
+  const dr = cyl(R.dr, R.dr, R.dl, 10, ropeM, 0, R.drum[1], R.drum[2]); dr.rotation.z = Math.PI / 2; e.add(dr);
+  const ax2 = cyl(.025, .025, R.cx * 2, 6, M.iron, 0, R.drum[1], R.drum[2]); ax2.rotation.z = Math.PI / 2; e.add(ax2);
+  const cr = new THREE.Group(); cr.position.set(R.cx, R.drum[1], R.drum[2]); cr.userData.crank = true; e.add(cr);
+  cr.add(box(.03, R.cr + .03, .03, M.iron, .02, R.cr / 2, 0)); cr.add(box(.12, .035, .035, M.timber, .08, R.cr, 0));
+  e.add(box(.07, .05, .05, M.iron, ...R.catch));                                      // the release catch
+  for (const k of ['wrope', 'trope']) { const rp = box(.016, 1, .016, ropeM, 0, 0, 0); rp.userData[k] = true; rp.visible = false; e.add(rp); }   // shown once updateSiege stretches them
   arm.rotation.x = CATA_ARM[tier - 1][0];
   return g;
 }
@@ -3524,7 +3548,7 @@ function updateVillagers(dt, now) {
   if ((hungryLogT -= dt) <= 0 && newlyHungry) { log(`No food · <b>${newlyHungry}</b> asleep`, 'warn'); newlyHungry = 0; hungryLogT = 15; }
   const night = PH.kind === 'night', keep = castleB();
   for (const v of villagers) {
-    v.walking = false; v.working = false; v.changing = false;
+    v.walking = false; v.working = false; v.changing = false; v.pushing = false;
     if (v.doorWalk && doorStep(v, dt)) { /* walking through a door */ }
     else if (night) {
       if (v.sleeping) continue;
@@ -3558,7 +3582,8 @@ function updateVillagers(dt, now) {
       if (v.hungry) { updateHungry(v, dt); if (v.sleeping) continue; }
       else {
         const want = toolFor(v) || null;
-        if ((v.toolKind || null) !== want || v.changeT > 0 || (want && want !== 'hammer' && v.job && v.dressT !== v.job.tier)) updateChange(v, dt, want);   // new tool, or the workplace's new tier     // wrong clothes for the next task: change first
+        if (v.push) updatePush(v, dt);
+        else if ((v.toolKind || null) !== want || v.changeT > 0 || (want && want !== 'hammer' && v.job && v.dressT !== v.job.tier)) updateChange(v, dt, want);   // new tool, or the workplace's new tier     // wrong clothes for the next task: change first
         else {
           if (!(v.hideT > 0) && !canStand(v.x, v.z, 1)) exitDoor(v);
           if (v.build) updateBuilder(v, dt); else if (v.job) updateWorker(v, dt, now); else updateWander(v, dt);
@@ -3601,6 +3626,7 @@ function updateVillagers(dt, now) {
     v.body.rotation.y += (twist - v.body.rotation.y) * Math.min(1, dt * 14);
     const ease = (o, t) => o + (t - o) * Math.min(1, dt * 14);    // poses blend over ~0.1 s, so switching task never snaps
     if (v.pivot) { v.pivot.visible = !logC && !stoneC && !(v.changing && v.toolOff); v.pivot.rotation.x = ease(v.pivot.rotation.x, tilt); }
+    if (v.pushing) { L = Rt = -1.45; lean = .1; }                    // both hands on the engine's back beam
     if (cheer) { L = -2.9 + Math.sin(now / 1000 * 9) * .2; Rt = -2.9 - Math.sin(now / 1000 * 9) * .2; lean = 0; }
     v.arms[0].rotation.x = ease(v.arms[0].rotation.x, L); v.arms[1].rotation.x = ease(v.arms[1].rotation.x, Rt); v.body.rotation.x = ease(v.body.rotation.x, lean);
     if (v.soldier) (v.toolKind === 'spear' ? spearPose : swordPose)(v, v.attackT || 0, swing);   // exact: eased, the strikes go soft
@@ -4103,11 +4129,50 @@ function startMove(B, ci, cj) {
   occB[own] = B; regionDirty = true;
   if (!ev.ok) return setHint(ev.reason, 'bad');
   if (!path) return setHint('No way there', 'bad');
-  B.move = { pts: [...path, { x: (ci + .5) * CELL, z: (cj + .5) * CELL }] }; setHint('Moving'); sfx('click');
+  const crewOn = B.manned && B.manned[0] && B.manned[1];
+  if (PH.kind !== 'day' && !crewOn) return setHint('No crew', 'bad');
+  // by night its crew pushes it; by day a villager has to come and push
+  const was = B.move && B.move.pusher;                           // a new spot mid-move keeps the same pusher
+  B.move = { pts: [...path, { x: (ci + .5) * CELL, z: (cj + .5) * CELL }], wait: PH.kind === 'day', pusher: was || null }; setHint(PH.kind === 'day' ? 'Pusher coming' : 'Moving'); sfx('click');
+}
+// the nearest ground someone may stand on, from a spot that may be inside a building's cell
+function standNear(x, z) {
+  if (canStand(x, z, 1)) return { x, z };
+  for (let r = .3; r < 3; r += .25) for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; if (canStand(px, pz, 1)) return { x: px, z: pz }; }
+  return { x, z };
+}
+// the villager who comes to push a siege engine by day: free, not hungry or carrying, idle ones first, then the nearest
+function pickPusher(B) {
+  const c = center(B); let best = null, bd = 1e9;
+  for (const v of villagers) {
+    if (v.post || v.soldier || v.unkit || v.hungry || v.sleeping || v.push || !v.g.visible || v.doorWalk || v.changeT > 0 || v.inside || v.hideT > 0 || v.carryLog.visible || v.carryStone.visible) continue;
+    const d = Math.hypot(v.x - c.x, v.z - c.z) + (v.job || v.build ? 8 : 0); if (d < bd) { bd = d; best = v; }
+  }
+  if (best) { release(best); best.path = null; best.stuck = 0; best.prog = null; }
+  return best;
+}
+// a pusher walks to the engine's back, then holds on behind it, walking, while it rolls; let go when it stops
+function updatePush(v, dt) {
+  const B = v.push;
+  if (!B.move || B.dead || !buildings.includes(B)) {
+    if (v.pushOn) { const p = standNear(v.x, v.z); v.x = p.x; v.z = p.z; }     // step off the engine's tile
+    v.push = null; v.pushOn = false; v.path = null; v.stuck = 0; v.prog = null; if (v.job) v.state = 'commute'; return;
+  }
+  if (!B.turret) return;
+  const R = CATA_RIG[B.tier - 1], sp = engPt(B, R.push[0], 0, R.push[1]);
+  if (!v.pushOn) { if (walkTo(v, sp.x, sp.z, dt, 1, .3) || Math.hypot(sp.x - v.x, sp.z - v.z) < 1.6 || v.noProg > 1.5) v.pushOn = true; return; }
+  v.x = sp.x; v.z = sp.z; v.walking = !B.move.wait; v.pushing = true; v.g.rotation.y = engYaw(B, [0, 0, 0], [0, 0, 1]);
 }
 function updateMoves(dt) {
   for (const B of buildings) {
     const mv = B.move; if (!mv || B.dead) continue;
+    const crewOn = B.manned && B.manned[0] && B.manned[1];
+    if (PH.kind !== 'day') { const u = mv.pusher; if (u) { if (u.pushOn) { const p = standNear(u.x, u.z); u.x = p.x; u.z = p.z; } u.push = null; u.pushOn = false; mv.pusher = null; } mv.wait = !crewOn; }
+    else if (!mv.pusher || mv.pusher.push !== B || !villagers.includes(mv.pusher)) {   // by day: wait for a villager to come and push
+      mv.pusher = null; mv.wait = true;
+      if ((mv.pickT = (mv.pickT || 0) - dt) <= 0) { mv.pickT = .5; const v = pickPusher(B); if (v) { v.push = B; v.pushOn = false; mv.pusher = v; } }
+    } else mv.wait = !mv.pusher.pushOn;
+    if (mv.wait) continue;
     const g = B.group.position, p = mv.pts[0], dx = p.x - g.x, dz = p.z - g.z, d = Math.hypot(dx, dz), st = Math.min(d, MOVE_SPEED * dt);
     if (B.turret) B.turret.rotation.y += Math.atan2(Math.sin(Math.atan2(dx, dz) - B.group.rotation.y - B.turret.rotation.y), Math.cos(Math.atan2(dx, dz) - B.group.rotation.y - B.turret.rotation.y)) * Math.min(1, dt * 3);
     if (d > 1e-3) { g.x += dx / d * st; g.z += dz / d * st; g.y = hAt(g.x, g.z); }
@@ -4162,10 +4227,60 @@ function updateDefense(dt) {
 }
 // siege engines work only with both crew posted: the gunner turns the engine (or the ballista's swivel) onto the nearest raider
 // in reach (not closer than minRange), it shoots when lined up, then the loader winches it back for the reload time
+// a rope (a unit-tall box) stretched between two points in its parent's frame
+const UPV = new THREE.Vector3(0, 1, 0), rA = new THREE.Vector3(), rB = new THREE.Vector3(), rC = new THREE.Vector3();
+function setRope(m, a, b) { rC.subVectors(b, a); const L = rC.length(); m.visible = L > .01; if (!m.visible) return; m.position.addVectors(a, b).multiplyScalar(.5); m.scale.set(1, L, 1); m.quaternion.setFromUnitVectors(UPV, rC.divideScalar(L)); }
+// point an arm (shoulder pivot) at a spot in the world: forward/down by rotation.x, a little sideways by rotation.z
+function aimArm(f, arm, t) {
+  arm.getWorldPosition(rA); const y = f.g.rotation.y, dx = t.x - rA.x, dz = t.z - rA.z, dy = t.y - rA.y;
+  const fwd = dx * Math.sin(y) + dz * Math.cos(y), side = dx * Math.cos(y) - dz * Math.sin(y), L = Math.hypot(fwd, dy, side) || 1;
+  arm.rotation.set(Math.atan2(-fwd, -dy), 0, clamp(side / L, -.8, .8));
+}
+// a point of the engine's own frame in the world
+function engPt(B, x, y, z) { return B.turret.localToWorld(new THREE.Vector3(x, y, z)); }
+const engYaw = (B, a, b) => { const p = engPt(B, ...a), q = engPt(B, ...b); return Math.atan2(q.x - p.x, q.z - p.z); };
+// the catapult's crew: the loader kneels at the crank and turns it while the arm is winched down; the gunner holds the trigger line
+// and yanks it to loose; on a move the gunner pushes from behind and the loader walks alongside; the winch rope and trigger line follow
+function catapultCrew(B, k, crew, moving, dt, best) {
+  B.group.updateMatrixWorld(true);
+  const R = CATA_RIG[k], rig = B.rig, e = B.turret, now = performance.now() / 1000, gy = B.group.position.y;
+  rig.ammo.forEach(o => o.visible = !moving);                      // the spare stones aren't carted along: they are back when it stops
+  const winding = crew && B.cd > 0 && B.fireT <= 0 && !moving;
+  if (winding) rig.crank.rotation.x -= dt * 6;
+  if (rig.wrope) {                                                 // drum to the arm; slack and gone while the arm flies
+    const th = B.arm.rotation.x; rA.set(0, R.drum[1] + R.dr, R.drum[2]); rB.set(0, B.arm.position.y + R.armR * Math.cos(th), B.arm.position.z + R.armR * Math.sin(th));
+    setRope(rig.wrope, rA, rB); if (B.fireT > 0 || moving) rig.wrope.visible = false;
+  }
+  const figs = B.figs || [], L = figs[0] && figs[0].g.visible ? figs[0] : null, G = figs[1] && figs[1].g.visible ? figs[1] : null;
+  const place = (f, x, z) => { const p = engPt(B, x, 0, z); f.g.position.set(p.x, gy, p.z); };
+  const walkLegs = (f, on) => { const sw = on ? Math.sin(now * 9) * .5 : 0; f.legs[0].rotation.set(sw, 0, 0); f.legs[1].rotation.set(-sw, 0, 0); f.body.position.y = on ? Math.abs(Math.sin(now * 9)) * .04 : 0; };
+  if (L) {
+    if (moving) { place(L, ...R.walk); L.g.rotation.y = engYaw(B, [0, 0, 0], [0, 0, 1]); walkLegs(L, true); L.body.rotation.x = 0; const sw = Math.sin(now * 9) * .4; L.arms[0].rotation.set(sw, 0, 0); L.arms[1].rotation.set(-sw, 0, 0); }
+    else {
+      place(L, ...R.loader); L.g.rotation.y = engYaw(B, [R.loader[0], 0, R.loader[1]], [R.cx, 0, R.drum[2]]); walkLegs(L, false); kneel(L, .55); L.body.rotation.x = 0;
+      L.g.updateMatrixWorld(true); const h = rig.crank.localToWorld(new THREE.Vector3(.1, R.cr, 0));
+      aimArm(L, L.arms[1], h); aimArm(L, L.arms[0], h);
+    }
+  }
+  if (G) {
+    if (moving) { place(G, ...R.push); G.g.rotation.y = engYaw(B, [0, 0, 0], [0, 0, 1]); walkLegs(G, true); G.arms[0].rotation.set(-1.45, 0, .15); G.arms[1].rotation.set(-1.45, 0, -.15); G.body.rotation.x = .12; }
+    else {
+      place(G, ...R.gunner); G.g.rotation.y = engYaw(B, [R.gunner[0], 0, R.gunner[1]], R.catch); walkLegs(G, false);
+      const yank = B.fireT > 0 ? Math.sin(Math.PI * clamp(1 - B.fireT / .35, 0, 1)) : 0;     // a sharp pull on the line looses the arm
+      G.arms[0].rotation.set(-1.0 + .6 * yank, 0, .12); G.arms[1].rotation.set(-1.05 + .6 * yank, 0, -.12); G.body.rotation.x = -.18 * yank;
+    }
+  }
+  if (rig.trope) {                                                 // the trigger line: from the catch to the gunner's hands
+    if (G && !moving) { G.g.updateMatrixWorld(true); const h = G.arms[1].localToWorld(new THREE.Vector3(0, -.33, 0)); e.worldToLocal(h); rA.set(...R.catch); setRope(rig.trope, rA, h); }
+    else rig.trope.visible = false;
+  }
+}
 function updateSiege(B, T, dt) {
   const k = B.tier - 1, c = center(B), R = T.range[k], mn = T.minRange || 0, crew = !!(B.manned && B.manned[0] && B.manned[1]) && !B.move;
-  if (B.partsOn !== B.group) { B.partsOn = B.group; B.turret = B.arm = B.bolt = null; B.group.traverse(o => { if (o.userData.turret) B.turret = o; if (o.userData.arm) B.arm = o; if (o.userData.bolt) B.bolt = o; }); }
+  if (B.partsOn !== B.group) { B.partsOn = B.group; B.turret = B.arm = B.bolt = null; B.rig = { ammo: [] }; B.group.traverse(o => { const u = o.userData; if (u.turret) B.turret = o; if (u.arm) B.arm = o; if (u.bolt) B.bolt = o; if (u.crank) B.rig.crank = o; if (u.wrope) B.rig.wrope = o; if (u.trope) B.rig.trope = o; if (u.ammo) B.rig.ammo.push(o); }); }
   if (B.cd === undefined) B.cd = T.rate[k];
+  const moving = !!(B.move && !B.move.wait);
+  if (moving) B.cd = T.rate[k];                                   // rolled unloaded, the arm let up; it is winched down again after
   if (crew && B.cd > 0) B.cd -= dt;
   B.fireT = Math.max(0, (B.fireT || 0) - dt);
   let best = null, bd = R;
@@ -4179,7 +4294,8 @@ function updateSiege(B, T, dt) {
   const loadK = clamp(1 - B.cd / T.rate[k], 0, 1);
   if (B.arm) { const [cock, thrown] = CATA_ARM[k]; B.arm.rotation.x = B.fireT > 0 ? lerp(thrown, cock, Math.pow(B.fireT / .35, 2)) : lerp(thrown, cock, sstep(0, 1, loadK)); }
   if (B.bolt) B.bolt.visible = loadK > .6;
-  (B.figs || []).forEach((f, a) => {
+  if (B.type === 'catapult') catapultCrew(B, k, crew, moving, dt, best);
+  else (B.figs || []).forEach((f, a) => {
     if (!f || !f.g.visible) return;
     const [l, r] = f.arms;
     if (a === 0) { const w = B.cd > 0 && crew ? Math.sin(performance.now() / 140) : 0; l.rotation.set(-1.1 + w * .5, 0, 0); r.rotation.set(-1.1 - w * .5, 0, 0); f.g.rotation.y = Math.atan2(c.x - f.g.position.x, c.z - f.g.position.z); }
@@ -4333,7 +4449,11 @@ function startDay() {
   for (const v of villagers) if (v.post) {
     if (v.soldier) { v.unkit = v.post.B; v.posted = false; v.prog = null; v.path = null; }     // walk back to the barracks to change
     else if (v.kitT > 0) { v.kitT = 0; v.posted = false; if (!v.g.visible || v.doorWalk) { v.indoor = v.post.B; exitDoor(v); } }   // dawn caught them changing
-    else if (v.posted) { v.posted = false; v.inside = true; }
+    else if (v.posted) {                                           // out of the post itself, back in their own clothes
+      v.posted = false; const B = v.post.B, f = DEF[B.type].crew && B.figs && B.figs[v.post.a];
+      if (f && f.g.visible) { v.inside = false; v.indoor = null; v.hideT = 0; v.doorWalk = null; const p = standNear(f.g.position.x, f.g.position.z); v.x = v.rx = p.x; v.z = v.rz = p.z; v.g.visible = true; v.path = null; v.state = v.build ? 'tobuild' : v.job ? 'commute' : 'find'; v.wait = 0; }
+      else { v.inside = true; v.indoor = B; }                       // from a tower or the castle: out of its door
+    }
     v.post = null;
   }
   for (const B of buildings) { B.manned = []; hideDefenders(B); }
