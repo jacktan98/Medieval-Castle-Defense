@@ -152,11 +152,21 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #campMap{width:100%;flex:1 1 auto;min-height:0;display:flex;justify-content:center}
 #campMap svg{width:100%;height:auto;max-height:calc(100dvh - 190px);border-radius:10px;border:1px solid #4a4838}
 #campMap .mk{cursor:pointer} #campMap .mk.sel circle.ring{stroke:#fff}
-#campInfo{min-height:66px;width:100%;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center}
+#campInfo{width:100%;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+#campMap svg{max-height:calc(100dvh - 120px)!important}
+#stagePrev{background:rgba(12,13,9,.94);z-index:62}
+.stageSheet{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(520px,100%);max-height:100%;overflow:auto}
+.stPic{width:100%;max-width:min(520px,62dvh);aspect-ratio:1/1;border-radius:10px;border:1px solid #4a4838;overflow:hidden;background:#2a2b22;display:flex;align-items:center;justify-content:center;position:relative;flex:0 0 auto}
+.stPic img{width:100%;height:100%;object-fit:cover;display:block} .stPic .tag{position:absolute;left:8px;top:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--parch);background:rgba(20,21,15,.75);padding:2px 7px;border-radius:5px} .stPic .soon{color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-size:13px}
+.stSide{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
+.stSide h3{margin:0;font-family:var(--display);font-weight:400;font-size:21px;color:var(--gold)} .stSide .sub{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.stNew{display:flex;flex-wrap:wrap;justify-content:center;gap:7px 12px;font-size:13px;color:var(--parch)} .stNew span{display:flex;align-items:center;gap:5px} .stNew svg{width:20px;height:20px;stroke:var(--gold);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.stActs{display:flex;gap:10px;margin-top:4px} .stActs button{min-width:92px}
+@media (max-height:520px){ .stageSheet{flex-direction:row;width:min(780px,100%);justify-content:center} .stPic{width:auto;height:calc(100dvh - 40px);max-width:none} .stSide{width:240px} }
 #campInfo h3{margin:0;font-family:var(--display);font-weight:400;font-size:19px;color:var(--gold)} #campInfo .sub{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 #campInfo .unl{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 10px;font-size:12px;color:var(--parch)}
 #campInfo .unl span{display:flex;align-items:center;gap:4px} #campInfo .unl svg{width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-@media (max-height:520px){ .campSheet{flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center} #campMap{flex:0 0 auto;width:auto} #campMap svg{max-height:calc(100dvh - 60px);width:auto;height:calc(100dvh - 60px)} #campInfo{width:200px} }
+@media (max-height:520px){ #campMap svg{max-height:calc(100dvh - 60px)!important} .campSheet{flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center} #campMap{flex:0 0 auto;width:auto} #campMap svg{max-height:calc(100dvh - 60px);width:auto;height:calc(100dvh - 60px)} #campInfo{width:200px} }
 .mapSub{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .maps{display:flex;gap:min(12px,2vw);justify-content:center;flex-wrap:wrap}
 .mapBtn{display:flex;flex-direction:column;align-items:stretch;gap:7px;padding:6px 6px 8px;border-radius:12px;background:#24261f;border-color:#4a4838;width:min(170px,25vw)}
@@ -395,8 +405,19 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
     <div class="campSheet">
       <div class="mapSub">Campaign <span id="campStars"></span></div>
       <div id="campMap"></div>
-      <div id="campInfo"></div>
+      <div id="campInfo">Tap a stage</div>
       <button id="campBack">Back</button>
+    </div>
+  </div>
+  <div class="modal" id="stagePrev" hidden>
+    <div class="stageSheet">
+      <div class="stPic" id="stPic"></div>
+      <div class="stSide">
+        <h3 id="stName"></h3><div class="sub" id="stSub"></div>
+        <div class="stNew" id="stNew"></div>
+        <div id="stStars"></div>
+        <div class="stActs"><button id="stBack">Back</button><span id="stPlay"></span></div>
+      </div>
     </div>
   </div>
   <div class="modal" id="loadPick" hidden>
@@ -1142,7 +1163,7 @@ function genTrees() {
         // (Jack found the first version too thickly wooded: a thinner rim, fewer copses)
         const rim = d < 3.4 && hash(x * 1.3, z * .7) < .34, copse = dk > 9 && fbm(x * .13 + 31, z * .13 + 17) > .63 && hash(x * .9, z * 1.9) < .4;
         if (dk > 7 && !mid && (rim || copse) && !valeRockSite(x, z, 1.6)) trees.push({ x, z, s: .75 + hash(z, x) * .5, k: 1 });
-      } else if (hash(x * 2.3, z * 1.9) < .45) trees.push({ x, z, s: .75 + hash(z, x) * .5, k: 1, deco: true });
+      } else if ((fbm(x * .09 + 11, z * .09 + 5) > .58 && hash(x * 2.3, z * 1.9) < .34) || hash(x * 1.7, z * 2.9) < .03) trees.push({ x, z, s: .75 + hash(z, x) * .5, k: 1, deco: true });   // the hills: woods in patches, open grass between (Jack found them too thickly wooded)
       continue;
     }
     if (MAP === 'pass') {
@@ -1203,7 +1224,7 @@ function pickValeRocks() {
   VALE_ROCK_C = [];
   for (let n = 0; n < 4000 && VALE_ROCK_C.length < 6; n++) {
     const x = 4 + Math.random() * (SIZE - 8), z = 4 + Math.random() * (SIZE - 8), d = valeAt(x, z);
-    if (d < 1.5 || d > 5 || Math.hypot(x - KX, z - KZ) < 8 || (x - VALE.c[0] > 4 && z - VALE.c[1] < -4) || VALE_ROCK_C.some(([a, b]) => Math.hypot(a - x, b - z) < 9)) continue;
+    if (d < 1 || d > 2.6 || Math.hypot(x - KX, z - KZ) < 8 || (x - VALE.c[0] > 4 && z - VALE.c[1] < -4) || VALE_ROCK_C.some(([a, b]) => Math.hypot(a - x, b - z) < 9)) continue;   // at the foot of the hills
     VALE_ROCK_C.push([x, z]);
   }
 }
@@ -1215,13 +1236,13 @@ function genRocks() {
     // loose groups of 3–5 spread over 8 m, then single rocks scattered about the valley (Jack found tight clusters unnatural)
     for (const [cx, cz] of VALE_ROCK_C) for (let n = 0, k = 0, want = 3 + Math.floor(Math.random() * 3); n < 300 && k < want; n++) {
       const x = cx + (Math.random() - .5) * 8, z = cz + (Math.random() - .5) * 8;
-      if (!valeOpen(x, z) || valeAt(x, z) < .9 || Math.hypot(x - KX, z - KZ) < 7 || rocks.some(r => Math.hypot(r.x - x, r.z - z) < 2.4)) continue;
+      if (valeAt(x, z) < .9 || valeAt(x, z) > 3.2 || Math.hypot(x - KX, z - KZ) < 7 || rocks.some(r => Math.hypot(r.x - x, r.z - z) < 2.4)) continue;
       addRock(x, z, .75 + Math.random() * .6, [Math.random() * 3, Math.random() * 3, Math.random() * 3]); k++;
     }
     const [[ax, az], [bx, bz]] = VALE.gap, gx = bx - ax, gz = bz - az;
     for (let n = 0, k = 0; n < 4000 && k < 16; n++) {
       const x = 2 + Math.random() * (SIZE - 4), z = 2 + Math.random() * (SIZE - 4), t = clamp(((x - ax) * gx + (z - az) * gz) / (gx * gx + gz * gz), 0, 1);
-      if (valeAt(x, z) < .9 || Math.hypot(x - KX, z - KZ) < 7.5 || Math.hypot(x - ax - gx * t, z - az - gz * t) < 4 || rocks.some(r => Math.hypot(r.x - x, r.z - z) < 4)) continue;
+      if (valeAt(x, z) < .9 || valeAt(x, z) > 4.5 || Math.hypot(x - KX, z - KZ) < 7.5 || Math.hypot(x - ax - gx * t, z - az - gz * t) < 4 || rocks.some(r => Math.hypot(r.x - x, r.z - z) < 4)) continue;   // near the hills, not out in the meadow
       addRock(x, z, .6 + Math.random() * .7, [Math.random() * 3, Math.random() * 3, Math.random() * 3]); k++;
     }
     return;
@@ -5759,6 +5780,7 @@ const CAMP_LAND = {
   high:   { c: [315, 395], r: [145, 88], fill: '#7c7458' },    // rocky highlands rising into the northern hills
   marsh:  { c: [520, 455], r: [118, 70], fill: '#45695a' },
 };
+const CAMP_CY = 1.5;   // the overview is drawn half again as tall as its 800 × 900 plan (Jack wanted it longer; each stage's detail is in its preview)
 const landW = (k, x, y, a = .55, b = 1.15) => { const L = CAMP_LAND[k], d = Math.hypot((x - L.c[0]) / L.r[0], (y - L.c[1]) / L.r[1]); return 1 - sstep(a, b, d); };
 // the river (cubic segments): down from the north-east mountains, split round Riverbend, out at the west edge
 const CAMP_RIVER = [
@@ -5766,6 +5788,8 @@ const CAMP_RIVER = [
   [[451, 478], [458, 520, 466, 560, 448, 592], [428, 625, 398, 642, 360, 655], [322, 668, 292, 676, 262, 686]],
 ];
 function campaignSVG() {
+  // the ground is drawn stretched by CAMP_CY in height (a taller overview); trees, rocks, peaks and markers keep their shapes and just move down with it
+  const T = (y, el) => `<g transform="translate(0 ${(y * (CAMP_CY - 1)).toFixed(1)})">${el}</g>`;
   const P = CAMPAIGN.map(c => c.at), hash2 = (a, b) => { const x = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return x - Math.floor(x); };
   const noise = (x, y, s) => { const gx = x / s, gy = y / s, i = Math.floor(gx), j = Math.floor(gy), u = sstep(0, 1, gx - i), v = sstep(0, 1, gy - j);
     return lerp(lerp(hash2(i, j), hash2(i + 1, j), u), lerp(hash2(i, j + 1), hash2(i + 1, j + 1), u), v); };
@@ -5791,41 +5815,42 @@ function campaignSVG() {
     const dens = clamp(.92 * wF + (1 - wF) * (meadow - .75 * wS - .9 * wD - .9 * wP - .55 * wH - .7 * wM - .8 * north), 0, 1);
     if (hash2(x * .7, y * 1.3) > dens || !free(x, y)) continue;
     const dark = wF > .5 || hash2(x, y * 3) < .45;
-    trees.push(`<path d="M${x.toFixed(0)} ${(y - 13).toFixed(0)} L${(x - 7).toFixed(0)} ${(y + 4).toFixed(0)} L${(x + 7).toFixed(0)} ${(y + 4).toFixed(0)} Z" fill="${wF > .6 ? (dark ? '#20361d' : '#2a4325') : (dark ? '#2f4a2a' : '#3a5a31')}"/>`);
+    trees.push(T(y, `<path d="M${x.toFixed(0)} ${(y - 13).toFixed(0)} L${(x - 7).toFixed(0)} ${(y + 4).toFixed(0)} L${(x + 7).toFixed(0)} ${(y + 4).toFixed(0)} Z" fill="${wF > .6 ? (dark ? '#20361d' : '#2a4325') : (dark ? '#2f4a2a' : '#3a5a31')}"/>`));
   }
   // ground detail by land: dunes and dry shrubs, rocks on the highlands, pools and reeds in the marsh
   for (let n = 0; n < 2600; n++) {
     const x = 50 + hash2(n, 41) * 710, y = 150 + hash2(n, 42) * 720; if (!free(x, y, 34)) continue;
     const r = hash2(n, 43), wD = landW('desert', x, y, .2, 1), wS = landW('dry', x, y, .5, 1), wH = landW('high', x, y, .3, 1.05), wM = landW('marsh', x, y, .2, 1);
-    if (wD > .5 && r < .12) bits.push(`<path d="M${(x - 20).toFixed(0)} ${y.toFixed(0)} Q${x.toFixed(0)} ${(y - 11).toFixed(0)} ${(x + 20).toFixed(0)} ${y.toFixed(0)}" fill="none" stroke="#9f8550" stroke-width="3.5" stroke-linecap="round" opacity="${(.5 + .5 * wD).toFixed(2)}"/>`);
-    else if (wS > .3 && r < .03 + .04 * wS) bits.push(`<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="3.2" fill="#6f6d3e"/>`);
-    else if (wH > .25 && r < .04 + .14 * wH) { const k = 3 + hash2(n, 44) * 5; bits.push(`<path d="M${(x - k).toFixed(1)} ${y.toFixed(1)} L${(x - k * .4).toFixed(1)} ${(y - k * .9).toFixed(1)} L${(x + k * .6).toFixed(1)} ${(y - k * .7).toFixed(1)} L${(x + k).toFixed(1)} ${y.toFixed(1)} Z" fill="${hash2(n, 45) < .5 ? '#8d8a82' : '#a29e94'}"/>`); }
-    else if (wM > .25 && r < .3 * wM) bits.push(hash2(n, 46) < .4 ? `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${(7 + hash2(n, 47) * 8).toFixed(0)}" ry="4" fill="#4b7c8c" opacity=".85"/>`
-      : `<path d="M${x.toFixed(0)} ${y.toFixed(0)} l-3 -9 M${x.toFixed(0)} ${y.toFixed(0)} l0 -11 M${x.toFixed(0)} ${y.toFixed(0)} l3 -9" stroke="#86904f" stroke-width="1.6" stroke-linecap="round"/>`);
+    if (wD > .5 && r < .12) bits.push(T(y, `<path d="M${(x - 20).toFixed(0)} ${y.toFixed(0)} Q${x.toFixed(0)} ${(y - 11).toFixed(0)} ${(x + 20).toFixed(0)} ${y.toFixed(0)}" fill="none" stroke="#9f8550" stroke-width="3.5" stroke-linecap="round" opacity="${(.5 + .5 * wD).toFixed(2)}"/>`));
+    else if (wS > .3 && r < .03 + .04 * wS) bits.push(T(y, `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="3.2" fill="#6f6d3e"/>`));
+    else if (wH > .25 && r < .04 + .14 * wH) { const k = 3 + hash2(n, 44) * 5; bits.push(T(y, `<path d="M${(x - k).toFixed(1)} ${y.toFixed(1)} L${(x - k * .4).toFixed(1)} ${(y - k * .9).toFixed(1)} L${(x + k * .6).toFixed(1)} ${(y - k * .7).toFixed(1)} L${(x + k).toFixed(1)} ${y.toFixed(1)} Z" fill="${hash2(n, 45) < .5 ? '#8d8a82' : '#a29e94'}"/>`)); }
+    else if (wM > .25 && r < .3 * wM) bits.push(T(y, hash2(n, 46) < .4 ? `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${(7 + hash2(n, 47) * 8).toFixed(0)}" ry="4" fill="#4b7c8c" opacity=".85"/>`
+      : `<path d="M${x.toFixed(0)} ${y.toFixed(0)} l-3 -9 M${x.toFixed(0)} ${y.toFixed(0)} l0 -11 M${x.toFixed(0)} ${y.toFixed(0)} l3 -9" stroke="#86904f" stroke-width="1.6" stroke-linecap="round"/>`));
   }
   // the marsh by the river at Meadowmere: still pools among the reeds
   for (let n = 0; n < 260; n++) {
     const L = CAMP_LAND.marsh, a = hash2(n, 51) * 6.283, d = Math.sqrt(hash2(n, 52)), x = L.c[0] + Math.cos(a) * d * L.r[0] * 1.05, y = L.c[1] + Math.sin(a) * d * L.r[1] * 1.05;
     const w = landW('marsh', x, y, .2, 1.05); if (hash2(n, 53) > w || !free(x, y, 30)) continue;
-    bits.push(hash2(n, 54) < .35 ? `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${(6 + hash2(n, 55) * 10).toFixed(0)}" ry="${(3 + hash2(n, 56) * 2.5).toFixed(1)}" fill="#4b7f91" opacity=".9"/>`
-      : `<path d="M${x.toFixed(0)} ${y.toFixed(0)} l-3 -9 M${x.toFixed(0)} ${y.toFixed(0)} l0 -11 M${x.toFixed(0)} ${y.toFixed(0)} l3 -9" stroke="#9aa45a" stroke-width="1.7" stroke-linecap="round"/>`);
+    bits.push(T(y, hash2(n, 54) < .35 ? `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${(6 + hash2(n, 55) * 10).toFixed(0)}" ry="${(3 + hash2(n, 56) * 2.5).toFixed(1)}" fill="#4b7f91" opacity=".9"/>`
+      : `<path d="M${x.toFixed(0)} ${y.toFixed(0)} l-3 -9 M${x.toFixed(0)} ${y.toFixed(0)} l0 -11 M${x.toFixed(0)} ${y.toFixed(0)} l3 -9" stroke="#9aa45a" stroke-width="1.7" stroke-linecap="round"/>`));
   }
   const hills = [], peaks = [];
   for (let n = 0; n < 16; n++) { const x = 60 + n * 46 + (hash2(n, 5) - .5) * 20, y = 60 + (hash2(n, 6) - .5) * 30 + (n % 2) * 22, w = 34 + hash2(n, 7) * 26, h = 40 + hash2(n, 8) * 40;
     if (Math.hypot(x - P[11][0], y - P[11][1]) < 50 || Math.hypot(x - P[10][0], y - P[10][1]) < 50) continue;
-    peaks.push(`<path d="M${x - w} ${y + h * .55} L${x} ${y - h * .45} L${x + w} ${y + h * .55} Z" fill="#5b5550"/><path d="M${x - w * .32} ${y - h * .45 + h * .32} L${x} ${y - h * .45} L${x + w * .32} ${y - h * .45 + h * .32} L${x + w * .1} ${y - h * .45 + h * .25} L${x - w * .1} ${y - h * .45 + h * .36} Z" fill="#e6e2d6"/>`); }
+    peaks.push(T(y, `<path d="M${x - w} ${y + h * .55} L${x} ${y - h * .45} L${x + w} ${y + h * .55} Z" fill="#5b5550"/><path d="M${x - w * .32} ${y - h * .45 + h * .32} L${x} ${y - h * .45} L${x + w * .32} ${y - h * .45 + h * .32} L${x + w * .1} ${y - h * .45 + h * .25} L${x - w * .1} ${y - h * .45 + h * .36} Z" fill="#e6e2d6"/>`)); }
   for (let n = 0; n < 9; n++) { const x = 90 + n * 85, y = 240 + (n % 3) * 30; if (x > 560 && x < 760) continue;    // the plains stay open
-    hills.push(`<path d="M${x - 60} ${y + 26} Q${x} ${y - 30} ${x + 60} ${y + 26}" fill="#4f5a3a" opacity=".7"/>`); }
+    hills.push(T(y, `<path d="M${x - 60} ${y + 26} Q${x} ${y - 30} ${x + 60} ${y + 26}" fill="#4f5a3a" opacity=".7"/>`)); }
   const marks = CAMPAIGN.map((c, i) => { const [x, y] = c.at;
-    return `<g class="mk" data-i="${i}" transform="translate(${x} ${y})"><circle class="ring" r="27" fill="${c.boss ? '#6b2a24' : '#2a2b22'}" stroke="${c.boss ? '#e2715b' : '#e3b341'}" stroke-width="3"/>` +
+    return `<g class="mk" data-i="${i}" transform="translate(${x} ${y * CAMP_CY})"><circle class="ring" r="27" fill="${c.boss ? '#6b2a24' : '#2a2b22'}" stroke="${c.boss ? '#e2715b' : '#e3b341'}" stroke-width="3"/>` +
       (c.boss ? `<path d="M-11 -8 L11 14 M11 -8 L-11 14 M-13 -13 L-7 -7 M13 -13 L7 -7" stroke="#f3d5c8" stroke-width="3.5" stroke-linecap="round"/>` : `<text y="9" text-anchor="middle" font-size="26" font-family="Georgia,serif" fill="#f2e6c4">${i + 1}</text>`) +
       `<text y="56" text-anchor="middle" font-size="25" font-family="Georgia,serif" fill="#f2e6c4" stroke="#1a1a14" stroke-width="5" paint-order="stroke">${c.name}</text></g>`; }).join('');
   // the lands' colours, blurred and clipped to the coast, so each fades into the next
   const blob = (k, sx = 1, op = 1) => { const L = CAMP_LAND[k]; return `<ellipse cx="${L.c[0]}" cy="${L.c[1]}" rx="${L.r[0] * sx}" ry="${L.r[1] * sx}" fill="${L.fill}" opacity="${op}"/>`; };
-  return `<svg viewBox="0 0 800 900" xmlns="http://www.w3.org/2000/svg">
+  return `<svg viewBox="0 0 800 ${900 * CAMP_CY}" xmlns="http://www.w3.org/2000/svg">
     <defs><clipPath id="campLand"><path d="${LAND}"/></clipPath><filter id="campSoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="26"/></filter>
       <filter id="campSoft2" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="12"/></filter></defs>
-    <rect width="800" height="900" fill="#1f3442"/>
+    <rect width="800" height="${900 * CAMP_CY}" fill="#1f3442"/>
+    <g transform="scale(1 ${CAMP_CY})">
     <path d="${LAND}" fill="#5d7444"/>
     <g clip-path="url(#campLand)">
       <g filter="url(#campSoft)">${blob('dry', 1, .9)}${blob('plains', 1, .9)}${blob('high', 1, .85)}${blob('woods', 1, .85)}${blob('marsh', 1, .8)}
@@ -5834,23 +5859,32 @@ function campaignSVG() {
       <path d="M300 30 C420 60 520 80 600 40" fill="none" stroke="#7a3a30" stroke-width="40" opacity=".35" filter="url(#campSoft2)"/>
     </g>
     ${rivPath.map((d, i) => `<path d="${d}" fill="none" stroke="#3d6f8f" stroke-width="${i ? 12 : 16}" stroke-linecap="round"/>`).join('')}
-    ${bits.join('')}${hills.join('')}${peaks.join('')}${trees.join('')}
     <path d="${road}" fill="none" stroke="#e8d3a0" stroke-width="5" stroke-dasharray="10 9" stroke-linecap="round" opacity=".9"/>
+    </g>
+    ${bits.join('')}${hills.join('')}${peaks.join('')}${trees.join('')}
     ${marks}
   </svg>`;
 }
-function campaignInfo(i) {
-  const c = CAMPAIGN[i];
+// a stage's preview: its picture (the real stage where it's built, else its sketch), what it brings in, stars, Play
+const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'design/stages/stage2-stonebridge.png', tag: 'Sketch' } };
+function openStage(i) {
+  const c = CAMPAIGN[i], pic = STAGE_PIC[i];
   document.querySelectorAll('#campMap .mk').forEach(m => m.classList.toggle('sel', +m.dataset.i === i));
-  const unl = c.adds.map(t => `<span>${TOOL_ICON[t] || ''}${t === 'road' ? 'Path' : DEF[t].name}</span>`).join('');
-  $('#campInfo').innerHTML = `<h3>${i + 1} · ${c.name}</h3>${c.sub ? `<div class="sub">${c.sub}</div>` : ''}${c.land ? `<div class="sub">${c.land}</div>` : ''}<div class="unl">${unl}</div>${starsHTML(c.map ? STARS[c.map] || 0 : 0)} ${c.map ? '<button class="primary" id="campPlay">Play</button>' : '<div class="sub">Soon</div>'}`;
-  if (c.map) $('#campPlay').addEventListener('click', () => { MAP = c.map; $('#campaign').hidden = true; $('#mapPick').hidden = true; paused = false; startGame(); });
+  $('#stPic').innerHTML = pic ? `<img src="${pic.src}" alt="">${pic.tag ? `<span class="tag">${pic.tag}</span>` : ''}` : '<span class="soon">Soon</span>';
+  $('#stName').textContent = `Stage ${i + 1} · ${c.name}`;
+  $('#stSub').textContent = [c.sub, c.land].filter(Boolean).join(' · ');
+  $('#stNew').innerHTML = c.adds.map(t => `<span>${TOOL_ICON[t] || ''}${t === 'road' ? 'Path' : DEF[t].name}</span>`).join('');
+  $('#stStars').innerHTML = starsHTML(c.map ? STARS[c.map] || 0 : 0);
+  $('#stPlay').innerHTML = c.map ? '<button class="primary" id="campPlay">Play</button>' : '';
+  if (c.map) $('#campPlay').addEventListener('click', () => { MAP = c.map; $('#stagePrev').hidden = true; $('#campaign').hidden = true; $('#mapPick').hidden = true; paused = false; startGame(); });
+  $('#stagePrev').hidden = false;
 }
+$('#stBack').addEventListener('click', () => { $('#stagePrev').hidden = true; });
 $('#campMap').innerHTML = campaignSVG();
 markMapStars();
-$('#campMap').addEventListener('click', e => { const m = e.target.closest('.mk'); if (m) campaignInfo(+m.dataset.i); });
-function openCampaign(i = 0) { $('#mapPick').hidden = true; $('#campaign').hidden = false; $('#campStars').innerHTML = `· ★ ${starTotal()}`; campaignInfo(i); }
-$('#campBtn').addEventListener('click', () => openCampaign(0));
+$('#campMap').addEventListener('click', e => { const m = e.target.closest('.mk'); if (m) openStage(+m.dataset.i); });
+function openCampaign(i) { $('#mapPick').hidden = true; $('#campaign').hidden = false; $('#campStars').innerHTML = `· ★ ${starTotal()}`; if (i !== undefined) openStage(i); }
+$('#campBtn').addEventListener('click', () => openCampaign());
 $('#campBack').addEventListener('click', () => { $('#campaign').hidden = true; $('#mapPick').hidden = false; });
 document.querySelectorAll('.mapBtn').forEach(b => b.addEventListener('click', () => {
   MAP = b.dataset.map; try { localStorage.setItem('mtd-map', MAP); } catch (e) {}
