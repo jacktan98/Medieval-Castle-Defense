@@ -1705,6 +1705,7 @@ function makeFarm(tier) {
     if (tier === 3) {        // tall golden wheat: thin stalks with slightly bent heads
       for (let c = 0; c < 12; c++) {
         const x = -1.45 + c * .27 + (hash(r, c) - .5) * .08, h = .5 + hash(c, r * 3) * .14;
+        if (x < -.45 && z < -.45) continue;                                          // keep the barn's front clear: the wheat hid its door
         const st = cone(.075, h, 4, M.wheat, x, h / 2 + .08, z + (hash(c + 7, r) - .5) * .06);
         st.rotation.z = (hash(c, r + 9) - .5) * .25; st.rotation.x = (hash(r + 3, c) - .5) * .2; g.add(st);
       }
@@ -1739,7 +1740,8 @@ function makeFarm(tier) {
   }
   if (tier === 3) { // barn + hay
     g.add(box(1.1, 1.3, .9, M.plaster, -1.15, .7, -1.15)); g.add(pyramid(.85, .7, .85, M.roofBlue, 1.7, -1.15, -1.15));
-    for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.08, 1.32, .08, M.timber, -1.15 + sx * .53, .71, -1.15 + sz * .43));   // brown corner posts g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[1], -1.15, .08 + DOOR_H / 2, -.69));   // farm doors are all the old dark brown
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.08, 1.32, .08, M.timber, -1.15 + sx * .53, .71, -1.15 + sz * .43));   // brown corner posts
+    g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[1], -1.15, .08 + DOOR_H / 2, -.69));   // farm doors are all the old dark brown
     for (const [sx, sz] of [[1.35, 1.35], [.75, 1.42]]) {     // stooks: sheaves leaned together
       for (let n = 0; n < 4; n++) { const a = n / 4 * Math.PI * 2, sh = cyl(.06, .09, .55, 6, M.hay, sx + Math.cos(a) * .08, .32, sz + Math.sin(a) * .08); sh.rotation.z = Math.cos(a) * .25; sh.rotation.x = -Math.sin(a) * .25; g.add(sh); }
     }
@@ -2240,11 +2242,11 @@ function makeStables(tier, plinth) {
   if (!STALL_COATS.length) STALL_COATS.push(horseM, mat('#3b2a1e'), mat('#8a6a4a'));
   const g = new THREE.Group(), b = plinth ? .2 : SLAB_TOP;
   if (plinth) g.add(box(4.0, 1.8, 4.0, tier === 2 ? M.plainStone : M.stone, 0, -.7, 0));
-  const wallM = M.plaster, roofM = tier === 1 ? M.thatchOld : tier === 2 ? M.thatch : M.roofBlue;
+  const wallM = tier === 1 ? M.rough : M.plaster, roofM = tier === 1 ? M.thatchOld : tier === 2 ? M.thatch : M.roofBlue;
   const sx0 = -.25, sx1 = 1.9, sz0 = -1.75, sz1 = .1, h = 1.45, cx = (sx0 + sx1) / 2, w = sx1 - sx0, dpt = sz1 - sz0;
   g.add(box(w, h, .12, wallM, cx, b + h / 2, sz0 + .06));                                   // back wall
   for (const x of [sx0 + .06, sx1 - .06]) g.add(box(.12, h, dpt, wallM, x, b + h / 2, (sz0 + sz1) / 2));
-  for (const x of [sx0 + .04, sx1 - .04]) for (const z of [sz0 + .04, sz1 - .02]) g.add(box(.1, h + .02, .1, M.timber, x, b + h / 2, z));   // brown corner posts
+  if (tier > 1) for (const x of [sx0 + .04, sx1 - .04]) for (const z of [sz0 + .04, sz1 - .02]) g.add(box(.1, h + .02, .1, M.timber, x, b + h / 2, z));   // brown corner posts (tier 2 and 3)
   const stalls = tier === 3 ? 3 : 2;
   for (let n = 1; n < stalls; n++) g.add(box(.08, .9, dpt - .2, M.timber, sx0 + n * w / stalls, b + .45, (sz0 + sz1) / 2));
   for (let n = 0; n < stalls; n++) {                                                        // half doors and a horse looking over each
@@ -2256,7 +2258,7 @@ function makeStables(tier, plinth) {
   // the armoury hut at the front left, its door the building's
   const hx = -1, hz = .2, hw = 1.05, hd = .85, hh = 1.25;                                    // centred on the door (x -1)
   g.add(box(hw, hh, hd, wallM, hx, b + hh / 2, hz));
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.08, hh + .02, .08, M.timber, hx + sx * (hw / 2 - .02), b + hh / 2, hz + sz * (hd / 2 - .02)));
+  if (tier > 1) for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.08, hh + .02, .08, M.timber, hx + sx * (hw / 2 - .02), b + hh / 2, hz + sz * (hd / 2 - .02)));
   g.add(pyramid(hw * .78, .6, hd / hw * 1.05, roofM, b + hh + .3, hx, hz));
   g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[tier], -1, b + DOOR_H / 2, .4 + .23));
   g.add(cyl(.3, .32, .4, 8, M.hay, -1.45, b + .2, -1.1)); g.add(box(.7, .2, .25, M.wood, -.65, b + .1, -1.2));   // hay and a trough
