@@ -478,7 +478,7 @@ const N = 28, CELL = 2, SIZE = N * CELL, V = SIZE + 1;
 const F = 3, TICK = 20;
 let KX = 19, KZ = 27;                  // castle site: Meadow cells 8–10, 12–14; River isle 12–14, 12–14 (set per map in startGame)
 // MAP: 'meadow' (the original map) or 'isle' (the castle on an island ringed by a river, three fixed bridges); ?map=isle skips the picker
-var MAP = (location.search.match(/[?&]map=(meadow|isle|pass|vale|bridge|cross|watch|dune|bend|crag|ford)\b/) || [])[1] || (() => { try { const m = localStorage.getItem('mtd-map'); return /^(meadow|isle|pass)$/.test(m) ? m : null; } catch (e) { return null; } })() || 'meadow';
+var MAP = (location.search.match(/[?&]map=(meadow|isle|pass|vale|bridge|cross|watch|dune|bend|crag|ford|mere|plains)\b/) || [])[1] || (() => { try { const m = localStorage.getItem('mtd-map'); return /^(meadow|isle|pass)$/.test(m) ? m : null; } catch (e) { return null; } })() || 'meadow';
 // river isle: the river's centre line wobbles round the castle; ISLE.r is its mean radius in metres
 const ISLE = { r: 16.6 }, ISLE_BRIDGES = [-90, 30, 150], ISLE_ROCKS = [-30, 90, 210], MEADOW_BRIDGES = [0];   // Meadow: one bridge east from the castle over its river
 const isleOutN = z => 41 + 2.5 * Math.sin(z * .22 + .5), isleOutS = z => 18 + 2.5 * Math.sin(z * .2 + 2);   // the isle's two outflows: centre x by z
@@ -643,6 +643,18 @@ const MAP_RULES = {
                   { spear: [4, 5, 2], sword: [3, 3, 1], archer: [4, 2], xbow: [3, 1], lancer: [3, 1], rider: [2, 1], catapult: [1], ram: [1] },
                   { spear: [4, 6, 3], sword: [3, 4, 2], archer: [4, 3], xbow: [3, 2, 1], lancer: [3, 2], rider: [2, 2], catapult: [1, 1], ballista: [0, 1], ram: [0, 1] }],
           day: [300, 120, 120, 120, 120], spawnGap: .9, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
+  // Meadowmere (stage 9): down the north causeway, from night 3 along the east causeway and over its bridge too
+  mere: { waves: [{ spear: [6, 3], sword: [3, 1], archer: [3, 1] }, { spear: [6, 4], sword: [3, 2], archer: [3, 2], xbow: [2], lancer: [2, 1] },
+                  { spear: [5, 5, 1], sword: [3, 3, 1], archer: [4, 2], xbow: [3, 1], lancer: [3, 1], ballista: [1] },
+                  { spear: [4, 6, 2], sword: [3, 4, 1], archer: [4, 3], xbow: [3, 2], lancer: [3, 2], rider: [2, 1], catapult: [1], ram: [1] },
+                  { spear: [4, 6, 4], sword: [2, 4, 3], archer: [3, 4, 1], xbow: [3, 2, 1], lancer: [3, 2, 1], rider: [2, 2], catapult: [0, 1], ballista: [0, 1], ram: [0, 1] }],
+          day: [300, 120, 120, 120, 120], spawnGap: .85, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
+  // Horsefields (stage 10): open on three sides, horsemen in numbers: the north road, from night 2 the west, from night 3 the east too
+  plains: { waves: [{ spear: [6, 2], sword: [2, 1], archer: [2], lancer: [3], rider: [1] }, { spear: [6, 3], sword: [3, 2], archer: [3, 1], lancer: [4, 1], rider: [2] },
+                    { spear: [5, 4], sword: [3, 3], archer: [3, 2], xbow: [2], lancer: [4, 2], rider: [3, 1] },
+                    { spear: [4, 5, 2], sword: [2, 4, 1], archer: [3, 3], xbow: [2, 1], lancer: [4, 3], rider: [3, 2, 1], ram: [1], ballista: [1] },
+                    { spear: [4, 6, 3], sword: [2, 4, 2], archer: [3, 3, 1], xbow: [2, 2], lancer: [4, 3, 2], rider: [3, 3, 2], catapult: [0, 1], ram: [0, 1] }],
+            day: [300, 120, 120, 120, 120], spawnGap: .8, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
 };
 // campaign stops' own maps: the buildings each one has (the stop's and every earlier stop's), and where it sits on the overview
 const CAMP_MAPS = {
@@ -653,6 +665,8 @@ const CAMP_MAPS = {
   bend: { stop: 5, maxTier: 2, cats: { eco: ['house', 'farm', 'lodge', 'forester', 'quarry', 'market'], def: ['tower', 'crossbow', 'ballista', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts'] } },
   crag: { stop: 6, maxTier: 3, newTier: 3, prefer: { stone: 'mine' }, cats: { eco: ['house', 'farm', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner'] } },
   ford: { stop: 7, maxTier: 3, prefer: { siege: 'catapult', stone: 'quarry' }, cats: { eco: ['house', 'farm', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'] } },
+  mere: { stop: 8, maxTier: 3, prefer: { food: 'farmhouse' }, cats: { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'] } },
+  plains: { stop: 9, maxTier: 3, prefer: { barracks: 'stables' }, cats: { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'stables', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'] } },
   watch: { stop: 3, maxTier: 2, newTier: 2, cats: { eco: ['house', 'farm', 'lodge', 'quarry', 'market'], def: ['tower', 'ballista', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire'] } },   // more decor than fits: the player picks four (stage picker)
 };
 var WAVES = WAVES_STD, NIGHTS = WAVES.length, DAYLEN = [300, 150, 150, 150, 150], SPAWN_GAP = 1.1;
@@ -786,7 +800,7 @@ function smoothPts(p, it = 2) { for (let k = 0; k < it; k++) { const q = [p[0]];
 // a caravan road west to east past them, two rock mesas (stone) in the north-east and south-west
 const DUNE_POOL = [26.6, 24.2, 4.6, 3.1], DUNE_OASIS = [24.5, 25.9, 13.3, 11.5], DUNE_MESAS = [[46.2, 11.9, 7.4, 5.6], [9.1, 46.2, 6.7, 5.3]];
 const DUNE_ROAD = smoothPts([[-1, 32.9], [8.4, 32.9], [12.6, 31], [17.5, 30.6], [23.1, 30], [30.1, 29.6], [36.4, 26.6], [43.4, 23.5], [49, 23.1], [57, 23.1]]);
-const DUNE_SAND = new THREE.Color('#c9ad72'), DUNE_ROCK = new THREE.Color('#9a6f4c');
+const MERE_C = new THREE.Color('#646238'), PLAINS_C = new THREE.Color('#7e9b45'), DUNE_SAND = new THREE.Color('#c9ad72'), DUNE_ROCK = new THREE.Color('#9a6f4c');
 const ellD = (x, z, [cx, cz, rx, rz]) => Math.hypot((x - cx) / rx, (z - cz) / rz);
 // the oasis's edge: an ellipse pulled into lobes and bays by angle and noise, ragged where grass gives way to sand (Jack: too oval)
 function oasisD(x, z) {
@@ -849,6 +863,34 @@ function fordHeight(x, z) {
   const d = polyDist(FORD_RIVER, x, z), river = lerp(-1.3, h, lerp(sstep(2.2, 5, d), sstep(2.4, 10, d), ramp));
   return d < 5 ? Math.max(river, lerp(river, .6 + .06 * vnoise(x * .9, z * .9), ford)) : river;   // .6: above the .45 raiders' routes need
 }
+// Meadowmere (stage 9): a marsh of pools along a winding river; fields in the marsh grow half as much (the farmhouse is the answer);
+// the castle on a dry mound west of the river, woods on a dry rise to the north-west; two causeways (paths): the north one down the
+// west bank, the east one over a timber bridge
+const MERE_MARSH = [33, 22, 21, 17], MERE_MOUND = [15, 42, 11, 9], MERE_RISE = [9.8, 15.5, 8.4, 7.7];
+const MERE_RIVER = smoothPts([[57, 6.3], [49, 8.4], [45.5, 14], [42, 19], [39, 24], [40, 29], [35.5, 33.5], [29.5, 35.5], [26.3, 38.5], [26, 44], [24.5, 50], [23, 57]]);
+const MERE_ROADS = [smoothPts([[36, -1], [35.5, 5.6], [32.5, 11], [29, 16], [25.5, 21], [22.5, 27], [19.5, 32], [17, 36.5]]),
+  smoothPts([[57, 32], [50.5, 31.5], [44.5, 33], [38, 37], [32, 39.5], [28.5, 40.6]]), [[23.5, 40.6], [19, 41]]];
+const MERE_BRIDGE = { ox: 36, oz: 40.6, dx: -1, dz: 0 };
+const marshW = (x, z) => 1 - sstep(.75, 1.05, blobD(x, z, MERE_MARSH, 4));
+const mereRiverD = (x, z) => polyDist(MERE_RIVER, x, z);
+function mereHeight(x, z) {
+  let h = 2 + 1.2 * fbm(x * .06, z * .06);
+  h += 1.6 * (1 - sstep(.4, 1, blobD(x, z, MERE_MOUND, 6))) + 1.8 * (1 - sstep(.3, 1, blobD(x, z, MERE_RISE, 7)));
+  const m = marshW(x, z), far = sstep(2.5, 4, Math.min(...MERE_ROADS.map(p => polyDist(p, x, z)))) * sstep(4, 6, mereRiverD(x, z)) * sstep(2, 4, Math.abs(z - MERE_BRIDGE.oz) + (x > 22 && x < 37 ? 0 : 9));
+  h = lerp(h, .95 + .2 * fbm(x * .2, z * .2), m);
+  if (m > .5) h = lerp(h, -.5, sstep(.47, .54, fbm(x * .16 + 7, z * .16 + 2)) * far);   // pools
+  h = lerp(3 + (h - 3) * .35, h, sstep(5.5, 10, Math.hypot(x - KX, z - KZ)));
+  return lerp(-1.1, h, sstep(1.6, 3.4, mereRiverD(x, z)));
+}
+// Horsefields (stage 10): open plains, two low swells, a stream across the south-west corner; roads from the north, west and east
+const PLAINS_STREAM = smoothPts([[-1, 39.2], [8.4, 37.8], [15.4, 42], [22.4, 43.4], [29.4, 44.8], [33.6, 50.4], [36.4, 57]]);
+const PLAINS_ROADS = [[[28, -1], [28, 25]], [[-1, 26.6], [12, 27.3], [24.5, 28]], [[57, 26.6], [44, 27.3], [31.5, 28]]];
+function plainsHeight(x, z) {
+  let h = 2 + 1.1 * fbm(x * .05, z * .05);
+  h += 1.5 * (1 - sstep(0, 1, Math.hypot((x - 11.2) / 8.4, (z - 12.6) / 5.6))) + 1.5 * (1 - sstep(0, 1, Math.hypot((x - 44.8) / 9, (z - 44.8) / 6)));
+  h = lerp(3 + (h - 3) * .35, h, sstep(6, 11, Math.hypot(x - KX, z - KZ)));
+  return lerp(-.8, h, sstep(1, 2.5, polyDist(PLAINS_STREAM, x, z)));
+}
 // the maps with ground nobody may walk or build on (Mountain pass's mountains, Greenvale's hills)
 const mapOpen = (x, z) => MAP === 'pass' ? passOpen(x, z) : MAP === 'vale' ? valeOpen(x, z) : true;
 function genHeight(x, z) {
@@ -861,6 +903,8 @@ function genHeight(x, z) {
   if (MAP === 'bend') return bendHeight(x, z);
   if (MAP === 'crag') return cragHeight(x, z);
   if (MAP === 'ford') return fordHeight(x, z);
+  if (MAP === 'mere') return mereHeight(x, z);
+  if (MAP === 'plains') return plainsHeight(x, z);
   let h = 1.6 + fbm(x * .06, z * .06) * 4.2;
   h += Math.max(0, fbm(x * .14 + 9, z * .14 + 3) - .6) * 16;
   h += Math.max(0, 10 - x) * .35 * fbm(x * .1, z * .1 + 7);
@@ -892,7 +936,8 @@ let bridges = [];
 const bridgeCell = new Uint8Array(N * N), BRIDGE_RISE = .45, DECK_W = 1.9;
 // where each map's bridges cross: a start point and a direction, marched along until the river is crossed
 function bridgeRays() {
-  if (MAP === 'pass' || MAP === 'vale' || MAP === 'cross' || MAP === 'watch' || MAP === 'dune' || MAP === 'crag') return [];
+  if (MAP === 'pass' || MAP === 'vale' || MAP === 'cross' || MAP === 'watch' || MAP === 'dune' || MAP === 'crag' || MAP === 'plains') return [];
+  if (MAP === 'mere') return [MERE_BRIDGE];
   if (MAP === 'ford') return [{ ox: FORD_BRIDGE_X, oz: fordRiverZ(FORD_BRIDGE_X) - 10, dx: 0, dz: 1, stone: true }];
   if (MAP === 'bend') return BEND_BRIDGES.map(([ox, oz, dx, dz]) => ({ ox, oz, dx, dz }));
   if (MAP === 'bridge') {                       // the stone bridge, square across the river north of the castle
@@ -1071,6 +1116,8 @@ function recolor() {
     tmpC.lerp(C.dry, sstep(.55, .72, dvar[k]) * .4);
     tmpC.lerp(C.sand, sstep(.8, .2, h)); tmpC.lerp(C.bed, sstep(-.1, -.8, h));
     if (MAP === 'dune') { const od = oasisD(i, j); tmpC.lerp(C.dry, sstep(.68, .95, od) * .75); tmpC.lerp(DUNE_SAND, sstep(.86, 1.14, od) * .92); for (const m of DUNE_MESAS) tmpC.lerp(DUNE_ROCK, sstep(1.12, .95, ellD(i, j, m)) * .8); }   // sand beyond the oasis; red-brown rock mesas
+    if (MAP === 'mere') tmpC.lerp(MERE_C, marshW(i, j) * (.7 + .3 * fbm(i * .3, j * .3)));   // the marsh: brownish olive, patchy
+    if (MAP === 'plains') tmpC.lerp(PLAINS_C, .35);              // the plains: a fresh, lighter green
     if (MAP === 'crag') tmpC.lerp(C.rock, (1 - sstep(.75, 1.05, blobD(i, j, CRAG_ROCK, 2))) * .85);   // the grey crag
     if (MAP === 'ford') tmpC.lerp(C.dry, .3);                                                          // highland grass
     if (MAP === 'watch') { tmpC.lerp(C.dry, .62); tmpC.lerp(C.sand, (1 - sstep(1, 3.4, polyDist(WATCH_GULLY, i, j))) * .75); }   // Watchhill: dry golden grass, a sandy gully
@@ -1352,6 +1399,16 @@ function genTrees() {
       if (woods || lone) trees.push({ x, z, s: .75 + hash(z, x) * .5, k: 1 });
       continue;
     }
+    if (MAP === 'mere' || MAP === 'plains') {
+      // Meadowmere: woods on the dry rise and in the south-east, a few in the south-west, very few in the marsh
+      // Horsefields: three copses and the odd lone tree on the open plains
+      const roads = MAP === 'mere' ? MERE_ROADS : PLAINS_ROADS, water = MAP === 'mere' ? mereRiverD(x, z) : polyDist(PLAINS_STREAM, x, z);
+      if (roads.some(p => polyDist(p, x, z) < 2.6) || water < 4 || dk < 8 || hAt(x, z) < .6) continue;
+      const groups = MAP === 'mere' ? [[9.8, 15.5, 6.5, 5.5], [49, 49, 6, 5], [5.6, 50, 3.5, 3]] : [[9.1, 12.6, 3.2, 2.4], [46.2, 43.4, 3.2, 2.4], [43.4, 11.9, 2.4, 2]];
+      const wood = groups.some(([cx, cz, rx, rz]) => Math.hypot((x - cx) / rx, (z - cz) / rz) < 1) && hash(x * 1.3, z * .7) < .65;
+      if (wood || hash(x * 2.1, z * 1.7) < (MAP === 'mere' ? (marshW(x, z) > .5 ? .008 : .03) : .01)) trees.push({ x, z, s: .75 + hash(z, x) * .45, k: 1 });
+      continue;
+    }
     if (MAP === 'crag') {
       // deep woods everywhere but the clearing, the crag, the trails and the stream
       if (blobD(x, z, CRAG_CLEAR, 5) < 1 || (x > 40 && z > 26 && z < 34 && CRAG_ROADS[1] && polyDist(CRAG_ROADS[1], x, z) < 3.4) || blobD(x, z, CRAG_ROCK, 2) < 1.05 || CRAG_ROADS.some(p => polyDist(p, x, z) < 2.4) || polyDist(CRAG_STREAM, x, z) < 3 || dk < 8) continue;
@@ -1486,6 +1543,15 @@ function genRocks() {
   rocks.forEach(r => scene.remove(r.mesh)); rocks = [];
   const addRock = (x, z, s0, rot) => { const mesh = new THREE.Mesh(rockGeo, rockMat); mesh.castShadow = mesh.receiveShadow = true; mesh.rotation.set(...rot); rocks.push({ x, z, amount: ROCK_STONE, s0, mesh }); scene.add(mesh); };
   if (MAP === 'crag') return;   // Ironcrag: no loose stone at all, mine it
+  if (MAP === 'mere' || MAP === 'plains') {   // little stone on either: a few small groups on dry ground
+    const groups = MAP === 'mere' ? [[10.5, 19.6, 4, 3.5], [48.3, 47.6, 4, 3.5], [8, 34, 3, 3]] : [[39.2, 12.6, 3, 3], [15.4, 49, 3, 3], [51.8, 21, 2, 2.5], [20, 18, 2, 2.5]];
+    for (const [cx, cz, want, sp] of groups) for (let n = 0, k = 0; n < 300 && k < want; n++) {
+      const x = cx + (Math.random() - .5) * 2 * sp, z = cz + (Math.random() - .5) * 2 * sp, roads = MAP === 'mere' ? MERE_ROADS : PLAINS_ROADS;
+      if (hAt(x, z) < .8 || Math.hypot(x - KX, z - KZ) < 7 || roads.some(p => polyDist(p, x, z) < 2) || rocks.some(r => Math.hypot(r.x - x, r.z - z) < 2)) continue;
+      addRock(x, z, .75 + Math.random() * .6, [Math.random() * 3, Math.random() * 3, Math.random() * 3]); k++;
+    }
+    return;
+  }
   if (MAP === 'ford') {   // plenty of stone: on the highlands and both banks
     for (const [cx, cz, want, sp] of [[10.5, 8.4, 7, 6], [48.3, 8.4, 7, 6], [49, 48.3, 6, 5.5], [17.5, 36, 4, 3], [44, 37, 4, 3], [9.8, 49, 4, 4.5], [40, 40, 3, 3]]) for (let n = 0, k = 0; n < 400 && k < want; n++) {
       const x = cx + (Math.random() - .5) * 2 * sp, z = cz + (Math.random() - .5) * 2 * sp;
@@ -1616,9 +1682,11 @@ function genClutter() {
       // Dunewell's sand: few bushes and tufts past the oasis (Jack found it too bushy), and the tufts there dry
       const sand = MAP === 'dune' && oasisD(x, z) > .95;
       if (sand && ((c.kind === 'bush' && Math.random() > .1) || (c.kind === 'tuft' && Math.random() > .35))) continue;
+      const reed = MAP === 'mere' && marshW(x, z) > .5;   // Meadowmere's marsh: reed tufts, few bushes
+      if (reed && c.kind === 'bush' && Math.random() > .3) continue;
       const n = counts[ci]++;
       clutter.push({ ci, n, x, z, s: .7 + Math.random() * .7, rot: Math.random() * 6.28 });
-      if (c.kind === 'tuft') { if (sand) col.setHSL(.11 + Math.random() * .03, .32, .33 + Math.random() * .08); else col.setHSL(.21 + Math.random() * .05, .3 + Math.random() * .12, .2 + Math.random() * .07); }
+      if (c.kind === 'tuft') { if (reed) col.setHSL(.13 + Math.random() * .03, .38, .3 + Math.random() * .08); else if (sand) col.setHSL(.11 + Math.random() * .03, .32, .33 + Math.random() * .08); else col.setHSL(.21 + Math.random() * .05, .3 + Math.random() * .12, .2 + Math.random() * .07); }
       else if (c.kind === 'bush') col.setHSL(.24 + Math.random() * .05, .33, .15 + Math.random() * .08);
       else col.setHSL(.1, .06, .4 + Math.random() * .15);
       c.mesh.setColorAt(n, col);
@@ -3221,7 +3289,7 @@ function rangeOf(B) {
   return T.range[B.tier - 1] + Math.max(decorFx(c.x, c.z, 'range'), 0) + (RANGED[B.type] ? decorFx(c.x, c.z, 'rangeArch') : 0);
 }
 const siegeRate = B => DEF[B.type].rate[B.tier - 1] * (1 - decorFx(center(B).x, center(B).z, 'siegeRate'));
-const prodK = B => 1 + decorFx(center(B).x, center(B).z, 'prod');
+const prodK = B => (1 + decorFx(center(B).x, center(B).z, 'prod')) * (MAP === 'mere' && B.type === 'farm' && marshW(center(B).x, center(B).z) > .5 ? .5 : 1);   // Meadowmere: fields in the marsh grow half
 const housesNear = (x, z) => buildings.filter(B => B.type === 'house' && Math.hypot(center(B).x - x, center(B).z - z) <= CHARM_R).length;
 function center(B) { return { x: (B.ev.x0 + B.ev.x1) / 2, z: (B.ev.z0 + B.ev.z1) / 2 }; }
 function doorPoint(B) { const d = B.door; if (!d) return { x: center(B).x, z: B.ev.z1 + .6 }; const [sx, sz] = doorShift(B); return { x: (d.a + .5) * CELL + sx, z: (d.b + .5) * CELL + sz }; }
@@ -4478,6 +4546,19 @@ function distRect(B, x, z) { const e = B.ev; return Math.hypot(Math.max(e.x0 - x
 function nearestBuilding(x, z, maxD = 1e9, ok = null) { let best = null, bd = maxD; for (const B of buildings) { if (DEF[B.type].decor || (ok && !ok(B))) continue; const d = distRect(B, x, z); if (d < bd) { bd = d; best = B; } } return best; }
 function edgePoint() {
   const C = castleB(), dp = C && doorPoint(C);   // a spawn must have a walkable route to the castle's door
+  if (MAP === 'mere' || MAP === 'plains') {
+    // Meadowmere: the north causeway at the top edge; from night 3 some on the east causeway at the right edge
+    // Horsefields: the north road; from night 2 some from the west edge, from night 3 some from the east edge too
+    const r = Math.random(), W = PH.wave;
+    const side = MAP === 'mere' ? (W >= 3 && r < .4 ? 'e' : 'n') : (W >= 3 && r < .3 ? 'e' : W >= 2 && r < .6 ? 'w' : 'n');
+    const pick = MAP === 'mere' ? (side === 'e' ? () => [SIZE - 1.2, 30 + Math.random() * 4] : () => [33 + Math.random() * 6, 1.2])
+      : side === 'e' ? () => [SIZE - 1.2, 23.5 + Math.random() * 6] : side === 'w' ? () => [1.2, 23.5 + Math.random() * 6] : () => [24.5 + Math.random() * 7, 1.2];
+    for (const needRoute of [true, false]) for (let n = 0; n < 60; n++) {
+      const [x, z] = pick();
+      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return { x, z };
+    }
+    const [x, z] = pick(); return { x, z };
+  }
   if (MAP === 'crag' || MAP === 'ford') {
     // Ironcrag: the forest trail at the west edge; from night 3 some on the stream trail at the east edge
     // Siegeford: the north edge above the fords; from night 3 some on the gorge road at the west edge
@@ -6322,8 +6403,8 @@ const CAMPAIGN = [
   { name: 'Riverbend', map: 'bend', at: [345, 600], land: 'Between two rivers', adds: ['crossbow', 'butts'] },
   { name: 'Ironwood', map: 'crag', at: [160, 500], land: 'Deep woods · no stone', adds: ['mine', 'banner'] },
   { name: 'Siegeford', map: 'ford', at: [320, 405], land: 'Highlands · little wood', adds: ['catapult', 'stores'] },
-  { name: 'Meadowmere', at: [548, 470], land: 'Marsh · poor fields', adds: ['farmhouse'] },
-  { name: 'Horsefields', at: [668, 340], land: 'Open plains', adds: ['stables'] },
+  { name: 'Meadowmere', map: 'mere', at: [548, 470], land: 'Marsh · poor fields', adds: ['farmhouse'] },
+  { name: 'Horsefields', map: 'plains', at: [668, 340], land: 'Open plains', adds: ['stables'] },
   { name: 'Raider Keep', sub: 'Boss', at: [475, 225], boss: true, adds: [] },
   { name: "Warlord's Hold", sub: 'Boss', at: [290, 115], boss: true, adds: [] },
 ];
@@ -6422,7 +6503,7 @@ function campaignSVG() {
   </svg>`;
 }
 // a stage's preview: its picture (the real stage where it's built, else its sketch), what it brings in, stars, Play
-const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' }, 2: { src: 'maps/cross.jpg' }, 3: { src: 'maps/watch.jpg' }, 4: { src: 'maps/dune.jpg' }, 5: { src: 'maps/bend.jpg' }, 6: { src: 'maps/crag.jpg' }, 7: { src: 'maps/ford.jpg' }, 8: { src: 'design/stages/stage9-meadowmere.png', tag: 'Sketch' }, 9: { src: 'design/stages/stage10-horsefields.png', tag: 'Sketch' } };
+const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' }, 2: { src: 'maps/cross.jpg' }, 3: { src: 'maps/watch.jpg' }, 4: { src: 'maps/dune.jpg' }, 5: { src: 'maps/bend.jpg' }, 6: { src: 'maps/crag.jpg' }, 7: { src: 'maps/ford.jpg' }, 8: { src: 'maps/mere.jpg' }, 9: { src: 'maps/plains.jpg' } };
 function openStage(i) {
   const c = CAMPAIGN[i], pic = STAGE_PIC[i];
   document.querySelectorAll('#campMap .mk').forEach(m => m.classList.toggle('sel', +m.dataset.i === i));
@@ -6642,12 +6723,12 @@ function startGame() {
   for (const p of puffs) scene.remove(p.sp); puffs.length = 0;
   mapRules();
   PH = { kind: 'day', wave: 1, t: DAYLEN[0] }; econT = TICK; gameOver = false; light = 1; if (paused) setPaused(false); setMusic('day');
-  if (MAP === 'isle') { KX = 27; KZ = 27; } else if (MAP === 'pass') { KX = 27; KZ = 21; } else if (MAP === 'vale') { KX = 25; KZ = 33; } else if (MAP === 'bridge') { KX = 29; KZ = 37; } else if (MAP === 'cross') { KX = 17; KZ = 39; } else if (MAP === 'watch') { KX = 17; KZ = 29; } else if (MAP === 'dune') { KX = 15; KZ = 26; } else if (MAP === 'bend') { KX = 21; KZ = 28; } else if (MAP === 'crag') { KX = 25; KZ = 33; } else if (MAP === 'ford') { KX = 29; KZ = 43; } else { KX = 19; KZ = 27; }
+  if (MAP === 'isle') { KX = 27; KZ = 27; } else if (MAP === 'pass') { KX = 27; KZ = 21; } else if (MAP === 'vale') { KX = 25; KZ = 33; } else if (MAP === 'bridge') { KX = 29; KZ = 37; } else if (MAP === 'cross') { KX = 17; KZ = 39; } else if (MAP === 'watch') { KX = 17; KZ = 29; } else if (MAP === 'dune') { KX = 15; KZ = 26; } else if (MAP === 'bend') { KX = 21; KZ = 28; } else if (MAP === 'crag') { KX = 25; KZ = 33; } else if (MAP === 'ford') { KX = 29; KZ = 43; } else if (MAP === 'mere') { KX = 15; KZ = 43; } else if (MAP === 'plains') { KX = 28; KZ = 28; } else { KX = 19; KZ = 27; }
   genTerrain(); genBridges(); genTrees(); genRocks(); genClutter(); syncTerrain(); buildBridges(); genShore(); hideGhost(); deselect();
   Object.assign(res, (MAP_RULES[MAP] || {}).res || { gold: 40, wood: 45, stone: 0, food: 20 });
   stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, t0: performance.now() };
   $('#summary').hidden = true; $('#log').innerHTML = '';
-  const ev = MAP === 'isle' ? findValid('castle', 12, 12, { free: true }) : MAP === 'pass' ? findValid('castle', 12, 9, { free: true }) : MAP === 'vale' ? findValid('castle', 11, 15, { free: true }) : MAP === 'bridge' ? findValid('castle', 13, 17, { free: true }) : MAP === 'cross' ? findValid('castle', 7, 18, { free: true }) : MAP === 'watch' ? findValid('castle', 7, 13, { free: true }) : MAP === 'dune' ? findValid('castle', 6, 11, { free: true }) : MAP === 'bend' ? findValid('castle', 9, 12, { free: true }) : MAP === 'crag' ? findValid('castle', 11, 15, { free: true }) : MAP === 'ford' ? findValid('castle', 13, 20, { free: true }) : findValid('castle', 8, 12, { free: true });
+  const ev = MAP === 'isle' ? findValid('castle', 12, 12, { free: true }) : MAP === 'pass' ? findValid('castle', 12, 9, { free: true }) : MAP === 'vale' ? findValid('castle', 11, 15, { free: true }) : MAP === 'bridge' ? findValid('castle', 13, 17, { free: true }) : MAP === 'cross' ? findValid('castle', 7, 18, { free: true }) : MAP === 'watch' ? findValid('castle', 7, 13, { free: true }) : MAP === 'dune' ? findValid('castle', 6, 11, { free: true }) : MAP === 'bend' ? findValid('castle', 9, 12, { free: true }) : MAP === 'crag' ? findValid('castle', 11, 15, { free: true }) : MAP === 'ford' ? findValid('castle', 13, 20, { free: true }) : MAP === 'mere' ? findValid('castle', 6, 20, { free: true }) : MAP === 'plains' ? findValid('castle', 12, 12, { free: true }) : findValid('castle', 8, 12, { free: true });
   if (ev) { const B = place('castle', ev.ci, ev.cj, { instant: true, free: true, quiet: true }); const c = center(B); target.set(c.x, 2, c.z); }
   if (MAP === 'pass') { yaw = 0; target.z += 4.5; }   // looking up the pass at the castle
   if (MAP === 'vale') { yaw = -Math.PI / 4; target.x += 2; target.z -= 2; }   // from the south-west, the way in (north-east) at the top of the screen
@@ -6657,7 +6738,9 @@ function startGame() {
   if (MAP === 'dune') { yaw = 0; target.x += 6; target.z += 2; layRoads([DUNE_ROAD]); rebuildRoads(); }   // from the south: the oasis ahead, the dunes behind
   if (MAP === 'bend') { yaw = 0; target.z -= 1; layRoads(BEND_ROADS); rebuildRoads(); }
   if (MAP === 'crag') { yaw = 0; target.x += 3; target.z -= 4; layRoads(CRAG_ROADS); rebuildRoads(); }   // from the south: the crag up on the right
-  if (MAP === 'ford') { yaw = 0; target.z -= 9; layRoads([FORD_ROAD]); rebuildRoads(); fordWall(); }                   // from the south: the fords ahead                   // from the south: the north bridge at the top
+  if (MAP === 'ford') { yaw = 0; target.z -= 9; layRoads([FORD_ROAD]); rebuildRoads(); fordWall(); }
+  if (MAP === 'mere') { yaw = 0; target.x += 8; target.z -= 8; layRoads(MERE_ROADS); rebuildRoads(); }   // from the south: the marsh ahead
+  if (MAP === 'plains') { yaw = 0; target.z -= 2; layRoads(PLAINS_ROADS); rebuildRoads(); }                   // from the south: the fords ahead                   // from the south: the north bridge at the top
   if (MAP === 'watch') { yaw = 0; target.x += 7; target.z -= 4; layRoads(WATCH_ROADS); rebuildRoads(); placeRuin(); }   // from the south: Watch hill ahead, the gully on the right   // from the south, the cross and the north road ahead
   BANK_WALL = MAP === 'bridge' ? BANK_WALL : [];
   if (MAP === 'vale') guideOn = true;               // the tutorial stage: the guided first day every time (Skip ends it)
