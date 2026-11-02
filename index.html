@@ -2444,6 +2444,7 @@ function makeLine(color, opacity) {
   const l = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color, transparent: true, opacity, depthTest: false, toneMapped: false }));
   l.renderOrder = 10; l.visible = false; scene.add(l); return l;
 }
+const boostDisc = makeDisc('#8fc1db'), selDisc = makeDisc('#8fc1db');
 const rangeLine = makeLine('#8fc1db', .85), footLine = makeLine('#8cc46e', 1), ringLine = makeLine('#d4a84e', .7), reachLine = makeLine('#8fc1db', .8), selLine = makeLine('#f2c95e', 1);
 function setLine(line, pts) { line.geometry.dispose(); line.geometry = new THREE.BufferGeometry().setFromPoints(pts); line.visible = true; }
 function drape(line, x0, z0, x1, z1) {
@@ -2458,6 +2459,23 @@ function drapeCircle(line, cx, cz, r) {
   const pts = [];
   for (let n = 0; n <= 96; n++) { const a = n / 96 * Math.PI * 2, x = clamp(cx + Math.cos(a) * r, 0, SIZE), z = clamp(cz + Math.sin(a) * r, 0, SIZE); pts.push(new THREE.Vector3(x, Math.max(hAt(x, z), 0) + .15, z)); }
   setLine(line, pts);
+}
+// a soft filled disc draped over the ground: where a decor's boost reaches (a thin ring alone was hard to see on a phone)
+function makeDisc(col) {
+  const DISC_RINGS = 8, DISC_SEG = 64, g = new THREE.BufferGeometry(), pos = new Float32Array((DISC_RINGS * DISC_SEG + 1) * 3), idx = [];
+  for (let s = 0; s < DISC_SEG; s++) idx.push(0, 1 + s, 1 + (s + 1) % DISC_SEG);
+  for (let r = 1; r < DISC_RINGS; r++) for (let s = 0; s < DISC_SEG; s++) {
+    const a = 1 + (r - 1) * DISC_SEG + s, b = 1 + (r - 1) * DISC_SEG + (s + 1) % DISC_SEG, c = a + DISC_SEG, d = b + DISC_SEG; idx.push(a, c, b, b, c, d);
+  }
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setIndex(idx);
+  const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .2, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }));
+  m.visible = false; m.renderOrder = 2; m.frustumCulled = false; scene.add(m); return m;
+}
+function drapeDisc(m, cx, cz, r) {
+  const DISC_RINGS = 8, DISC_SEG = 64, p = m.geometry.attributes.position.array, put = (i, x, z) => { x = clamp(x, 0, SIZE); z = clamp(z, 0, SIZE); p[i * 3] = x; p[i * 3 + 1] = Math.max(hAt(x, z), 0) + .1; p[i * 3 + 2] = z; };
+  put(0, cx, cz);
+  for (let r0 = 1; r0 <= DISC_RINGS; r0++) for (let s = 0; s < DISC_SEG; s++) { const a = s / DISC_SEG * Math.PI * 2, rr = r * r0 / DISC_RINGS; put(1 + (r0 - 1) * DISC_SEG + s, cx + Math.cos(a) * rr, cz + Math.sin(a) * rr); }
+  m.geometry.attributes.position.needsUpdate = true; m.geometry.computeBoundingSphere(); m.visible = true;
 }
 
 // ---------- sprites: health bars + floating text ----------
@@ -4807,8 +4825,8 @@ const TOOL_ICON = {
   campfire: '<svg viewBox="0 0 24 24"><path d="M12 15 C8.5 13 9 9.5 12 5.5 C12.5 8.5 15.5 9.5 15 12.5 C14.8 14 13.6 15 12 15 Z"/><path d="M4.5 20.5 L19.5 16.5 M4.5 16.5 L19.5 20.5"/></svg>',
   rack: '<svg viewBox="0 0 24 24"><path d="M4 21 V7 M20 21 V7 M3 8 H21 M3 17 H21"/><path d="M8 20 V3 M12 20 V3 M16 20 V3"/><path d="M7 4.5 L8 2.5 L9 4.5 M11 4.5 L12 2.5 L13 4.5 M15 4.5 L16 2.5 L17 4.5"/></svg>',
   stables: '<svg viewBox="0 0 24 24"><path d="M7 20.5 C2.5 15.5 3.5 5 12 4 C20.5 5 21.5 15.5 17 20.5"/><path d="M5.5 20.5 H9 M15 20.5 H18.5"/><path d="M6.2 12 H6.3 M17.7 12 H17.8 M8 7 H8.1 M16 7 H16.1"/></svg>',
-  crossbow: '<svg viewBox="0 0 24 24"><path d="M12 21 V5"/><path d="M4 9 Q12 3 20 9"/><path d="M4 9 L12 14 L20 9"/><path d="M10 5 L12 2.5 L14 5"/></svg>',
-  ballista: '<svg viewBox="0 0 24 24"><path d="M3 20 H21"/><path d="M12 20 V14"/><path d="M5 12 H19"/><path d="M5 12 L8 7 M19 12 L16 7"/><path d="M8 7 L12 12 L16 7"/><path d="M12 12 V3 M10.5 4.5 L12 3 L13.5 4.5"/></svg>',
+  crossbow: '<svg viewBox="0 0 24 24"><path d="M12 21 V4"/><path d="M4 12 Q12 6 20 12"/><path d="M4 12 L12 16.5 L20 12"/><path d="M10 4.6 L12 2 L14 4.6"/></svg>',
+  ballista: '<svg viewBox="0 0 24 24"><path d="M3 20 H21"/><path d="M12 20 V14"/><path d="M5 12 H19"/><path d="M5.5 12 Q4.5 8.5 8 7 M18.5 12 Q19.5 8.5 16 7"/><path d="M8 7 L12 12 L16 7"/><path d="M12 12 V3 M10.5 4.5 L12 3 L13.5 4.5"/></svg>',
   catapult: '<svg viewBox="0 0 24 24"><path d="M3 18 H21"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/><path d="M14 18 L7 6"/><path d="M5 6.5 a2.2 2.2 0 1 0 4 -1"/><path d="M15 18 V12 H18"/></svg>',
   farmhouse: '<svg viewBox="0 0 24 24"><path d="M3 20 V10.5 L12 4 L21 10.5 V20 Z"/><path d="M8.5 20 V13.5 H15.5 V20"/><path d="M8.5 13.5 L15.5 20 M15.5 13.5 L8.5 20"/></svg>',
   well: '<svg viewBox="0 0 24 24"><path d="M6 13 H18 V20 H6 Z"/><path d="M7 13 V7.5 M17 13 V7.5"/><path d="M4.5 8 L12 3.5 L19.5 8"/><path d="M12 8 V11"/></svg>',
@@ -4983,10 +5001,12 @@ function select(B) { selected = B; drape(selLine, B.ev.x0 - .1, B.ev.z0 - .1, B.
 // archers' reach round a selected castle or archer tower; redrawn when the tier changes
 let rangeKey = '';
 function syncRange() {
-  const B = selected, T = B && !B.path && DEF[B.type], k = T && T.range ? B.id + ':' + B.tier : '';
+  const B = selected, T = B && !B.path && DEF[B.type], k = T && (T.range || T.decor) ? B.id + ':' + B.tier + ':' + Math.round(center(B).x * 10) + ':' + Math.round(center(B).z * 10) : '';
   if (k === rangeKey) return; rangeKey = k;
-  if (!k) { rangeLine.visible = false; return; }
-  const c = center(B); drapeCircle(rangeLine, c.x, c.z, rangeOf(B));
+  if (!k) { rangeLine.visible = false; selDisc.visible = false; return; }
+  const c = center(B);
+  if (T.decor) { drapeCircle(rangeLine, c.x, c.z, BOOST_R); drapeDisc(selDisc, c.x, c.z, BOOST_R); }
+  else { drapeCircle(rangeLine, c.x, c.z, rangeOf(B)); selDisc.visible = false; }
 }
 function deselect() { selected = null; volleyAim = false; moveFor = null; selLine.visible = false; $('#statTip').hidden = true; refreshCard(); }
 $('#upBtn').addEventListener('click', () => { if (paused) return setHint('Paused', 'bad'); selected && upgrade(selected); });
@@ -5013,12 +5033,12 @@ $('#nightBtn').addEventListener('click', () => { if (PH.kind === 'day' && !gameO
 
 // ---------- ghost ----------
 const isTouch = matchMedia('(pointer: coarse)').matches;
-function hideGhost() { for (const t in ghosts) ghosts[t].visible = false; footLine.visible = ringLine.visible = reachLine.visible = false; cur = null; }
+function hideGhost() { for (const t in ghosts) ghosts[t].visible = false; footLine.visible = ringLine.visible = reachLine.visible = boostDisc.visible = false; cur = null; }
 const cellFor = (p, s, sz = s) => s === 1 && sz === 1 ? [Math.floor(p.x / CELL), Math.floor(p.z / CELL)] : [s === 1 ? Math.floor(p.x / CELL) : Math.round(p.x / CELL - s / 2), sz === 1 ? Math.floor(p.z / CELL) : Math.round(p.z / CELL - sz / 2)];
 function showGhostAt(point) {
   if (!tool || tool === 'select' || paused) return hideGhost();
   if (tool === 'road') {
-    for (const t in ghosts) ghosts[t].visible = false; ringLine.visible = reachLine.visible = false;
+    for (const t in ghosts) ghosts[t].visible = false; ringLine.visible = reachLine.visible = boostDisc.visible = false;
     const ev = evaluateRoad(Math.floor(point.x / CELL), Math.floor(point.z / CELL));
     footLine.material.color.set(ev.ok ? '#8cc46e' : '#e2715b'); drape(footLine, ev.x0, ev.z0, ev.x1, ev.z1); cur = ev;
     if (ev.ok) setHint(`<b>Path</b><i class="gap"></i>${costHTML(PATH_COST)}<i class="gap"></i><span class="cost" title="Walk speed"><span class="ico">${ICON.speed}</span>×${PATH_SPEED}</span>`, 'ok'); else setHint(ev.reason, 'bad');
@@ -5035,6 +5055,7 @@ function showGhostAt(point) {
   const FO = T.falloff || F;
   if (adapt && ev.ok) drape(ringLine, Math.max(0, ev.x0 - FO), Math.max(0, ev.z0 - FO), Math.min(SIZE, ev.x1 + FO), Math.min(SIZE, ev.z1 + FO)); else ringLine.visible = false;
   if (T.reach) drapeCircle(reachLine, cx, cz, T.reach); else if (T.range) drapeCircle(reachLine, cx, cz, T.range[0]); else if (T.charm) drapeCircle(reachLine, cx, cz, CHARM_R); else reachLine.visible = false;
+  if (T.decor) drapeDisc(boostDisc, cx, cz, BOOST_R); else boostDisc.visible = false;
   cur = ev;
   if (!ev.ok) { setHint(ev.reason, 'bad'); return; }
   // short: name, cost, then only what matters for this spot, each as an icon and a number (no instructions, no dots)
@@ -5219,18 +5240,19 @@ const LOAD_SLOTS = {
   eco: [['food', ['farm', 'farmhouse']], ['wood', ['lodge', 'forester']], ['stone', ['quarry', 'mine']]],
   def: [['ranged', ['tower', 'crossbow']], ['siege', ['ballista', 'catapult']], ['barracks', ['barracks', 'stables']]],
 };
-const DECOR_ALL = ['road', 'flowers', 'statue', 'torch', 'campfire', 'butts', 'banner', 'rack', 'stores', 'well'], DECOR_PICK = 5;   // the path is a pick now too: five tools, one row in the dock
-const LOAD_DEFAULT = { food: 'farm', wood: 'lodge', stone: 'quarry', ranged: 'tower', siege: 'ballista', barracks: 'barracks', decor: ['road', 'flowers', 'torch', 'banner', 'well'] };
+const DECOR_ALL = ['flowers', 'statue', 'torch', 'campfire', 'butts', 'banner', 'rack', 'stores', 'well'], DECOR_PICK = 4;   // plus the path, always there: five tools, one row in the dock
+const LOAD_DEFAULT = { food: 'farm', wood: 'lodge', stone: 'quarry', ranged: 'tower', siege: 'ballista', barracks: 'barracks', decor: ['flowers', 'torch', 'banner', 'well'] };
 var LOADOUT = { ...LOAD_DEFAULT, decor: LOAD_DEFAULT.decor.slice() };
 try {   // last game's picks; anything unknown falls back to the default
   const L = JSON.parse(localStorage.getItem('mtd-loadout') || 'null');
   if (L) { for (const k of ['eco', 'def']) for (const [slot, opts] of LOAD_SLOTS[k]) if (opts.includes(L[slot])) LOADOUT[slot] = L[slot];
-    if (Array.isArray(L.decor) && L.decor.length === DECOR_PICK && L.decor.every(t => DECOR_ALL.includes(t))) LOADOUT.decor = L.decor.slice(); }
+    const D = Array.isArray(L.decor) ? L.decor.filter(t => t !== 'road') : null;   // the path was a pick for a while: drop it from old picks
+    if (D && D.length === DECOR_PICK && D.every(t => DECOR_ALL.includes(t))) LOADOUT.decor = D; }
 } catch (e) {}
 const LOAD_TAG = { ranged: 'Ranged', siege: 'Siege', barracks: 'Troops' };
 function applyLoadout() {
   const L = LOADOUT;
-  CATS.eco = ['house', L.food, L.wood, L.stone, 'market']; CATS.def = [L.ranged, L.siege, L.barracks, 'wall', 'gate']; CATS.decor = [...L.decor];
+  CATS.eco = ['house', L.food, L.wood, L.stone, 'market']; CATS.def = [L.ranged, L.siege, L.barracks, 'wall', 'gate']; CATS.decor = ['road', ...L.decor];
   // the first day's guide follows the picks
   GUIDE = [];
   GUIDE.push({ text: 'Build a house', tool: 'house', cat: 'eco', done: () => buildings.some(B => B.type === 'house') },
