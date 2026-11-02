@@ -6760,9 +6760,15 @@ function campaignSVG() {
   for (let n = 0; n < 9; n++) { const x = 90 + n * 85, y = 240 + (n % 3) * 30; if (x > 560 && x < 760) continue;    // the plains stay open
     hills.push(T(y, `<path d="M${x - 60} ${y + 26} Q${x} ${y - 30} ${x + 60} ${y + 26}" fill="#4f5a3a" opacity=".7"/>`)); }
   const marks = CAMPAIGN.map((c, i) => { const [x, y] = c.at;
-    return `<g class="mk" data-i="${i}" transform="translate(${x} ${y * CAMP_CY})"><circle class="ring" r="27" fill="${c.boss ? '#6b2a24' : '#2a2b22'}" stroke="${c.boss ? '#e2715b' : '#e3b341'}" stroke-width="3"/>` +
-      (c.boss ? `<path d="M-11 -8 L11 14 M11 -8 L-11 14 M-13 -13 L-7 -7 M13 -13 L7 -7" stroke="#f3d5c8" stroke-width="3.5" stroke-linecap="round"/>` : `<text y="9" text-anchor="middle" font-size="26" font-family="Georgia,serif" fill="#f2e6c4">${i + 1}</text>`) +
-      `<text y="56" text-anchor="middle" font-size="25" font-family="Georgia,serif" fill="#f2e6c4" stroke="#1a1a14" stroke-width="5" paint-order="stroke">${c.name}</text></g>`; }).join('');
+    // each stop shows its real map, seen from above, in a round frame (maps/thumb/<map>.jpg, 160 px), with its number (or crossed swords
+    // for a boss) on a badge; a stop without a map yet keeps the plain marker
+    const col = c.boss ? '#e2715b' : '#e3b341', R = 44;
+    const face = c.map ? `<clipPath id="mkc${i}"><circle r="${R - 1}"/></clipPath><circle r="${R + 2}" fill="#1a1a14"/><image href="maps/thumb/${c.map}.jpg" x="${-R}" y="${-R}" width="${R * 2}" height="${R * 2}" clip-path="url(#mkc${i})" preserveAspectRatio="xMidYMid slice"/>`
+      : `<circle r="${R - 1}" fill="${c.boss ? '#6b2a24' : '#2a2b22'}"/>`;
+    const badge = `<g transform="translate(${R * .72} ${-R * .72})"><circle r="14" fill="${c.boss ? '#6b2a24' : '#2a2b22'}" stroke="${col}" stroke-width="2.5"/>` +
+      (c.boss ? `<path d="M-6 -4 L6 7 M6 -4 L-6 7" stroke="#f3d5c8" stroke-width="2.6" stroke-linecap="round"/>` : `<text y="6" text-anchor="middle" font-size="16" font-family="Georgia,serif" fill="#f2e6c4">${i + 1}</text>`) + `</g>`;
+    return `<g class="mk" data-i="${i}" transform="translate(${x} ${y * CAMP_CY})">${face}<circle class="ring" r="${R}" fill="none" stroke="${col}" stroke-width="3.5"/>${badge}` +
+      `<text y="${R + 28}" text-anchor="middle" font-size="25" font-family="Georgia,serif" fill="#f2e6c4" stroke="#1a1a14" stroke-width="5" paint-order="stroke">${c.name}</text></g>`; }).join('');
   // the lands' colours, blurred and clipped to the coast, so each fades into the next
   const blob = (k, sx = 1, op = 1) => { const L = CAMP_LAND[k]; return `<ellipse cx="${L.c[0]}" cy="${L.c[1]}" rx="${L.r[0] * sx}" ry="${L.r[1] * sx}" fill="${L.fill}" opacity="${op}"/>`; };
   return `<svg viewBox="0 0 800 ${900 * CAMP_CY}" xmlns="http://www.w3.org/2000/svg">
