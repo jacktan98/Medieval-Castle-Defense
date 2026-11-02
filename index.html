@@ -3990,8 +3990,8 @@ function makeEngine(kind, tier) {
     for (const z of [-.3, .55]) { m.add(box(.86, .1, .12, fm, 0, .42, z)); const ax = cyl(.03, .03, 1.0, 6, M.iron, 0, .26, z); ax.rotation.z = Math.PI / 2; m.add(ax); for (const sx of [-1, 1]) wheel(m, .26, sx * .5, .26, z, iron); }
     m.add(box(.84, .06, .87, M.wood, 0, .5, .215));
     if (tier === 3) for (const sx of [-1, 1]) m.add(box(.04, .04, 1.52, M.iron, sx * .38, .49, 0));
-    if (tier >= 2) { const sh = box(1.0, .4, .06, M.wood, 0, .73, .8); sh.rotation.x = -.25; m.add(sh); }       // a timber mantlet at the front
-    const t = ballistaTurret(BALLISTA_K[tier - 1] * .9); t.position.y = .5; m.add(t); P.turret = t;
+    if (tier >= 2) { const sh = box(1.0, .32, .06, M.wood, 0, .53 + .155, .65 + .04); sh.rotation.x = .25; m.add(sh); }   // the mantlet stands on the deck's front edge, leaning out       // a timber mantlet at the front
+    const t = ballistaTurret(BALLISTA_K[tier - 1] * .9); t.position.y = .53 - .18 * BALLISTA_K[tier - 1] * .9; m.add(t); P.turret = t;   // a short stand: its post runs down through the deck, the crank within the crew's reach
     P.rig = { statics: [], k: BALLISTA_K[tier - 1] * .9 };
     t.traverse(o => { const u = o.userData; if (u.bolt) P.bolt = o; for (const key of ['slider', 'bsL', 'bsR', 'prope', 'trope', 'crank']) if (u[key]) P.rig[key] = o; if (u.staticString) P.rig.statics.push(o); });
   } else if (kind === 'catapult') {
@@ -4267,10 +4267,10 @@ function crewRope(rope, a, c) { c.g.updateMatrixWorld(true); const h = c.arms[1]
 // one ram blow over p (0–1): the log's swing on its ropes (phi): the crew haul it back, drive it in faster and faster, the blow
 // at p .55 knocks it back, and they push it up again
 function ramSwing(p) {
-  if (p < .35) return -.6 * sstep(0, .35, p);
-  if (p < .55) { const u = (p - .35) / .2; return lerp(-.6, .38, u * u); }
-  if (p < .7) return lerp(.38, -.25, Math.sin((p - .55) / .15 * Math.PI / 2));
-  return lerp(-.25, 0, sstep(.7, 1, p));
+  if (p < .35) return -.42 * sstep(0, .35, p);
+  if (p < .55) { const u = (p - .35) / .2; return lerp(-.42, .2, u * u); }
+  if (p < .75) return lerp(.2, -.08, sstep(.55, .75, p));       // a short bounce off the wall
+  return lerp(-.08, 0, sstep(.75, 1, p));
 }
 const RAM_HIT = .55;
 function animEngine(e, dt, sw) {
@@ -4295,9 +4295,10 @@ function animEngine(e, dt, sw) {
         pose(c, e.walking ? .28 : 0, c.going ? -.3 : -1.35); c.atLog = false; return;
       }
       if (!c.atLog) { if (!crewGo(c, sx, endZ - .34, dt)) { kneel(c, 0); legs(c, true, t * 9 + i * Math.PI); pose(c, 0, -.3); return; } c.atLog = true; }
-      c.g.position.set(sx, 0, endZ - .34); c.g.rotation.y = 0; kneel(c, 0);
-      legs(c, Math.abs(v) > .4, t * (v > 2 ? 16 : 9) + i * Math.PI);           // stepping with the log
-      c.body.rotation.x += ((p < .35 && e.attackT > 0 ? -.15 : p < .55 && e.attackT > 0 ? .38 : p < .7 && e.attackT > 0 ? -.08 : .22) - c.body.rotation.x) * Math.min(1, dt * 10);
+      const cz = c.g.position.z + (endZ - .34 - c.g.position.z) * Math.min(1, dt * 7);   // they step with the log, a little behind it
+      c.g.position.set(sx, 0, cz); c.g.rotation.y = 0; kneel(c, 0);
+      legs(c, Math.abs(v) > .3, t * (v > 1.5 ? 14 : 9) + i * Math.PI);           // stepping with the log
+      c.body.rotation.x += ((p < .35 && e.attackT > 0 ? -.1 : p < .55 && e.attackT > 0 ? .3 : p < .75 && e.attackT > 0 ? .1 : .2) - c.body.rotation.x) * Math.min(1, dt * 10);
       c.g.updateMatrixWorld(true); const h = e.g.localToWorld(_cv.set(sx * .35, endY, endZ));   // both hands on the log's end
       crewAim(e, c, c.arms[0], h); crewAim(e, c, c.arms[1], h);
     });
