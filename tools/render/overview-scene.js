@@ -15,11 +15,11 @@
   const RIV = CAMP_RIVER.map(R => { const pts = []; let p = R[0]; for (const s of R.slice(1)) { bez(p, ...s, 16, pts); p = [s[4], s[5]]; } return pts; });
   const P = CAMPAIGN.map(c => c.at);
   const rivD = (px, py) => Math.min(...RIV.map(r => polyDist(r, px, py)));
-  const coastD = (px, py) => inPoly(COAST, px, py) ? polyDist([...COAST, COAST[0]], px, py) : -1;
+  const coastD = () => 100;   // land right to the picture's edges (Jack: no empty background at the sides); the old coast is unused
   const stopD = (px, py) => Math.min(...P.map(([a, b]) => Math.hypot(a - px, (b - py) * 1.2)));
   const keepP = P[10], holdP = P[11];
   // ---------- every built stage, played once (startGame) and shrunk into a round patch at its stop: its own ground and colours, water,
-  // bridges, roads, trees, rocks and fixed scenery (walls, ruins, the market cross and hamlet, the bosses' forts); never the castle
+  // bridges, trees, rocks, Watchhill's ruin and the bosses' forts; no castle, buildings or roads (Jack)
   const PATCH = 21, STG = [];   // each stage's patch radius in metres: the closest stops are about 44 m apart
   // clone without userData: three copies it through JSON, and the game keeps object references there (a stack overflow)
   const cl = o => { const saved = []; o.traverse(n => { saved.push([n, n.userData]); n.userData = {}; }); const c = o.clone(); for (const [n, u] of saved) n.userData = u; return c; };
@@ -28,12 +28,10 @@
     MAP = c.map; startGame(); paused = true;
     const [cx, cz] = toW(...c.at), k = PATCH / (SIZE / 2);
     const wrap = new THREE.Group(); wrap.position.set(cx - SIZE / 2 * k, 0, cz - SIZE / 2 * k); wrap.scale.setScalar(k);
-    for (const B of buildings) if (B.type !== 'castle') wrap.add(cl(B.group));
     for (const b of bridges) if (b.g) wrap.add(cl(b.g));
     for (const r of rocks) if (r.mesh) wrap.add(cl(r.mesh));
     if (bossMesh) wrap.add(cl(bossMesh));
     if (ruinMesh) wrap.add(cl(ruinMesh));
-    wrap.add(cl(roadBase), cl(roadTop), cl(pathStones));
     STG.push({ cx, cz, k, V, SIZE, H: H.slice(0, V * V), C: tCol.slice(0, V * V * 3), trees: trees.map(t => ({ x: t.x, z: t.z, s: t.s, bare: t.bare })), wrap });
   }
   const stageAt = (x, z) => { for (const st of STG) { const d = Math.hypot(x - st.cx, z - st.cz); if (d < PATCH) return [st, d]; } return null; };
@@ -43,6 +41,41 @@
     const h = lerp(lerp(at(i, j), at(i + 1, j), fx), lerp(at(i, j + 1), at(i + 1, j + 1), fx), fz) * st.k, n = (Math.min(Math.round(sz), st.V - 1) * st.V + Math.min(Math.round(sx), st.V - 1)) * 3;
     return [h, st.C[n], st.C[n + 1], st.C[n + 2]];
   };
+  // each stage's rim: its height and colour all round, just inside the patch's edge; the land outside carries it on, so hills keep going
+  const NA = 90;
+  for (const st of STG) {
+    const raw = []; for (let a = 0; a < NA; a++) { const t = a / NA * Math.PI * 2; raw.push(stSample(st, st.cx + Math.cos(t) * PATCH * .9, st.cz + Math.sin(t) * PATCH * .9)); }
+    st.wetRim = raw.map(r => r[0] < -.15);
+    st.rim = raw.map((_, a) => { const acc = [0, 0, 0, 0]; let n = 0; for (let d = -7; d <= 7; d++) { const r = raw[(a + d + NA) % NA]; if (r[0] < .15) continue; r.forEach((v, q) => acc[q] += v); n++; } return n ? acc.map(v => v / n) : [.3, ...raw[a].slice(1)]; });   // dry ground only, averaged over ±28°
+  }
+  const rimAt = (st, x, z) => { let t = Math.atan2(z - st.cz, x - st.cx) / (Math.PI * 2) * NA; t = (t + NA) % NA; const a = Math.floor(t), b = (a + 1) % NA, f = t - a; return st.rim[a].map((v, n) => lerp(v, st.rim[b][n], f)); };
+  const nearStage = (x, z) => { let best = null, bd = 1e9; for (const st of STG) { const d = Math.hypot(x - st.cx, z - st.cz); if (d < bd) { bd = d; best = st; } } return [best, bd]; };
+  // where a stage's water reaches its rim, a stream runs on from there to the nearest bit of the big river (or the map's edge)
+  // the big river bends round the outside of every stage instead of vanishing into one; the stages' own water joins it by streams
+  for (const r of RIV) for (const p of r) { const [x, z] = toW(...p); for (const st of STG) { const d = Math.hypot(x - st.cx, z - st.cz), R0 = PATCH * 1.12; if (d < R0) { const f = R0 / Math.max(d, .01); const q = toP(st.cx + (x - st.cx) * f, st.cz + (z - st.cz) * f); p[0] = q[0]; p[1] = q[1]; } } }
+  const MAIN = RIV.map(r => r.map(([px, py]) => toW(px, py)));
+  const TRIB = [];
+  for (const st of STG) {
+    const wet = st.wetRim;
+    for (let a = 0; a < NA; a++) {
+      if (!wet[a] || wet[(a + NA - 1) % NA]) continue;
+      let e = a; while (wet[(e + 1) % NA] && e - a < NA) e++;
+      const t = (a + e) / 2 / NA * Math.PI * 2, ux = Math.cos(t), uz = Math.sin(t), ex = st.cx + ux * PATCH * .8, ez = st.cz + uz * PATCH * .8;
+      let tx = ex + ux * 400, tz = ez + uz * 400, td = 1e9;
+      for (const r of MAIN) for (const [x, z] of r) { const d = Math.hypot(x - ex, z - ez); if (d < td && (x - ex) * ux + (z - ez) * uz > -.3 * d && STG.every(o => Math.hypot(x - o.cx, z - o.cz) > PATCH * 1.35)) { td = d; tx = x; tz = z; } }
+      const edge = Math.min(ux > 0 ? (W - ex) / ux : ux < 0 ? -ex / ux : 1e9, uz > 0 ? (D - ez) / uz : uz < 0 ? -ez / uz : 1e9);
+      if (edge < td) { tx = ex + ux * (edge + 2); tz = ez + uz * (edge + 2); }
+      const mx = ex + ux * 10, mz = ez + uz * 10;
+      const pts = []; for (let i = 0; i <= 40; i++) {   // a quadratic curve with a gentle meander across it, none at either end
+        const f = i / 40, m = 1 - f, x = m * m * ex + 2 * m * f * mx + f * f * tx, z = m * m * ez + 2 * m * f * mz + f * f * tz;
+        const dx = 2 * m * (mx - ex) + 2 * f * (tx - mx), dz = 2 * m * (mz - ez) + 2 * f * (tz - mz), L = Math.hypot(dx, dz) || 1, w = Math.sin(f * Math.PI) * (2.5 * Math.sin(f * 9 + st.cx) + 1.5 * Math.sin(f * 17 + st.cz));
+        pts.push(toP(x - dz / L * w, z + dx / L * w)); }
+      TRIB.push(pts);
+    }
+  }
+  const rd = (x, z) => { const [px, py] = toP(x, z); return Math.min(ownWater(x, z) ? 1e9 : rivD(px, py), tribD(px, py) * 1.15) < 13 ? 0 : 2; };
+  const ownWater = (x, z) => STG.some(st => st.wetRim.some(Boolean) && Math.hypot(x - st.cx, z - st.cz) < PATCH * .95);
+  const tribD = (px, py) => TRIB.length ? Math.min(...TRIB.map(r => polyDist(r, px, py))) : 1e9;
   // ---------- ground: heights and colours by land
   const NX = 201, NZ = Math.round(D) + 1, Hh = new Float32Array(NX * NZ), Cc = new Float32Array(NX * NZ * 3);
   const col = new THREE.Color(), tmp = new THREE.Color();
@@ -61,7 +94,7 @@
     if (wM > .4 && fbm(px * .07 + 3, py * .07 + 8) > .47) h = lerp(h, -.6, sstep(.47, .53, fbm(px * .07 + 3, py * .07 + 8)) * sstep(.4, .7, wM));   // marsh pools
     h = lerp(-.4, h, sstep(0, 14, cd));                                      // down to the beach
     // each stop's ground made level for its little town
-    const rd = rivD(px, py); h = lerp(-1.2, h, sstep(5, 13, rd));
+    const [wx, wz] = toW(px, py), rd = Math.min(ownWater(wx, wz) ? 1e9 : rivD(px, py), tribD(px, py) * 1.15); h = lerp(-1.2, h, sstep(5, 13, rd));
     return h;
   };
   for (let j = 0; j < NZ; j++) for (let i = 0; i < NX; i++) {
@@ -76,6 +109,12 @@
     if (h > 12) col.lerp(SNOW, sstep(12, 15.5, h) * .9);
     tmp.copy(col);
     const sp = stageAt(i, j);
+    // round each stage the land takes on its rim's height and colour, fading back to the overview's own over another patch's width
+    { let sw = 0, wmax = 0; const acc = [0, 0, 0, 0];
+      for (const st of STG) { const d = Math.hypot(i - st.cx, j - st.cz); if (d > PATCH * 2.2) continue; const w = 1 - sstep(PATCH * .85, PATCH * 2.2, d); rimAt(st, i, j).forEach((v, q) => acc[q] += v * w); sw += w; wmax = Math.max(wmax, w); }
+      if (sw > 0) { const [rh, rr, rg, rb] = acc.map(v => v / sw), wet = rd(i, j) < 1, wc = wmax * wmax;
+        if (!wet) Hh[k] = lerp(Hh[k], Math.max(rh, .3) * (.85 + .3 * fbm(i * .15, j * .15)), wmax);
+        tmp.r = lerp(tmp.r, rr, wc); tmp.g = lerp(tmp.g, rg, wc); tmp.b = lerp(tmp.b, rb, wc); } }
     if (sp) { const [st, d] = sp, w = 1 - sstep(PATCH * .72, PATCH, d), [sh, r, gg, b] = stSample(st, i, j); Hh[k] = lerp(Hh[k], sh, w); tmp.r = lerp(tmp.r, r, w); tmp.g = lerp(tmp.g, gg, w); tmp.b = lerp(tmp.b, b, w); }
     Cc.set([tmp.r, tmp.g, tmp.b], k * 3);
   }
@@ -97,7 +136,7 @@
   const T = [];
   for (let z = 1; z < D - 1; z += 1.25) for (let x = 1; x < W - 1; x += 1.25) {
     const jx = x + (hash(x * 3.1, z * 1.7) - .5) * 1.1, jz = z + (hash(z * 2.3, x * .9) - .5) * 1.1, [px, py] = toP(jx, jz), h = hAtO(jx, jz);
-    if (h < .4 || coastD(px, py) < 6 || rivD(px, py) < 12 || stageAt(jx, jz)) continue;
+    if (h < .4 || rivD(px, py) < 12 || tribD(px, py) < 10 || stageAt(jx, jz)) continue;
     const wF = landW('woods', px, py, .45, 1.25), wD = landW('desert', px, py, .3, 1.2), wS = landW('dry', px, py, .45, 1.1), wP = landW('plains', px, py, .4, 1.1), wH = landW('high', px, py, .4, 1.15), wM = landW('marsh', px, py, .3, 1.1);
     const north = sstep(330, 230, py), mount = sstep(250, 130, py);
     const meadow = (fbm(px * .011, py * .011) - .5) * 1.6 + .1;

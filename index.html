@@ -6723,6 +6723,13 @@ function campaignSVG() {
   const onLand = (x, y) => x > 55 + (y > 420 ? 0 : (420 - y) * .12) && x < 745 && y > 60 && y < 868;
   let road = `M${P[0][0]} ${P[0][1]}`;
   for (let i = 1; i < P.length; i++) { const [x0, y0] = P[i - 1], [x1, y1] = P[i]; road += ` Q${(x0 + x1) / 2 + (i % 2 ? 40 : -40)} ${(y0 + y1) / 2 + (i % 2 ? -25 : 25)} ${x1} ${y1}`; }
+  // a painted treasure-map cross, raised: a soft shadow cast down-right, a dark rim, the red strokes shaded light to dark, a highlight
+  // along their upper edges (two slightly bowed brush strokes, thicker in the middle)
+  const XS = ['M-16 -14 Q-1 -4 16 15', 'M15 -16 Q3 -1 -15 15'];
+  const XMARK = `<g transform="translate(3.5 4.5)" filter="url(#xShade)">${XS.map(d => `<path d="${d}" stroke="#000" stroke-opacity=".55" stroke-width="13" stroke-linecap="round" fill="none"/>`).join('')}</g>` +
+    XS.map(d => `<path d="${d}" stroke="#4a0b07" stroke-width="13" stroke-linecap="round" fill="none"/>`).join('') +
+    XS.map(d => `<path d="${d}" stroke="url(#xRed)" stroke-width="9" stroke-linecap="round" fill="none"/>`).join('') +
+    XS.map(d => `<path d="${d}" transform="translate(-1.4 -1.8)" stroke="#ffb49e" stroke-opacity=".75" stroke-width="2.4" stroke-linecap="round" fill="none"/>`).join('');
   // the ground is one 3D landscape rendered from the game's own terrain, trees, rocks and buildings, seen straight down (maps/overview.jpg,
   // tools/render/overview.js); the road, the rings round each stop's little town and the names are drawn over it
   const marks = CAMPAIGN.map((c, i) => { const [x, y] = c.at, col = c.boss ? '#e2715b' : '#e3b341', R = 46;
@@ -6730,12 +6737,12 @@ function campaignSVG() {
       (c.boss ? `<path d="M-6 -4 L6 7 M6 -4 L-6 7" stroke="#f3d5c8" stroke-width="2.6" stroke-linecap="round"/>` : `<text y="6" text-anchor="middle" font-size="17" font-family="Georgia,serif" fill="#f2e6c4">${i + 1}</text>`) + `</g>`;
     // a red cross on the spot (Jack), over the stage's own ground; an invisible disc keeps the tap target big
     return `<g class="mk" data-i="${i}" transform="translate(${x} ${y * CAMP_CY})"><circle r="${R}" fill="#000" fill-opacity=".001"/><circle class="ring" r="${R}" fill="none" stroke="#fff" stroke-width="0"/>` +
-      `<path d="M-13 -13 L13 13 M13 -13 L-13 13" stroke="#1a1a14" stroke-width="11" stroke-linecap="round"/><path d="M-13 -13 L13 13 M13 -13 L-13 13" stroke="#d8342a" stroke-width="6.5" stroke-linecap="round"/>${badge}` +
+      XMARK + badge +
       `<text y="${R + 28}" text-anchor="middle" font-size="25" font-family="Georgia,serif" fill="#f2e6c4" stroke="#1a1a14" stroke-width="5" paint-order="stroke">${c.name}</text></g>`; }).join('');
   return `<svg viewBox="0 0 800 ${900 * CAMP_CY}" xmlns="http://www.w3.org/2000/svg">
-    <rect width="800" height="${900 * CAMP_CY}" fill="#3e6e86"/>
+    <defs><linearGradient id="xRed" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f05a3f"/><stop offset=".55" stop-color="#c8261b"/><stop offset="1" stop-color="#7e130c"/></linearGradient>
+      <filter id="xShade" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
     <image href="maps/overview.jpg" x="0" y="0" width="800" height="${900 * CAMP_CY}" preserveAspectRatio="none"/>
-    <g transform="scale(1 ${CAMP_CY})"><path d="${road}" fill="none" stroke="#f0dfb0" stroke-width="4.5" stroke-dasharray="10 9" stroke-linecap="round" opacity=".85"/></g>
     ${marks}
   </svg>`;
 }
