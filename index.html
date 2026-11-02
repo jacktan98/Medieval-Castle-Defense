@@ -445,7 +445,7 @@ const DEF = {
   quarry: { size: 2, name: 'Quarry', maxdh: 2.2, hp: [140, 200, 280], cost: { gold: 25, wood: 10 },
             up: [{ gold: 45, wood: 20 }, { gold: 75, wood: 30 }], reach: 16, workers: [2, 3, 4],
             tiers: ['Stone pit', 'Quarry', "Masons' yard"], key: '4' },
-  tower:  { size: 1, name: 'Archers', maxdh: 1.8, hp: [180, 280, 400], cost: { wood: 15, gold: 10 }, noRoad: true,
+  tower:  { size: 1, name: 'Archers', maxdh: 1.8, hp: [180, 280, 400], cost: { wood: 15, gold: 10 }, back: true,
             up: [{ wood: 30, gold: 30 }, { stone: 40, gold: 60 }], range: [11, 13, 15], dmg: [7, 9, 12], rate: [1.2, 1.0, .8],
             archers: [2, 2, 2], shootY: [3.4, 3.8, 5.4], tiers: ['Lookout', 'Watchtower', 'Stone tower'], key: '5' },
   barracks: { size: 2, name: 'Barracks', maxdh: 1.8, hp: [220, 320, 450], cost: { wood: 25, gold: 20 },
@@ -458,10 +458,10 @@ const DEF = {
   stables: { size: 2, name: 'Stables', maxdh: 1.8, hp: [300, 430, 620], cost: { wood: 30, gold: 30 }, cavalry: true,
             up: [{ wood: 35, gold: 45, stone: 10 }, { stone: 45, gold: 75 }], soldiers: [2, 3, 3],
             tiers: ['Horse shed', 'Stables', 'Royal stables'] },
-  crossbow: { size: 1, name: 'Crossbow', maxdh: 1.8, hp: [200, 300, 430], cost: { wood: 20, gold: 15 }, noRoad: true, weapon: 'crossbow',
+  crossbow: { size: 1, name: 'Crossbow', maxdh: 1.8, hp: [200, 300, 430], cost: { wood: 20, gold: 15 }, back: true, weapon: 'crossbow',
             up: [{ wood: 35, gold: 35 }, { stone: 45, gold: 65 }], range: [8, 9, 10], dmg: [6, 8, 10], rate: [.55, .48, .4],
             archers: [2, 2, 2], shootY: [2.4, 2.6, 2.85], tiers: ['Bolt tower', 'Crossbow tower', 'Arbalest tower'] },
-  ballista: { size: 1, name: 'Ballista', maxdh: 1.8, hp: [170, 250, 350], cost: { wood: 30, gold: 25 }, noRoad: true,
+  ballista: { size: 1, name: 'Ballista', maxdh: 1.8, hp: [170, 250, 350], cost: { wood: 30, gold: 25 }, back: true,
             up: [{ wood: 40, gold: 45 }, { stone: 50, gold: 80 }], range: [14, 16, 18], dmg: [30, 42, 58], rate: [3.2, 2.9, 2.6], crew: [2, 2, 2], splash: [1.2, 1.4, 1.7],
             tiers: ['Scorpion', 'Ballista', 'Great ballista'] },
   catapult: { size: 1, name: 'Catapult', maxdh: 1.4, hp: [150, 220, 320], cost: { wood: 40, gold: 30 }, noRoad: true, movable: true, noPlinth: true,
@@ -1315,14 +1315,17 @@ const DOOR = {
   barracks: [[-1, .42], [-1, .42], [-1, .42]],
   mine: [[-.55, .55], [-.55, .55], [-.55, .55]],
   stables: [[-1, .4], [-1, .4], [-1, .4]],         // the armoury hut at the front left
-  forester: [[-1.05, -1.66], [-1.05, -1.66], [-1.05, -1.66]],   // the hut at the back of the plot: log carriers cross the plot to it     // the adit: in through the timber (stone) portal in the face of the mound
+  forester: [[-1.05, -1.66], [-1.05, -1.66], [-1.05, -1.66]],
+  // towers and the ballista are reached from the back: tiers 1-2 (and every ballista) at the foot of a ladder, tier-3 towers at a door
+  tower: [[0, -.92], [0, -.84], [0, -.8]], crossbow: [[0, -.86], [0, -.88], [0, -.68]], ballista: [[0, -1.1], [0, -1.15], [0, -1.22]],   // the hut at the back of the plot: log carriers cross the plot to it     // the adit: in through the timber (stone) portal in the face of the mound
 };
 // buildings the player can turn (walls and gates have their own E–W / N–S rotation); face 0 = +z, 1 = +x, 2 = -z, 3 = -x
-const FACING = { market: 1, house: 1, lodge: 1, quarry: 1, barracks: 1, farm: 1, tower: 1, castle: 1, well: 1, torch: 1, flowers: 1, statue: 1 };
+const FACING = { market: 1, house: 1, lodge: 1, quarry: 1, barracks: 1, farm: 1, tower: 1, crossbow: 1, ballista: 1, castle: 1, well: 1, torch: 1, flowers: 1, statue: 1 };
 const unrot = (f, x, z) => faceRot((4 - f) % 4, x, z);
 const faceRot = (f, x, z) => { const a = f * Math.PI / 2, c = Math.round(Math.cos(a)), s = Math.round(Math.sin(a)); return [x * c + z * s, -x * s + z * c]; };
 // the tile in front of the door when the building faces f, lined up with the door so villagers walk straight in
 function doorCell(ev, type, f) {
+  if (DEF[type] && DEF[type].back) f = (f + 2) % 4;                 // reached from behind: the tile at its back
   const lat = DOOR[type] ? DOOR[type][0][0] : ev.s === 2 ? -1 : 0, cx = (ev.x0 + ev.x1) / 2, cz = (ev.z0 + ev.z1) / 2;
   const [dx, dz] = faceRot(f, lat, 0), [nx, nz] = faceRot(f, 0, (f % 2 ? ev.s : ev.sz || ev.s) * CELL / 2 + CELL / 2);
   return { a: Math.floor((cx + dx + nx) / CELL), b: Math.floor((cz + dz + nz) / CELL), bit: [1, 8, 4, 2][f], f };
@@ -1382,12 +1385,13 @@ function makeTower(tier, plinth) {
   const posts = (r, y0, m, w = .08) => { for (const sx of [-1, 1]) for (const sz of [-1, 1]) top.add(box(w, HEAD, w, m, sx * r, y0 + HEAD / 2, sz * r)); };
   if (tier === 1) {            // lookout: lashed logs, ladder, thatched hood
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const l = box(.2, 3.1, .2, M.rough, sx * .62, 1.55, sz * .62); l.rotation.z = -sx * .05; l.rotation.x = sz * .05; t.add(l); }
-    const x1 = box(1.6, .09, .09, M.rough, 0, 1.4, .64); x1.rotation.z = .5; t.add(x1);
-    const x2 = box(.09, .09, 1.6, M.rough, .64, 1.4, 0); x2.rotation.x = .5; t.add(x2);
+    { const span = 1.24, rise = 1.9, L = Math.hypot(span, rise), a = Math.atan2(rise, span);   // a brace on each side, leg to leg
+      for (const sz of [-1, 1]) { const x = box(L, .09, .09, M.rough, 0, .35 + rise / 2, sz * .64); x.rotation.z = sz * a; t.add(x); }
+      for (const sx of [-1, 1]) { const x = box(.09, .09, L, M.rough, sx * .64, .35 + rise / 2, 0); x.rotation.x = sx * a; t.add(x); } }
     t.add(box(1.7, .18, 1.7, M.rough, 0, 3.1, 0));
     for (let n = 0; n < 8; n++) { const a = n / 8 * Math.PI * 2; const p = box(.07, .5, .07, M.rough, Math.cos(a) * .8, 3.4, Math.sin(a) * .8); p.rotation.z = (hash(n, 4) - .5) * .3; t.add(p); }
-    for (const sx of [-1, 1]) t.add(box(.06, 3.1, .06, M.rough, sx * .22, 1.55, .95));
-    for (let y = .35; y < 3; y += .4) t.add(box(.5, .05, .05, M.rough, 0, y, .95));
+    for (const sx of [-1, 1]) t.add(box(.06, 3.5, .06, M.rough, sx * .22, 1.75, -.95));   // the ladder up the back
+    for (let y = .35; y < 3.1; y += .4) t.add(box(.5, .05, .05, M.rough, 0, y, -.95));
     const P = 3.19 * k; posts(.7 * k, P, M.rough);
     top.add(pyramid(1.35 * k, .9 * k, 1, M.thatchOld, P + HEAD + .45 * k));
   } else if (tier === 2) {     // watchtower: squared timber, parapet, roof
@@ -1398,12 +1402,15 @@ function makeTower(tier, plinth) {
     kk.add(box(2.2, .25, 2.2, M.timber, 0, 4.5, 0));
     kk.add(box(2.2, .6, .12, M.wood, 0, 4.9, 1.05)); kk.add(box(2.2, .6, .12, M.wood, 0, 4.9, -1.05));
     kk.add(box(.12, .6, 2.2, M.wood, 1.05, 4.9, 0)); kk.add(box(.12, .6, 2.2, M.wood, -1.05, 4.9, 0));
+    for (const sx of [-1, 1]) kk.add(box(.08, 5.4, .08, M.timber, sx * .25, 2.7, -1.16));   // the ladder up the back, past the parapet
+    for (let y = .45; y < 4.6; y += .45) kk.add(box(.58, .06, .06, M.timber, 0, y, -1.16));
     const s2 = .74 * k, P = 4.625 * s2; posts(.95 * s2, P, M.timber, .09);
     const R = P + HEAD; top.add(pyramid(1.75 * s2, 1.3 * s2, 1, M.thatch, R + .65 * s2));
     roofFlag(top, 0, R + 1.3 * s2 - .1, 0);
   } else {                     // stone tower: round masonry, an open platform with a low parapet, blue roof on stone columns
     t.add(cyl(.82, 1.0, 4.6, 8, M.stone2, 0, 2.3, 0));
     t.add(cyl(1.05, 1.05, .2, 8, M.stone, 0, 4.6, 0));
+    t.add(box(DOOR_W / k, DOOR_H / k, .1, DOOR_M[3], 0, (.2 + DOOR_H / 2) / k, -.97));   // the door at the back
     for (const a of [0, 1.6, 3.2, 4.8]) { const sl = box(.08, .4, .14, M.dark, Math.cos(a) * .9, 2.8, Math.sin(a) * .9); sl.rotation.y = -a; t.add(sl); }
     for (let n = 0; n < 8; n++) { const a = (n + .5) / 8 * Math.PI * 2, m = box(.3, .32, .16, M.stone2, Math.cos(a) * .96, 4.86, Math.sin(a) * .96); m.rotation.y = -a + Math.PI / 2; t.add(m); }
     const P = 4.7 * k;
@@ -2057,12 +2064,14 @@ function makeCrossbowTower(tier, plinth) {
     for (const sx of [-1, 1]) t.add(box(.06, .3, .02, M.dark, sx * .35, 1.2, .76));
     t.add(box(1.8, .12, 1.8, M.rough, 0, top - .06, 0));
     for (const [x, z, w, d] of [[0, .87, 1.8, .06], [0, -.87, 1.8, .06], [.87, 0, .06, 1.8], [-.87, 0, .06, 1.8]]) t.add(box(w, .5, d, M.rough, x, top + .25, z));
-    // a ladder up the left side: two rails clear of the deck's edge, rising past the parapet, rungs between them
-    const LX = -.97, LH = top + .45;
-    for (const z of [-.45, .05]) t.add(box(.05, LH, .05, M.rough, LX, LH / 2, z));
-    for (let y = .25; y < top + .3; y += .3) t.add(box(.04, .04, .5, M.rough, LX, y, -.2));
+    // a ladder up the back: two rails clear of the deck's edge, rising past the parapet, rungs between them
+    const LZ = -.97, LH = top + .45;
+    for (const x of [-.25, .25]) t.add(box(.05, LH, .05, M.rough, x, LH / 2, LZ));
+    for (let y = .25; y < top + .3; y += .3) t.add(box(.5, .04, .04, M.rough, 0, y, LZ));
   } else if (tier === 2) {
     t.add(box(1.55, top - 1.0, 1.55, M.plainStone, 0, (top - 1.0) / 2 + .2, 0));
+    for (const x of [-.25, .25]) t.add(box(.06, top + .45, .06, M.timber, x, (top + .45) / 2, -1.0));   // the ladder up the back, past the hoarding
+    for (let y = .3; y < top; y += .3) t.add(box(.5, .05, .05, M.timber, 0, y, -1.0));
     t.add(box(1.75, .85, 1.75, M.wood, 0, top - .55, 0));
     for (const sx of [-1, 1]) t.add(box(.05, .26, .02, M.dark, sx * .36, top - .55, .88));
     t.add(box(1.85, .1, 1.85, M.timber, 0, top - .07, 0));
@@ -2072,6 +2081,7 @@ function makeCrossbowTower(tier, plinth) {
     xbowFlag(t, top + HEAD + .7);
   } else {
     t.add(box(1.6, top, 1.6, M.stone, 0, top / 2 + .2, 0));
+    t.add(box(DOOR_W / XBOW_K, DOOR_H / XBOW_K, .06, DOOR_M[3], 0, (.2 + DOOR_H / 2) / XBOW_K, -.82));   // the door at the back
     for (const sx of [-1, 1]) t.add(box(.06, .3, .03, M.dark, sx * .38, top * .6, .81));
     t.add(box(1.85, .14, 1.85, M.stone2, 0, top + .13, 0));
     for (let n = 0; n < 4; n++) for (const k of [-1, 0, 1]) {               // battlements: merlons with gaps on every side
@@ -2125,18 +2135,22 @@ function makeBallista(tier, plinth) {
     for (const sx of [-1, 1]) g.add(box(.05, H, .05, m, sx * .22, y0 + H / 2, z));
     for (let y = y0 + .25; y < deck + .05; y += .3) g.add(box(.44, .04, .04, m, 0, y, z));
   };
+  // a diagonal brace on each of the four sides, running from the foot of one post to near the top of the next
+  const braces = (m, w) => {
+    const span = 1.44, rise = deck * .78, L = Math.hypot(span, rise), a = Math.atan2(rise, span), y = .08 + rise / 2;
+    for (const sz of [-1, 1]) { const x = box(L, w, w, m, 0, y, sz * .72); x.rotation.z = sz * a; g.add(x); }
+    for (const sx of [-1, 1]) { const x = box(w, w, L, m, sx * .72, y, 0); x.rotation.x = sx * a; g.add(x); }
+  };
   if (tier === 1) {            // a scorpion on a rough log stage: four posts, cross-braced, a log deck, a low rail
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.14, deck, .14, M.rough, sx * .72, deck / 2, sz * .72));
-    for (const sz of [-1, 1]) { const x = box(1.6, .07, .07, M.rough, 0, deck * .48, sz * .72); x.rotation.z = Math.atan2(deck * .8, 1.44); g.add(x); }
-    for (const sx of [-1, 1]) { const x = box(.07, .07, 1.6, M.rough, sx * .72, deck * .48, 0); x.rotation.x = -Math.atan2(deck * .8, 1.44); g.add(x); }
+    braces(M.rough, .07);
     g.add(box(1.75, .14, 1.75, M.rough, 0, deck - .07, 0));
     for (const [x, z, w, d] of [[.86, 0, .07, 1.75], [-.86, 0, .07, 1.75], [0, .86, 1.75, .07]]) g.add(box(w, .07, d, M.rough, x, deck + .28, z));
     for (const [x, z] of [[.86, .86], [-.86, .86], [.86, -.86], [-.86, -.86]]) g.add(box(.07, .32, .07, M.rough, x, deck + .14, z));
     ladder(-.95, M.rough, SLAB_TOP);
   } else if (tier === 2) {
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.15, deck, .15, M.timber, sx * .72, deck / 2, sz * .72));
-    for (const sz of [-1, 1]) { const x = box(1.6, .08, .08, M.timber, 0, deck * .5, sz * .72); x.rotation.z = Math.atan2(deck * .8, 1.44); g.add(x); }
-    for (const sx of [-1, 1]) { const x = box(.08, .08, 1.6, M.timber, sx * .72, deck * .5, 0); x.rotation.x = -Math.atan2(deck * .8, 1.44); g.add(x); }
+    braces(M.timber, .08);
     g.add(box(1.85, .12, 1.85, M.wood, 0, deck - .06, 0));
     for (const [x, z, w, d] of [[.9, 0, .06, 1.85], [-.9, 0, .06, 1.85], [0, .9, 1.85, .06]]) g.add(box(w, .35, d, M.timber, x, deck + .17, z));
     ladder(-1.0, M.timber, .2);
@@ -3618,7 +3632,8 @@ function updateVillagers(dt, now) {
   const night = PH.kind === 'night', keep = castleB();
   for (const v of villagers) {
     v.walking = false; v.working = false; v.changing = false; v.pushing = false;
-    if (v.doorWalk && doorStep(v, dt)) { /* walking through a door */ }
+    if (v.climb) updateClimb(v, dt);
+    else if (v.doorWalk && doorStep(v, dt)) { /* walking through a door */ }
     else if (night) {
       if (v.sleeping) continue;
       if (v.post) {
@@ -3630,6 +3645,11 @@ function updateVillagers(dt, now) {
             v.posted = true; v.doorWalk = null; deliver(v); dropLoad(v); P.B.manned[P.a] = true;   // a log or stone in hand is put down first
             if (DEF[P.B.type].soldiers) { v.kitT = 1.4; v.indoor = P.B; goIn(v, P.B); }   // goes inside to gear up (see below)
             else if (P.B.type === 'catapult') crewUp(v, P.B, P.a);              // a catapult's crew is the villager: they change on the spot and man it
+            else if (DEF[P.B.type].back && P.B.door) {                           // towers and the ballista: up the ladder at the back, or in at the door
+              P.B.manned[P.a] = false; const B = P.B, a = P.a;
+              if (onLadder(B)) { v.doorWalk = { ...innerDoor(B), on: u => { u.climb = { B, a, up: true, y: 0 }; } }; }
+              else { v.indoor = B; goIn(v, B); const up = () => { B.manned[a] = true; showDefender(B, a); }; if (v.doorWalk) v.doorWalk.on = up; else up(); }
+            }
             else { v.g.visible = false; showDefender(P.B, P.a); }
           }
         } else if (v.kitT > 0) {                    // changing inside the barracks; out again armed
@@ -3664,7 +3684,7 @@ function updateVillagers(dt, now) {
       }
       }
     }
-    if (!v.doorWalk && (v.inside || v.hideT > 0 || (v.posted && !v.soldier) || v.sleeping || !v.g.visible)) continue;
+    if (!v.doorWalk && (v.inside || v.hideT > 0 || (v.posted && !v.soldier) || v.sleeping || !v.g.visible || v.climb)) continue;   // a climber is drawn by updateClimb
     const amp = stride(v, dt, 9), swing = Math.sin(v.phase) * .6 * amp;
     if (v.horse) {                                                    // a rider: legs astride, the horse's diagonal pairs stride
       v.legs[0].rotation.set(-1.2, 0, -.55); v.legs[1].rotation.set(-1.2, 0, .55); v.body.position.y = SADDLE + Math.abs(Math.sin(v.phase * 1.4)) * .04 * amp;
@@ -4052,6 +4072,30 @@ function showDefender(B, a) {
   f.g.position.set(c.x + o[0], B.group.position.y + o[1], c.z + o[2]); f.g.rotation.y = DEF[B.type].crew ? Math.atan2(-o[0], -o[2]) : Math.atan2(o[0] || .01, o[2] || .01); f.g.visible = true;
 }
 function hideDefenders(B) { (B.figs || []).forEach(f => f && !f.crewOf && scene.remove(f.g)); B.figs = (B.figs || []).map(f => f && f.crewOf ? f : null); }   // a villager crewing a catapult stays
+// archer and crossbow towers (tiers 1-2) and every ballista are climbed by a ladder at the back; tier-3 towers have a door there
+const onLadder = B => B.type === 'ballista' || ((B.type === 'tower' || B.type === 'crossbow') && B.tier < 3);
+// how far up the ladder goes: from the ground at its foot to the deck the defenders stand on
+function climbH(B, L) { return B.group.position.y + postOffset(B, 0)[1] - walkY(L.x, L.z); }
+// climbing: hand over hand, knees up in turn, facing the ladder; up, they vanish over the top into their post; down, they step
+// off and walk out to the tile behind
+function updateClimb(v, dt) {
+  const C = v.climb, B = C.B;
+  if (B.dead || !buildings.includes(B) || !innerDoor(B)) { v.climb = null; v.g.visible = true; if (C.up) { v.posted = false; } return; }
+  if (C.wait > 0) { C.wait -= dt; v.g.visible = false; return; }
+  v.g.visible = true;
+  const L = innerDoor(B), H = climbH(B, L), c = center(B), sp = .9;
+  C.y = clamp(C.y + (C.up ? sp : -sp) * dt, 0, H);
+  v.x = v.rx = L.x; v.z = v.rz = L.z; v.g.position.set(L.x, walkY(L.x, L.z) + C.y, L.z); v.g.rotation.y = Math.atan2(c.x - L.x, c.z - L.z);
+  const ph = C.y * 7;
+  v.legs[0].rotation.x = -.7 * Math.max(0, Math.sin(ph)); v.legs[1].rotation.x = -.7 * Math.max(0, -Math.sin(ph));
+  v.arms[0].rotation.set(-2.6 - .3 * Math.sin(ph), 0, 0); v.arms[1].rotation.set(-2.6 + .3 * Math.sin(ph), 0, 0); v.body.rotation.x = 0; v.body.position.y = 0;
+  if (v.pivot) v.pivot.visible = false;
+  if (C.up && C.y >= H) { v.climb = null; v.g.visible = false; B.manned[C.a] = true; showDefender(B, C.a); }
+  else if (!C.up && C.y <= 0) {
+    v.climb = null; v.legs.forEach(l => l.rotation.set(0, 0, 0)); if (v.pivot) v.pivot.visible = true;
+    const dp = doorPoint(B); v.doorWalk = { x: dp.x, z: dp.z }; v.state = v.build ? 'tobuild' : v.job ? 'commute' : 'find'; v.wait = .2;
+  }
+}
 // a catapult's crew: the villager themself, at the engine; down on a knee to change into the tier's kit, then they man it
 function crewUp(v, B, a) {
   B.figs = B.figs || []; const old = B.figs[a]; if (old && !old.crewOf) scene.remove(old.g);
@@ -4609,6 +4653,7 @@ function startNight() {
 }
 function startDay() {
   sfx('rooster'); PH.wave++; PH.kind = 'day'; PH.t = DAYLEN[PH.wave - 1];
+  for (const v of villagers) if (v.climb && v.climb.up) { v.climb.up = false; v.post = null; v.posted = false; }   // dawn caught them on the way up: back down
   for (const v of villagers) if (v.post) {
     if (v.soldier) { v.unkit = v.post.B; v.posted = false; v.prog = null; v.path = null; }     // walk back to the barracks to change
     else if (v.kitT > 0) { v.kitT = 0; v.posted = false; if (!v.g.visible || v.doorWalk) { v.indoor = v.post.B; exitDoor(v); } }   // dawn caught them changing
@@ -4617,6 +4662,10 @@ function startDay() {
       if (v.crewOf) {                                              // a catapult's crew: off the engine's tile and change back where they stand
         const p = standNear(v.x, v.z); v.x = p.x; v.z = p.z; v.inside = false; v.indoor = null; v.hideT = 0; v.path = null;
         if (B.figs) B.figs[v.post.a] = null; v.crewOf = null; v.crewT = 0; v.crewStrip = v.kit ? CHANGE_T : 0; v.state = v.build ? 'tobuild' : v.job ? 'commute' : 'find';
+      }
+      else if (DEF[B.type].back && onLadder(B) && B.door) {          // down the ladder again, then off to the day's work
+        const L = innerDoor(B); v.x = v.rx = L.x; v.z = v.rz = L.z; v.inside = false; v.indoor = null; v.hideT = 0; v.doorWalk = null; v.path = null;
+        v.g.visible = false; v.climb = { B, a: v.post.a, up: false, y: climbH(B, L), wait: v.post.a * 1.4 };   // one at a time down the ladder
       }
       else if (f && f.g.visible) { v.inside = false; v.indoor = null; v.hideT = 0; v.doorWalk = null; const p = standNear(f.g.position.x, f.g.position.z); v.x = v.rx = p.x; v.z = v.rz = p.z; v.g.visible = true; v.path = null; v.state = v.build ? 'tobuild' : v.job ? 'commute' : 'find'; v.wait = 0; }
       else { v.inside = true; v.indoor = B; }                       // from a tower or the castle: out of its door
