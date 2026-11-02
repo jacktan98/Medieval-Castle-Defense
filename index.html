@@ -155,6 +155,15 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #campInfo{width:100%;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 #campMap svg{max-height:calc(100dvh - 120px)!important}
 #stagePrev{background:rgba(12,13,9,.94);z-index:62}
+#newCards{z-index:63;background:rgba(8,10,9,.6)}
+.ncCard{width:min(300px,86vw);background:var(--panel);border:1px solid #6b5a2e;border-radius:14px;padding:16px 16px 14px;display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.5)}
+.ncStep{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ncIcon svg{width:64px;height:64px;stroke:var(--gold);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.ncCard h3{margin:0;font-family:var(--display);font-weight:400;font-size:22px;color:var(--gold)}
+.ncCost{display:flex;gap:12px;justify-content:center;font-size:16px;color:var(--parch)} .ncCost .cost,.ncStats .stat{display:inline-flex;align-items:center;gap:4px} .ncCost .ico svg,.ncStats .ico svg{width:20px;height:20px}
+.ncStats{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;font-size:17px;color:var(--parch)}
+#ncStats .stat{font-size:17px;gap:5px} #ncStats .stat .ico,#ncCost .ico{width:20px;height:20px}
+.ncCard button{min-width:120px;margin-top:4px}
 .stageSheet{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(520px,100%);max-height:100%;overflow:auto}
 .stPic{width:100%;max-width:min(520px,62dvh);aspect-ratio:1/1;border-radius:10px;border:1px solid #4a4838;overflow:hidden;background:#2a2b22;display:flex;align-items:center;justify-content:center;position:relative;flex:0 0 auto}
 .stPic img{width:100%;height:100%;object-fit:cover;display:block} .stPic .tag{position:absolute;left:8px;top:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--parch);background:rgba(20,21,15,.75);padding:2px 7px;border-radius:5px} .stPic .soon{color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-size:13px}
@@ -409,6 +418,16 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
       <button id="campBack">Back</button>
     </div>
   </div>
+  <div class="modal" id="newCards" hidden>
+    <div class="ncCard">
+      <div class="ncStep" id="ncStep"></div>
+      <div class="ncIcon" id="ncIcon"></div>
+      <h3 id="ncName"></h3>
+      <div class="ncCost" id="ncCost"></div>
+      <div class="ncStats" id="ncStats"></div>
+      <button class="primary" id="ncNext">Next</button>
+    </div>
+  </div>
   <div class="modal" id="stagePrev" hidden>
     <div class="stageSheet">
       <div class="stPic" id="stPic"></div>
@@ -586,23 +605,16 @@ const MAP_RULES = {
                   { spear: [10, 26, 10], sword: [4, 12, 8], archer: [4, 10, 6], xbow: [0, 4, 2], lancer: [0, 1], rider: [0, 0, 1], ballista: [0, 1], catapult: [0, 1] }],
           day: [900, 150], spawnGap: .5 },
   // Greenvale, the campaign's first stop and its tutorial: three short nights of tier-1 spearmen and archers, from the north-east
-  vale: { waves: [{ spear: [4] }, { spear: [6], archer: [2] }, { spear: [8], archer: [3] }], day: [300, 180, 180], spawnGap: 1.6,
+  vale: { waves: [{ spear: [4] }, { spear: [6], archer: [2] }, { spear: [8], archer: [3] }], day: [180, 120, 120], spawnGap: 1.6,
           res: { gold: 60, wood: 70, stone: 10, food: 30 } },
   // Stonebridge (stage 2): raiders from the north over the stone bridge; from night 3 some come by the ford upstream; a ram on night 4
   bridge: { waves: [{ spear: [5] }, { spear: [6], sword: [3] }, { spear: [6], sword: [3], archer: [3] }, { spear: [8], sword: [4], archer: [3], ram: [1] }],
-            day: [300, 180, 180, 180], spawnGap: 1.4, res: { gold: 80, wood: 90, stone: 20, food: 30 } },
+            day: [240, 120, 120, 120], spawnGap: 1.4, res: { gold: 80, wood: 90, stone: 20, food: 30 } },
 };
 // campaign stops' own maps: the buildings each one has (the stop's and every earlier stop's), and where it sits on the overview
 const CAMP_MAPS = {
   vale: { stop: 0, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower'], decor: ['road', 'flowers', 'torch'] } },
-  bridge: { stop: 1, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack'] },
-    // its own guided first day: the new buildings, and closing the half-built wall along the bank
-    guide: () => [
-      { text: 'Build barracks', tool: 'barracks', cat: 'def', done: () => buildings.some(B => B.type === 'barracks') },
-      { text: 'Gate at the bridge', tool: 'gate', cat: 'def', done: () => { const b = bridges[0]; return !!b && buildings.some(B => B.type === 'gate' && Math.hypot(center(B).x - b.ex, center(B).z - b.ez) < 4.5); } },
-      { text: 'Close the wall', tool: 'wall', cat: 'def', done: () => BANK_WALL.length > 0 && BANK_WALL.every(n => occB[n] && WALLY[occB[n].type]) },
-      { text: 'Rally by the gate', tool: 'select', done: () => buildings.some(B => B.rally) },
-      { text: 'Weapon rack', tool: 'rack', cat: 'decor', done: () => buildings.some(B => B.type === 'rack') }] },
+  bridge: { stop: 1, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack'] } },
 };
 var WAVES = WAVES_STD, NIGHTS = WAVES.length, DAYLEN = [300, 150, 150, 150, 150], SPAWN_GAP = 1.1;
 function mapRules() { const R = MAP_RULES[MAP]; WAVES = R ? R.waves : WAVES_STD; NIGHTS = WAVES.length; DAYLEN = R ? R.day : [300, 150, 150, 150, 150]; SPAWN_GAP = R ? R.spawnGap : 1.1; }
@@ -911,7 +923,6 @@ function recolor() {
     tmpC.copy(C.grass2).lerp(C.grass, clamp((gvar[k] - .25) * 2, 0, 1));
     tmpC.lerp(C.dry, sstep(.55, .72, dvar[k]) * .4);
     tmpC.lerp(C.sand, sstep(.8, .2, h)); tmpC.lerp(C.bed, sstep(-.1, -.8, h));
-    if (MAP === 'bridge') tmpC.lerp(C.bed, sstep(4, 2.5, Math.abs(i - FORD_X)) * sstep(1.1, .7, h) * .8);   // the ford's gravel bar, under its shallow water
     tmpC.lerp(C.rock, MAP === 'vale' ? sstep(1.4, 2.2, Math.hypot(hx, hz)) * .6 : sstep(.55, 1.1, Math.hypot(hx, hz)));   // Greenvale's hills stay green if (h > 15) tmpC.lerp(SNOW_C, sstep(16.2, 18.5, h) * .7); tmpC.lerp(C.dirt, dirt[k]);
     tmpC.multiplyScalar(.94 + .1 * hash(i * 1.7, j * 2.3));
     tCol[k * 3] = tmpC.r; tCol[k * 3 + 1] = tmpC.g; tCol[k * 3 + 2] = tmpC.b;
@@ -2123,20 +2134,6 @@ function makeStoneBridge(b) {
   g.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = true; });
   g.position.set(b.mx, 0, b.mz); g.rotation.y = Math.atan2(b.dx, b.dz);
   return g;
-}
-// Stonebridge's ford: a sheet of shallow water laid over the gravel bar, so it reads as shallows raiders wade through, not dry land
-let fordWater = null;
-const fordWaterM = new THREE.MeshStandardMaterial({ color: '#4f8aa0', transparent: true, opacity: .62, roughness: .55, depthWrite: false });
-function buildFord() {
-  if (fordWater) { scene.remove(fordWater); fordWater.geometry.dispose(); fordWater = null; }
-  if (MAP !== 'bridge') return;
-  const zc = stoneRiverZ(FORD_X), geo = new THREE.PlaneGeometry(6, 13, 16, 26).rotateX(-Math.PI / 2), pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i++) {   // a little above the bar where it's low, faded out up the banks
-    const x = FORD_X + pos.getX(i), z = zc + pos.getZ(i), edge = sstep(2.1, 3, Math.abs(pos.getX(i)));   // its sides slope down into the river
-    pos.setY(i, edge > 0 ? lerp(.68, -.02, edge) : Math.max(.68, hAt(x, z) - .05));
-  }
-  geo.computeVertexNormals(); fordWater = new THREE.Mesh(geo, fordWaterM); fordWater.position.set(FORD_X, 0, zc); fordWater.receiveShadow = true;
-  fordWater.renderOrder = 1; scene.add(fordWater);
 }
 function buildBridges() { for (const b of bridges) { b.g = makeBridge(b); scene.add(b.g); } }
 
@@ -5879,6 +5876,34 @@ function bankWall() {
   const gap = ([ci, cj]) => ci === bci || Math.abs(ci - fci) <= 1 || ci === 6 || ci === 7;
   for (const c of line) if (!gap(c)) { const ev = evaluate('wall', c[0], c[1]); if (ev.ok) place('wall', c[0], c[1], { instant: true, free: true, quiet: true }); }
 }
+// a stage's new buildings, one card at a time over the paused game: picture (tool icon), name, cost and tier-1 stats; Next, then Play
+var newCards = [], newCardI = 0;
+function newCardStats(t) {
+  const T = DEF[t], st = [];
+  if (T.hp) st.push(STAT('hp', T.hp[0]));
+  if (T.residents) st.push(STAT('home', T.residents[0])); if (T.gold) st.push(STAT('gold', `+${T.gold[0]}`)); if (T.food) st.push(STAT('food', `+${T.food[0]}`));
+  if (T.workers) st.push(STAT('hammer', T.workers[0])); if (T.reach) st.push(STAT('range', `${T.reach} m`, '', 'Reach'));
+  if (T.archers) st.push(STAT('guard', T.archers[0])); if (T.dmg && T.archers) st.push(STAT('bow', T.dmg[0])); if (T.range) st.push(STAT('range', `${T.range[0]} m`, '', 'Range'));
+  if (T.soldiers) st.push(STAT('guard', T.soldiers[0], '', 'Soldiers'), STAT('sword', SOLDIER.dmg[0]));
+  if (T.decor) { st.push(...fxStats(t, (i, v, n) => STAT(i, v, 'good', n))); if (T.charm) st.push(STAT('charm', `+${Math.round(T.charm * 100)}%`, 'good')); }
+  return st.join('');
+}
+function showNewCards(list) {
+  newCards = list.slice(); newCardI = 0; if (!newCards.length) return;
+  paused = true; hideGhost(); renderNewCard(); $('#newCards').hidden = false;
+}
+function renderNewCard() {
+  const t = newCards[newCardI], last = newCardI === newCards.length - 1;
+  $('#ncIcon').innerHTML = TOOL_ICON[t] || ''; $('#ncName').textContent = t === 'road' ? 'Path' : DEF[t].name;
+  $('#ncStep').textContent = `New · ${newCardI + 1}/${newCards.length}`;
+  $('#ncCost').innerHTML = costHTML(DEF[t].cost || {}); $('#ncStats').innerHTML = newCardStats(t);
+  $('#ncNext').textContent = last ? 'Play' : 'Next';
+}
+$('#ncNext').addEventListener('click', () => {
+  sfx('click');
+  if (++newCardI < newCards.length) { renderNewCard(); return; }
+  $('#newCards').hidden = true; paused = false;
+});
 // back to where this game was chosen: the campaign for a campaign map, else the map picker
 function showStart() { if (CAMP_MAPS[MAP]) { showMapPick(); $('#mapPick').hidden = true; openCampaign(CAMP_MAPS[MAP].stop); } else showMapPick(); }
 function showMapPick() {
@@ -6213,7 +6238,7 @@ function startGame() {
   mapRules();
   PH = { kind: 'day', wave: 1, t: DAYLEN[0] }; econT = TICK; gameOver = false; light = 1; if (paused) setPaused(false); setMusic('day');
   if (MAP === 'isle') { KX = 27; KZ = 27; } else if (MAP === 'pass') { KX = 27; KZ = 21; } else if (MAP === 'vale') { KX = 25; KZ = 33; } else if (MAP === 'bridge') { KX = 29; KZ = 37; } else { KX = 19; KZ = 27; }
-  genTerrain(); genBridges(); genTrees(); genRocks(); genClutter(); syncTerrain(); buildBridges(); buildFord(); genShore(); hideGhost(); deselect();
+  genTerrain(); genBridges(); genTrees(); genRocks(); genClutter(); syncTerrain(); buildBridges(); genShore(); hideGhost(); deselect();
   Object.assign(res, (MAP_RULES[MAP] || {}).res || { gold: 40, wood: 45, stone: 0, food: 20 });
   stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, t0: performance.now() };
   $('#summary').hidden = true; $('#log').innerHTML = '';
@@ -6223,7 +6248,9 @@ function startGame() {
   if (MAP === 'vale') { yaw = -Math.PI / 4; target.x += 2; target.z -= 2; }   // from the south-west, the way in (north-east) at the top of the screen
   if (MAP === 'bridge') { yaw = 0; target.z -= 4; bankWall(); }   // from the south, the river and the raiders' bank at the top
   BANK_WALL = MAP === 'bridge' ? BANK_WALL : [];
-  if (CAMP_MAPS[MAP]) guideOn = true;              // a stage: its guided first day every time (Skip ends it)
+  if (MAP === 'vale') guideOn = true;               // the tutorial stage: the guided first day every time (Skip ends it)
+  else if (CAMP_MAPS[MAP]) { guideOn = false; guideMark(); }
+  if (CAMP_MAPS[MAP] && CAMP_MAPS[MAP].stop > 0) showNewCards(CAMPAIGN[CAMP_MAPS[MAP].stop].adds);   // a later stage: its new buildings, one card each, before play
   updateCam();
   log('Drag · twist · pinch');
   log(`Survive <b>${NIGHTS} nights</b>`);

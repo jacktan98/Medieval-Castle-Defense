@@ -5,7 +5,7 @@ const path = require('path'), fs = require('fs');
 const { openGame } = require('./serve');
 const ROOT = path.resolve(__dirname, '../..');
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
-const VIEW = { meadow: [28, 0, 28, 0, 1.56, 64], isle: [28, 0, 28, 0, 1.56, 64], pass: [28, 4, 28, 0, 1.56, 64], vale: [29.5, 0, 27.5, 0, 1.56, 73], bridge: [28, 0, 28, 0, 1.56, 75] };   // vale: Stage 1's preview (top-down too, sharper: PX)    // straight down over the whole map    // target x, y, z, yaw, pitch, dist
+const VIEW = { meadow: [28, 0, 28, 0, 1.56, 64], isle: [28, 0, 28, 0, 1.56, 64], pass: [28, 4, 28, 0, 1.56, 64], vale: [28, 0, 28, 0, 1.56, 64], bridge: [28, 0, 28, 0, 1.56, 64] };   // stage previews framed like the map cards: no sky past the edges   // vale: Stage 1's preview (top-down too, sharper: PX)    // straight down over the whole map    // target x, y, z, yaw, pitch, dist
 (async () => {
   const { page, close, errors } = await openGame('index.html?debug&map=meadow', { three: arg('--three'), viewport: { width: 400, height: 400 } });
   const PX = { vale: 1080, bridge: 1080 };   // stage previews are drawn bigger: they fill a phone's width at 3× pixels
