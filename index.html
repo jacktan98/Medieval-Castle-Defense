@@ -254,6 +254,12 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
 .adRow button,.adminRow button{min-height:28px;font-size:12px;padding:2px 7px;border-radius:6px;background:#24261f;border-color:#4a4838;flex-direction:row}
 .adminRow{display:flex;gap:5px}
 .adminRow button{flex:1}
+.adminHead .iconBtn{width:28px;height:28px;min-height:28px;padding:4px}
+.rdCount{display:flex;gap:5px;align-items:center;font-size:12px;color:var(--muted)}
+.rdCount button,.rdList button{min-height:28px;font-size:12px;padding:2px 7px;border-radius:6px;background:#24261f;border-color:#4a4838;flex-direction:row}
+.rdCount button{flex:1}#raidDash{flex-shrink:0}.rdCount button.on{border-color:var(--gold);color:var(--gold)}
+.rdList{display:grid;grid-template-columns:1fr repeat(3,40px);gap:4px 5px;align-items:center;font-size:12.5px;color:#ff9a8a}
+.rdList small{position:relative;top:-5px;font-size:9px;color:var(--muted);margin-left:2px}
 .adminTog{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--parch);cursor:pointer}
 .adminTog input{accent-color:#d4a84e;width:15px;height:15px}
 @media (max-width:640px){
@@ -277,6 +283,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
   .corner{bottom:auto;top:52px;flex-direction:column-reverse}
   .cornerBtns{flex-direction:column}
   .admin{max-height:calc(100vh - 110px);overflow:auto}
+  #raidDash{width:440px;max-height:calc(100vh - 16px);position:fixed;top:8px;right:50px;z-index:30} .rdList{grid-template-columns:1fr repeat(3,32px) 1fr repeat(3,32px);gap:3px 5px} .rdList button,.rdCount button{min-height:24px}
   .pausedTag{padding-top:0;align-items:center}
 }
 @media (prefers-reduced-motion:reduce){.banner{transition:none}}
@@ -322,7 +329,12 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
       <div class="adminRow"><button id="adFill">Fill all to 9,999</button><button id="adFinish">Finish all building</button></div>
       <label class="adminTog"><input type="checkbox" id="adInstant"> Instant build and upgrades</label>
       <div class="adminRow"><button id="adPop">+5 villagers</button><button id="adDay">Skip to night</button></div>
-      <div class="adminRow"><button id="adGallery">Gallery</button></div>
+      <div class="adminRow"><button id="adRaid">Raiders</button><button id="adGallery">Gallery</button></div>
+    </div>
+    <div class="admin" id="raidDash" hidden>
+      <div class="adminHead"><b>Raiders</b><button class="iconBtn" id="rdClose" aria-label="Close" title="Close"><svg viewBox="0 0 24 24"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button></div>
+      <div class="rdCount" id="rdCount"></div>
+      <div class="rdList" id="rdList"></div>
     </div>
     <div class="cornerBtns">
       <button class="iconBtn" id="muteBtn" aria-pressed="false" aria-label="Mute sound" title="Sound on (M to mute)"></button>
@@ -4944,7 +4956,8 @@ function startNight() {
   log(`<b>Night ${PH.wave}</b> · ${spawnQueue.length} raiders · ${ps.posted} on guard`, 'warn');
 }
 function startDay() {
-  sfx('rooster'); PH.wave++; PH.kind = 'day'; PH.t = DAYLEN[PH.wave - 1];
+  const test = PH.testDay; PH.testDay = undefined;   // the end of an admin test raid: back to the same day, the wave not used up
+  sfx('rooster'); if (test === undefined) PH.wave++; PH.kind = 'day'; PH.t = test !== undefined ? Math.max(test, DUSK + 5) : DAYLEN[PH.wave - 1];
   for (const v of villagers) if (v.climb && v.climb.up) { v.climb.up = false; v.post = null; v.posted = false; }   // dawn caught them on the way up: back down
   for (const v of villagers) if (v.post) {
     if (v.soldier) { v.unkit = v.post.B; v.posted = false; v.prog = null; v.path = null; }     // walk back to the barracks to change
@@ -5001,7 +5014,7 @@ function updatePhase(dt) {
   }
   else {
     if (spawnQueue.length && (spawnT -= dt) <= 0) { const [k, p, t] = spawnQueue.shift(); spawnEnemy(k, p, PH.wave, t); spawnT = SPAWN_GAP; }
-    if (!spawnQueue.length && !enemies.some(e => !e.dead)) { if (PH.wave >= NIGHTS) endGame(true); else startDay(); }
+    if (!spawnQueue.length && !enemies.some(e => !e.dead)) { if (PH.wave >= NIGHTS && PH.testDay === undefined) endGame(true); else startDay(); }
   }
   if (PH.kind === 'day' && (econT -= dt) <= 0) { econT = TICK; econTick(); }   // no payouts at night: the ring waits for dawn
 }
@@ -5801,12 +5814,37 @@ $('#adminRes').innerHTML = RES_KEYS.map(k => `<div class="adRow"><span class="ic
 function syncAdmin(force) { for (const k of RES_KEYS) { const el = $('#ad-' + k); if (force || document.activeElement !== el) el.value = Math.floor(res[k]); } }
 RES_KEYS.forEach(k => $('#ad-' + k).addEventListener('change', e => { res[k] = Math.max(0, Math.floor(+e.target.value || 0)); syncAdmin(true); }));
 document.querySelectorAll('.adRow button').forEach(b => b.addEventListener('click', () => { res[b.dataset.k] += +b.dataset.n; syncAdmin(true); }));
-$('#adminBtn').addEventListener('click', () => { const open = $('#admin').hidden; $('#admin').hidden = !open; $('#adminBtn').setAttribute('aria-pressed', String(open)); if (open) syncAdmin(true); });
+$('#adminBtn').addEventListener('click', () => { const open = $('#admin').hidden && $('#raidDash').hidden; $('#raidDash').hidden = true; $('#admin').hidden = !open; $('#adminBtn').setAttribute('aria-pressed', String(open)); if (open) syncAdmin(true); });
 $('#adFill').addEventListener('click', () => { RES_KEYS.forEach(k => res[k] = 9999); syncAdmin(true); });
 $('#adFinish').addEventListener('click', () => { buildings.forEach(B => { if (B.site) B.site.progress = 1; }); });
 $('#adInstant').addEventListener('change', e => { instantBuild = e.target.checked; if (instantBuild) buildings.forEach(B => { if (B.site) B.site.progress = 1; }); });
 $('#adPop').addEventListener('click', () => { const k = castleB(); if (k) { for (let n = 0; n < 5; n++) makeVillager(k); assignJobs(); } });
 $('#adDay').addEventListener('click', () => { if (PH.kind === 'day' && !gameOver) PH.t = 0; });
+// admin raiders dashboard: every raider kind by tier; a tap sends that many of it. By day it brings on a test night that ends
+// back in the same day (the wave isn't used up)
+const RD_NAME = { ballista: 'Ballista', catapult: 'Catapult', ram: 'Ram' };
+let rdN = 1;
+function spawnRaiders(list) {
+  if (gameOver || !list.length) return;
+  if (PH.kind === 'day') { PH.testDay = PH.t; PH.kind = 'night'; spawnQueue = []; spawnT = .3; sfx('horn'); assignPosts(); setMusic('night'); }
+  const pts = [edgePoint(), edgePoint()];
+  list.forEach(([k, t], n) => spawnQueue.push([k, pts[n % 2], t]));
+  spawnT = Math.min(spawnT, .3);
+}
+function renderRaidDash() {
+  $('#rdCount').innerHTML = [1, 5, 10].map(n => `<button data-n="${n}" class="${n === rdN ? 'on' : ''}">×${n}</button>`).join('');
+  $('#rdList').innerHTML = Object.keys(ENEMY).map(k => `<span>${RD_NAME[k] || RAIDER_NAME[k]}</span>` + [1, 2, 3].map(t => `<button data-k="${k}" data-t="${t}" title="Tier ${t}">${t}</button>`).join('')).join('');
+}
+$('#rdCount').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { rdN = +b.dataset.n; renderRaidDash(); } });
+$('#rdList').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  spawnRaiders(Array.from({ length: rdN }, () => [b.dataset.k, +b.dataset.t]));
+  log(`<b>${RD_NAME[b.dataset.k] || RAIDER_NAME[b.dataset.k]} ${b.dataset.t}</b> ×${rdN}`, 'warn');
+});
+const openRaidDash = open => { $('#raidDash').hidden = !open; $('#admin').hidden = open; if (open) renderRaidDash(); };
+$('#adRaid').addEventListener('click', () => openRaidDash(true));
+$('#rdClose').addEventListener('click', () => openRaidDash(false));
+
 setPaused(false);
 addEventListener('keydown', e => { if (e.key === 'p' || e.key === 'P') !gameOver && setPaused(!paused); });
 
