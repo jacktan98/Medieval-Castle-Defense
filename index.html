@@ -433,7 +433,7 @@ const N = 28, CELL = 2, SIZE = N * CELL, V = SIZE + 1;
 const F = 3, TICK = 20;
 let KX = 19, KZ = 27;                  // castle site: Meadow cells 8–10, 12–14; River isle 12–14, 12–14 (set per map in startGame)
 // MAP: 'meadow' (the original map) or 'isle' (the castle on an island ringed by a river, three fixed bridges); ?map=isle skips the picker
-var MAP = (location.search.match(/[?&]map=(meadow|isle|pass)\b/) || [])[1] || (() => { try { const m = localStorage.getItem('mtd-map'); return /^(meadow|isle|pass)$/.test(m) ? m : null; } catch (e) { return null; } })() || 'meadow';
+var MAP = (location.search.match(/[?&]map=(meadow|isle|pass|vale)\b/) || [])[1] || (() => { try { const m = localStorage.getItem('mtd-map'); return /^(meadow|isle|pass)$/.test(m) ? m : null; } catch (e) { return null; } })() || 'meadow';
 // river isle: the river's centre line wobbles round the castle; ISLE.r is its mean radius in metres
 const ISLE = { r: 16.6 }, ISLE_BRIDGES = [-90, 30, 150], ISLE_ROCKS = [-30, 90, 210], MEADOW_BRIDGES = [0];   // Meadow: one bridge east from the castle over its river
 const isleOutN = z => 41 + 2.5 * Math.sin(z * .22 + .5), isleOutS = z => 18 + 2.5 * Math.sin(z * .2 + 2);   // the isle's two outflows: centre x by z
@@ -564,7 +564,12 @@ const MAP_RULES = {
   pass: { waves: [{ spear: [30, 6], sword: [12, 4], archer: [10, 2], xbow: [4], lancer: [1], ram: [1] },
                   { spear: [10, 26, 10], sword: [4, 12, 8], archer: [4, 10, 6], xbow: [0, 4, 2], lancer: [0, 1], rider: [0, 0, 1], ballista: [0, 1], catapult: [0, 1] }],
           day: [900, 150], spawnGap: .5 },
+  // Greenvale, the campaign's first stop and its tutorial: three short nights of tier-1 spearmen and archers, from the north-east
+  vale: { waves: [{ spear: [4] }, { spear: [6], archer: [2] }, { spear: [8], archer: [3] }], day: [300, 180, 180], spawnGap: 1.6,
+          res: { gold: 60, wood: 70, stone: 10, food: 30 } },
 };
+// campaign stops' own maps: the buildings each one has (the stop's and every earlier stop's), and where it sits on the overview
+const CAMP_MAPS = { vale: { stop: 0, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower'], decor: ['road', 'flowers', 'torch'] } } };
 var WAVES = WAVES_STD, NIGHTS = WAVES.length, DAYLEN = [300, 150, 150, 150, 150], SPAWN_GAP = 1.1;
 function mapRules() { const R = MAP_RULES[MAP]; WAVES = R ? R.waves : WAVES_STD; NIGHTS = WAVES.length; DAYLEN = R ? R.day : [300, 150, 150, 150, 150]; SPAWN_GAP = R ? R.spawnGap : 1.1; }
 const ENEMY = {
@@ -630,8 +635,27 @@ function passHeight(x, z) {
   let h = lerp(floor, plateH, sstep(PASS.plate + 2, PASS.plate, p.plate));
   return lerp(mount, h, sstep(-2.6, .4, p.depth));              // 3 m cliffs up to the mountains
 }
+// Greenvale (campaign 1, the tutorial): a small green valley (VALE.r round VALE.c, about two thirds of the map across) closed in by
+// wooded hills, open only to the north-east, where a corridor (VALE.w wide) runs out to the map's corner: every raider comes that way
+const VALE = { c: [27, 31], r: 16.5, w: 9, gap: [[35, 23], [64, -6]] };
+function valeAt(x, z) {
+  const dx = x - VALE.c[0], dz = z - VALE.c[1], a = Math.atan2(dz, dx), r = Math.hypot(dx, dz);
+  const R = VALE.r + 2.6 * (fbm(Math.cos(a) * 1.4 + 5, Math.sin(a) * 1.4 + 2) - .5) * 2;          // an uneven rim
+  const [[ax, az], [bx, bz]] = VALE.gap, gx = bx - ax, gz = bz - az, t = clamp(((x - ax) * gx + (z - az) * gz) / (gx * gx + gz * gz), 0, 1);
+  const corr = VALE.w / 2 + 1.4 * (vnoise(x * .2 + 3, z * .2) - .5) - Math.hypot(x - ax - gx * t, z - az - gz * t);
+  return Math.max(R - r, corr) + .8 * (vnoise(x * .35, z * .35) - .5);
+}
+const valeOpen = (x, z) => valeAt(x, z) > .3;
+function valeHeight(x, z) {
+  const d = valeAt(x, z), floor = 2.4 + 1.1 * (fbm(x * .09 + 4, z * .09 + 8) - .5) * sstep(6, 12, Math.hypot(x - KX, z - KZ));
+  const hill = 5 + 4 * fbm(x * .1 + 2, z * .1 + 6) + 1.2 * vnoise(x * .35, z * .35);
+  return lerp(hill, floor, sstep(-5.5, .4, d));                 // the hills rise gently from the valley's rim
+}
+// the maps with ground nobody may walk or build on (Mountain pass's mountains, Greenvale's hills)
+const mapOpen = (x, z) => MAP === 'pass' ? passOpen(x, z) : MAP === 'vale' ? valeOpen(x, z) : true;
 function genHeight(x, z) {
   if (MAP === 'pass') return passHeight(x, z);
+  if (MAP === 'vale') return valeHeight(x, z);
   let h = 1.6 + fbm(x * .06, z * .06) * 4.2;
   h += Math.max(0, fbm(x * .14 + 9, z * .14 + 3) - .6) * 16;
   h += Math.max(0, 10 - x) * .35 * fbm(x * .1, z * .1 + 7);
@@ -663,7 +687,7 @@ let bridges = [];
 const bridgeCell = new Uint8Array(N * N), BRIDGE_RISE = .45, DECK_W = 1.9;
 // where each map's bridges cross: a start point and a direction, marched along until the river is crossed
 function bridgeRays() {
-  if (MAP === 'pass') return [];
+  if (MAP === 'pass' || MAP === 'vale') return [];
   if (MAP === 'isle') return ISLE_BRIDGES.map(deg => { const a = deg * Math.PI / 180, r = isleR(a); return { ox: KX + Math.cos(a) * (r - 7), oz: KZ + Math.sin(a) * (r - 7), dx: Math.cos(a), dz: Math.sin(a) }; });
   // Meadow: square across its river where it passes the castle's row
   const zc = KZ, drx = .6 * Math.cos(zc * .12) + .15 * Math.cos(zc * .05 + 1), m = Math.hypot(1, drx), dx = 1 / m, dz = -drx / m;
@@ -833,7 +857,7 @@ function recolor() {
     tmpC.copy(C.grass2).lerp(C.grass, clamp((gvar[k] - .25) * 2, 0, 1));
     tmpC.lerp(C.dry, sstep(.55, .72, dvar[k]) * .4);
     tmpC.lerp(C.sand, sstep(.8, .2, h)); tmpC.lerp(C.bed, sstep(-.1, -.8, h));
-    tmpC.lerp(C.rock, sstep(.55, 1.1, Math.hypot(hx, hz))); if (h > 15) tmpC.lerp(SNOW_C, sstep(16.2, 18.5, h) * .7); tmpC.lerp(C.dirt, dirt[k]);
+    tmpC.lerp(C.rock, MAP === 'vale' ? sstep(1.4, 2.2, Math.hypot(hx, hz)) * .6 : sstep(.55, 1.1, Math.hypot(hx, hz)));   // Greenvale's hills stay green if (h > 15) tmpC.lerp(SNOW_C, sstep(16.2, 18.5, h) * .7); tmpC.lerp(C.dirt, dirt[k]);
     tmpC.multiplyScalar(.94 + .1 * hash(i * 1.7, j * 2.3));
     tCol[k * 3] = tmpC.r; tCol[k * 3 + 1] = tmpC.g; tCol[k * 3 + 2] = tmpC.b;
   }
@@ -1094,7 +1118,7 @@ trunks.material.onBeforeCompile = sh => cutaway(sh);
 addGrit(trunks.material, 'wood');
 let trees = [];
 function genTrees() {
-  trees = []; if (MAP === 'pass') pickPassRocks();
+  trees = []; if (MAP === 'pass') pickPassRocks(); if (MAP === 'vale') pickValeRocks();
   for (let cj = 0; cj < N; cj++) for (let ci = 0; ci < N; ci++) for (let a = 0; a < 3; a++) {
     const x = ci * CELL + hash(ci * 3 + a, cj) * CELL, z = cj * CELL + hash(cj + a * 7, ci * 5) * CELL;
     const dk = Math.hypot(x - KX, z - KZ);
@@ -1106,6 +1130,18 @@ function genTrees() {
       const lone = hash(x * 2.1, z * 1.7) < .06;
       const woods = dk < r ? dk > 8.5 && mask > .43 && hash(x * 1.3, z * .7) < (mask - .39) * 3 : mask > .46 && hash(x * 1.3, z * .7) < (mask - .4) * 3;
       if (woods || lone) trees.push({ x, z, s: .75 + hash(z, x) * .5, k: 1 });
+      continue;
+    }
+    if (MAP === 'vale') {
+      // plenty of wood: woods all along the valley's rim and up the corridor's sides, copses about the meadow, clear round the
+      // castle and down the corridor's middle; (out of reach, for looks) woods all over the hills
+      const d = valeAt(x, z);
+      if (d > .3) {
+        const [[ax, az], [bx, bz]] = VALE.gap, gx = bx - ax, gz = bz - az, t = clamp(((x - ax) * gx + (z - az) * gz) / (gx * gx + gz * gz), 0, 1);
+        const mid = Math.hypot(x - ax - gx * t, z - az - gz * t) < 2.2 && t > 0;   // the raiders' way in stays open
+        const rim = d < 4.5 && hash(x * 1.3, z * .7) < .62, copse = dk > 9 && fbm(x * .13 + 31, z * .13 + 17) > .56 && hash(x * .9, z * 1.9) < .55;
+        if (dk > 7 && !mid && (rim || copse) && !valeRockSite(x, z, 1.6)) trees.push({ x, z, s: .75 + hash(z, x) * .5, k: 1 });
+      } else if (hash(x * 2.3, z * 1.9) < .45) trees.push({ x, z, s: .75 + hash(z, x) * .5, k: 1, deco: true });
       continue;
     }
     if (MAP === 'pass') {
@@ -1160,9 +1196,28 @@ function pickPassRocks() {
 }
 const passRockSite = (x, z, d) => MAP === 'pass' && passRockCentres().some(([cx, cz]) => Math.hypot(x - cx, z - cz) < d + 2.2);
 const passRockCentres = () => PASS_ROCK_C;
+// Greenvale: plenty of stone, in outcrops round the valley's rim (none in the corridor), a short walk from the castle
+let VALE_ROCK_C = [];
+function pickValeRocks() {
+  VALE_ROCK_C = [];
+  for (let n = 0; n < 4000 && VALE_ROCK_C.length < 7; n++) {
+    const x = 4 + Math.random() * (SIZE - 8), z = 4 + Math.random() * (SIZE - 8), d = valeAt(x, z);
+    if (d < 2 || d > 4 || Math.hypot(x - KX, z - KZ) < 8 || (x - VALE.c[0] > 4 && z - VALE.c[1] < -4) || VALE_ROCK_C.some(([a, b]) => Math.hypot(a - x, b - z) < 8)) continue;
+    VALE_ROCK_C.push([x, z]);
+  }
+}
+const valeRockSite = (x, z, d) => VALE_ROCK_C.some(([cx, cz]) => Math.hypot(x - cx, z - cz) < d + 2.2);
 function genRocks() {
   rocks.forEach(r => scene.remove(r.mesh)); rocks = [];
   const addRock = (x, z, s0, rot) => { const mesh = new THREE.Mesh(rockGeo, rockMat); mesh.castShadow = mesh.receiveShadow = true; mesh.rotation.set(...rot); rocks.push({ x, z, amount: ROCK_STONE, s0, mesh }); scene.add(mesh); };
+  if (MAP === 'vale') {
+    for (const [cx, cz] of VALE_ROCK_C) for (let n = 0, k = 0; n < 300 && k < 7; n++) {
+      const x = cx + (Math.random() - .5) * 5, z = cz + (Math.random() - .5) * 5;
+      if (!valeOpen(x, z) || valeAt(x, z) > 5.5 || Math.hypot(x - KX, z - KZ) < 7 || rocks.some(r => Math.hypot(r.x - x, r.z - z) < 1.7)) continue;
+      addRock(x, z, .95 + Math.random() * .5, [Math.random() * 3, Math.random() * 3, Math.random() * 3]); k++;
+    }
+    return;
+  }
   if (MAP === 'pass') {
     for (const [cx, cz] of passRockCentres()) for (let n = 0, k = 0; n < 300 && k < 8; n++) {
       const x = cx + (Math.random() - .5) * 5, z = cz + (Math.random() - .5) * 5;
@@ -2700,7 +2755,7 @@ function evaluate(type, ci, cj, free) {
   const T = DEF[type], s = T.size, sz = T.dz || s, x0 = ci * CELL, z0 = cj * CELL, x1 = x0 + s * CELL, z1 = z0 + sz * CELL;
   const r = { type, ci, cj, s, sz, x0, z0, x1, z1, ok: true, reason: '' };
   if (ci < 0 || cj < 0 || ci + s > N || cj + sz > N) return { ...r, ok: false, reason: 'Off the map' };
-  if (MAP === 'pass') for (let b = cj; b < cj + sz; b++) for (let a = ci; a < ci + s; a++) if (!passOpen((a + .5) * CELL, (b + .5) * CELL)) return { ...r, ok: false, reason: 'Too steep' };
+  if (MAP === 'pass' || MAP === 'vale') for (let b = cj; b < cj + sz; b++) for (let a = ci; a < ci + s; a++) if (!mapOpen((a + .5) * CELL, (b + .5) * CELL)) return { ...r, ok: false, reason: 'Too steep' };
   for (let b = cj; b < cj + sz; b++) for (let a = ci; a < ci + s; a++) { if (occB[b * N + a]) return { ...r, ok: false, reason: 'Occupied' }; if (bridgeCell[b * N + a]) return { ...r, ok: false, reason: 'Bridge' }; }
   // solid buildings can't sit on another building's door cell, or villagers coming out get trapped there
   if (!WALK[type] && type !== 'gate' && buildings.some(B => !B.dead && B.door && B.door.a >= ci && B.door.a < ci + s && B.door.b >= cj && B.door.b < cj + sz))
@@ -3008,7 +3063,7 @@ const FARM_OBST = OBST.farm;
 function farmBlocked(B, x, z) { const L = OBST[B.type]; if (!L) return false; const c = center(B), [lx, lz] = unrot(B.face || 0, x - c.x, z - c.z); return L[B.tier].some(([ox, oz, hx, hz]) => Math.abs(lx - ox) < hx + .18 && Math.abs(lz - oz) < hz + .18); }
 function canStand(x, z, mode) {   // mode 0 villager, 1 worker, 2 enemy
   if (x < .5 || z < .5 || x > SIZE - .5 || z > SIZE - .5) return false;
-  if (MAP === 'pass' && !passOpen(x, z)) return false;           // the mountains are too steep for anyone
+  if (!mapOpen(x, z)) return false;                              // the mountains (and Greenvale's hills) are too steep for anyone
   { const i = bridgeCell[cellAt(x, z)]; if (i && onDeck(bridges[i - 1], x, z)) return true; }
   const h = hAt(x, z);
   if (h < (mode === 2 || mode === 1 ? .3 : .5)) return false;   // nobody wades: rivers are crossed by bridge
@@ -3389,7 +3444,7 @@ function smoothPos(u, dt, now) {
 function stride(u, dt, rate) { u.amp = (u.amp || 0) + ((u.walking ? 1 : 0) - (u.amp || 0)) * Math.min(1, dt * 6); if (u.amp > .02) u.phase += dt * rate; return u.amp; }
 // ---------- pathfinding: A* over the cell grid, then follow cell centres, skipping any we can see past ----------
 function cellPass(n, mode) {
-  if (MAP === 'pass' && !passOpen((n % N + .5) * CELL, (((n / N) | 0) + .5) * CELL)) return false;
+  if (!mapOpen((n % N + .5) * CELL, (((n / N) | 0) + .5) * CELL)) return false;
   if (bridgeCell[n]) return true;
   const o = mode === 3 ? null : occB[n]; if (o && !WALK[o.type] && !(o.type === 'gate' && mode !== 2)) return false;   // mode 3: raiders' ground, buildings count as open (they break through)
   // a farm cell whose middle is the hut, barn, hay or a scarecrow is routed round (people still walk the open ground by it)
@@ -4035,7 +4090,10 @@ function spawnEnemy(kind, sp, wave, tier = 1) {
   // only a raider's bigger parts cast shadows: the Mountain pass sends up to 100 at once, and every shadow is another draw
   p.g.traverse(o => { if (o.isMesh) { const g = o.geometry; if (!g.boundingSphere) g.computeBoundingSphere(); if (g.boundingSphere.radius < .16) o.castShadow = false; } });
   const hp = E.hp * RAIDER_T.hp[k] * (w.hp || 1);
-  const e = Object.assign(p, { kind, tier, x: clamp(sp.x + (Math.random() - .5) * 2, 1, SIZE - 1), z: clamp(sp.z + (Math.random() - .5) * 2, 1, SIZE - 1),
+  // a metre or so from the spawn point, but never onto ground they can't stand on (a mountain or hillside: they'd stand stuck)
+  let sx = clamp(sp.x + (Math.random() - .5) * 2, 1, SIZE - 1), sz = clamp(sp.z + (Math.random() - .5) * 2, 1, SIZE - 1);
+  if (!canStand(sx, sz, 2)) { sx = sp.x; sz = sp.z; }
+  const e = Object.assign(p, { kind, tier, x: sx, z: sz,
     hp, max: hp, speed: E.speed * (.9 + Math.random() * .2), range: E.range, dmg: E.dmg * RAIDER_T.dmg[k], rate: E.rate,
     cool: E.engine ? E.rate * .5 : Math.random(), fresh: true, target: null, retarget: 0, dead: false, deadT: 0, phase: Math.random() * 6,
     bar: makeBar(E.engine ? 1.3 : E.mounted ? 1.0 : .8), barY: E.engine ? (kind === 'catapult' ? [1.6, 1.8, 3.3][k] : kind === 'ram' ? 2.1 : 1.5) : 1.6 * UNIT_K + (E.mounted ? SADDLE : 0) });
@@ -4045,6 +4103,15 @@ function distRect(B, x, z) { const e = B.ev; return Math.hypot(Math.max(e.x0 - x
 function nearestBuilding(x, z, maxD = 1e9, ok = null) { let best = null, bd = maxD; for (const B of buildings) { if (DEF[B.type].decor || (ok && !ok(B))) continue; const d = distRect(B, x, z); if (d < bd) { bd = d; best = B; } } return best; }
 function edgePoint() {
   const C = castleB(), dp = C && doorPoint(C);   // a spawn must have a walkable route to the castle's door
+  if (MAP === 'vale') {                          // the corridor's mouth, where it meets the top or right edge near the north-east corner
+    const pts = [];
+    for (let t = 1.2; t < SIZE - 1.2; t += .5) { if (valeAt(t, 1.2) > 1.4 && valeAt(t, 2.4) > 1.4) pts.push({ x: t, z: 1.2 }); if (valeAt(SIZE - 1.2, t) > 1.4 && valeAt(SIZE - 2.4, t) > 1.4) pts.push({ x: SIZE - 1.2, z: t }); }   // well inside the corridor
+    for (const needRoute of [true, false]) for (let n = 0; n < 60 && pts.length; n++) {
+      const p = pts[Math.floor(Math.random() * pts.length)];
+      if (!needRoute || !dp || findPath(p.x, p.z, dp.x, dp.z, 2)) return p;
+    }
+    return { x: SIZE - 2, z: 2 };
+  }
   if (MAP === 'pass') {                          // always the foot of the pass, on the bottom edge
     // with a route to the castle if there is one; walled off, anywhere open down there (they come up and break the walls),
     // never the old fallback in the mountains, where they stood stuck
@@ -5596,11 +5663,11 @@ document.addEventListener('webkitfullscreenchange', () => { syncFs(); resize(); 
 syncFs();
 let resetArmed = 0;
 $('#reset').addEventListener('click', () => {
-  if (resetArmed && performance.now() - resetArmed < 3000) { resetArmed = 0; $('#reset').innerHTML = PICO.restart; $('#reset').classList.remove('armed'); showMapPick(); return; }
+  if (resetArmed && performance.now() - resetArmed < 3000) { resetArmed = 0; $('#reset').innerHTML = PICO.restart; $('#reset').classList.remove('armed'); showStart(); return; }
   resetArmed = performance.now(); $('#reset').innerHTML = PICO.tick; $('#reset').classList.add('armed');
   setTimeout(() => { if (resetArmed && performance.now() - resetArmed >= 2900) { resetArmed = 0; $('#reset').innerHTML = PICO.restart; $('#reset').classList.remove('armed'); } }, 3000);
 });
-$('#again').addEventListener('click', showMapPick);
+$('#again').addEventListener('click', () => showStart());
 // ---------- the town's buildings for this game: one of each pair for the economy and the defences, any five decor ----------
 const LOAD_SLOTS = {
   eco: [['food', ['farm', 'farmhouse']], ['wood', ['lodge', 'forester']], ['stone', ['quarry', 'mine']]],
@@ -5617,8 +5684,9 @@ try {   // last game's picks; anything unknown falls back to the default
 } catch (e) {}
 const LOAD_TAG = { ranged: 'Ranged', siege: 'Siege', barracks: 'Troops' };
 function applyLoadout() {
-  const L = LOADOUT;
-  CATS.eco = ['house', L.food, L.wood, L.stone, 'market']; CATS.def = [L.ranged, L.siege, L.barracks, 'wall', 'gate']; CATS.decor = ['road', ...L.decor];
+  const CM = CAMP_MAPS[MAP], L = CM ? { ...LOADOUT, food: 'farm', wood: 'lodge', stone: 'quarry', ranged: 'tower' } : LOADOUT;
+  if (CM) Object.assign(CATS, JSON.parse(JSON.stringify(CM.cats)));
+  else { CATS.eco = ['house', L.food, L.wood, L.stone, 'market']; CATS.def = [L.ranged, L.siege, L.barracks, 'wall', 'gate']; CATS.decor = ['road', ...L.decor]; }
   // the first day's guide follows the picks
   GUIDE = [];
   GUIDE.push({ text: 'Build a house', tool: 'house', cat: 'eco', done: () => buildings.some(B => B.type === 'house') },
@@ -5651,15 +5719,17 @@ $('#ldStart').addEventListener('click', () => {
   $('#loadPick').hidden = true; paused = false; startGame();
 });
 // map picker: shown on entry and on Restart / Play again; the game waits (paused) underneath
+// back to where this game was chosen: the campaign for a campaign map, else the map picker
+function showStart() { if (CAMP_MAPS[MAP]) { showMapPick(); $('#mapPick').hidden = true; openCampaign(CAMP_MAPS[MAP].stop); } else showMapPick(); }
 function showMapPick() {
   if (paused && !$('#pausedTag').hidden) setPaused(false);
   $('#summary').hidden = true; paused = true; hideGhost(); $('#mapPick').hidden = false;
   markMapStars();
 }
 function markMapStars() { document.querySelectorAll('.mapBtn').forEach(b => { b.classList.toggle('last', b.dataset.map === MAP); const st = b.querySelector('.stars'); if (st) st.remove(); b.insertAdjacentHTML('beforeend', starsHTML(STARS[b.dataset.map] || 0)); }); }
-// ---------- campaign: an overview map with twelve stops, each bringing in a few new buildings (a sketch: none is playable yet)
+// ---------- campaign: an overview map with twelve stops, each bringing in a few new buildings (only Greenvale, stop 1, is playable so far)
 const CAMPAIGN = [
-  { name: 'Greenvale', sub: 'Tutorial', at: [140, 820], adds: ['house', 'farm', 'lodge', 'quarry', 'tower', 'road', 'flowers', 'torch'] },
+  { name: 'Greenvale', sub: 'Tutorial', map: 'vale', at: [140, 820], adds: ['house', 'farm', 'lodge', 'quarry', 'tower', 'road', 'flowers', 'torch'] },
   { name: 'Stonebridge', at: [250, 700], land: 'A bridge town', adds: ['barracks', 'wall', 'gate', 'rack'] },
   { name: 'Market Cross', at: [420, 785], adds: ['market', 'statue'] },
   { name: 'Watchhill', at: [580, 735], land: 'Dry hills', adds: ['ballista', 'campfire'] },
@@ -5765,12 +5835,14 @@ function campaignInfo(i) {
   const c = CAMPAIGN[i];
   document.querySelectorAll('#campMap .mk').forEach(m => m.classList.toggle('sel', +m.dataset.i === i));
   const unl = c.adds.map(t => `<span>${TOOL_ICON[t] || ''}${t === 'road' ? 'Path' : DEF[t].name}</span>`).join('');
-  $('#campInfo').innerHTML = `<h3>${i + 1} · ${c.name}</h3>${c.sub ? `<div class="sub">${c.sub}</div>` : ''}${c.land ? `<div class="sub">${c.land}</div>` : ''}<div class="unl">${unl}</div>${starsHTML(0)} <div class="sub">Soon</div>`;
+  $('#campInfo').innerHTML = `<h3>${i + 1} · ${c.name}</h3>${c.sub ? `<div class="sub">${c.sub}</div>` : ''}${c.land ? `<div class="sub">${c.land}</div>` : ''}<div class="unl">${unl}</div>${starsHTML(c.map ? STARS[c.map] || 0 : 0)} ${c.map ? '<button class="primary" id="campPlay">Play</button>' : '<div class="sub">Soon</div>'}`;
+  if (c.map) $('#campPlay').addEventListener('click', () => { MAP = c.map; $('#campaign').hidden = true; $('#mapPick').hidden = true; paused = false; startGame(); });
 }
 $('#campMap').innerHTML = campaignSVG();
 markMapStars();
 $('#campMap').addEventListener('click', e => { const m = e.target.closest('.mk'); if (m) campaignInfo(+m.dataset.i); });
-$('#campBtn').addEventListener('click', () => { $('#mapPick').hidden = true; $('#campaign').hidden = false; $('#campStars').innerHTML = `· ★ ${starTotal()}`; campaignInfo(0); });
+function openCampaign(i = 0) { $('#mapPick').hidden = true; $('#campaign').hidden = false; $('#campStars').innerHTML = `· ★ ${starTotal()}`; campaignInfo(i); }
+$('#campBtn').addEventListener('click', () => openCampaign(0));
 $('#campBack').addEventListener('click', () => { $('#campaign').hidden = true; $('#mapPick').hidden = false; });
 document.querySelectorAll('.mapBtn').forEach(b => b.addEventListener('click', () => {
   MAP = b.dataset.map; try { localStorage.setItem('mtd-map', MAP); } catch (e) {}
@@ -5779,7 +5851,7 @@ document.querySelectorAll('.mapBtn').forEach(b => b.addEventListener('click', ()
 addEventListener('keydown', e => {
   if (/^(w|a|s|d|q|e|arrow)/i.test(e.key)) { heldKeys.add(e.key.toLowerCase()); return; }
   const L = LOADOUT, map = { v: 'select', V: 'select', 1: 'house', 2: L.food, 3: L.wood, 4: L.stone, 5: L.ranged, 6: 'wall', 7: 'gate', 8: L.barracks, 9: 'market', 0: L.siege, r: 'road', R: 'road' };
-  if (map[e.key]) setTool(map[e.key]);
+  if (map[e.key] && (map[e.key] === 'select' || Object.values(CATS).some(c => c.includes(map[e.key])))) setTool(map[e.key]);
   else if (e.key === 'g' || e.key === 'G') $('#gridBtn').click();
   else if (e.key === 'Escape') { deselect(); setTool('select'); }
 });
@@ -5967,14 +6039,16 @@ function startGame() {
   for (const p of puffs) scene.remove(p.sp); puffs.length = 0;
   mapRules();
   PH = { kind: 'day', wave: 1, t: DAYLEN[0] }; econT = TICK; gameOver = false; light = 1; if (paused) setPaused(false); setMusic('day');
-  if (MAP === 'isle') { KX = 27; KZ = 27; } else if (MAP === 'pass') { KX = 27; KZ = 21; } else { KX = 19; KZ = 27; }
+  if (MAP === 'isle') { KX = 27; KZ = 27; } else if (MAP === 'pass') { KX = 27; KZ = 21; } else if (MAP === 'vale') { KX = 25; KZ = 33; } else { KX = 19; KZ = 27; }
   genTerrain(); genBridges(); genTrees(); genRocks(); genClutter(); syncTerrain(); buildBridges(); genShore(); hideGhost(); deselect();
-  Object.assign(res, { gold: 40, wood: 45, stone: 0, food: 20 });
+  Object.assign(res, (MAP_RULES[MAP] || {}).res || { gold: 40, wood: 45, stone: 0, food: 20 });
   stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, t0: performance.now() };
   $('#summary').hidden = true; $('#log').innerHTML = '';
-  const ev = MAP === 'isle' ? findValid('castle', 12, 12, { free: true }) : MAP === 'pass' ? findValid('castle', 12, 9, { free: true }) : findValid('castle', 8, 12, { free: true });
+  const ev = MAP === 'isle' ? findValid('castle', 12, 12, { free: true }) : MAP === 'pass' ? findValid('castle', 12, 9, { free: true }) : MAP === 'vale' ? findValid('castle', 11, 15, { free: true }) : findValid('castle', 8, 12, { free: true });
   if (ev) { const B = place('castle', ev.ci, ev.cj, { instant: true, free: true, quiet: true }); const c = center(B); target.set(c.x, 2, c.z); }
   if (MAP === 'pass') { yaw = 0; target.z += 4.5; }   // looking up the pass at the castle
+  if (MAP === 'vale') { yaw = -Math.PI / 4; target.x += 2; target.z -= 2; }   // from the south-west, the way in (north-east) at the top of the screen
+  if (MAP === 'vale') guideOn = true;               // the tutorial: the guided first day every time (Skip ends it)
   updateCam();
   log('Drag · twist · pinch');
   log(`Survive <b>${NIGHTS} nights</b>`);
