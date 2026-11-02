@@ -2334,7 +2334,8 @@ function makeButts() {
   for (const [x, z, r, a] of [[-.32, -.1, .38, .25], [.45, .2, .28, -.3]]) {
     const t = new THREE.Group(); t.position.set(x, r + .32, z); t.rotation.y = a; t.rotation.x = -.18; g.add(t);
     const face = cyl(r, r, .2, 14, M.hay, 0, 0, 0); face.rotation.x = Math.PI / 2; t.add(face);
-    for (const [rr, m] of [[r * .72, M.canvas], [r * .45, M.flag], [r * .2, M.canvas]]) { const ring = cyl(rr, rr, .01, 14, m === M.flag ? kiteM : m, 0, 0, .105); ring.rotation.x = Math.PI / 2; t.add(ring); }
+    // painted rings, each a little proud of the one behind (at one depth they fought for the same pixels and showed in patches)
+    [[r * .78, M.canvas], [r * .58, kiteM], [r * .36, M.canvas], [r * .16, kiteM]].forEach(([rr, m], i) => { const ring = cyl(rr, rr, .012, 20, m, 0, 0, .106 + i * .008); ring.rotation.x = Math.PI / 2; t.add(ring); });
     for (let n = 0; n < 3; n++) { const ar = box(.012, .012, .32, M.dark, (hash(n, x * 7) - .5) * r, (hash(n + 3, z * 5) - .5) * r, .26); ar.rotation.x = (hash(n, 9) - .5) * .3; t.add(ar); }
     for (const sx of [-1, 1]) { const l = box(.05, r * 2 + .4, .05, M.timber, x + sx * r * .7, (r * 2 + .4) / 2, z - .14); l.rotation.x = .2; g.add(l); }
   }
@@ -4826,7 +4827,7 @@ const TOOL_ICON = {
   rack: '<svg viewBox="0 0 24 24"><path d="M4 21 V7 M20 21 V7 M3 8 H21 M3 17 H21"/><path d="M8 20 V3 M12 20 V3 M16 20 V3"/><path d="M7 4.5 L8 2.5 L9 4.5 M11 4.5 L12 2.5 L13 4.5 M15 4.5 L16 2.5 L17 4.5"/></svg>',
   stables: '<svg viewBox="0 0 24 24"><path d="M7 20.5 C2.5 15.5 3.5 5 12 4 C20.5 5 21.5 15.5 17 20.5"/><path d="M5.5 20.5 H9 M15 20.5 H18.5"/><path d="M6.2 12 H6.3 M17.7 12 H17.8 M8 7 H8.1 M16 7 H16.1"/></svg>',
   crossbow: '<svg viewBox="0 0 24 24"><path d="M12 21 V4"/><path d="M4 12 Q12 6 20 12"/><path d="M4 12 L12 16.5 L20 12"/><path d="M10 4.6 L12 2 L14 4.6"/></svg>',
-  ballista: '<svg viewBox="0 0 24 24"><path d="M3 20 H21"/><path d="M12 20 V14"/><path d="M5 12 H19"/><path d="M5.5 12 Q4.5 8.5 8 7 M18.5 12 Q19.5 8.5 16 7"/><path d="M8 7 L12 12 L16 7"/><path d="M12 12 V3 M10.5 4.5 L12 3 L13.5 4.5"/></svg>',
+  ballista: '<svg viewBox="0 0 24 24"><path d="M3 21.5 H14.5"/><path d="M9 21.5 V15.6 M5 21.5 L9 15.6"/><path d="M6.8 15.4 A2.2 2.2 0 0 1 11.2 15.4"/><path d="M1.9 14.5 L16.4 6 L17.6 8 L3.1 16.5 Z"/><path d="M12.2 4.3 Q16.9 6.9 16.9 12.6"/><path d="M12.2 4.3 L17 7"/><path d="M17.6 7.2 L21.8 4.7 M20.2 4.1 L21.8 4.7 L21.5 6.3"/></svg>',
   catapult: '<svg viewBox="0 0 24 24"><path d="M3 18 H21"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/><path d="M14 18 L7 6"/><path d="M5 6.5 a2.2 2.2 0 1 0 4 -1"/><path d="M15 18 V12 H18"/></svg>',
   farmhouse: '<svg viewBox="0 0 24 24"><path d="M3 20 V10.5 L12 4 L21 10.5 V20 Z"/><path d="M8.5 20 V13.5 H15.5 V20"/><path d="M8.5 13.5 L15.5 20 M15.5 13.5 L8.5 20"/></svg>',
   well: '<svg viewBox="0 0 24 24"><path d="M6 13 H18 V20 H6 Z"/><path d="M7 13 V7.5 M17 13 V7.5"/><path d="M4.5 8 L12 3.5 L19.5 8"/><path d="M12 8 V11"/></svg>',
