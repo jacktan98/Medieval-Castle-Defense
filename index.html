@@ -479,7 +479,7 @@ const DEF = {
   // the other economy picks (one of each pair before a game): a grove grown on its own plot, a mine dug down into its own ground,
   // a yard of animals; none of them needs forest or rock nearby
   forester: { size: 2, name: 'Forester', maxdh: 1.6, plot: true, hp: [100, 140, 200], cost: { gold: 30, wood: 5 },
-            up: [{ gold: 55, stone: 10 }, { gold: 85, stone: 25 }], workers: [1, 2, 3], grove: [5, 7, 8], grow: [40, 34, 28],
+            up: [{ gold: 55, stone: 10 }, { gold: 85, stone: 25 }], workers: [1, 2, 3], grove: [5, 7, 8], grow: [40, 34, 28], chop: [4, 5.7, 6.5],
             tiers: ["Forester's hut", 'Coppice', 'Tree farm'] },
   mine:   { size: 2, name: 'Mine', maxdh: 2.6, hp: [160, 230, 320], cost: { gold: 30, wood: 20 },
             up: [{ gold: 55, wood: 25 }, { gold: 85, wood: 35, stone: 10 }], workers: [1, 2, 3], dig: [9, 8, 7],
@@ -1323,7 +1323,8 @@ function doorCell(ev, type, f) {
   return { a: Math.floor((cx + dx + nx) / CELL), b: Math.floor((cz + dz + nz) / CELL), bit: [1, 8, 4, 2][f], f };
 }
 // someone has to be able to stand in front of the door
-const doorOk = d => d.a >= 0 && d.b >= 0 && d.a < N && d.b < N && cellPass(d.b * N + d.a, 1);
+// never on the map's outermost ring either: a door facing the edge sent villagers out over it
+const doorOk = d => d.a >= 1 && d.b >= 1 && d.a < N - 1 && d.b < N - 1 && cellPass(d.b * N + d.a, 1);
 function syncTerrain() {
   for (let k = 0; k < V * V; k++) tPos[k * 3 + 1] = H[k];
   tGeo.attributes.position.needsUpdate = true; cacheCells(); syncWaterTex(); buildEdges();
@@ -1711,6 +1712,7 @@ function makeFarm(tier) {
     }
     for (let c = 0; c < per; c++) {
       if (tier === 1 && hash(r, c) < .25) continue;
+      if (tier === 2 && c < 4 && r < 3) continue;                                     // the croft's hut stands here
       const x = (tier === 1 ? -1.5 : -1.5) + c * ((tier === 1 ? 3.0 : 3.0) / (per - 1)), h = tier === 1 ? .28 + hash(c, r) * .15 : .4;
       g.add(cone(.13, h, 4, tier === 1 ? M.crop1 : M.crop2, x, h / 2 + .08, z));
     }
@@ -1724,13 +1726,19 @@ function makeFarm(tier) {
     g.add(box(1.1, 1.25, .8, M.mud, -1.0, .7, -1.2)); g.add(pyramid(.95, .85, .8, M.thatchOld, 1.75, -1.0, -1.2)); g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[1], -1.0, .08 + DOOR_H / 2, -.79));
     g.add(cyl(.28, .3, .4, 8, M.hay, .9, .25, -1.2));
   }
+  if (tier === 2) { // the croft's hut: daub between corner posts under a shingle roof, a hay bale beside it
+    g.add(box(1.1, 1.25, .8, M.daub, -1.0, .7, -1.2));
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.08, 1.3, .08, M.timber, -1.0 + sx * .53, .73, -1.2 + sz * .38));
+    g.add(pyramid(.95, .8, .8, M.thatch, 1.72, -1.0, -1.2)); g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[1], -1.0, .08 + DOOR_H / 2, -.79));
+    g.add(cyl(.26, .28, .38, 8, M.hay, -.15, .25, -1.45));
+  }
   if (tier >= 2) { // scarecrow
     g.add(box(.06, 1.2, .06, M.timber, 1.1, .6, -.9)); g.add(box(.7, .05, .05, M.timber, 1.1, .95, -.9));
     g.add(box(.25, .35, .18, M.canvas, 1.1, .85, -.9));
     const hd = new THREE.Mesh(new THREE.SphereGeometry(.12, 6, 5), M.hay); hd.position.set(1.1, 1.25, -.9); g.add(hd);
   }
   if (tier === 3) { // barn + hay
-    g.add(box(1.1, 1.3, .9, M.wood, -1.15, .7, -1.15)); g.add(pyramid(.85, .7, .85, M.roofBlue, 1.7, -1.15, -1.15)); g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[3], -1.15, .08 + DOOR_H / 2, -.69));
+    g.add(box(1.1, 1.3, .9, M.wood, -1.15, .7, -1.15)); g.add(pyramid(.85, .7, .85, M.roofBlue, 1.7, -1.15, -1.15)); g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[1], -1.15, .08 + DOOR_H / 2, -.69));   // farm doors are all the old dark brown
     for (const [sx, sz] of [[1.35, 1.35], [.75, 1.42]]) {     // stooks: sheaves leaned together
       for (let n = 0; n < 4; n++) { const a = n / 4 * Math.PI * 2, sh = cyl(.06, .09, .55, 6, M.hay, sx + Math.cos(a) * .08, .32, sz + Math.sin(a) * .08); sh.rotation.z = Math.cos(a) * .25; sh.rotation.x = -Math.sin(a) * .25; g.add(sh); }
     }
@@ -1972,6 +1980,12 @@ function makeMine(tier, plinth) {
 }
 // farmhouse: a fenced yard with the farmhouse at the back left; hens and their coop from tier 1, a pigsty from tier 2, a hay rack
 // and water trough for cows at tier 3 (the animals themselves are drawn by updateEco and wander the yard)
+// a leg hung from its hip so it can swing: a pivot at the top, the leg (and hoof) below
+function animalLeg(a, w, h, m, x, top, z, hoof) {
+  const p = new THREE.Group(); p.position.set(x, top, z); a.add(p); p.add(box(w, h, w, m, 0, -h / 2, 0));
+  if (hoof) p.add(box(w * 1.1, .04, w * 1.1, hoof, 0, -h + .02, 0));
+  (a.userData.legs = a.userData.legs || []).push(p); return p;
+}
 function makeAnimal(kind) {
   const a = new THREE.Group();
   if (kind === 'hen') {
@@ -1979,20 +1993,20 @@ function makeAnimal(kind) {
     a.add(box(.03, .07, .05, henM, 0, .2, -.1));
     const h = new THREE.Mesh(new THREE.SphereGeometry(.045, 6, 4), henM); h.position.set(0, .22, .09); a.add(h);
     a.add(box(.012, .035, .045, combM, 0, .27, .09)); a.add(box(.02, .02, .03, beakM, 0, .22, .14));
-    for (const sx of [-1, 1]) a.add(box(.012, .07, .012, beakM, sx * .03, .035, 0));
+    for (const sx of [-1, 1]) animalLeg(a, .012, .07, beakM, sx * .03, .07, 0);
   } else if (kind === 'pig') {
     a.add(box(.26, .22, .44, pigM, 0, .22, 0)); a.add(box(.2, .18, .16, pigM, 0, .24, .28)); a.add(box(.1, .07, .04, snoutM, 0, .21, .37));
-    for (const sx of [-1, 1]) { a.add(box(.05, .05, .02, snoutM, sx * .07, .35, .26)); for (const sz of [-1, 1]) a.add(box(.06, .12, .06, pigM, sx * .08, .06, sz * .14)); }
+    for (const sx of [-1, 1]) { a.add(box(.05, .05, .02, snoutM, sx * .07, .35, .26)); for (const sz of [-1, 1]) animalLeg(a, .06, .12, pigM, sx * .08, .12, sz * .14); }
   } else {
     a.add(box(.36, .32, .7, cowM, 0, .5, 0)); a.add(box(.37, .2, .22, patchM, 0, .55, -.12)); a.add(box(.2, .15, .02, patchM, .1, .5, .351));
     a.add(box(.22, .24, .26, cowM, 0, .6, .45)); a.add(box(.16, .1, .06, snoutM, 0, .52, .59));
-    for (const sx of [-1, 1]) { a.add(cone(.025, .1, 5, hornM, sx * .09, .76, .45)); for (const sz of [-1, 1]) a.add(box(.08, .34, .08, cowM, sx * .12, .17, sz * .25)); }
+    for (const sx of [-1, 1]) { a.add(cone(.025, .1, 5, hornM, sx * .09, .76, .45)); for (const sz of [-1, 1]) animalLeg(a, .08, .34, cowM, sx * .12, .34, sz * .25, hornM); }
   }
   a.traverse(o => { if (o.isMesh) o.castShadow = true; });
   return a;
 }
 const HERD = { 1: ['hen', 'hen', 'hen', 'hen'], 2: ['hen', 'hen', 'hen', 'pig', 'pig'], 3: ['hen', 'hen', 'pig', 'pig', 'cow'] };
-const ANIMAL_SPEED = { hen: .5, pig: .3, cow: .22 };
+const ANIMAL_SPEED = { hen: .5, pig: .3, cow: .22 }, STEP_RATE = { hen: 16, pig: 11, cow: 7 };
 function makeFarmhouse(tier) {
   const g = new THREE.Group();
   g.add(box(3.5, .06, 3.5, penM, 0, .04, 0));
@@ -2171,15 +2185,28 @@ function makeCatapult(tier) {
 // a whole horse standing in its stall (the same build as a rider's horse), head out over the half door
 const STALL_COATS = [];
 function stallHorse(hc) {
-  const h = new THREE.Group(), mm = maneM;
+  const h = new THREE.Group(), mm = maneM; h.userData.stallHorse = true;
   h.add(box(.34, .36, .92, hc, 0, .78, 0));                                                   // barrel
-  const neck = box(.2, .46, .22, hc, 0, 1.06, .48); neck.rotation.x = .55; h.add(neck);
-  const head = box(.16, .17, .4, hc, 0, 1.22, .72); head.rotation.x = .35; h.add(head);
-  const mane = box(.05, .42, .1, mm, 0, 1.1, .4); mane.rotation.x = .55; h.add(mane);
-  for (const sx of [-1, 1]) h.add(box(.04, .08, .05, hc, sx * .05, 1.34, .62));               // ears
-  const tail = box(.07, .45, .07, mm, 0, .76, -.5); tail.rotation.x = -.35; h.add(tail);
+  // neck, head, mane and ears hang from a pivot at the withers so the head can nod and turn; the tail from the rump
+  const hg = new THREE.Group(); hg.position.set(0, .95, .38); hg.userData.horseHead = true; h.add(hg);
+  const neck = box(.2, .46, .22, hc, 0, .11, .1); neck.rotation.x = .55; hg.add(neck);
+  const head = box(.16, .17, .4, hc, 0, .27, .34); head.rotation.x = .35; hg.add(head);
+  const mane = box(.05, .42, .1, mm, 0, .15, .02); mane.rotation.x = .55; hg.add(mane);
+  for (const sx of [-1, 1]) hg.add(box(.04, .08, .05, hc, sx * .05, .39, .24));               // ears
+  const tg = new THREE.Group(); tg.position.set(0, .96, -.46); tg.userData.horseTail = true; h.add(tg);
+  const tail = box(.07, .45, .07, mm, 0, -.2, -.04); tail.rotation.x = -.35; tg.add(tail);
   for (const [sx, sz] of [[-1, 1], [1, 1], [-1, -1], [1, -1]]) { h.add(box(.09, .58, .09, hc, sx * .12, .33, sz * .36)); h.add(box(.1, .06, .1, hoofM, sx * .12, .03, sz * .36)); }
   return h;
+}
+// stabled horses idle: heads nod, turn and now and then dip to the hay, tails swish, weight shifts
+function animHorses(g, t) {
+  if (!g.userData.horses) { const L = []; g.traverse(o => { if (o.userData.stallHorse) L.push(o); }); g.userData.horses = L.map((o, i) => { let hd = null, tl = null; o.traverse(c => { if (c.userData.horseHead) hd = c; if (c.userData.horseTail) tl = c; }); return { o, hd, tl, s: i * 2.3 + 1, y0: o.rotation.y }; }); }
+  for (const H of g.userData.horses) {
+    const s = H.s, dip = Math.pow(Math.max(0, Math.sin(t * .21 + s)), 6);
+    if (H.hd) { H.hd.rotation.x = .08 * Math.sin(t * .8 + s) + .45 * dip; H.hd.rotation.y = .22 * Math.sin(t * .33 + s * 1.7) * (1 - dip); }
+    if (H.tl) { H.tl.rotation.z = .3 * Math.sin(t * 2.2 + s) * Math.max(.2, Math.sin(t * .5 + s)); H.tl.rotation.x = .08 * Math.sin(t * 1.3 + s); }
+    H.o.rotation.y = H.y0 + .05 * Math.sin(t * .19 + s);
+  }
 }
 function makeStables(tier, plinth) {
   if (!STALL_COATS.length) STALL_COATS.push(horseM, mat('#3b2a1e'), mat('#8a6a4a'));
@@ -2787,7 +2814,7 @@ const skin = mat('#d6a982'), hatM = mat('#6b5236'), legM = mat('#3a2e22');
 // solid things inside a walkable plot (farm: hut, hay, scarecrow, barn, stooks; forester: hut; farmhouse: house, coop, sty, byre):
 // [x, z, half-width, half-depth] from the plot centre, by tier
 const OBST = {
-  farm: { 1: [[-1.0, -1.2, .55, .4], [.9, -1.2, .3, .3]], 2: [[1.1, -.9, .2, .2]], 3: [[-1.15, -1.15, .55, .45], [1.35, 1.35, .2, .2], [.75, 1.42, .2, .2]] },
+  farm: { 1: [[-1.0, -1.2, .55, .4], [.9, -1.2, .3, .3]], 2: [[-1.0, -1.2, .55, .4], [-.15, -1.45, .28, .28], [1.1, -.9, .2, .2]], 3: [[-1.15, -1.15, .55, .45], [1.35, 1.35, .2, .2], [.75, 1.42, .2, .2]] },
   forester: { 1: [[-1.05, -1.15, .55, .42]], 2: [[-1.05, -1.15, .6, .45]], 3: [[-1.05, -1.15, .6, .45], [1.45, 1.5, .3, .2]] },
   farmhouse: { 1: [[-1.0, -1.15, .6, .45], [1.15, -1.3, .32, .28]], 2: [[-1.0, -1.15, .65, .5], [1.15, -1.3, .32, .28], [1.25, -.25, .4, .35]],
     3: [[-1.0, -1.15, .65, .5], [1.15, -1.3, .32, .28], [1.25, -.25, .4, .35], [-1.3, .75, .3, .55]] },
@@ -3506,7 +3533,7 @@ function updateWorker(v, dt, now) {
     case 'go': {
       const t = v.target;
       if (!t || (lumber ? (t.dead || t.cut) : t.amount <= 0)) { release(v); v.state = 'find'; break; }
-      if (walkTo(v, t.x, t.z, dt, 1, lumber ? .75 : 1.15, mult)) { v.state = 'work'; v.wait = (lumber ? 2.6 : 3.8) * workMul; v.g.rotation.y = Math.atan2(t.x - v.x, t.z - v.z); }
+      if (walkTo(v, t.x, t.z, dt, 1, lumber ? .75 : 1.15, mult)) { v.state = 'work'; v.wait = t.grove ? DEF.forester.chop[W.tier - 1] : (lumber ? 2.6 : 3.8) * workMul; v.g.rotation.y = Math.atan2(t.x - v.x, t.z - v.z); }
       else if (v.noProg > 5) { t.blocked = now + 20000; release(v); v.state = 'find'; v.stuck = 0; v.prog = null; }
       break;
     }
@@ -3564,6 +3591,7 @@ function updateVillagers(dt, now) {
           if (walkTo(v, P.p.x, P.p.z, dt, 1, .4, 1.5) || v.noProg > 6 || distRect(P.B, v.x, v.z) < .9) {
             v.posted = true; v.doorWalk = null; deliver(v); dropLoad(v); P.B.manned[P.a] = true;   // a log or stone in hand is put down first
             if (DEF[P.B.type].soldiers) { v.kitT = 1.4; v.indoor = P.B; goIn(v, P.B); }   // goes inside to gear up (see below)
+            else if (P.B.type === 'catapult') crewUp(v, P.B, P.a);              // a catapult's crew is the villager: they change on the spot and man it
             else { v.g.visible = false; showDefender(P.B, P.a); }
           }
         } else if (v.kitT > 0) {                    // changing inside the barracks; out again armed
@@ -3580,6 +3608,7 @@ function updateVillagers(dt, now) {
       }
     } else {
       if (v.unkit) { updateUnkit(v, dt); }
+      else if (v.crewStrip > 0) { updateCrewStrip(v, dt); }
       else {
       if (v.inside) { v.inside = false; exitDoor(v); v.state = v.build ? 'tobuild' : v.job ? 'commute' : 'find'; v.wait = Math.random() * 1.5; }
       feedVillager(v, dt);
@@ -3984,7 +4013,24 @@ function showDefender(B, a) {
   const f = B.figs[a], o = postOffset(B, a), c = B.move ? B.group.position : center(B);
   f.g.position.set(c.x + o[0], B.group.position.y + o[1], c.z + o[2]); f.g.rotation.y = DEF[B.type].crew ? Math.atan2(-o[0], -o[2]) : Math.atan2(o[0] || .01, o[2] || .01); f.g.visible = true;
 }
-function hideDefenders(B) { (B.figs || []).forEach(f => f && scene.remove(f.g)); B.figs = []; }
+function hideDefenders(B) { (B.figs || []).forEach(f => f && !f.crewOf && scene.remove(f.g)); B.figs = (B.figs || []).map(f => f && f.crewOf ? f : null); }   // a villager crewing a catapult stays
+// a catapult's crew: the villager themself, at the engine; down on a knee to change into the tier's kit, then they man it
+function crewUp(v, B, a) {
+  B.figs = B.figs || []; const old = B.figs[a]; if (old && !old.crewOf) scene.remove(old.g);
+  B.figs[a] = v; v.crewOf = B; v.crewT = CHANGE_T; v.crewSwap = false; v.g.visible = true;
+}
+function crewKit(v, tier) {
+  if (v.kit) v.kit.forEach(o => o.parent && o.parent.remove(o));
+  if (v.carryLog) v.carryLog.visible = v.carryStone.visible = false;
+  v.kit = [...armour(v, tier)]; v.armour = null;
+  if (v.pivot) { v.pivot.parent.remove(v.pivot); v.pivot = null; } v.toolKind = null;
+}
+// dawn: the crew kneel and change back where they stand, then go off to the day's work
+function updateCrewStrip(v, dt) {
+  v.changing = true; v.changeT = v.crewStrip;
+  if ((v.crewStrip -= dt) <= CHANGE_T / 2 && v.kit) stripKit(v);
+  if (v.crewStrip <= 0) { v.crewStrip = 0; v.changeT = 0; v.changing = false; v.state = v.build ? 'tobuild' : v.job ? 'commute' : 'find'; v.wait = .1; }
+}
 function postPoint(B, v) {
   if (B.door) return doorPoint(B);
   const c = center(B), r = B.ev.s + .8; let best = null, bd = 1e9;
@@ -4007,6 +4053,7 @@ function assignPosts() {
     for (const v of villagers) if (!v.post && !v.sleeping) { const d = Math.hypot(v.x - c.x, v.z - c.z) + (v.job ? 10 : 0); if (d < bd) { bd = d; best = v; } }
     if (!best) break;
     release(best); best.post = S; best.posted = false; S.p = postPoint(S.B, best); posted++;
+    if (S.B.type === 'catapult' && S.B.turret) { const R = CATA_RIG[S.B.tier - 1], q = S.a ? R.gunner : R.loader; const w = engPt(S.B, q[0], 0, q[1]); S.p = standNear(w.x, w.z); }   // a catapult's crew walk right up to their own spot
     if (best.inside || best.hideT > 0) { best.inside = false; exitDoor(best); }
   }
   return { posted, open: slots.length - posted };
@@ -4256,31 +4303,47 @@ function catapultCrew(B, k, crew, moving, dt, best) {
     setRope(rig.wrope, rA, rB); if (B.fireT > 0 || moving) rig.wrope.visible = false;
   }
   const figs = B.figs || [], L = figs[0] && figs[0].g.visible ? figs[0] : null, G = figs[1] && figs[1].g.visible ? figs[1] : null;
-  const place = (f, x, z) => { const p = engPt(B, x, 0, z); f.g.position.set(p.x, gy, p.z); };
+  // the crew are villagers: they step the last bit onto their spot (never a jump), and kneel to change before they man it
+  const place = (f, x, z) => {
+    const p = engPt(B, x, 0, z);
+    if (f.crewOf && !moving) { const dx = p.x - f.x, dz = p.z - f.z, d = Math.hypot(dx, dz), st = Math.min(d, dt * 1.2); f.x += d > 1e-4 ? dx / d * st : 0; f.z += d > 1e-4 ? dz / d * st : 0; f.stepping = d > .03; }
+    else { f.x = p.x; f.z = p.z; f.stepping = false; }
+    f.rx = f.x; f.rz = f.z; f.g.position.set(f.x, f.crewOf ? walkY(f.x, f.z) : gy, f.z);
+  };
+  const changing = f => {
+    if (!(f.crewT > 0)) return false;
+    const k = Math.sin(Math.PI * clamp(1 - f.crewT / CHANGE_T, 0, 1));
+    if ((f.crewT -= dt) <= CHANGE_T / 2 && !f.crewSwap) { crewKit(f, B.tier); f.crewSwap = true; }
+    kneel(f, k); f.arms[0].rotation.set(-1.0 * k, 0, 0); f.arms[1].rotation.set(-1.0 * k, 0, 0); f.body.rotation.x = .22 * k;
+    if (f.crewT <= 0) { f.crewT = 0; kneel(f, 0); f.body.rotation.x = 0; }
+    return true;
+  };
   const walkLegs = (f, on) => { const sw = on ? Math.sin(now * 9) * .5 : 0; f.legs[0].rotation.set(sw, 0, 0); f.legs[1].rotation.set(-sw, 0, 0); f.body.position.y = on ? Math.abs(Math.sin(now * 9)) * .04 : 0; };
-  if (L) {
+  if (L && L.crewOf && L.crewT > 0) { place(L, ...R.loader); changing(L); }
+  else if (L) {
     if (moving) { place(L, ...R.walk); L.g.rotation.y = engYaw(B, [0, 0, 0], [0, 0, 1]); walkLegs(L, true); L.body.rotation.x = 0; const sw = Math.sin(now * 9) * .4; L.arms[0].rotation.set(sw, 0, 0); L.arms[1].rotation.set(-sw, 0, 0); }
     else {
-      place(L, ...R.loader); L.g.rotation.y = engYaw(B, [R.loader[0], 0, R.loader[1]], [R.cx, 0, R.drum[2]]); walkLegs(L, false); kneel(L, .55); L.body.rotation.x = 0;
+      place(L, ...R.loader); L.g.rotation.y = engYaw(B, [R.loader[0], 0, R.loader[1]], [R.cx, 0, R.drum[2]]); walkLegs(L, L.stepping); if (!L.stepping) kneel(L, .55); L.body.rotation.x = 0;
       L.g.updateMatrixWorld(true); const h = rig.crank.localToWorld(new THREE.Vector3(.1, R.cr, 0));
       aimArm(L, L.arms[1], h); aimArm(L, L.arms[0], h);
     }
   }
-  if (G) {
+  if (G && G.crewOf && G.crewT > 0) { place(G, ...R.gunner); changing(G); }
+  else if (G) {
     if (moving) { place(G, ...R.push); G.g.rotation.y = engYaw(B, [0, 0, 0], [0, 0, 1]); walkLegs(G, true); G.arms[0].rotation.set(-1.45, 0, .15); G.arms[1].rotation.set(-1.45, 0, -.15); G.body.rotation.x = .12; }
     else {
-      place(G, ...R.gunner); G.g.rotation.y = engYaw(B, [R.gunner[0], 0, R.gunner[1]], R.catch); walkLegs(G, false);
+      place(G, ...R.gunner); G.g.rotation.y = engYaw(B, [R.gunner[0], 0, R.gunner[1]], R.catch); walkLegs(G, G.stepping);
       const yank = B.fireT > 0 ? Math.sin(Math.PI * clamp(1 - B.fireT / .35, 0, 1)) : 0;     // a sharp pull on the line looses the arm
       G.arms[0].rotation.set(-1.0 + .6 * yank, 0, .12); G.arms[1].rotation.set(-1.05 + .6 * yank, 0, -.12); G.body.rotation.x = -.18 * yank;
     }
   }
   if (rig.trope) {                                                 // the trigger line: from the catch to the gunner's hands
-    if (G && !moving) { G.g.updateMatrixWorld(true); const h = G.arms[1].localToWorld(new THREE.Vector3(0, -.33, 0)); e.worldToLocal(h); rA.set(...R.catch); setRope(rig.trope, rA, h); }
+    if (G && !moving && !(G.crewT > 0)) { G.g.updateMatrixWorld(true); const h = G.arms[1].localToWorld(new THREE.Vector3(0, -.33, 0)); e.worldToLocal(h); rA.set(...R.catch); setRope(rig.trope, rA, h); }
     else rig.trope.visible = false;
   }
 }
 function updateSiege(B, T, dt) {
-  const k = B.tier - 1, c = center(B), R = T.range[k], mn = T.minRange || 0, crew = !!(B.manned && B.manned[0] && B.manned[1]) && !B.move;
+  const k = B.tier - 1, c = center(B), R = T.range[k], mn = T.minRange || 0, crew = !!(B.manned && B.manned[0] && B.manned[1]) && !B.move && !(B.figs || []).some(f => f && f.crewT > 0);
   if (B.partsOn !== B.group) { B.partsOn = B.group; B.turret = B.arm = B.bolt = null; B.rig = { ammo: [] }; B.group.traverse(o => { const u = o.userData; if (u.turret) B.turret = o; if (u.arm) B.arm = o; if (u.bolt) B.bolt = o; if (u.crank) B.rig.crank = o; if (u.wrope) B.rig.wrope = o; if (u.trope) B.rig.trope = o; if (u.ammo) B.rig.ammo.push(o); }); }
   if (B.cd === undefined) B.cd = T.rate[k];
   const moving = !!(B.move && !B.move.wait);
@@ -4366,11 +4429,17 @@ function updateEco(dt) {
       for (const a of B.herd) {
         const dx = a.tx - a.x, dz = a.tz - a.z, d = Math.hypot(dx, dz);
         if (d < .04) { if ((a.wait -= dt) <= 0) { [a.tx, a.tz] = penSpot(B); a.wait = 1.5 + Math.random() * 4; } }
-        else { const st = Math.min(d, ANIMAL_SPEED[a.kind] * dt); a.x += dx / d * st; a.z += dz / d * st; a.m.rotation.y = Math.atan2(dx, dz); a.ph += dt * 9; }
+        else { const st = Math.min(d, ANIMAL_SPEED[a.kind] * dt); a.x += dx / d * st; a.z += dz / d * st; a.m.rotation.y = Math.atan2(dx, dz); a.ph += dt * STEP_RATE[a.kind]; }
+        // legs: hens step left-right, four-legged beasts in diagonal pairs; they settle when it stops
+        const walk = d >= .04, swing = Math.sin(a.ph) * (a.kind === 'cow' ? .45 : .6);
+        (a.m.userData.legs || []).forEach((l, i) => { const want = walk ? (a.kind === 'hen' ? (i ? -swing : swing) : ((i === 0 || i === 3) ? swing : -swing)) : 0; l.rotation.x += (want - l.rotation.x) * Math.min(1, dt * 12); });
         a.m.position.set(a.x, .07 + (d >= .04 ? Math.abs(Math.sin(a.ph)) * .02 : 0), a.z);
         if (a.kind === 'hen' && d < .04) a.m.rotation.x = Math.max(0, Math.sin(performance.now() / 300 + a.ph)) * .5;   // pecking
         else a.m.rotation.x = 0;
       }
+    } else if (B.type === 'stables') {
+      if (B.horseOn !== B.group) { B.horseOn = B.group; B.group.userData.horses = null; }
+      animHorses(B.group, performance.now() / 1000);
     } else if (B.type === 'mine') {
       if (B.cartOn !== B.group) { B.cartOn = B.group; B.cart = null; B.group.traverse(o => { if (o.userData.cart) B.cart = o; }); }
       B.cartT = Math.max(0, (B.cartT || 0) - dt);
@@ -4455,7 +4524,11 @@ function startDay() {
     else if (v.kitT > 0) { v.kitT = 0; v.posted = false; if (!v.g.visible || v.doorWalk) { v.indoor = v.post.B; exitDoor(v); } }   // dawn caught them changing
     else if (v.posted) {                                           // out of the post itself, back in their own clothes
       v.posted = false; const B = v.post.B, f = DEF[B.type].crew && B.figs && B.figs[v.post.a];
-      if (f && f.g.visible) { v.inside = false; v.indoor = null; v.hideT = 0; v.doorWalk = null; const p = standNear(f.g.position.x, f.g.position.z); v.x = v.rx = p.x; v.z = v.rz = p.z; v.g.visible = true; v.path = null; v.state = v.build ? 'tobuild' : v.job ? 'commute' : 'find'; v.wait = 0; }
+      if (v.crewOf) {                                              // a catapult's crew: off the engine's tile and change back where they stand
+        const p = standNear(v.x, v.z); v.x = p.x; v.z = p.z; v.inside = false; v.indoor = null; v.hideT = 0; v.path = null;
+        if (B.figs) B.figs[v.post.a] = null; v.crewOf = null; v.crewT = 0; v.crewStrip = v.kit ? CHANGE_T : 0; v.state = v.build ? 'tobuild' : v.job ? 'commute' : 'find';
+      }
+      else if (f && f.g.visible) { v.inside = false; v.indoor = null; v.hideT = 0; v.doorWalk = null; const p = standNear(f.g.position.x, f.g.position.z); v.x = v.rx = p.x; v.z = v.rz = p.z; v.g.visible = true; v.path = null; v.state = v.build ? 'tobuild' : v.job ? 'commute' : 'find'; v.wait = 0; }
       else { v.inside = true; v.indoor = B; }                       // from a tower or the castle: out of its door
     }
     v.post = null;
@@ -5109,6 +5182,7 @@ function updateGallery(dt, now) {
     g.rotation.y += (goal - g.rotation.y) * Math.min(1, dt * 6);
     if (!g.userData.leaves) { const L = []; g.traverse(o => { if (o.userData.leaf !== undefined) L.push(o); }); g.userData.leaves = L; }
     for (const l of g.userData.leaves) l.rotation.y = l.userData.leaf * gDoorK;
+    animHorses(g, t);
   }
   for (const p of gPeople) galPose(p, t, dt);
 }
