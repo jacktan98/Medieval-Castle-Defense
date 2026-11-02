@@ -22,12 +22,18 @@
 | `Builder_hammer.mp3` | One knock per hammer swing (cut the same way) |
 | `Path_placed.mp3` (not supplied yet) | A path tile is laid; until it exists a soft hoe stroke plays instead |
 | `Bird_chirping.mp3` | Loops softly during the day, stops at night |
+| `Ballista_bolt_shot.mp3` | A ballista looses its bolt (yours or the raiders') |
+| `Crossbow_quiver_shot.mp3` | A crossbow shoots (your crossbowmen or the raiders') |
+| `Rock_fired.mp3` | A catapult, mangonel or trebuchet lets its stone go (yours or the raiders') |
+| `Rock_hit_ground.mp3` | The stone lands |
+| `Fire_sound.mp3` | Loops near torches and campfires: louder the closer the camera looks and the further it zooms in |
+| `River_water_flow.mp3` | Loops near rivers the same way |
 
 **Volume balance:** every clip is measured when it loads (loudness of its loudest 0.3 s) and brought to one
 common level, then trimmed by how prominent it should be, like medieval-td. So re-uploading a file at a
 different recording level needs no code change. World sounds also get quieter the further they are from
 where the camera looks. To add or rename a sound, edit the `SND` table in `index.html`.
 
-`Bird_chirping.m4a` is a compressed copy of `Bird_chirping.mp3` for faster phone loading; if you replace the `.mp3`, delete the `.m4a` too.
+`Bird_chirping.m4a`, `Fire_sound.m4a` and `River_water_flow.m4a` are compressed copies of their `.mp3` for faster phone loading; if you replace an `.mp3`, delete its `.m4a` too (or remake it: `ffmpeg -i x.mp3 -c:a aac -b:a 96k x.m4a`).
 
 Leading silence in a clip is skipped automatically when it loads, so a sound lands right on its event.
