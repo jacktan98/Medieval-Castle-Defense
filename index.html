@@ -5659,62 +5659,104 @@ function showMapPick() {
 function markMapStars() { document.querySelectorAll('.mapBtn').forEach(b => { b.classList.toggle('last', b.dataset.map === MAP); const st = b.querySelector('.stars'); if (st) st.remove(); b.insertAdjacentHTML('beforeend', starsHTML(STARS[b.dataset.map] || 0)); }); }
 // ---------- campaign: an overview map with twelve stops, each bringing in a few new buildings (a sketch: none is playable yet)
 const CAMPAIGN = [
-  { name: 'Greenvale', sub: 'Tutorial', at: [150, 805], adds: ['house', 'farm', 'lodge', 'quarry', 'tower', 'road', 'flowers', 'torch'] },
-  { name: 'Stonebridge', at: [330, 770], adds: ['barracks', 'wall', 'gate', 'rack'] },
-  { name: 'Market Cross', at: [520, 800], adds: ['market', 'statue'] },
-  { name: 'Watchhill', at: [665, 700], adds: ['ballista', 'campfire'] },
-  { name: 'Dunewell', at: [540, 610], land: 'Desert · few trees', adds: ['forester', 'well'] },
+  { name: 'Greenvale', sub: 'Tutorial', at: [140, 820], adds: ['house', 'farm', 'lodge', 'quarry', 'tower', 'road', 'flowers', 'torch'] },
+  { name: 'Stonebridge', at: [250, 700], land: 'A bridge town', adds: ['barracks', 'wall', 'gate', 'rack'] },
+  { name: 'Market Cross', at: [420, 785], adds: ['market', 'statue'] },
+  { name: 'Watchhill', at: [580, 735], land: 'Dry hills', adds: ['ballista', 'campfire'] },
+  { name: 'Dunewell', at: [668, 590], land: 'Desert · few trees', adds: ['forester', 'well'] },
   { name: 'Riverbend', at: [345, 600], land: 'Between two rivers', adds: ['crossbow', 'butts'] },
-  { name: 'Ironcrag', at: [165, 505], land: 'Deep woods · no stone', adds: ['mine', 'banner'] },
-  { name: 'Siegeford', at: [335, 425], adds: ['catapult', 'stores'] },
-  { name: 'Meadowmere', at: [530, 455], adds: ['farmhouse'] },
-  { name: 'Horsefields', at: [670, 345], adds: ['stables'] },
-  { name: 'Raider Keep', sub: 'Boss', at: [475, 240], boss: true, adds: [] },
+  { name: 'Ironcrag', at: [160, 500], land: 'Deep woods · no stone', adds: ['mine', 'banner'] },
+  { name: 'Siegeford', at: [320, 405], land: 'Highlands · little wood', adds: ['catapult', 'stores'] },
+  { name: 'Meadowmere', at: [548, 470], land: 'Marsh · poor fields', adds: ['farmhouse'] },
+  { name: 'Horsefields', at: [668, 340], land: 'Open plains', adds: ['stables'] },
+  { name: 'Raider Keep', sub: 'Boss', at: [475, 225], boss: true, adds: [] },
   { name: "Warlord's Hold", sub: 'Boss', at: [290, 115], boss: true, adds: [] },
 ];
-// the desert's outline (also keeps the woods' trees out of it)
-const inDesert = (x, y) => Math.hypot((x - 555) / 105, (y - 615) / 88) < 1;
+// the lands of the overview, each a soft ellipse (centre, radii) that fades into the next; weights 0–1 by how deep inside a spot is
+const CAMP_LAND = {
+  woods:  { c: [160, 505], r: [125, 118], fill: '#33502c' },
+  dry:    { c: [655, 520], r: [165, 255], fill: '#8f8a50' },   // dry grass round the desert, out to the plains and Watchhill
+  desert: { c: [668, 585], r: [105, 92], fill: '#d1b97e' },
+  plains: { c: [668, 345], r: [125, 85], fill: '#87944e' },
+  high:   { c: [315, 395], r: [145, 88], fill: '#7c7458' },    // rocky highlands rising into the northern hills
+  marsh:  { c: [520, 455], r: [118, 70], fill: '#45695a' },
+};
+const landW = (k, x, y, a = .55, b = 1.15) => { const L = CAMP_LAND[k], d = Math.hypot((x - L.c[0]) / L.r[0], (y - L.c[1]) / L.r[1]); return 1 - sstep(a, b, d); };
+// the river (cubic segments): down from the north-east mountains, split round Riverbend, out at the west edge
+const CAMP_RIVER = [
+  [[718, 133], [690, 200, 655, 300, 616, 350], [590, 385, 565, 396, 540, 408], [505, 430, 480, 462, 451, 478], [410, 498, 365, 506, 335, 516], [300, 532, 288, 570, 284, 610], [280, 650, 252, 688, 210, 705], [160, 722, 110, 738, 32, 764]],
+  [[451, 478], [458, 520, 466, 560, 448, 592], [428, 625, 398, 642, 360, 655], [322, 668, 292, 676, 262, 686]],
+];
 function campaignSVG() {
   const P = CAMPAIGN.map(c => c.at), hash2 = (a, b) => { const x = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return x - Math.floor(x); };
+  const noise = (x, y, s) => { const gx = x / s, gy = y / s, i = Math.floor(gx), j = Math.floor(gy), u = sstep(0, 1, gx - i), v = sstep(0, 1, gy - j);
+    return lerp(lerp(hash2(i, j), hash2(i + 1, j), u), lerp(hash2(i, j + 1), hash2(i + 1, j + 1), u), v); };
+  // the river as a path, and points along it to keep things off the water
+  const rivPts = [], rivPath = CAMP_RIVER.map(R => { let d = `M${R[0][0]} ${R[0][1]}`, [px, py] = R[0];
+    for (const [a, b, c, e, x, y] of R.slice(1)) { d += ` C${a} ${b} ${c} ${e} ${x} ${y}`;
+      for (let t = 0; t <= 1; t += .05) { const m = 1 - t; rivPts.push([m * m * m * px + 3 * m * m * t * a + 3 * m * t * t * c + t * t * t * x, m * m * m * py + 3 * m * m * t * b + 3 * m * t * t * e + t * t * t * y]); }
+      px = x; py = y; }
+    return d; });
+  const nearRiver = (x, y, r) => rivPts.some(([a, b]) => Math.hypot(a - x, b - y) < r);
+  const LAND = 'M40 880 C20 700 60 560 40 420 C25 300 60 160 120 40 L700 30 C760 160 770 330 750 480 C735 620 780 760 740 880 Z';
+  const onLand = (x, y) => x > 55 + (y > 420 ? 0 : (420 - y) * .12) && x < 745 && y > 60 && y < 868;
   let road = `M${P[0][0]} ${P[0][1]}`;
   for (let i = 1; i < P.length; i++) { const [x0, y0] = P[i - 1], [x1, y1] = P[i]; road += ` Q${(x0 + x1) / 2 + (i % 2 ? 40 : -40)} ${(y0 + y1) / 2 + (i % 2 ? -25 : 25)} ${x1} ${y1}`; }
-  const trees = [], hills = [], peaks = [];
-  for (let n = 0; n < 150; n++) {                      // woods in clumps, kept off the road's stops
-    const cx = [110, 420, 690, 250, 620, 130, 420][n % 7], cy = [660, 700, 470, 500, 400, 350, 330][n % 7];
-    const x = cx + (hash2(n, 1) - .5) * 150, y = cy + (hash2(n, 2) - .5) * 100;
-    if (P.some(([px, py]) => Math.hypot(px - x, py - y) < 42) || inDesert(x, y)) continue;
-    trees.push(`<path d="M${x.toFixed(0)} ${(y - 13).toFixed(0)} L${(x - 7).toFixed(0)} ${(y + 4).toFixed(0)} L${(x + 7).toFixed(0)} ${(y + 4).toFixed(0)} Z" fill="${hash2(n, 3) < .5 ? '#2f4a2a' : '#3a5a31'}"/>`);
+  const free = (x, y, r = 40) => onLand(x, y) && !P.some(([px, py]) => Math.hypot(px - x, (py + 22) - y) < r) && !nearRiver(x, y, 13);
+  // trees: their density follows the lands, so woods thin out into meadow and meadow into dry grass, never a hard edge
+  const trees = [], bits = [];
+  for (let gy = 150; gy < 870; gy += 13) for (let gx = 50; gx < 760; gx += 13) {
+    const x = gx + (hash2(gx, gy) - .5) * 11, y = gy + (hash2(gy, gx) - .5) * 11;
+    const wF = landW('woods', x, y, .45, 1.25), wD = landW('desert', x, y, .3, 1.2), wS = landW('dry', x, y, .45, 1.1), wP = landW('plains', x, y, .4, 1.1), wH = landW('high', x, y, .4, 1.15), wM = landW('marsh', x, y, .3, 1.1);
+    const north = sstep(330, 230, y);                           // the bare hills and raider lands to the north
+    const meadow = (noise(x, y, 95) - .5) * 1.3 + .1;            // the meadows' own scattered copses
+    const dens = clamp(.92 * wF + (1 - wF) * (meadow - .75 * wS - .9 * wD - .9 * wP - .55 * wH - .7 * wM - .8 * north), 0, 1);
+    if (hash2(x * .7, y * 1.3) > dens || !free(x, y)) continue;
+    const dark = wF > .5 || hash2(x, y * 3) < .45;
+    trees.push(`<path d="M${x.toFixed(0)} ${(y - 13).toFixed(0)} L${(x - 7).toFixed(0)} ${(y + 4).toFixed(0)} L${(x + 7).toFixed(0)} ${(y + 4).toFixed(0)} Z" fill="${wF > .6 ? (dark ? '#20361d' : '#2a4325') : (dark ? '#2f4a2a' : '#3a5a31')}"/>`);
   }
-  // the deep wood round Ironcrag: thick, dark, and no stone in it
-  for (let n = 0; n < 170; n++) {
-    const x = 55 + hash2(n, 11) * 215, y = 410 + hash2(n, 12) * 200;
-    if (Math.hypot((x - 160) / 115, (y - 510) / 100) > 1 || P.some(([px, py]) => Math.hypot(px - x, py - y) < 40)) continue;
-    trees.push(`<path d="M${x.toFixed(0)} ${(y - 14).toFixed(0)} L${(x - 7.5).toFixed(0)} ${(y + 4).toFixed(0)} L${(x + 7.5).toFixed(0)} ${(y + 4).toFixed(0)} Z" fill="${hash2(n, 13) < .5 ? '#22381f' : '#2b4426'}"/>`);
+  // ground detail by land: dunes and dry shrubs, rocks on the highlands, pools and reeds in the marsh
+  for (let n = 0; n < 2600; n++) {
+    const x = 50 + hash2(n, 41) * 710, y = 150 + hash2(n, 42) * 720; if (!free(x, y, 34)) continue;
+    const r = hash2(n, 43), wD = landW('desert', x, y, .2, 1), wS = landW('dry', x, y, .5, 1), wH = landW('high', x, y, .3, 1.05), wM = landW('marsh', x, y, .2, 1);
+    if (wD > .5 && r < .12) bits.push(`<path d="M${(x - 20).toFixed(0)} ${y.toFixed(0)} Q${x.toFixed(0)} ${(y - 11).toFixed(0)} ${(x + 20).toFixed(0)} ${y.toFixed(0)}" fill="none" stroke="#9f8550" stroke-width="3.5" stroke-linecap="round" opacity="${(.5 + .5 * wD).toFixed(2)}"/>`);
+    else if (wS > .3 && r < .03 + .04 * wS) bits.push(`<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="3.2" fill="#6f6d3e"/>`);
+    else if (wH > .25 && r < .04 + .14 * wH) { const k = 3 + hash2(n, 44) * 5; bits.push(`<path d="M${(x - k).toFixed(1)} ${y.toFixed(1)} L${(x - k * .4).toFixed(1)} ${(y - k * .9).toFixed(1)} L${(x + k * .6).toFixed(1)} ${(y - k * .7).toFixed(1)} L${(x + k).toFixed(1)} ${y.toFixed(1)} Z" fill="${hash2(n, 45) < .5 ? '#8d8a82' : '#a29e94'}"/>`); }
+    else if (wM > .25 && r < .3 * wM) bits.push(hash2(n, 46) < .4 ? `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${(7 + hash2(n, 47) * 8).toFixed(0)}" ry="4" fill="#4b7c8c" opacity=".85"/>`
+      : `<path d="M${x.toFixed(0)} ${y.toFixed(0)} l-3 -9 M${x.toFixed(0)} ${y.toFixed(0)} l0 -11 M${x.toFixed(0)} ${y.toFixed(0)} l3 -9" stroke="#86904f" stroke-width="1.6" stroke-linecap="round"/>`);
   }
-  // the desert east of the river round Dunewell: sand, dunes, a few dry shrubs, hardly a tree
-  const dunes = [];
-  for (let n = 0; n < 14; n++) { const x = 470 + hash2(n, 21) * 170, y = 545 + hash2(n, 22) * 140; if (!inDesert(x, y) || Math.hypot(x - P[4][0], y - P[4][1]) < 45) continue;
-    dunes.push(`<path d="M${(x - 22).toFixed(0)} ${y.toFixed(0)} Q${x.toFixed(0)} ${(y - 12).toFixed(0)} ${(x + 22).toFixed(0)} ${y.toFixed(0)}" fill="none" stroke="#a88f58" stroke-width="3" stroke-linecap="round"/>`); }
-  for (let n = 0; n < 16; n++) { const x = 465 + hash2(n, 31) * 180, y = 545 + hash2(n, 32) * 145; if (!inDesert(x, y) || Math.hypot(x - P[4][0], y - P[4][1]) < 40) continue;
-    dunes.push(`<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="3.5" fill="#7d7a46"/>`); }
+  // the marsh by the river at Meadowmere: still pools among the reeds
+  for (let n = 0; n < 260; n++) {
+    const L = CAMP_LAND.marsh, a = hash2(n, 51) * 6.283, d = Math.sqrt(hash2(n, 52)), x = L.c[0] + Math.cos(a) * d * L.r[0] * 1.05, y = L.c[1] + Math.sin(a) * d * L.r[1] * 1.05;
+    const w = landW('marsh', x, y, .2, 1.05); if (hash2(n, 53) > w || !free(x, y, 30)) continue;
+    bits.push(hash2(n, 54) < .35 ? `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${(6 + hash2(n, 55) * 10).toFixed(0)}" ry="${(3 + hash2(n, 56) * 2.5).toFixed(1)}" fill="#4b7f91" opacity=".9"/>`
+      : `<path d="M${x.toFixed(0)} ${y.toFixed(0)} l-3 -9 M${x.toFixed(0)} ${y.toFixed(0)} l0 -11 M${x.toFixed(0)} ${y.toFixed(0)} l3 -9" stroke="#9aa45a" stroke-width="1.7" stroke-linecap="round"/>`);
+  }
+  const hills = [], peaks = [];
   for (let n = 0; n < 16; n++) { const x = 60 + n * 46 + (hash2(n, 5) - .5) * 20, y = 60 + (hash2(n, 6) - .5) * 30 + (n % 2) * 22, w = 34 + hash2(n, 7) * 26, h = 40 + hash2(n, 8) * 40;
     if (Math.hypot(x - P[11][0], y - P[11][1]) < 50 || Math.hypot(x - P[10][0], y - P[10][1]) < 50) continue;
     peaks.push(`<path d="M${x - w} ${y + h * .55} L${x} ${y - h * .45} L${x + w} ${y + h * .55} Z" fill="#5b5550"/><path d="M${x - w * .32} ${y - h * .45 + h * .32} L${x} ${y - h * .45} L${x + w * .32} ${y - h * .45 + h * .32} L${x + w * .1} ${y - h * .45 + h * .25} L${x - w * .1} ${y - h * .45 + h * .36} Z" fill="#e6e2d6"/>`); }
-  for (let n = 0; n < 9; n++) { const x = 90 + n * 85, y = 240 + (n % 3) * 30; hills.push(`<path d="M${x - 60} ${y + 26} Q${x} ${y - 30} ${x + 60} ${y + 26}" fill="#4f5a3a" opacity=".8"/>`); }
+  for (let n = 0; n < 9; n++) { const x = 90 + n * 85, y = 240 + (n % 3) * 30; if (x > 560 && x < 760) continue;    // the plains stay open
+    hills.push(`<path d="M${x - 60} ${y + 26} Q${x} ${y - 30} ${x + 60} ${y + 26}" fill="#4f5a3a" opacity=".7"/>`); }
   const marks = CAMPAIGN.map((c, i) => { const [x, y] = c.at;
     return `<g class="mk" data-i="${i}" transform="translate(${x} ${y})"><circle class="ring" r="27" fill="${c.boss ? '#6b2a24' : '#2a2b22'}" stroke="${c.boss ? '#e2715b' : '#e3b341'}" stroke-width="3"/>` +
       (c.boss ? `<path d="M-11 -8 L11 14 M11 -8 L-11 14 M-13 -13 L-7 -7 M13 -13 L7 -7" stroke="#f3d5c8" stroke-width="3.5" stroke-linecap="round"/>` : `<text y="9" text-anchor="middle" font-size="26" font-family="Georgia,serif" fill="#f2e6c4">${i + 1}</text>`) +
       `<text y="56" text-anchor="middle" font-size="25" font-family="Georgia,serif" fill="#f2e6c4" stroke="#1a1a14" stroke-width="5" paint-order="stroke">${c.name}</text></g>`; }).join('');
+  // the lands' colours, blurred and clipped to the coast, so each fades into the next
+  const blob = (k, sx = 1, op = 1) => { const L = CAMP_LAND[k]; return `<ellipse cx="${L.c[0]}" cy="${L.c[1]}" rx="${L.r[0] * sx}" ry="${L.r[1] * sx}" fill="${L.fill}" opacity="${op}"/>`; };
   return `<svg viewBox="0 0 800 900" xmlns="http://www.w3.org/2000/svg">
+    <defs><clipPath id="campLand"><path d="${LAND}"/></clipPath><filter id="campSoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="26"/></filter>
+      <filter id="campSoft2" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="12"/></filter></defs>
     <rect width="800" height="900" fill="#1f3442"/>
-    <path d="M40 880 C20 700 60 560 40 420 C25 300 60 160 120 40 L700 30 C760 160 770 330 750 480 C735 620 780 760 740 880 Z" fill="#5d7444"/>
-    <path d="M80 300 C200 260 560 250 740 300 L750 30 L110 40 Z" fill="#6a5a46" opacity=".55"/>
-    <path d="M300 30 C420 60 520 80 600 40" fill="none" stroke="#7a3a30" stroke-width="40" opacity=".35"/>
-    <path d="M455 560 C470 520 560 515 625 540 C672 560 668 650 640 685 C600 715 520 712 478 690 C445 668 440 600 455 560 Z" fill="#cdb57c"/>
-    <path d="M45 450 C90 400 210 395 262 440 C292 480 280 570 230 605 C170 640 80 625 50 580 C30 540 30 490 45 450 Z" fill="#3c5532" opacity=".75"/>
-    <path d="M718 133 C690 200 655 300 616 350 C590 385 565 396 540 408 C505 430 480 462 451 478 C410 498 365 506 335 516 C300 532 288 570 284 610 C280 650 252 688 210 705 C160 722 110 738 32 764" fill="none" stroke="#3d6f8f" stroke-width="16" stroke-linecap="round"/>
-    <path d="M451 478 C458 520 466 560 448 592 C428 625 398 642 360 655 C322 668 292 676 262 686" fill="none" stroke="#3d6f8f" stroke-width="12" stroke-linecap="round"/>
-    ${dunes.join('')}${hills.join('')}${peaks.join('')}${trees.join('')}
+    <path d="${LAND}" fill="#5d7444"/>
+    <g clip-path="url(#campLand)">
+      <g filter="url(#campSoft)">${blob('dry', 1, .9)}${blob('plains', 1, .9)}${blob('high', 1, .85)}${blob('woods', 1, .85)}${blob('marsh', 1, .8)}
+        <path d="M60 330 C200 270 560 260 760 310 L760 20 L60 20 Z" fill="#6a5a46" opacity=".75"/></g>
+      <g filter="url(#campSoft2)">${blob('desert', .9)}${blob('woods', .7, .6)}</g>
+      <path d="M300 30 C420 60 520 80 600 40" fill="none" stroke="#7a3a30" stroke-width="40" opacity=".35" filter="url(#campSoft2)"/>
+    </g>
+    ${rivPath.map((d, i) => `<path d="${d}" fill="none" stroke="#3d6f8f" stroke-width="${i ? 12 : 16}" stroke-linecap="round"/>`).join('')}
+    ${bits.join('')}${hills.join('')}${peaks.join('')}${trees.join('')}
     <path d="${road}" fill="none" stroke="#e8d3a0" stroke-width="5" stroke-dasharray="10 9" stroke-linecap="round" opacity=".9"/>
     ${marks}
   </svg>`;
