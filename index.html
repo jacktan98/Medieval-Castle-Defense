@@ -161,7 +161,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 
 .ncInfo{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left}
 .ncStep{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.ncIcon svg{width:64px;height:64px;stroke:var(--gold);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.ncIcon{flex:0 0 auto;align-self:center;display:flex} .ncIcon svg{width:44px;height:44px;stroke:var(--gold);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
 .ncCard h3{margin:0;font-family:var(--display);font-weight:400;font-size:16px;line-height:1.1;color:var(--gold)}
 .ncCost{display:flex;gap:9px;justify-content:flex-start;font-size:12.5px;color:var(--parch)} .ncCost .cost,.ncStats .stat{display:inline-flex;align-items:center;gap:3px} .ncCost .ico svg,.ncStats .ico svg{width:13px;height:13px}
 .ncStats{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:5px 11px;font-size:12.5px;color:var(--parch)}
@@ -423,6 +423,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
   </div>
   <div class="modal" id="newCards" hidden>
     <div class="ncCard">
+      <div class="ncIcon" id="ncIcon"></div>
       <div class="ncInfo">
         <div class="ncStep" id="ncStep"></div>
         <h3 id="ncName"></h3>
@@ -617,13 +618,13 @@ const MAP_RULES = {
   // Market Cross (stage 3): down the north road, from night 3 along the east road too; horsemen on nights 3 and 4 (Jack: more horses)
   cross: { waves: [{ spear: [6] }, { spear: [6], sword: [4] }, { spear: [6], sword: [4], archer: [3], lancer: [3] }, { spear: [8], sword: [5], archer: [4], lancer: [4], rider: [2] }],
            day: [240, 120, 120, 120], spawnGap: 1.3, res: { gold: 60, wood: 45, stone: 0, food: 30 } },
-  // Watchhill (stage 4): five nights up the dry gully from the east, from night 3 down the ridge track from the north too; the first ram on night 5
+  // Watchhill (stage 4): five nights up the dry gully from the east, from night 3 down the ridge track from the north too; a raider ballista on night 5 (no ram: Jack)
   watch: { waves: [{ spear: [6], archer: [2] }, { spear: [8], sword: [4], archer: [2] }, { spear: [8], sword: [4], archer: [3], lancer: [3] },
-                   { spear: [8, 2], sword: [4, 1], archer: [4], lancer: [3], rider: [2] }, { spear: [8, 3], sword: [5, 2], archer: [4, 1], xbow: [2], lancer: [4], rider: [2], ram: [1] }],
+                   { spear: [8, 2], sword: [4, 1], archer: [4], lancer: [3], rider: [2] }, { spear: [8, 3], sword: [5, 2], archer: [4, 1], xbow: [2], lancer: [4], rider: [2], ballista: [1] }],
            day: [300, 120, 120, 120, 120], spawnGap: 1.2, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
   // Dunewell (stage 5): over the dunes from the south, from night 3 along the caravan road from the east too
   dune: { waves: [{ spear: [6], archer: [3] }, { spear: [8], sword: [4], archer: [3] }, { spear: [6, 2], sword: [4], archer: [3], lancer: [4] },
-                  { spear: [6, 3], sword: [4, 2], archer: [4, 1], xbow: [2], lancer: [3], rider: [3] }, { spear: [6, 4], sword: [4, 3], archer: [4, 2], xbow: [3], lancer: [4], rider: [3], ram: [1] }],
+                  { spear: [6, 3], sword: [4, 2], archer: [4, 1], xbow: [2], lancer: [3], rider: [3] }, { spear: [6, 4], sword: [4, 3], archer: [4, 2], xbow: [3], lancer: [4], rider: [3], ballista: [1] }],
           day: [300, 120, 120, 120, 120], spawnGap: 1.1, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
   // Riverbend (stage 6): over the north bridge, from night 3 over the south bridge too; a raider ballista on the last night
   bend: { waves: [{ spear: [6], sword: [2], archer: [3] }, { spear: [8], sword: [4], archer: [3], xbow: [2] }, { spear: [6, 3], sword: [4, 1], archer: [3], xbow: [3], lancer: [3] },
@@ -773,9 +774,15 @@ const DUNE_POOL = [26.6, 24.2, 4.6, 3.1], DUNE_OASIS = [24.5, 25.9, 13.3, 11.5],
 const DUNE_ROAD = smoothPts([[-1, 32.9], [8.4, 32.9], [12.6, 31], [17.5, 30.6], [23.1, 30], [30.1, 29.6], [36.4, 26.6], [43.4, 23.5], [49, 23.1], [57, 23.1]]);
 const DUNE_SAND = new THREE.Color('#c9ad72'), DUNE_ROCK = new THREE.Color('#9a6f4c');
 const ellD = (x, z, [cx, cz, rx, rz]) => Math.hypot((x - cx) / rx, (z - cz) / rz);
+// the oasis's edge: an ellipse pulled into lobes and bays by angle and noise, ragged where grass gives way to sand (Jack: too oval)
+function oasisD(x, z) {
+  const [cx, cz] = DUNE_OASIS, a = Math.atan2(z - cz, x - cx);
+  const w = 1 + .17 * Math.sin(3 * a + 1.3) + .1 * Math.sin(5 * a + .4) + .07 * Math.sin(8 * a + 2.1) + .45 * (fbm(x * .09 + 3, z * .09 + 8) - .5);
+  return ellD(x, z, DUNE_OASIS) / w + .22 * (fbm(x * .4 + 11, z * .4 + 5) - .5);
+}
 function duneHeight(x, z) {
   let h = 1.8 + .9 * fbm(x * .06, z * .06);
-  const open = sstep(.9, 1.3, ellD(x, z, DUNE_OASIS)) * sstep(2.5, 5, polyDist(DUNE_ROAD, x, z));
+  const open = sstep(.9, 1.3, oasisD(x, z)) * sstep(2.5, 5, polyDist(DUNE_ROAD, x, z));
   h += open * 1.1 * Math.pow(Math.max(0, Math.sin(x * .3 + z * .17 + 3.2 * fbm(x * .05 + 4, z * .05))), 2.5);   // dune ridges
   for (const m of DUNE_MESAS) h += 3.6 * sstep(1.05, .8, ellD(x, z, m)) + .4 * sstep(1.4, 1, ellD(x, z, m));
   h = lerp(2.4, h, sstep(5.5, 10, Math.hypot(x - KX, z - KZ)));
@@ -1013,7 +1020,7 @@ function recolor() {
     tmpC.copy(C.grass2).lerp(C.grass, clamp((gvar[k] - .25) * 2, 0, 1));
     tmpC.lerp(C.dry, sstep(.55, .72, dvar[k]) * .4);
     tmpC.lerp(C.sand, sstep(.8, .2, h)); tmpC.lerp(C.bed, sstep(-.1, -.8, h));
-    if (MAP === 'dune') { tmpC.lerp(DUNE_SAND, sstep(.85, 1.15, ellD(i, j, DUNE_OASIS)) * .9); for (const m of DUNE_MESAS) tmpC.lerp(DUNE_ROCK, sstep(1.12, .95, ellD(i, j, m)) * .8); }   // sand beyond the oasis; red-brown rock mesas
+    if (MAP === 'dune') { const od = oasisD(i, j); tmpC.lerp(C.dry, sstep(.68, .95, od) * .75); tmpC.lerp(DUNE_SAND, sstep(.86, 1.14, od) * .92); for (const m of DUNE_MESAS) tmpC.lerp(DUNE_ROCK, sstep(1.12, .95, ellD(i, j, m)) * .8); }   // sand beyond the oasis; red-brown rock mesas
     if (MAP === 'watch') { tmpC.lerp(C.dry, .62); tmpC.lerp(C.sand, (1 - sstep(1, 3.4, polyDist(WATCH_GULLY, i, j))) * .75); }   // Watchhill: dry golden grass, a sandy gully
     // Greenvale's hills stay green
     tmpC.lerp(C.rock, MAP === 'vale' ? sstep(1.4, 2.2, Math.hypot(hx, hz)) * .6 : sstep(.55, 1.1, Math.hypot(hx, hz)) * (MAP === 'watch' ? .7 : 1));
@@ -1295,7 +1302,7 @@ function genTrees() {
     }
     if (MAP === 'dune') {
       // the only wood: trees round the pool and a few in the oasis
-      const p = ellD(x, z, DUNE_POOL), o = ellD(x, z, DUNE_OASIS);
+      const p = ellD(x, z, DUNE_POOL), o = oasisD(x, z);
       if (dk < 7.5 || polyDist(DUNE_ROAD, x, z) < 2.6 || p < 1.3) continue;
       if ((p < 2.2 && hash(x * 1.3, z * .7) < .5) || (o < .85 && hash(x * 2.1, z * 1.7) < .02)) trees.push({ x, z, s: .7 + hash(z, x) * .4, k: 1 });
       continue;
@@ -1585,7 +1592,7 @@ const PATH_STYLE = {
   earth:  { top: [.47, .38, .27], base: '#4e3f2a', set: [.37, .34, .29], kerb: [.4, .38, .33] },
   gravel: { top: [.68, .6, .45], base: '#8a7754', set: [.56, .52, .45], kerb: [.58, .54, .46] },
   scree:  { top: [.5, .48, .44], base: '#47443d', set: [.56, .55, .53], kerb: [.6, .59, .56] },
-  sand:   { top: [.6, .48, .33], base: '#7a6142', set: [.62, .55, .44], kerb: [.6, .53, .42] },
+  sand:   { top: [.73, .6, .41], base: '#a98b5a', set: [.62, .55, .44], kerb: [.6, .53, .42], bare: true },   // trodden sand: a little darker than the dunes, no stones
 };
 const pathStyle = () => PATH_STYLE[MAP === 'watch' ? 'gravel' : MAP === 'pass' ? 'scree' : MAP === 'dune' ? 'sand' : 'earth'];
 const lin = (sc, c, h, k) => sc.setRGB(((c[0] + k * h) ** 2.2), ((c[1] + k * .85 * h) ** 2.2), ((c[2] + k * .7 * h) ** 2.2));
@@ -1653,14 +1660,14 @@ function rebuildRoads() {
   }
   // flat set stones, a few per tile, grey-brown and half sunk into the earth
   const sc = new THREE.Color(); let n = 0;
-  for (const [x, z, k] of stones) {
+  for (const [x, z, k] of PS.bare ? [] : stones) {
     if (n >= MAX_PSTONES) break;
     const r = .06 + .06 * hash(k, 1.3), h = hash(k, 7.7);
     dummy.position.set(x, hAt(x, z) + .1, z); dummy.rotation.set((h - .5) * .12, h * 6.3, (hash(k, 4.4) - .5) * .12); dummy.scale.set(r, .06, r * (.75 + .4 * h)); dummy.updateMatrix();
     pathStones.setMatrixAt(n, dummy.matrix);
     lin(sc, PS.set, h, .1); pathStones.setColorAt(n, sc); n++;
   }
-  for (const [x, z] of kerb) {
+  for (const [x, z] of PS.bare ? [] : kerb) {
     if (n >= MAX_PSTONES) break;
     const h = hash(x * 5.1, z * 3.7), r = .05 + .045 * h;
     dummy.position.set(x, hAt(x, z) + .07, z); dummy.rotation.set((h - .5) * .2, h * 6.3, (hash(z, x) - .5) * .2); dummy.scale.set(r, .09, r * (.8 + .4 * h)); dummy.updateMatrix();
@@ -6136,12 +6143,12 @@ function renderNewCard() {
   $('#ncStep').textContent = `New · ${newCardI + 1}/${newCards.length}`; $('#ncNext').textContent = last ? 'Play' : 'Next';
   if (/^tier\d$/.test(t)) {   // a tier opening up: what an upgrade brings, house and archer tower as examples
     const k = +t[4] - 1, H = DEF.house, W = DEF.tower;
-    $('#ncName').textContent = `Tier ${k + 1}`;
+    $('#ncName').textContent = `Tier ${k + 1}`; $('#ncIcon').innerHTML = UP_ICO;
     $('#ncCost').innerHTML = `<span class="cost"><span class="ico">${UP_ICO}</span>Upgrades</span>`;
     $('#ncStats').innerHTML = STAT('home', `${H.residents[k - 1]} → ${H.residents[k]}`) + STAT('gold', `+${H.gold[k - 1]} → +${H.gold[k]}`) + STAT('bow', `${W.dmg[k - 1]} → ${W.dmg[k]}`);
     return;
   }
-  $('#ncName').textContent = t === 'road' ? 'Path' : DEF[t].name;
+  $('#ncName').textContent = t === 'road' ? 'Path' : DEF[t].name; $('#ncIcon').innerHTML = TOOL_ICON[t] || '';
   $('#ncCost').innerHTML = costHTML(DEF[t].cost || {}); $('#ncStats').innerHTML = newCardStats(t);
   $('#ncNext').textContent = last ? 'Play' : 'Next';
 }
