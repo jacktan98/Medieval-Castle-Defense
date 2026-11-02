@@ -943,7 +943,7 @@ for (const m of [M.wood, M.rough, M.timber, M.log, M.dark]) addGrit(m, 'wood');
 addGrit(M.stone, 'stone'); addGrit(M.stone2, 'stone'); addGrit(M.court, 'earth');   // tier 1 slabs: mottled packed earth with pebbles
 M.plainStone = mat('#8f8a80'); addGrit(M.plainStone, 'rock');   // tier 2 bases: rough grey stone without block joints
 // doors by tier, the same on every building of that tier: weathered planks, dark oak, painted the town's blue like tier-3 roofs
-const DOOR_M = [null, mat('#4a301c'), mat('#6b4527'), mat('#7a5a40')]; DOOR_M.slice(1).forEach(m => addGrit(m, 'wood'));
+const DOOR_M = [null, mat('#4a301c'), mat('#6b4527'), mat('#7b5639')]; DOOR_M.slice(1).forEach(m => addGrit(m, 'wood'));
 M.drape = mat('#2f4f8a');
 M.awning = mat('#3466b0');   // market awning stripes: the town's blue (no flag wave)
 M.drape.onBeforeCompile = sh => {
