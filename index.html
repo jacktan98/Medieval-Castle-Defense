@@ -157,16 +157,16 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #campMap svg{max-height:calc(100dvh - 120px)!important}
 #stagePrev{background:rgba(12,13,9,.94);z-index:62}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
-.ncCard{width:min(300px,90vw);background:var(--panel);border:1px solid #6b5a2e;border-radius:14px;padding:12px;display:flex;flex-direction:row;align-items:stretch;gap:12px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
+.ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
-.ncInfo{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:7px;text-align:left}
-.ncStep{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ncInfo{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left}
+.ncStep{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .ncIcon svg{width:64px;height:64px;stroke:var(--gold);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
-.ncCard h3{margin:0;font-family:var(--display);font-weight:400;font-size:22px;color:var(--gold)}
-.ncCost{display:flex;gap:12px;justify-content:flex-start;font-size:16px;color:var(--parch)} .ncCost .cost,.ncStats .stat{display:inline-flex;align-items:center;gap:4px} .ncCost .ico svg,.ncStats .ico svg{width:20px;height:20px}
-.ncStats{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:8px 16px;font-size:17px;color:var(--parch)}
-#ncStats .stat{font-size:17px;gap:5px} #ncStats .stat .ico,#ncCost .ico{width:20px;height:20px}
-.ncCard button{min-width:110px;margin-top:auto;align-self:flex-end}
+.ncCard h3{margin:0;font-family:var(--display);font-weight:400;font-size:16px;line-height:1.1;color:var(--gold)}
+.ncCost{display:flex;gap:9px;justify-content:flex-start;font-size:12.5px;color:var(--parch)} .ncCost .cost,.ncStats .stat{display:inline-flex;align-items:center;gap:3px} .ncCost .ico svg,.ncStats .ico svg{width:13px;height:13px}
+.ncStats{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:5px 11px;font-size:12.5px;color:var(--parch)}
+#ncStats .stat{font-size:12.5px;gap:3px} #ncStats .stat .ico,#ncCost .ico{width:13px;height:13px}
+.ncCard button{min-width:72px;min-height:0;padding:6px 12px;font-size:13px;margin-top:4px;align-self:flex-end}
 .stageSheet{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(520px,100%);max-height:100%;overflow:auto}
 .stPic{width:100%;max-width:min(520px,62dvh);aspect-ratio:1/1;border-radius:10px;border:1px solid #4a4838;overflow:hidden;background:#2a2b22;display:flex;align-items:center;justify-content:center;position:relative;flex:0 0 auto}
 .stPic img{width:100%;height:100%;object-fit:cover;display:block} .stPic .tag{position:absolute;left:8px;top:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--parch);background:rgba(20,21,15,.75);padding:2px 7px;border-radius:5px} .stPic .soon{color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-size:13px}
@@ -5981,8 +5981,9 @@ $('#loadPick').addEventListener('click', e => {
 function showLoadPick(stage) {
   stagePick = stage || null; if (stagePick) STAGE_DECOR[stagePick] = stageDecor(stagePick);
   renderLoadPick(); $('#loadPick').hidden = false; $('#loadPick').scrollTop = 0; }
-$('#ldBack').addEventListener('click', () => { $('#loadPick').hidden = true; if (stagePick) { stagePick = null; openCampaign(CAMP_MAPS[MAP].stop); } else showMapPick(); });
+$('#ldBack').addEventListener('click', () => { sfx('click'); $('#loadPick').hidden = true; if (stagePick) { stagePick = null; openCampaign(CAMP_MAPS[MAP].stop); } else showMapPick(); });
 $('#ldStart').addEventListener('click', () => {
+  sfx('click');
   if (stagePick) {
     if (STAGE_DECOR[stagePick].length !== DECOR_PICK) return;
     try { localStorage.setItem('mtd-stage-decor', JSON.stringify(STAGE_DECOR)); } catch (e) {}
@@ -6227,21 +6228,22 @@ function openStage(i) {
   $('#stStars').innerHTML = starsHTML(c.map ? STARS[c.map] || 0 : 0);
   $('#stPlay').innerHTML = c.map ? '<button class="primary" id="campPlay">Play</button>' : '';
   if (c.map) $('#campPlay').addEventListener('click', () => {
+    sfx('click');
     MAP = c.map; $('#stagePrev').hidden = true; $('#mapPick').hidden = true;
     if (stagePicks(MAP)) { showLoadPick(MAP); return; }   // more decor than fits: choose four first
     $('#campaign').hidden = true; paused = false; startGame();
   });
   $('#stagePrev').hidden = false;
 }
-$('#stBack').addEventListener('click', () => { $('#stagePrev').hidden = true; });
+$('#stBack').addEventListener('click', () => { sfx('click'); $('#stagePrev').hidden = true; });
 $('#campMap').innerHTML = campaignSVG();
 markMapStars();
-$('#campMap').addEventListener('click', e => { const m = e.target.closest('.mk'); if (m) openStage(+m.dataset.i); });
+$('#campMap').addEventListener('click', e => { const m = e.target.closest('.mk'); if (m) { sfx('click'); openStage(+m.dataset.i); } });
 function openCampaign(i) { $('#mapPick').hidden = true; $('#campaign').hidden = false; $('#campStars').innerHTML = `· ★ ${starTotal()}`; if (i !== undefined) openStage(i); }
-$('#campBtn').addEventListener('click', () => openCampaign());
-$('#campBack').addEventListener('click', () => { $('#campaign').hidden = true; $('#mapPick').hidden = false; });
+$('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
+$('#campBack').addEventListener('click', () => { sfx('click'); $('#campaign').hidden = true; $('#mapPick').hidden = false; });
 document.querySelectorAll('.mapBtn').forEach(b => b.addEventListener('click', () => {
-  MAP = b.dataset.map; try { localStorage.setItem('mtd-map', MAP); } catch (e) {}
+  sfx('click'); MAP = b.dataset.map; try { localStorage.setItem('mtd-map', MAP); } catch (e) {}
   $('#mapPick').hidden = true; showLoadPick();          // then the town's buildings, then the game
 }));
 addEventListener('keydown', e => {
