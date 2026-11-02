@@ -18,6 +18,31 @@
   const coastD = (px, py) => inPoly(COAST, px, py) ? polyDist([...COAST, COAST[0]], px, py) : -1;
   const stopD = (px, py) => Math.min(...P.map(([a, b]) => Math.hypot(a - px, (b - py) * 1.2)));
   const keepP = P[10], holdP = P[11];
+  // ---------- every built stage, played once (startGame) and shrunk into a round patch at its stop: its own ground and colours, water,
+  // bridges, roads, trees, rocks and fixed scenery (walls, ruins, the market cross and hamlet, the bosses' forts); never the castle
+  const PATCH = 21, STG = [];   // each stage's patch radius in metres: the closest stops are about 44 m apart
+  // clone without userData: three copies it through JSON, and the game keeps object references there (a stack overflow)
+  const cl = o => { const saved = []; o.traverse(n => { saved.push([n, n.userData]); n.userData = {}; }); const c = o.clone(); for (const [n, u] of saved) n.userData = u; return c; };
+  for (const c of CAMPAIGN) {
+    if (!c.map) continue;
+    MAP = c.map; startGame(); paused = true;
+    const [cx, cz] = toW(...c.at), k = PATCH / (SIZE / 2);
+    const wrap = new THREE.Group(); wrap.position.set(cx - SIZE / 2 * k, 0, cz - SIZE / 2 * k); wrap.scale.setScalar(k);
+    for (const B of buildings) if (B.type !== 'castle') wrap.add(cl(B.group));
+    for (const b of bridges) if (b.g) wrap.add(cl(b.g));
+    for (const r of rocks) if (r.mesh) wrap.add(cl(r.mesh));
+    if (bossMesh) wrap.add(cl(bossMesh));
+    if (ruinMesh) wrap.add(cl(ruinMesh));
+    wrap.add(cl(roadBase), cl(roadTop), cl(pathStones));
+    STG.push({ cx, cz, k, V, SIZE, H: H.slice(0, V * V), C: tCol.slice(0, V * V * 3), trees: trees.map(t => ({ x: t.x, z: t.z, s: t.s, bare: t.bare })), wrap });
+  }
+  const stageAt = (x, z) => { for (const st of STG) { const d = Math.hypot(x - st.cx, z - st.cz); if (d < PATCH) return [st, d]; } return null; };
+  const stSample = (st, x, z) => {   // the stage's own height (scaled) and colour under an overview point
+    const sx = clamp((x - st.cx) / st.k + st.SIZE / 2, 0, st.SIZE), sz = clamp((z - st.cz) / st.k + st.SIZE / 2, 0, st.SIZE), i = Math.floor(sx), j = Math.floor(sz), fx = sx - i, fz = sz - j;
+    const at = (a, b) => st.H[Math.min(b, st.V - 1) * st.V + Math.min(a, st.V - 1)];
+    const h = lerp(lerp(at(i, j), at(i + 1, j), fx), lerp(at(i, j + 1), at(i + 1, j + 1), fx), fz) * st.k, n = (Math.min(Math.round(sz), st.V - 1) * st.V + Math.min(Math.round(sx), st.V - 1)) * 3;
+    return [h, st.C[n], st.C[n + 1], st.C[n + 2]];
+  };
   // ---------- ground: heights and colours by land
   const NX = 201, NZ = Math.round(D) + 1, Hh = new Float32Array(NX * NZ), Cc = new Float32Array(NX * NZ * 3);
   const col = new THREE.Color(), tmp = new THREE.Color();
@@ -36,7 +61,6 @@
     if (wM > .4 && fbm(px * .07 + 3, py * .07 + 8) > .47) h = lerp(h, -.6, sstep(.47, .53, fbm(px * .07 + 3, py * .07 + 8)) * sstep(.4, .7, wM));   // marsh pools
     h = lerp(-.4, h, sstep(0, 14, cd));                                      // down to the beach
     // each stop's ground made level for its little town
-    const sd = stopD(px, py); if (sd < 40) { const lv = 1.8 + .6 * fbm(px * .01, py * .01) + north * 4; h = lerp(lv, h, sstep(22, 40, sd)); }
     const rd = rivD(px, py); h = lerp(-1.2, h, sstep(5, 13, rd));
     return h;
   };
@@ -50,7 +74,10 @@
     const cd = coastD(px, py); if (cd >= 0 && cd < 12 && h < 1.5) col.lerp(BEACH, .8);
     if (h < .2 && cd >= 0) col.lerp(BED, .6);
     if (h > 12) col.lerp(SNOW, sstep(12, 15.5, h) * .9);
-    tmp.copy(col); Cc.set([tmp.r, tmp.g, tmp.b], k * 3);
+    tmp.copy(col);
+    const sp = stageAt(i, j);
+    if (sp) { const [st, d] = sp, w = 1 - sstep(PATCH * .72, PATCH, d), [sh, r, gg, b] = stSample(st, i, j); Hh[k] = lerp(Hh[k], sh, w); tmp.r = lerp(tmp.r, r, w); tmp.g = lerp(tmp.g, gg, w); tmp.b = lerp(tmp.b, b, w); }
+    Cc.set([tmp.r, tmp.g, tmp.b], k * 3);
   }
   const g = new THREE.BufferGeometry(), pos = new Float32Array(NX * NZ * 3), idxs = [];
   for (let j = 0; j < NZ; j++) for (let i = 0; i < NX; i++) { const k = j * NX + i; pos[k * 3] = i; pos[k * 3 + 1] = Hh[k]; pos[k * 3 + 2] = j; }
@@ -70,7 +97,7 @@
   const T = [];
   for (let z = 1; z < D - 1; z += 1.25) for (let x = 1; x < W - 1; x += 1.25) {
     const jx = x + (hash(x * 3.1, z * 1.7) - .5) * 1.1, jz = z + (hash(z * 2.3, x * .9) - .5) * 1.1, [px, py] = toP(jx, jz), h = hAtO(jx, jz);
-    if (h < .4 || coastD(px, py) < 6 || rivD(px, py) < 12 || stopD(px, py) < 34) continue;
+    if (h < .4 || coastD(px, py) < 6 || rivD(px, py) < 12 || stageAt(jx, jz)) continue;
     const wF = landW('woods', px, py, .45, 1.25), wD = landW('desert', px, py, .3, 1.2), wS = landW('dry', px, py, .45, 1.1), wP = landW('plains', px, py, .4, 1.1), wH = landW('high', px, py, .4, 1.15), wM = landW('marsh', px, py, .3, 1.1);
     const north = sstep(330, 230, py), mount = sstep(250, 130, py);
     const meadow = (fbm(px * .011, py * .011) - .5) * 1.6 + .1;
@@ -80,6 +107,10 @@
     if (dead) dens = .06;
     if (hash(jx * .7, jz * 1.3) > dens) continue;
     T.push({ x: jx, z: jz, y: h, s: .7 + hash(jz, jx) * .5, dead, dark: wF > .5 || hash(jx, jz * 3) < .45, pine: mount > .3 });
+  }
+  for (const st of STG) for (const t of st.trees) {
+    const x = st.cx + (t.x - st.SIZE / 2) * st.k, z = st.cz + (t.z - st.SIZE / 2) * st.k; if (Math.hypot(x - st.cx, z - st.cz) > PATCH * .95) continue;
+    T.push({ x, z, y: stSample(st, x, z)[0], s: t.s * st.k, dead: t.bare, dark: hash(x, z * 3) < .45, pine: false });
   }
   const tr = new THREE.InstancedMesh(trunkGeo, trunks.material, T.length), cr = new THREE.InstancedMesh(crownGeo, new THREE.MeshStandardMaterial({ color: '#ffffff', flatShading: true }), T.length);
   tr.castShadow = cr.castShadow = true; cr.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(T.length * 3), 3);
@@ -95,7 +126,7 @@
   const RK = [];
   for (let n = 0; n < 2400; n++) {
     const x = 2 + hash(n, 61) * (W - 4), z = 2 + hash(n, 62) * (D - 4), [px, py] = toP(x, z), h = hAtO(x, z);
-    if (h < .5 || stopD(px, py) < 30 || rivD(px, py) < 10) continue;
+    if (h < .5 || stageAt(x, z) || rivD(px, py) < 10) continue;
     const w = landW('high', px, py, .3, 1.05) * .5 + sstep(330, 240, py) * .25 + landW('desert', px, py, .5, 1.2) * .06;
     if (hash(n, 63) > w * .5) continue;
     RK.push([x, h, z, .5 + hash(n, 64) * .7]);
@@ -103,29 +134,7 @@
   const rk = new THREE.InstancedMesh(rockGeo, rockMat, RK.length); rk.castShadow = rk.receiveShadow = true;
   RK.forEach(([x, y, z, s], n) => { dm.position.set(x, y + .1, z); dm.rotation.set(s * 3, s * 7, s * 5); dm.scale.setScalar(s); dm.updateMatrix(); rk.setMatrixAt(n, dm.matrix); });
   sc.add(rk);
-  // ---------- each stop's little town: the game's own buildings, by what the stage brings in; the two bosses' forts darkened
-  const town = (i, list, dark) => {
-    const [x, z] = toW(...P[i]), grp = new THREE.Group();
-    for (const [type, tier, dx, dz, ry = 0, k = 1] of list) {
-      const m = type === 'cross' ? makeMarketCross() : makeModel(type, tier, true, type === 'wall' ? dx > 0 ? 8 : 2 : 0, 0);
-      m.scale.setScalar(k); m.rotation.y = ry; m.position.set(x + dx, hAtO(x + dx, z + dz), z + dz); grp.add(m);
-    }
-    if (dark) darkFort(grp);
-    grp.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
-    sc.add(grp);
-  };
-  town(0, [['castle', 1, 0, 0], ['house', 1, -5, 3, .4], ['house', 1, 4.5, 3.5, -.3], ['farm', 1, 5, -3.5]]);
-  town(1, [['castle', 1, 0, 0], ['barracks', 1, -5.5, 1, .5], ['wall', 1, 3.5, -4.5], ['wall', 1, 5.5, -4.5], ['gate', 1, 4.5, 4.5]]);
-  town(2, [['castle', 1, 0, 0], ['market', 1, 5.5, 1, -.4], ['cross', 1, -4.5, -3.5], ['house', 1, -5, 3], ['house', 1, 2, 5.5]]);
-  town(3, [['castle', 2, 0, 0], ['ballista', 1, 5, -3], ['campfire', 1, 4.5, 2], ['tower', 1, -5, -2]]);
-  town(4, [['castle', 2, 0, 0], ['forester', 1, -5.5, 2], ['well', 1, 4.5, 3], ['house', 2, 5, -3]]);
-  town(5, [['castle', 2, 0, 0], ['crossbow', 2, 5, -3], ['butts', 1, -5, 3], ['house', 2, 4.5, 4]]);
-  town(6, [['castle', 2, 0, 0], ['mine', 1, 6, -2, -.5], ['banner', 1, -4.5, 3], ['lodge', 2, -6, -3]]);
-  town(7, [['castle', 3, 0, 0], ['catapult', 2, 5.5, -3], ['stores', 1, -4.5, 3.5], ['wall', 3, -4, -5], ['wall', 3, -2, -5]]);
-  town(8, [['castle', 3, 0, 0], ['farmhouse', 2, -6, 1, .5], ['house', 3, 5, 3]]);
-  town(9, [['castle', 3, 0, 0], ['stables', 2, 6, 0, -.6], ['house', 3, -5, 3]]);
-  town(10, [['castle', 2, 0, 0, 0, 1.25], ['tower', 1, -6, -5], ['tower', 1, 6, -5], ['tower', 1, -6, 5], ['tower', 1, 6, 5], ['wall', 1, -2, 6.2], ['wall', 1, 2, 6.2], ['gate', 1, 0, 6.2], ['campfire', 1, 4, 1]], true);
-  town(11, [['castle', 3, 0, 0, 0, 1.45], ['tower', 3, -6.5, -5], ['tower', 3, 6.5, -5], ['tower', 3, -6.5, 5], ['tower', 3, 6.5, 5], ['wall', 3, -2, 6.5], ['wall', 3, 2, 6.5], ['gate', 3, 0, 6.5]], true);
+  for (const st of STG) { st.wrap.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); sc.add(st.wrap); }
   // ---------- straight down, the whole land
   const cam = new THREE.OrthographicCamera(0, W, 0, -D, 1, 400); cam.position.set(0, 200, 0); cam.up.set(0, 0, -1); cam.lookAt(0, 0, 0);
   // looking down -y with up = -z: screen right is +x, screen down is +z; the frustum spans x 0..W, z 0..D

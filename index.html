@@ -152,7 +152,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .campSheet{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(720px,100%);max-height:100%}
 #campMap{width:100%;flex:1 1 auto;min-height:0;display:flex;justify-content:center}
 #campMap svg{width:100%;height:auto;max-height:calc(100dvh - 190px);border-radius:10px;border:1px solid #4a4838}
-#campMap .mk{cursor:pointer} #campMap .mk.sel circle.ring{stroke:#fff}
+#campMap .mk{cursor:pointer} #campMap .mk.sel circle.ring{stroke:#fff;stroke-width:3;stroke-dasharray:6 4}
 #campInfo{width:100%;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 #campMap svg{max-height:calc(100dvh - 120px)!important}
 #stagePrev{background:rgba(12,13,9,.94);z-index:62}
@@ -6728,7 +6728,9 @@ function campaignSVG() {
   const marks = CAMPAIGN.map((c, i) => { const [x, y] = c.at, col = c.boss ? '#e2715b' : '#e3b341', R = 46;
     const badge = `<g transform="translate(${R * .72} ${-R * .72})"><circle r="15" fill="${c.boss ? '#6b2a24' : '#2a2b22'}" stroke="${col}" stroke-width="2.5"/>` +
       (c.boss ? `<path d="M-6 -4 L6 7 M6 -4 L-6 7" stroke="#f3d5c8" stroke-width="2.6" stroke-linecap="round"/>` : `<text y="6" text-anchor="middle" font-size="17" font-family="Georgia,serif" fill="#f2e6c4">${i + 1}</text>`) + `</g>`;
-    return `<g class="mk" data-i="${i}" transform="translate(${x} ${y * CAMP_CY})"><circle r="${R}" fill="#000" fill-opacity=".001"/><circle class="ring" r="${R}" fill="none" stroke="${col}" stroke-width="3.5" stroke-dasharray="6 4"/>${badge}` +
+    // a red cross on the spot (Jack), over the stage's own ground; an invisible disc keeps the tap target big
+    return `<g class="mk" data-i="${i}" transform="translate(${x} ${y * CAMP_CY})"><circle r="${R}" fill="#000" fill-opacity=".001"/><circle class="ring" r="${R}" fill="none" stroke="#fff" stroke-width="0"/>` +
+      `<path d="M-13 -13 L13 13 M13 -13 L-13 13" stroke="#1a1a14" stroke-width="11" stroke-linecap="round"/><path d="M-13 -13 L13 13 M13 -13 L-13 13" stroke="#d8342a" stroke-width="6.5" stroke-linecap="round"/>${badge}` +
       `<text y="${R + 28}" text-anchor="middle" font-size="25" font-family="Georgia,serif" fill="#f2e6c4" stroke="#1a1a14" stroke-width="5" paint-order="stroke">${c.name}</text></g>`; }).join('');
   return `<svg viewBox="0 0 800 ${900 * CAMP_CY}" xmlns="http://www.w3.org/2000/svg">
     <rect width="800" height="${900 * CAMP_CY}" fill="#3e6e86"/>
