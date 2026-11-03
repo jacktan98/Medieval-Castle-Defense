@@ -1098,17 +1098,25 @@ function plainsHeight(x, z) {
 const inPoly = (P, x, z) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > z) !== (P[j][1] > z) && x < (P[j][0] - P[i][0]) * (z - P[i][1]) / (P[j][1] - P[i][1]) + P[i][0]) c = !c; return c; };
 // Raider Keep (stage 11, an 80 m map): the raiders' keep on a rocky rise at the top behind a dry ditch (open at the gate), two roads
 // from its gate through a burned village and dead woods to the town at the bottom; reddish ground in the north, scorched in the middle
-const KEEP_POLY = [[30, 11], [40, 7], [50, 11], [52, 20], [40, 24], [28, 20]], KEEP_GATE = [40, 24];
-const KEEP_DITCH = smoothPts([[21, 23], [30, 28], [40, 29.5], [50, 28], [59, 23]]);
-const KEEP_ROADS = [smoothPts([[40, 25.5], [39, 33], [33, 40], [30, 47], [33, 54], [38, 59], [40, 62]]), smoothPts([[40, 25.5], [45, 33], [52, 38], [56, 47], [52, 54], [46, 59], [42, 62]])];
-const KEEP_RUINS = [[25, 40], [28, 37], [56, 38], [60, 41], [42, 42], [45, 45]];
+// the keep's front is a straight edge with a gate three cells wide (x 38-44, Jack), its middle cell on the road
+const KEEP_POLY = [[31, 11], [41, 7], [51, 11], [53, 20], [45.5, 24], [36.5, 24], [29, 20]], KEEP_GATE = [41, 24], KEEP_GATE_W = 6;
+const KEEP_DITCH = smoothPts([[22, 23], [31, 28], [41, 29.5], [51, 28], [60, 23]]);
+const KEEP_ROADS = [smoothPts([[41, 25.5], [39, 33], [33, 40], [30, 47], [33, 54], [38, 59], [40, 62]]), smoothPts([[41, 25.5], [45, 33], [52, 38], [56, 47], [52, 54], [46, 59], [42, 62]])];
+// the burned village: ruined watchtowers like Watchhill's, burnt, a few still on fire (fire: 1)
+const KEEP_RUINS = [[25, 40, 1], [28, 36.5], [56, 38, 1], [60, 42], [42.5, 42.5, 1], [46, 46]];
+// the raiders' camps either side of the keep (Jack): a campfire, torches, a banner and a target range, raiders resting by the fire,
+// horsemen and a foot patrol on loops round the camp; the right camp mirrors the left round the keep's middle (x 41)
+const KEEP_CAMPS = [0, 1].map(side => { const X = x => side ? 82 - x : x, P = pts => pts.map(([x, z]) => [X(x), z]);
+  return { fire: [X(17), 16.5], props: [['torch', X(13.5), 13], ['torch', X(20.5), 13], ['torch', X(13.5), 20.5], ['banner', X(17), 12.5], ['butts', X(21.5), 18.5]],
+    rest: [['spear', 2, X(15.6), 17.8], ['archer', 2, X(18.4), 17.9], ['sword', 3, X(17.2), 15.1], ['spear', 3, X(19.2), 20.6]],
+    patrol: [['lancer', 2, P([[10.5, 10.5], [22, 10], [24, 19.5], [11, 22]])], ['rider', 3, P([[24, 19.5], [11, 22], [10.5, 10.5], [22, 10]])], ['sword', 2, P([[13, 14.5], [21.5, 14.5], [21.5, 21], [13, 21]])]] }; });
 const KEEP_RED = new THREE.Color('#7d4d3c'), KEEP_ASH = new THREE.Color('#6b5d45');
 function keepHeight(x, z) {
   let h = 2.2 + 1.4 * fbm(x * .05, z * .05);
-  h += 4.2 * (1 - sstep(.45, 1.15, blobD(x, z, [40, 15, 19, 12], 3)));
+  h += 4.2 * (1 - sstep(.45, 1.15, blobD(x, z, [41, 15, 19, 12], 3)));
   if (inPoly(KEEP_POLY, x, z)) h = 6.4 + .1 * fbm(x * .3, z * .3);   // the keep's yard, flat
   h = lerp(3 + (h - 3) * .35, h, sstep(6, 11, Math.hypot(x - KX, z - KZ)));
-  const dd = polyDist(KEEP_DITCH, x, z), gap = sstep(2.2, 3.4, Math.abs(x - KEEP_GATE[0]));
+  const dd = polyDist(KEEP_DITCH, x, z), gap = sstep(3.4, 4.6, Math.abs(x - KEEP_GATE[0]));
   return h - 1.7 * (1 - sstep(.8, 2, dd)) * gap;
 }
 // Warlord's Hold (stage 12, final boss, 80 m): snowy mountains round the north and both sides, the hold on a crag at the top, a river
@@ -1150,7 +1158,9 @@ const HOLD_CAMPS = [
   { fire: [46.5, 22.5], rest: [['rider', 3, 45.2, 21.2], ['rider', 3, 47.8, 23.8]],
     patrol: [['rider', 3, [[37.5, 21.5], [43, 21.5], [43, 28], [37.5, 28]]], ['rider', 3, [[43, 28], [37.5, 28], [37.5, 21.5], [43, 21.5]]], ['rider', 3, [[44.8, 19.6], [50, 19.6], [50, 27.2], [44.8, 27.2]]]] }];
 const HOLD_TOWERS = [[20, 31], [60, 31]];
-const sceneryAt = (x, z) => MAP === 'hold' && (HOLD_CAMPS.some(c => Math.hypot(x - c.fire[0], z - c.fire[1]) < .9) || HOLD_TOWERS.some(([a, b]) => Math.hypot(x - a, z - b) < 1.2)) ? true : MAP === 'keep' ? inPoly(KEEP_POLY, x, z) || KEEP_RUINS.some(([a, b]) => Math.hypot(x - a, z - b) < 1.3) : MAP === 'hold' ? inPoly(HOLD_POLY, x, z) : false;
+const bossCamps = () => MAP === 'hold' ? HOLD_CAMPS : MAP === 'keep' ? KEEP_CAMPS : [];
+const campProp = (x, z) => bossCamps().some(c => Math.hypot(x - c.fire[0], z - c.fire[1]) < .9 || (c.props || []).some(([, a, b]) => Math.hypot(x - a, z - b) < .8));
+const sceneryAt = (x, z) => (MAP === 'hold' || MAP === 'keep') && campProp(x, z) ? true : MAP === 'hold' && HOLD_TOWERS.some(([a, b]) => Math.hypot(x - a, z - b) < 1.2) ? true : MAP === 'keep' ? inPoly(KEEP_POLY, x, z) || KEEP_RUINS.some(([a, b]) => Math.hypot(x - a, z - b) < 1.7) : MAP === 'hold' ? inPoly(HOLD_POLY, x, z) : false;
 // the maps with ground nobody may walk or build on (Mountain pass's mountains, Greenvale's hills)
 const mapOpen = (x, z) => MAP === 'pass' ? passOpen(x, z) : MAP === 'vale' ? valeOpen(x, z) : MAP === 'hold' ? holdOpen(x, z) : true;
 function genHeight(x, z) {
@@ -1691,7 +1701,7 @@ function genTrees() {
       const roads = MAP === 'keep' ? KEEP_ROADS : HOLD_ROADS;
       if (roads.some(p => polyDist(p, x, z) < 2.6)) continue;
       if (MAP === 'keep') {
-        if (polyDist(KEEP_DITCH, x, z) < 3 || inPoly(KEEP_POLY, x, z) || KEEP_RUINS.some(([a, b]) => Math.hypot(x - a, z - b) < 3)) continue;
+        if (polyDist(KEEP_DITCH, x, z) < 3 || inPoly(KEEP_POLY, x, z) || KEEP_RUINS.some(([a, b]) => Math.hypot(x - a, z - b) < 3) || KEEP_CAMPS.some(c => Math.hypot(x - c.fire[0], z - c.fire[1]) < 9)) continue;
         if (z > 28 && z < 56 && hash(x * 1.9, z * 2.3) < .07) { trees.push({ x, z, s: .7 + hash(z, x) * .4, k: 1, bare: true, deco: true }); continue; }
         const wood = [[9, 70, 6, 5], [71, 70, 6, 5]].some(([cx, cz, rx, rz]) => Math.hypot((x - cx) / rx, (z - cz) / rz) < 1) && hash(x * 1.3, z * .7) < .65;
         if (wood || (z > 56 && hash(x * 2.1, z * 1.7) < .02)) trees.push({ x, z, s: .75 + hash(z, x) * .45, k: 1 });
@@ -1850,11 +1860,11 @@ function genRocks() {
   const addRock = (x, z, s0, rot) => { const mesh = new THREE.Mesh(rockGeo, rockMat); mesh.castShadow = mesh.receiveShadow = true; mesh.rotation.set(...rot); rocks.push({ x, z, amount: ROCK_STONE, s0, mesh }); scene.add(mesh); };
   if (MAP === 'crag') return;   // Ironcrag: no loose stone at all, mine it
   if (MAP === 'keep' || MAP === 'hold') {   // plenty of stone: the keep's rise and the mountains' feet
-    const groups = MAP === 'keep' ? [[17, 17, 6, 5], [64, 17, 6, 5], [14, 52, 3, 3], [68, 54, 3, 3], [30, 30, 3, 3]] : [[12, 45, 4, 3.5], [69, 45, 4, 3.5], [26, 21, 3, 3], [54, 21, 3, 3], [33, 50, 2, 2.5]];
+    const groups = MAP === 'keep' ? [[7, 27, 6, 4], [75, 27, 6, 4], [14, 52, 3, 3], [68, 54, 3, 3], [30, 30, 3, 3]] : [[12, 45, 4, 3.5], [69, 45, 4, 3.5], [26, 21, 3, 3], [54, 21, 3, 3], [33, 50, 2, 2.5]];
     for (const [cx, cz, want, sp] of groups) for (let n = 0, k = 0; n < 400 && k < want; n++) {
       const x = cx + (Math.random() - .5) * 2 * sp, z = cz + (Math.random() - .5) * 2 * sp, roads = MAP === 'keep' ? KEEP_ROADS : HOLD_ROADS;
       if (!mapOpen(x, z) || sceneryAt(x, z) || hAt(x, z) < .8 || Math.hypot(x - KX, z - KZ) < 7 || roads.some(p => polyDist(p, x, z) < 2) || rocks.some(r => Math.hypot(r.x - x, r.z - z) < 2)) continue;
-      if (MAP === 'keep' && polyDist(KEEP_DITCH, x, z) < 2.5) continue;
+      if (MAP === 'keep' && (polyDist(KEEP_DITCH, x, z) < 2.5 || KEEP_CAMPS.some(c => Math.hypot(x - c.fire[0], z - c.fire[1]) < 8.5))) continue;
       addRock(x, z, .75 + Math.random() * .6, [Math.random() * 3, Math.random() * 3, Math.random() * 3]); k++;
     }
     return;
@@ -3416,6 +3426,7 @@ function updateLamps(dt, now) {
       else if (B.type === 'tower' && B.manned && B.manned.some(Boolean)) lampSpots.push({ x: c.x, y: y + DEF.tower.shootY[B.tier - 1] + .6, z: c.z, k: .8 });
       else if (B.type === 'house' && B.tier > 1) lampSpots.push({ x: c.x, y: y + 1, z: B.ev.z1 + .3, k: .5 });
     }
+    if (dark > .05) for (const F of sceneFires) lampSpots.push({ x: F.x, y: F.y + .4, z: F.z, k: F.k });
     lampSpots.sort((a, b) => Math.hypot(a.x - target.x, a.z - target.z) - Math.hypot(b.x - target.x, b.z - target.z));
   }
   LAMPS.forEach((l, n) => {
@@ -3476,6 +3487,19 @@ const puffs = [];
 const CHIMNEY = { house: [null, [.45, 1.72, -.25], [.45, 2.45, -.3]], lodge: [null, null, [1.05, 3.05, -.45]] };
 const emberTex = smokeTex;
 function emitSmoke(dt) {
+  for (const F of sceneFires) {   // the scenery's fires: embers, and dark smoke off a burning ruin
+    if ((F.emberT = (F.emberT || Math.random()) - dt) <= 0 && puffs.length < 140) {
+      F.emberT = (.15 + Math.random() * .35) / (F.smoke ? 1.5 : 1);
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: emberTex, color: '#ffa040', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
+      sp.position.set(F.x + (Math.random() - .5) * .3, F.y, F.z + (Math.random() - .5) * .3); sp.scale.setScalar(.08);
+      scene.add(sp); puffs.push({ sp, t: 0, life: .8 + Math.random() * .9, dx: (Math.random() - .5) * .35, ember: true });
+    }
+    if (F.smoke && (F.smokeT = (F.smokeT || Math.random()) - dt) <= 0 && puffs.length < 140) {
+      F.smokeT = .35 + Math.random() * .4;
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: smokeTex, color: '#3b3632', transparent: true, depthWrite: false, opacity: 0 }));
+      sp.position.set(F.x, F.y + .5, F.z); sp.scale.setScalar(.5); scene.add(sp); puffs.push({ sp, t: 0, life: 3.5 + Math.random() * 1.5, dx: (Math.random() - .5) * .3 });
+    }
+  }
   for (const B of buildings) {
     if ((B.type === 'torch' || B.type === 'campfire') && B.built && (B.emberT = (B.emberT || Math.random()) - dt) <= 0 && puffs.length < 140) {   // embers lift off the fire
       B.emberT = .15 + Math.random() * .35; const fy = B.type === 'torch' ? 2.25 : .45;
@@ -4930,7 +4954,7 @@ function edgePoint() {
     const r = Math.random(), W = PH.wave;
     const side = MAP === 'keep' ? (r < .4 ? 'kl' : r < .8 ? 'kr' : 'g') : (W >= 4 && r < .25 ? 'e' : W >= 3 && r < .5 ? 'w' : 'g');   // the keep: round its west and east sides (Jack), a few out of the gate
     const G = MAP === 'keep' ? KEEP_GATE : HOLD_GATE;
-    const pick = side === 'kl' ? () => [12 + Math.random() * 4, 14 + Math.random() * 6] : side === 'kr' ? () => [64 + Math.random() * 4, 14 + Math.random() * 6] : side === 'w' ? () => [1.2, 24 + Math.random() * 2.5] : side === 'e' ? () => [SIZE - 1.2, 24 + Math.random() * 2.5] : () => [G[0] - 1.5 + Math.random() * 3, G[1] + 2 + Math.random() * 1.5];
+    const pick = side === 'kl' ? () => [2.5 + Math.random() * 4, 12 + Math.random() * 8] : side === 'kr' ? () => [SIZE - 6.5 + Math.random() * 4, 12 + Math.random() * 8] : side === 'w' ? () => [1.2, 24 + Math.random() * 2.5] : side === 'e' ? () => [SIZE - 1.2, 24 + Math.random() * 2.5] : () => [G[0] - (MAP === 'keep' ? 2.5 : 1.5) + Math.random() * (MAP === 'keep' ? 5 : 3), G[1] + 2 + Math.random() * 1.5];
     for (const needRoute of [true, false]) for (let n = 0; n < 60; n++) {
       const [x, z] = pick();
       if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return { x, z };
@@ -6806,16 +6830,40 @@ function crossTown() {
 }
 // the old ruined watchtower on Watch hill: a broken ring of stone, fallen blocks round it (scenery: nothing is built or stood on it)
 let ruinMesh = null;
+// fires burning in the scenery (the ruins, the raiders' camps): embers, a night light and the fire's sound like a built torch's
+let sceneFires = [];
+// a ruined watchtower (Jack liked Watchhill's): a broken ring of stone, fallen blocks round it; burnt: the stone scorched, soot on the
+// broken tops, charred beams fallen in, ash; on fire: flames licking up inside and off a beam. Its local frame; seed varies the ring
+let burntStoneM = null;
+function makeRuin(seed = 0, fire = false) {
+  if (!burntStoneM) { burntStoneM = M.stone2.clone(); burntStoneM.onBeforeCompile = M.stone2.onBeforeCompile; if (M.stone2.customProgramCacheKey) burntStoneM.customProgramCacheKey = M.stone2.customProgramCacheKey; burntStoneM.color.multiplyScalar(.3); }
+  const g = new THREE.Group(), H = [1.9, 1.5, 1.1, .5, .3, .7, 1.3, 2.4, 2.1, 1.6, .4, .9], fires = [];
+  g.add(box(2.3, .3, 2.3, burntStoneM, 0, .05, 0));
+  g.add(cyl(.85, .9, .04, 12, M.dark, 0, .21, 0));   // ash on the floor inside
+  for (let i = 0; i < 12; i++) {
+    const a = i / 12 * Math.PI * 2, h = H[(i + seed * 5) % 12] * (.85 + hash(i, seed) * .3);
+    const b = box(.62, h, .32, burntStoneM, Math.cos(a) * .95, .2 + h / 2, Math.sin(a) * .95); b.rotation.y = -a + Math.PI / 2; g.add(b);
+    const soot = box(.64, .14, .34, charM, Math.cos(a) * .95, .2 + h - .06, Math.sin(a) * .95); soot.rotation.y = b.rotation.y; g.add(soot);
+  }
+  for (let i = 0; i < 7; i++) { const a = 2 + i * .9 + seed, d = 1.5 + (i % 3) * .35, b = box(.34, .24, .3, burntStoneM, Math.cos(a) * d, .1, Math.sin(a) * d); b.rotation.set(i * .4, i * 1.1, i * .25); g.add(b); }
+  // charred beams fallen in from the floors that burned, one leaning on the wall
+  for (const [x, z, ry, rz, L] of [[.1, -.15, .4 + seed, .5, 1.7], [-.2, .25, 1.9 + seed, -.25, 1.4], [.55, .55, 2.6 + seed, .9, 1.5]]) { const b = box(L, .16, .16, charM, x, .5, z); b.rotation.set(0, ry, rz); g.add(b); }
+  if (fire) for (const [x, z, k] of [[-.15, .05, 1.5], [.45, -.35, 1], [.5, .5, .75]]) {   // flames inside the ring, burning low on the rubble
+    for (const [m, dx, dz, h, r] of [[M.flame, 0, 0, .9, .3], [M.flame, .16, .1, .55, .16], [M.flame, -.15, -.1, .65, .17], [M.flameMid, 0, 0, .62, .21], [M.flameCore, 0, 0, .34, .12]]) {
+      const f = new THREE.Mesh(FLAME_GEO, m); f.scale.set(r * k, h * k, r * k); f.position.set(x + dx * k, .25 + h * k / 2, z + dz * k); f.renderOrder = m === M.flame ? 1 : m === M.flameMid ? 2 : 3; f.userData.noShadow = true; g.add(f);
+    }
+    fires.push([x, z, k]);
+  }
+  g.traverse(o => { if (o.isMesh && !o.userData.noShadow) o.castShadow = o.receiveShadow = true; });
+  g.userData.fires = fires;
+  return g;
+}
+// add a ruin's fires to the scenery's fires, in world space
+function ruinFires(g) { for (const [x, z, k] of g.userData.fires) { const p = new THREE.Vector3(x, .25 + .5 * k, z); g.localToWorld(p); sceneFires.push({ x: p.x, y: p.y, z: p.z, k: .9 * k + .3, smoke: true }); } }
 function placeRuin() {
   if (ruinMesh) scene.remove(ruinMesh);
-  const g = new THREE.Group(), [x, z] = WATCH_RUIN;
-  g.add(box(2.3, .3, 2.3, M.plainStone, 0, .05, 0));
-  for (let i = 0; i < 12; i++) {
-    const a = i / 12 * Math.PI * 2, h = [1.9, 1.5, 1.1, .5, .3, .7, 1.3, 2.4, 2.1, 1.6, .4, .9][i];
-    const b = box(.62, h, .32, M.stone2, Math.cos(a) * .95, .2 + h / 2, Math.sin(a) * .95); b.rotation.y = -a + Math.PI / 2; g.add(b);
-  }
-  for (let i = 0; i < 7; i++) { const a = 2 + i * .9, d = 1.5 + (i % 3) * .35, b = box(.34, .24, .3, M.stone2, Math.cos(a) * d, .1, Math.sin(a) * d); b.rotation.set(i * .4, i * 1.1, i * .25); g.add(b); }
-  g.position.set(x, hAt(x, z) - .1, z); scene.add(g); ruinMesh = g;
+  const [x, z] = WATCH_RUIN, g = makeRuin(0, true);
+  g.position.set(x, hAt(x, z) - .1, z); scene.add(g); ruinMesh = g; g.updateMatrixWorld(true); ruinFires(g);
 }
 // the boss stages' scenery: the raiders' keep (a dark log palisade round its yard, a stone-and-timber tower with a hall beside it, a
 // gate facing the town, red flags, the burned village's blackened ruins) and the Warlord's hold (curtain walls with merlons, four
@@ -6843,23 +6891,23 @@ function darkFort(g) {
 function along(g, ax, az, bx, bz, w, h, m, y) { const L = Math.hypot(bx - ax, bz - az), o = box(L, h, w, m, (ax + bx) / 2, y + h / 2, (az + bz) / 2); o.rotation.y = -Math.atan2(bz - az, bx - ax); g.add(o); return o; }
 function placeModel(g, type, tier, x, z, k = 1, ry = 0, mask = 0) { const m = makeModel(type, tier, true, mask, 0); m.scale.setScalar(k); m.rotation.y = ry; m.position.set(x, hAt(x, z), z); g.add(m); return m; }
 function buildRaiderKeep(g) {
-  const P = KEEP_POLY, [gx, gz] = KEEP_GATE, cx = 40, cz = 15.5, Y = (x, z) => hAt(x, z);
+  const P = KEEP_POLY, [gx, gz] = KEEP_GATE, cx = 41, cz = 15.5, Y = (x, z) => hAt(x, z), GW = KEEP_GATE_W / 2;
   for (let i = 0; i < P.length; i++) {
     const [ax, az] = P[i], [bx, bz] = P[(i + 1) % P.length], L = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / L, uz = (bz - az) / L;
     let nx = -uz, nz = ux; if ((cx - ax) * nx + (cz - az) * nz < 0) { nx = -nx; nz = -nz; }   // inward
     for (let t = .2; t < L; t += .4) {   // sharpened logs, a little uneven, like the town's palisade
-      const x = ax + ux * t, z = az + uz * t; if (Math.hypot(x - gx, z - gz) < 2.2 || Math.hypot(x - ax, z - az) < .9) continue;
+      const x = ax + ux * t, z = az + uz * t; if ((Math.abs(x - gx) < GW + .1 && Math.abs(z - gz) < .5) || Math.hypot(x - ax, z - az) < .9) continue;
       const h = 2.5 + hash(x * 3, z * 5) * .45, y = Y(x, z);
       g.add(cyl(.19, .21, h, 7, M.log, x, y + h / 2 - .4, z)); g.add(cone(.19, .34, 7, M.log, x, y + h - .23, z));
     }
     for (const hy of [.85, 1.75]) along(g, ax + nx * .26, az + nz * .26, bx + nx * .26, bz + nz * .26, .1, .12, M.timber, Y(ax, az) + hy);   // rails inside
     along(g, ax + nx * .75, az + nz * .75, bx + nx * .75, bz + nz * .75, .7, .07, M.wood, Y(ax, az) + 1.55);                                 // the wall-walk
     for (let t = 1; t < L - .5; t += 2) g.add(box(.12, 1.55, .12, M.timber, ax + ux * t + nx * 1, Y(ax, az) + .75, az + uz * t + nz * 1));
-    if (i !== 4) placeModel(g, 'tower', 1, ax + nx * .3, az + nz * .3, 1.2, -Math.atan2(cz - az, cx - ax) + Math.PI / 2);   // a lookout at each corner
+    if (i !== 4 && i !== 5) placeModel(g, 'tower', 1, ax + nx * .3, az + nz * .3, 1.2, -Math.atan2(cz - az, cx - ax) + Math.PI / 2);   // a lookout at each corner
   }
-  // the gate: the town's timber gate, big, flanked by two lookouts
-  placeModel(g, 'gate', 1, gx, gz, 1.5, 0, 10);
-  for (const sx of [-1, 1]) placeModel(g, 'tower', 1, gx + sx * 2.3, gz - .3, 1.15);
+  // the gate: three cells wide (Jack), the town's timber gate stretched across them, flanked by two lookouts
+  { const m = placeModel(g, 'gate', 1, gx, gz, 1, 0, 10); m.scale.set(KEEP_GATE_W / 2, 1.6, 1.4); }
+  for (const sx of [-1, 1]) placeModel(g, 'tower', 1, gx + sx * (GW + 1.25), gz - .3, 1.15);
   // the great tower: masonry below, a jettied timber-framed storey, a shingled pyramid roof with eaves, windows, a door, a flag
   { const y = Y(cx, cz);
     g.add(box(5, 3, 5, M.stone, cx, y + 1.3, cz));
@@ -6872,7 +6920,7 @@ function buildRaiderKeep(g) {
     g.add(pyramid(4.6, 2.8, 1, M.thatch, y + 6.75, cx, cz)); roofFlag(g, cx, y + 8.1, cz, .5);
   }
   // the hall: log courses like the lumber shack's, a shingled gable roof, a door, a stone chimney
-  { const hx = 33.2, hz = 17.4, y = Y(hx, hz), W = 6.4, D = 3.6;
+  { const hx = 34.2, hz = 17.4, y = Y(hx, hz), W = 6.4, D = 3.6;
     for (let c = 0; c < 6; c++) { const yy = y + .2 + c * .34;
       for (const s2 of [-1, 1]) { const a = cyl(.17, .17, W + .3, 7, M.log, hx, yy, hz + s2 * D / 2); a.rotation.z = Math.PI / 2; g.add(a); const b = cyl(.17, .17, D + .3, 7, M.log, hx + s2 * W / 2, yy + .17, hz); b.rotation.x = Math.PI / 2; g.add(b); } }
     g.add(box(W, 2.1, D, M.dark, hx, y + 1.1, hz));
@@ -6881,7 +6929,9 @@ function buildRaiderKeep(g) {
     g.add(box(.7, 3.6, .7, M.stone2, hx - W / 2 + .6, y + 1.8, hz - .5));
   }
   // the yard: the town's weapon rack, campfire and siege stores
-  placeModel(g, 'rack', 1, 45, 19); placeModel(g, 'campfire', 1, 45.5, 14.5); placeModel(g, 'stores', 1, 35.5, 12.5); placeModel(g, 'rack', 1, 47, 17);
+  placeModel(g, 'rack', 1, 46, 19); placeModel(g, 'campfire', 1, 46.5, 14.5); placeModel(g, 'stores', 1, 36.5, 12.5); placeModel(g, 'rack', 1, 48, 17);
+  // the camps either side: a campfire, torches, a banner, a target range
+  for (const c of KEEP_CAMPS) { placeModel(g, 'campfire', 1, c.fire[0], c.fire[1], 1.2); for (const [t, x, z] of c.props) placeModel(g, t, 1, x, z, 1, t === 'butts' ? Math.PI / 2 * (x > 41 ? 1 : -1) : 0); }
 }
 function buildWarlordsHold(g) {
   const P = HOLD_POLY, [gx, gz] = HOLD_GATE, cx = gx, cz = 9.5, Y = (x, z) => hAt(x, z), y0 = Y(cx, cz);
@@ -6933,23 +6983,25 @@ function buildWarlordsHold(g) {
 }
 function placeBossScenery() {
   if (bossMesh) { scene.remove(bossMesh); bossMesh = null; }
+  sceneFires = [];
   if (MAP !== 'keep' && MAP !== 'hold') return;
   const g = new THREE.Group(), Y = (x, z) => hAt(x, z);
   if (MAP === 'keep') buildRaiderKeep(g); else buildWarlordsHold(g);
   darkFort(g);
-  if (MAP === 'keep') for (const [x, z] of KEEP_RUINS) {   // the burned village: blackened stubs of walls and a fallen beam
-    const yy = Y(x, z);
-    for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + .3, h = .5 + hash(x + i, z) * 1.1, w = box(1.7, h, .22, charM, x + Math.cos(a) * .85, yy + h / 2 - .1, z + Math.sin(a) * .85); w.rotation.y = -a + Math.PI / 2; g.add(w); }
-    const bm = box(2, .18, .18, charM, x, yy + .4, z); bm.rotation.set(.3, hash(x, z) * 3, .4); g.add(bm);
-  }
+  if (MAP === 'keep') KEEP_RUINS.forEach(([x, z, fire], i) => {   // the burned village: ruined watchtowers, burnt, some still burning
+    const r = makeRuin(i + 1, !!fire); r.rotation.y = hash(x, z) * 6.3; r.position.set(x, Y(x, z) - .1, z); g.add(r); r.updateMatrixWorld(true); ruinFires(r);
+  });
+  // the camps' campfires and torches burn like the town's
+  for (const c of bossCamps()) { if (!c.banner) sceneFires.push({ x: c.fire[0], y: Y(c.fire[0], c.fire[1]) + .6, z: c.fire[1], k: 1.1 });
+    for (const [t, x, z] of c.props || []) if (t === 'torch') sceneFires.push({ x, y: Y(x, z) + 2.25, z, k: 1, torch: true }); }
+  // the camps' raiders are real raiders, dormant: resting or on patrol until troops come near, they're hurt, or the boss is out on the
+  // last night (Jack); the patrols' corners shift a little each game, so they wander their own way round
+  bossCamps().forEach((c, ci) => {
+    const put = (k, t, x, z, D) => { spawnEnemy(k, { x, z }, 1, t); const e = enemies[enemies.length - 1]; e.x = e.rx = x; e.z = e.rz = z; e.dormant = Object.assign({ camp: ci, u: 0, s: x * 1.3 + z }, D); e.g.rotation.y = D.ry || 0; };
+    for (const [k, t, x, z] of c.rest) put(k, t, x, z, { ry: Math.atan2(c.fire[0] - x, c.fire[1] - z) });
+    for (const [k, t, pts] of c.patrol) { const P = patrolRoute(MAP === 'keep' ? pts.map(([x, z]) => [x + (Math.random() - .5) * 3, z + (Math.random() - .5) * 3]) : pts); put(k, t, P[0][0], P[0][1], { pts: P, i: 1, wait: 0, walk: ENEMY[k].mounted ? 1.3 : .9 }); }
+  });
   if (MAP === 'hold') {
-    // the camps' raiders are real raiders, dormant (holdDormant): resting or on patrol until troops come near, they're hurt, or the
-    // Warlord rides out on the last night (Jack)
-    HOLD_CAMPS.forEach((c, ci) => {
-      const put = (k, t, x, z, D) => { spawnEnemy(k, { x, z }, 1, t); const e = enemies[enemies.length - 1]; e.x = e.rx = x; e.z = e.rz = z; e.dormant = Object.assign({ camp: ci, u: 0, s: x * 1.3 + z }, D); e.g.rotation.y = D.ry || 0; };
-      for (const [k, t, x, z] of c.rest) put(k, t, x, z, { ry: Math.atan2(c.fire[0] - x, c.fire[1] - z) });
-      for (const [k, t, pts] of c.patrol) { const P = patrolRoute(pts); put(k, t, P[0][0], P[0][1], { pts: P, i: 1, wait: 0, walk: k === 'rider' ? 1.3 : .9 }); }
-    });
     // two crew to each trebuchet on the keep's roof: on patrol round the roof, at their engine whenever it has a target
     const fig = (kind, tier, x, z, y) => { const p = makeRaider(kind, tier); p.g.scale.setScalar(UNIT_K); p.g.position.set(x, y, z); p.g.traverse(o => { if (o.isMesh) o.castShadow = true; }); g.add(p.g); return p; };
     const roof = [[36.1, 7.2], [41.9, 7.2], [41.9, 11.8], [36.1, 11.8]];
@@ -7019,7 +7071,7 @@ function dormantStep(e, dt) {
   if (e.hp < e.max || nearestSoldier(e.x, e.z, 7) || last) {
     for (const o of enemies) if (o.dormant && o.dormant.camp === D.camp) { o.dormant = null; o.retarget = 0; o.target = null;
       if (!canStand(o.x, o.z, 2)) { const [x, z] = patrolRoute([[o.x, o.z]])[0]; o.x = x; o.z = z; } }
-    if (last && !campsJoined) { campsJoined = true; log('<b>Raider camps</b> join the Warlord', 'bad'); }
+    if (last && !campsJoined) { campsJoined = true; log(`<b>Raider camps</b> join the ${MAP === 'keep' ? 'Chief' : 'Warlord'}`, 'bad'); }
     return false;
   }
   if (!D.pts) { e.g.rotation.y = D.ry + .14 * Math.sin((D.u += dt) * .23 + D.s); return true; }
@@ -7659,6 +7711,7 @@ function updateAmbience(dt) {
     ambT = .25;
     const zoom = clamp((60 - dist) / 40, .12, 1);
     let df = 1e9; for (const B of buildings) if ((B.type === 'torch' || B.type === 'campfire') && B.built) { const c = center(B); df = Math.min(df, Math.hypot(c.x - target.x, c.z - target.z) * (B.type === 'torch' ? 1.4 : 1)); }
+    for (const F of sceneFires) df = Math.min(df, Math.hypot(F.x - target.x, F.z - target.z) * (F.torch ? 1.4 : 1));
     let dr = 1e9; for (let i = 0; i < shore.length; i += 7) { const p = shore[i]; dr = Math.min(dr, Math.hypot(p[0] - target.x, p[1] - target.z)); }
     // horses moving at a fair pace: mounted raiders and the stables' riders
     let dh = 1e9; const near = u => { dh = Math.min(dh, Math.hypot(u.rx - target.x, u.rz - target.z)); };
