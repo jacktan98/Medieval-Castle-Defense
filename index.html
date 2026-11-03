@@ -324,7 +324,7 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 #newCards .ncIcon{order:2;align-self:center;width:48px;height:48px;border-radius:50%;justify-content:center;align-items:center;border:2px solid rgba(212,168,78,.75);background:radial-gradient(circle at 50% 35%,rgba(110,84,40,.6),rgba(30,23,12,.8));box-shadow:inset 0 1px 0 rgba(255,230,160,.2),0 2px 8px rgba(0,0,0,.5)}
 #newCards .ncIcon svg{width:30px!important;height:30px!important}
 #newCards .ncCost,#newCards .ncStats{font-size:13px!important;justify-content:center;gap:4px 10px;padding:0 8px}
-#newCards .ncCost{order:3} #newCards .ncStats{order:4}
+#newCards .ncCost{order:3} #newCards .ncStats{order:4} #newCards .ncStats:empty{display:none}
 #newCards .ncCost .ico,#newCards .ncCost .ico svg,#newCards .ncStats .ico,#newCards .ncStats .ico svg{width:13px!important;height:13px!important}
 #newCards .ncCost .cost,#newCards .ncStats .stat{gap:4px}
 #newCards button{order:5;align-self:center!important;min-width:96px!important;min-height:32px!important;padding:4px 14px!important;font-size:14px!important;margin-top:1px!important}
@@ -6669,7 +6669,7 @@ function renderNewCard() {
     const k = +t[4] - 1, H = DEF.house, W = DEF.tower;
     $('#ncName').textContent = `Tier ${k + 1}`; $('#ncIcon').innerHTML = UP_ICO;
     $('#ncCost').innerHTML = `<span class="cost"><span class="ico">${UP_ICO}</span>Upgrades</span>`;
-    $('#ncStats').innerHTML = STAT('home', `${H.residents[k - 1]} → ${H.residents[k]}`) + STAT('gold', `+${H.gold[k - 1]} → +${H.gold[k]}`) + STAT('bow', `${W.dmg[k - 1]} → ${W.dmg[k]}`);
+    $('#ncStats').innerHTML = '';   // just "Upgrades" (Jack dropped the house / gold / archer examples)
     return;
   }
   $('#ncName').textContent = t === 'road' ? 'Path' : DEF[t].name; $('#ncIcon').innerHTML = TOOL_ICON[t] || '';
