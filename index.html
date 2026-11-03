@@ -195,6 +195,15 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 /* the title screen shows the showcase town through it: only a vignette, darker behind the title and the cards; the game's own HUD hidden */
 #mapPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse 90% 65% at 50% 50%, rgba(6,7,5,.15) 0%, rgba(6,7,5,.35) 55%, rgba(4,5,3,.85) 100%),linear-gradient(180deg, rgba(6,7,5,.55) 0%, rgba(6,7,5,0) 30%, rgba(6,7,5,0) 70%, rgba(6,7,5,.6) 100%)!important;background-size:cover!important}
 body.showcase #app > :not(#c):not(.modal){visibility:hidden}
+/* the title on a big screen (a laptop): everything scales with the window instead of staying phone-sized in the middle */
+@media (min-width:900px) and (min-height:600px){
+  #mapPick .mapSheet{width:min(1100px,92vw);gap:min(26px,2.6vh)}
+  #mapPick .gameTitle{font-size:clamp(52px,5.2vw,92px)}
+  #mapPick .maps{gap:min(26px,1.8vw)}
+  #mapPick .mapBtn{width:clamp(200px,17vw,320px);padding:14px 14px 16px} #mapPick .mapBtn b{font-size:clamp(19px,1.5vw,26px)} #mapPick .mapBtn .stars{font-size:16px}
+  #mapPick .mapSub{font-size:15px;width:min(460px,50vw)}
+  #mapPick #campBtn{font-size:clamp(19px,1.5vw,25px);padding:12px 34px}
+}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
@@ -7018,16 +7027,31 @@ const SHOWCASE = [   // type, cells from the castle's centre (x, z; the castle's
   ['market', 1, 4, 3], ['tower', -3, -4, 3], ['tower', 3, -4, 2], ['tower', 5, 3, 2], ['farm', -7, -1, 2], ['barracks', 0, -5, 2],
   ['lodge', -6, 4, 2], ['torch', -1, 2, 1], ['torch', 1, 2, 1], ['torch', -3, 5, 1], ['campfire', -1, 6, 1], ['banner', 2, -3, 1],
   ['flowers', -4, 0, 1], ['flowers', 4, 0, 1], ['well', 4, 5, 1], ['statue', -2, -3, 1]];
-function buildShowcase() {
-  const keep = MAP; MAP = 'meadow'; startGame(); MAP = keep;
+// the scenes it moves between (Jack): it opens on the Meadow at dusk, then every SHOW_T seconds fades to another one at random
+// (the pass is ringed by mountains: its camera looks up the pass from the open south and only sways, `swing` rad either way)
+const SHOW_SCENES = [{ map: 'meadow', time: 'dusk' }, { map: 'isle', time: 'day' }, { map: 'pass', time: 'night', yaw: 0, swing: .45, pitch: .78, dist: 50 }], SHOW_T = 28;
+let showScene = 0, showT = 0, showFading = false, showYaw0 = 0, showPh = 0;
+function nextShowcase() {
+  if (showFading) return; showFading = true; canvas.style.transition = 'opacity .7s'; canvas.style.opacity = '0';
+  setTimeout(() => {
+    showFading = false; showT = 0;
+    if (showcaseBuilt && !mapPickEl.hidden) { let n; do n = Math.floor(Math.random() * SHOW_SCENES.length); while (n === showScene); buildShowcase(n); }
+    canvas.style.opacity = '1';
+  }, 750);
+}
+function buildShowcase(n = 0) {
+  const S = SHOW_SCENES[n]; showScene = n; showT = 0;
+  const keep = MAP; MAP = S.map; startGame(); MAP = keep;
   const K = buildings.find(B => B.type === 'castle');
   const setTier = (B, t) => { if (!B || t < 2) return; B.tier = t; B.max = DEF[B.type].hp[t - 1]; B.hp = B.max; swapModel(B); };
   setTier(K, 3);
   const ci = Math.floor((K.ev.x0 + K.ev.x1) / 2 / CELL), cj = Math.floor((K.ev.z0 + K.ev.z1) / 2 / CELL);
   for (const [type, dx, dz, t] of SHOWCASE) { const ev = findValid(type, ci + dx, cj + dz, { free: true }); if (ev) setTier(place(type, ev.ci, ev.cj, { instant: true, free: true, quiet: true }), t); }
   for (const v of villagers) v.g.visible = false;                           // everyone indoors at dusk: the town doesn't move under the menu
-  PH.t = DUSK * .45; light = .25 + .75 * sstep(0, DUSK, PH.t);              // dusk: low warm light, the torches and fires lit
-  const c = center(K); target.set(c.x, 1.5, c.z); yaw = .4; pitch = .62; dist = innerWidth < innerHeight ? 44 : 40; updateCam();   // far enough back that the whole town sits round the title, never behind it
+  if (S.time === 'dusk') { PH.t = DUSK * .45; light = .25 + .75 * sstep(0, DUSK, PH.t); }   // low warm light, the torches and fires lit
+  else if (S.time === 'night') { PH.kind = 'night'; light = 0; }                              // moonlight, every torch and fire burning
+  const c = center(K); target.set(c.x, 1.5, c.z); showYaw0 = S.yaw !== undefined ? S.yaw : Math.random() * Math.PI * 2; showPh = 0; yaw = showYaw0;
+  pitch = S.pitch || .62; dist = (S.dist || 40) * (innerWidth < innerHeight ? 1.1 : 1); updateCam();   // far enough back that the whole town sits round the title, never behind it
   $('#log').innerHTML = ''; $('#banner').className = 'banner';
   showcaseBuilt = true;
 }
@@ -7040,7 +7064,7 @@ function findValid(type, ci0, cj0, opts = {}) {
   return null;
 }
 function startGame() {
-  showcaseBuilt = false;
+  showcaseBuilt = false; canvas.style.opacity = '1';
   anims.length = 0; spawnQueue = [];
   for (const B of buildings) { scene.remove(B.group); scene.remove(B.bar.grp); scene.remove(B.pbar.grp); removeScaffold(B); hideDefenders(B); if (B.rallyFlag) setRally(B, null); } buildings.length = 0;
   for (const v of villagers) { scene.remove(v.g); if (v.sbar) scene.remove(v.sbar.grp); } villagers.length = 0;
@@ -7487,7 +7511,7 @@ function frame(now) {
   if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now);
   const sc = showcaseBuilt && !mapPickEl.hidden; if (sc !== document.body.classList.contains('showcase')) document.body.classList.toggle('showcase', sc);
   // the title's showcase town: the camera circles slowly; on a tall screen the picture is shifted so the town sits under the cards
-  if (sc) { yaw += dt * .03; updateCam(); updateTrees(now); emitSmoke(dt); updateBirds(dt); camera.setViewOffset(1, 1, 0, innerHeight > innerWidth ? -.24 : 0, 1, 1); }
+  if (sc) { showPh += dt * .03; const S = SHOW_SCENES[showScene]; yaw = S.swing ? showYaw0 + Math.sin(showPh * 2) * S.swing : showYaw0 + showPh; updateCam(); updateTrees(now); emitSmoke(dt); updateBirds(dt); camera.setViewOffset(1, 1, 0, innerHeight > innerWidth ? -.24 : -.1, 1, 1); if ((showT += dt) > SHOW_T) nextShowcase(); }
   else if (camera.view && camera.view.enabled) camera.clearViewOffset();
   if (paused || menuOn()) { renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not
