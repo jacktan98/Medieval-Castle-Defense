@@ -2160,8 +2160,10 @@ function doorCell(ev, type, f) {
   return { a: Math.floor((cx + dx + nx) / CELL), b: Math.floor((cz + dz + nz) / CELL), bit: [1, 8, 4, 2][f], f };
 }
 // someone has to be able to stand in front of the door
-// never on the map's outermost ring either: a door facing the edge sent villagers out over it
-const doorOk = d => d.a >= 1 && d.b >= 1 && d.a < N - 1 && d.b < N - 1 && cellPass(d.b * N + d.a, 1);
+// and the door must not face the map's edge (a door facing the edge sent villagers out over it): the tile in front of the door and
+// the one beyond it, the way the door faces, are both on the map; a door along the edge (facing sideways) is fine (Jack)
+const inMap = (a, b) => a >= 0 && b >= 0 && a < N && b < N;
+const doorOk = d => { const [fx, fz] = faceRot(d.f, 0, 1); return inMap(d.a, d.b) && inMap(d.a + fx, d.b + fz) && cellPass(d.b * N + d.a, 1); };
 function syncTerrain() {
   for (let k = 0; k < V * V; k++) tPos[k * 3 + 1] = H[k];
   tGeo.attributes.position.needsUpdate = true; cacheCells(); syncWaterTex(); buildEdges();
