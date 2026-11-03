@@ -156,25 +156,19 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #campInfo{width:100%;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 #campMap svg{max-height:calc(100dvh - 120px)!important}
 #stagePrev{background:rgba(12,13,9,.94);z-index:62}
-/* the menus as an unrolled scroll (Jack): muted parchment between a roll at the top and one at the bottom (::before, ::after: the
-   paper wound round a rod, shaded as a cylinder, turned wooden knobs at the ends, a soft shadow on the sheet); dark ink text */
-.modal.tome{--parch:#2e2112;--muted:#6a5638;--gold:#7a2c14;--line:#9c8058;color:#2e2112;padding-top:52px;padding-bottom:52px;
-  background-color:#dcc8a0!important;background-image:linear-gradient(180deg, rgba(70,45,15,.35) 0, rgba(70,45,15,0) 70px, rgba(70,45,15,0) calc(100% - 70px), rgba(70,45,15,.35) 100%),
-  linear-gradient(90deg, rgba(110,72,30,.32) 0, rgba(110,72,30,0) 14%, rgba(110,72,30,0) 86%, rgba(110,72,30,.32) 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700' viewBox='0 0 700 700' preserveAspectRatio='xMidYMid slice'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='5' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .58 0 0 0 0 .42 0 0 0 0 .22 0 0 0 1.4 -.56'/%3E%3C/filter%3E%3Crect width='700' height='700' filter='url(%23g)'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .33 0 0 0 0 .18 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23f)'/%3E%3C/svg%3E")!important;
-  background-repeat:no-repeat,no-repeat,no-repeat,repeat!important;background-position:0 0,0 0,center,0 0!important;background-size:100% 100%,100% 100%,cover,300px 300px!important}
-.modal.tome::before,.modal.tome::after{content:'';position:fixed;left:0;right:0;height:34px;z-index:5;pointer-events:none;
-  background:radial-gradient(ellipse 50% 50% at 50% 50%, #8a5a2c 0, #5c3818 60%, #2e1a08 96%, rgba(0,0,0,0) 100%) left center / 18px 30px no-repeat,
-  radial-gradient(ellipse 50% 50% at 50% 50%, #8a5a2c 0, #5c3818 60%, #2e1a08 96%, rgba(0,0,0,0) 100%) right center / 18px 30px no-repeat,
-  linear-gradient(180deg, #7c6038 0, #b8996a 18%, #ead6ac 42%, #d4b98a 60%, #9c7c4e 82%, #5e4628 100%) center / calc(100% - 26px) 100% no-repeat;
-  filter:drop-shadow(0 3px 4px rgba(40,24,6,.45))}
-.modal.tome::before{top:0} .modal.tome::after{bottom:0;filter:drop-shadow(0 -3px 4px rgba(40,24,6,.45))}
-.modal.tome .gameTitle{color:#6e2410;text-shadow:0 1px 0 rgba(255,240,200,.6),0 2px 6px rgba(80,40,10,.25)}
-.modal.tome button{border-color:#9c8058}
-.modal.tome .mapBtn,.modal.tome .ldOpt{background:rgba(255,246,220,.4);border-color:#9c8058}
-.modal.tome .ldOpt[aria-pressed="true"]{background:rgba(255,236,190,.75)}
-.modal.tome .ldOpt .tIco{color:#5a4428}
-.modal.tome .stars{color:#a89770} .modal.tome .stars .on{color:#b07a12}
-.modal.tome #campMap svg,.modal.tome .stPic{border-color:#7a5f38;box-shadow:0 2px 10px rgba(60,35,10,.35)}
+/* the menus sit in the game's own world: the campaign landscape (maps/menu-bg.jpg: maps/overview.jpg shrunk to 240 px and blurred, so the
+   browser's upscale is soft and costs nothing) darkened toward the edges; the content on dark translucent panels edged in muted gold */
+.modal.tome{background-color:#10120e!important;background-image:radial-gradient(ellipse at 50% 40%, rgba(8,9,6,.25) 0%, rgba(8,9,6,.55) 55%, rgba(5,6,4,.9) 100%),
+  linear-gradient(rgba(14,16,11,.35), rgba(14,16,11,.35)), url("maps/menu-bg.jpg")!important;background-size:cover,cover,cover!important;background-position:center!important;background-repeat:no-repeat!important}
+.modal.tome .gameTitle{text-shadow:0 2px 0 rgba(0,0,0,.65),0 0 28px rgba(0,0,0,.85)}
+.modal.tome .mapSub{color:#cfc4a6;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+.modal.tome .mapBtn,.modal.tome .ldOpt{background:rgba(20,22,16,.78);border-color:rgba(201,160,62,.32)}
+.modal.tome .ldOpt[aria-pressed="true"]{background:rgba(52,44,22,.88);border-color:var(--gold)}
+.modal.tome .loadSheet,.modal.tome .stSide{background:rgba(14,16,11,.72);border:1px solid rgba(201,160,62,.28);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.modal.tome .loadSheet{padding:12px 12px 14px}
+.modal.tome .stSide{padding:12px 16px 14px}
+.modal.tome #campMap svg,.modal.tome .stPic{border-color:rgba(201,160,62,.45);box-shadow:0 0 0 1px rgba(0,0,0,.6),0 10px 34px rgba(0,0,0,.7)}
+.modal.tome button:not(.mapBtn):not(.ldOpt){background:rgba(20,22,16,.72)}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
