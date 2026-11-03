@@ -4644,7 +4644,7 @@ function updateVillagers(dt, now) {
     const amp = stride(v, dt, 9), swing = Math.sin(v.phase) * .6 * amp;
     if (v.horse) {                                                    // a rider: legs astride, the horse's diagonal pairs stride
       v.legs[0].rotation.set(-1.2, 0, -.55); v.legs[1].rotation.set(-1.2, 0, .55); v.body.position.y = SADDLE + Math.abs(Math.sin(v.phase * 1.4)) * .04 * amp;
-      v.horseLegs.forEach((l, i) => { l.rotation.x = (i === 0 || i === 3 ? 1 : -1) * Math.sin(v.phase * 1.4) * .8 * amp; });
+      horseGait(v.horseLegs, v.phase * 1.4, amp);
     } else {
       v.legs[0].rotation.x = swing; v.legs[1].rotation.x = -swing;
       v.body.position.y = Math.abs(Math.sin(v.phase)) * .05 * amp;
@@ -4707,13 +4707,24 @@ function mountHorse(p, cloth = blanketM) {
   const tail = box(.07, .45, .07, maneM, 0, .76, -.5); tail.rotation.x = -.35; h.add(tail);
   h.add(box(.38, .06, .4, cloth, 0, .97, -.02)); h.add(box(.3, .08, .3, saddleM, 0, 1.01, -.02));
   p.horseLegs = [[-1, 1], [1, 1], [-1, -1], [1, -1]].map(([sx, sz]) => {
+    // upper leg from the hip, then a knee (forelegs) or hock (hind legs) at -.3 carrying the lower leg and hoof
     const pv = new THREE.Group(); pv.position.set(sx * .12, .62, sz * .36); h.add(pv);
-    const l = box(.09, .58, .09, horseM, 0, -.29, 0); pv.add(l); pv.add(box(.1, .06, .1, hoofM, 0, -.58, 0));
+    pv.add(box(.1, .32, .1, horseM, 0, -.15, 0));
+    const kn = new THREE.Group(); kn.position.y = -.3; pv.add(kn); pv.userData.knee = kn; pv.userData.fore = sz > 0;
+    kn.add(box(.075, .28, .075, horseM, 0, -.14, 0)); kn.add(box(.1, .06, .1, hoofM, 0, -.28, 0));
     return pv;
   });
   p.body.position.y = SADDLE;
   for (const [n, sx] of [[0, -1], [1, 1]]) { p.legs[n].rotation.x = -1.2; p.legs[n].rotation.z = sx * .55; }
   p.horse = h;
+}
+// a horse's gallop: each leg on its own beat (hind left, hind right, then fore left, fore right), swinging from the hip; while a leg
+// swings forward it is lifted, the foreleg's knee folding the lower leg back and the hind leg's hock folding it forward
+const GALLOP_OFF = [.55, .65, 0, .1];
+function horseGait(legs, ph, amp) {
+  legs.forEach((l, i) => { const a = ph + GALLOP_OFF[i] * Math.PI * 2, lift = Math.max(0, -Math.cos(a));   // the swing forward (the hip angle falling)
+    l.rotation.x = Math.sin(a) * .65 * amp;
+    if (l.userData.knee) l.userData.knee.rotation.x = (l.userData.fore ? 1.25 : -.9) * lift * amp; });
 }
 // shields are worn on the outside of the left forearm, so the arm never passes through them
 // heater shield (flat-topped, pointed foot) in a rim; its face looks along -x, out from a left arm
@@ -5385,7 +5396,7 @@ function updateEnemies(dt) {
     if (E.engine) animEngine(e, dt, sw);
     else {
       e.body.rotation.x = e.running && e.walking ? .22 : 0;      // leaning into the charge
-      if (e.horse) e.horseLegs.forEach((l, i) => { l.rotation.x = (i === 0 || i === 3 ? 1 : -1) * sw * .8; });   // diagonal pairs move together
+      if (e.horse) horseGait(e.horseLegs, e.phase, e.amp || 0);
       else { e.legs[0].rotation.x = sw; e.legs[1].rotation.x = -sw; }
       if (e.kind === 'archer') bowPose(e, e.aiming && !(e.attackT > 0) && e.cool < DRAW, e.attackT > 0, -.35 - sw * .3, -sw * .6);
       else if (e.kind === 'xbow') xbowPose(e, e.aiming && (e.attackT > 0 || e.cool < .5));
@@ -6860,7 +6871,7 @@ function placeBossScenery() {
     HOLD_CAMPS.forEach((c, ci) => {
       const put = (k, t, x, z, D) => { spawnEnemy(k, { x, z }, 1, t); const e = enemies[enemies.length - 1]; e.x = e.rx = x; e.z = e.rz = z; e.dormant = Object.assign({ camp: ci, u: 0, s: x * 1.3 + z }, D); e.g.rotation.y = D.ry || 0; };
       for (const [k, t, x, z] of c.rest) put(k, t, x, z, { ry: Math.atan2(c.fire[0] - x, c.fire[1] - z) });
-      for (const [k, t, pts] of c.patrol) put(k, t, ...pts[0], { pts, i: 1, wait: 0, walk: k === 'rider' ? 1.3 : .9 });
+      for (const [k, t, pts] of c.patrol) { const P = patrolRoute(pts); put(k, t, P[0][0], P[0][1], { pts: P, i: 1, wait: 0, walk: k === 'rider' ? 1.3 : .9 }); }
     });
     // two crew to each trebuchet on the keep's roof: on patrol round the roof, at their engine whenever it has a target
     const fig = (kind, tier, x, z, y) => { const p = makeRaider(kind, tier); p.g.scale.setScalar(UNIT_K); p.g.position.set(x, y, z); p.g.traverse(o => { if (o.isMesh) o.castShadow = true; }); g.add(p.g); return p; };
@@ -6872,11 +6883,23 @@ function placeBossScenery() {
   scene.add(g); bossMesh = g;
 }
 // a walker stepping round a loop of points (pts, next i), stopping 1.6 s at each corner; or, given a spot, walking there and staying
+// a patrol loop laid over ground raiders can stand on: each corner moved onto the nearest standable spot, the legs between corners
+// routed on the cell grid (a straight line between corners ran up the mountainside); the third value 0 marks a point passed without stopping
+function patrolRoute(pts) {
+  const ok = (x, z) => canStand(x, z, 2) && slopeAt(x, z) < 2.2;
+  const snap = ([x, z]) => { if (ok(x, z)) return [x, z];
+    for (let r = .5; r < 6; r += .5) for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; if (ok(px, pz)) return [px, pz]; }
+    return [x, z]; };
+  const C = pts.map(snap), out = [];
+  C.forEach((a, i) => { out.push(a); const b = C[(i + 1) % C.length];
+    for (const q of findPath(a[0], a[1], b[0], b[1], 2) || []) if (Math.hypot(q.x - b[0], q.z - b[1]) > .3) out.push([q.x, q.z, 0]); });
+  return out;
+}
 function patrolStep(R, dt) {
   let tx, tz;
   if (R.goTo) [tx, tz] = R.goTo; else { if (R.wait > 0) { R.wait -= dt; return false; } [tx, tz] = R.pts[R.i]; }
   const dx = tx - R.pos[0], dz = tz - R.pos[1], d = Math.hypot(dx, dz), st = R.walk * dt;
-  if (d <= st) { R.pos[0] = tx; R.pos[1] = tz; if (!R.goTo) { R.i = (R.i + 1) % R.pts.length; R.wait = 1.6; } return false; }
+  if (d <= st) { R.pos[0] = tx; R.pos[1] = tz; if (!R.goTo) { R.wait = R.pts[R.i][2] === 0 ? 0 : 1.6; R.i = (R.i + 1) % R.pts.length; } return false; }
   R.pos[0] += dx / d * st; R.pos[1] += dz / d * st; R.head = Math.atan2(dx, dz); return true;
 }
 const turnToward = (o, want, k) => { let d = want - o.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); o.rotation.y += d * k; };
@@ -6917,7 +6940,8 @@ let campsJoined = false;
 function dormantStep(e, dt) {
   const D = e.dormant, last = PH.kind === 'night' && PH.wave >= NIGHTS && enemies.some(o => !o.dead && ENEMY[o.kind].boss);
   if (e.hp < e.max || nearestSoldier(e.x, e.z, 7) || last) {
-    for (const o of enemies) if (o.dormant && o.dormant.camp === D.camp) { o.dormant = null; o.retarget = 0; o.target = null; }
+    for (const o of enemies) if (o.dormant && o.dormant.camp === D.camp) { o.dormant = null; o.retarget = 0; o.target = null;
+      if (!canStand(o.x, o.z, 2)) { const [x, z] = patrolRoute([[o.x, o.z]])[0]; o.x = x; o.z = z; } }
     if (last && !campsJoined) { campsJoined = true; log('<b>Raider camps</b> join the Warlord', 'bad'); }
     return false;
   }
@@ -7190,7 +7214,7 @@ function galPose(p, t, dt) {
   }
   const ease = (o, v) => o + (v - o) * Math.min(1, dt * 14), walking = gWalk || p.carry || (!p.work && !p.guard && !p.raider && !p.kit);
   const ph = t * 9 + p.seed, sw = walking ? Math.sin(ph) * .6 : 0;
-  if (p.horseLegs) p.horseLegs.forEach((l, i) => { l.rotation.x = (i === 0 || i === 3 ? 1 : -1) * sw * .8; });
+  if (p.horseLegs) horseGait(p.horseLegs, ph, walking ? 1 : 0);
   else { p.legs[0].rotation.x = sw; p.legs[1].rotation.x = -sw; }
   p.body.position.y = p.horseLegs ? SADDLE : walking ? Math.abs(Math.sin(ph)) * .05 : 0;   // a rider stays in the saddle
   let L = -sw * .8, R = sw * .8, tilt = -.2, lean = 0;
