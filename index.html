@@ -5089,7 +5089,7 @@ function volleyPose(f, draw) {
 // then rallies them (tap it, then a spot); once both have fallen it waits SUMMON.cd s of game time before it can call two more; at dawn
 // they ride back in and are gone. They are villagers marked summoned, posted to the castle (post.summon), never counted as the town's
 // people (housing, idle, food), never respawned, and they hold the castle's rally flag
-const SUMMON = { n: 2, cd: 20 }, HORSE_ICO = '<path d="M7.5 20.5 H17.5 C17.3 15.5 16.6 11.5 17 8.4 C17.3 5.9 15.8 4 13.4 3.6 L12.6 2.4 L11.7 3.9 C9.5 4.5 7.7 6.4 6.3 8.9 L4.7 11.5 C4.3 12.3 4.9 13.2 5.8 13 L8.4 12.3 C9.3 12.1 10.2 12.4 10.7 13.1 C9 15.1 7.8 17.6 7.5 20.5 Z"/><path d="M11.4 7.6 h.01"/><path d="M14.6 6.2 C15.6 8.6 15.4 12.4 15.6 16"/>';
+const SUMMON = { n: 2, cd: 20 }, HORSE_ICO = '<g transform="translate(24 0) scale(-1 1)"><path d="M13.6 5.4 L14.6 2.2 L15.8 5.2"/><path d="M15.8 5.2 C18.2 6.6 20.4 9 21.6 11.6 C22 12.6 21.3 13.4 20.3 13.1 L17.6 12.3 C16.6 12 15.8 11.6 15.1 11"/><path d="M15.1 11 C13.8 13.8 14.2 17.6 16.6 20.6 C17.3 21.5 16.5 22 15.6 21.4"/><path d="M13.6 5.4 C10.4 3.6 6.6 4.2 2.5 7"/><path d="M12.8 7.6 C10 7.2 7 8.4 4.2 11.2"/><path d="M12.2 9.6 C9.8 12.6 9.2 16.6 10.4 21.4"/><path d="M17.2 7.6 h.01"/></g>';
 var summonCd = 0, summonOut = false;
 const summoned = () => villagers.filter(v => v.summoned && !v.gone);
 function summonRiders() {
