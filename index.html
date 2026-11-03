@@ -151,11 +151,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #campaign{background:#14150f}
 .campSheet{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(720px,100%);max-height:100%}
 #campMap{width:100%;flex:1 1 auto;min-height:0;display:flex;justify-content:center}
-#campMap svg{width:100%;height:auto;max-height:calc(100dvh - 190px);border-radius:10px;border:1px solid #4a4838}
-#campMap .mk{cursor:pointer} #campMap .mk circle.ring{transition:stroke-width .2s} #campMap .mk.sel circle.ring{stroke:#ffd76a;stroke-width:3.5;filter:drop-shadow(0 0 6px rgba(255,205,90,.95)) drop-shadow(0 0 14px rgba(255,190,60,.6));animation:selGlow 1.8s ease-in-out infinite alternate}
-@keyframes selGlow{from{stroke-opacity:.65}to{stroke-opacity:1}}
 #campInfo{width:100%;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
-#campMap svg{max-height:calc(100dvh - 120px)!important}
 #stagePrev{background:rgba(12,13,9,.94);z-index:62}
 /* the menus sit in the game's own world: the campaign landscape (maps/menu-bg.jpg: maps/overview.jpg shrunk to 240 px and blurred, so the
    browser's upscale is soft and costs nothing) darkened toward the edges; the content on dark translucent panels edged in muted gold */
@@ -172,12 +168,11 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .modal.tome .loadSheet,.modal.tome .stSide{background:rgba(14,16,11,.72);border:1px solid rgba(201,160,62,.28);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 .modal.tome .loadSheet{padding:12px 12px 14px}
 .modal.tome .stSide{padding:12px 16px 14px}
-.modal.tome #campMap svg,.modal.tome .stPic{border-color:rgba(201,160,62,.45);box-shadow:0 0 0 1px rgba(0,0,0,.6),0 10px 34px rgba(0,0,0,.7)}
+.modal.tome .stPic{border-color:rgba(201,160,62,.45);box-shadow:0 0 0 1px rgba(0,0,0,.6),0 10px 34px rgba(0,0,0,.7)}
 .modal.tome button:not(.mapBtn):not(.ldOpt){background:rgba(20,22,16,.72)}
 /* a plain gold frame (Jack: no corner pieces, a thicker edge): a 2 px gold border with a faint inner line */
 .modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide,.modal.tome .stPic{position:relative;border:2px solid rgba(212,168,78,.75)!important;box-shadow:inset 0 0 0 2px rgba(8,9,6,.55),inset 0 0 0 3px rgba(212,168,78,.18),0 8px 26px rgba(0,0,0,.55)!important}
 .modal.tome .stPic,.modal.tome .mapBtn img{border-radius:6px} .modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide{border-radius:10px}
-.modal.tome #campMap svg{border:2px solid rgba(212,168,78,.75)!important;border-radius:8px;box-shadow:0 10px 34px rgba(0,0,0,.7)!important}
 /* the three map cards line up: names get two lines' room, so Mountain pass's picture sits level with the others */
 .mapBtn{justify-content:flex-start;padding:13px 13px 12px;width:min(186px,29vw)} .mapBtn b{min-height:2.3em;display:flex;align-items:center;justify-content:center;line-height:1.1}
 /* campaign progress: stages won, a slim gold bar, stars (Jack) */
@@ -204,6 +199,25 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
   #mapPick .mapSub{font-size:15px;width:min(460px,50vw)}
   #mapPick #campBtn{font-size:clamp(19px,1.5vw,25px);padding:12px 34px}
 }
+/* the campaign journey: a tall scrolling column, the road and stage cards on bands of each stage's land */
+#campaign .campSheet{height:100%;max-height:100%}
+#campMap{display:block!important;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;border:2px solid rgba(212,168,78,.75);border-radius:10px;box-shadow:0 10px 34px rgba(0,0,0,.7);width:min(560px,100%);flex:1 1 auto;min-height:0;scrollbar-width:thin;scrollbar-color:#7a6230 transparent}
+.journey{position:relative;width:100%;box-shadow:inset 0 0 120px rgba(0,0,0,.55)}
+.journey::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.35),rgba(0,0,0,0) 30%,rgba(0,0,0,0) 70%,rgba(0,0,0,.35)),url("maps/menu-bg.jpg") center/cover;mix-blend-mode:soft-light;opacity:.7;pointer-events:none}
+.jRoad{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.jCard{position:absolute;transform:translateX(-50%);width:min(56%,290px);align-items:stretch;padding:0;display:flex;flex-direction:column;border:2px solid rgba(212,168,78,.7);border-radius:10px;background:#15170f;overflow:visible;z-index:1;box-shadow:0 6px 18px rgba(0,0,0,.6);text-align:left;color:var(--parch)}
+.jPic{display:block;width:100%;aspect-ratio:16/9;background-size:cover;background-position:center;border-radius:8px 8px 0 0}
+.jInfo{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:5px 10px 7px} .jInfo small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)} .jInfo b{font-family:var(--display);font-weight:400;font-size:20px;color:var(--gold);line-height:1.1} .jInfo .stars{font-size:13px}
+.jCard.boss{border-color:rgba(226,113,91,.8)} .jCard.boss .jInfo small{color:#e2715b}
+.jCard.cur{border-color:#f2d27a;animation:jGlow 1.8s ease-in-out infinite alternate}
+@keyframes jGlow{from{box-shadow:0 0 0 1px rgba(255,215,106,.4),0 0 14px rgba(255,200,80,.35),0 6px 18px rgba(0,0,0,.6)}to{box-shadow:0 0 0 2px rgba(255,215,106,.8),0 0 30px rgba(255,200,80,.7),0 6px 18px rgba(0,0,0,.6)}}
+.jCard.locked{filter:saturate(.25) brightness(.62)} .jCard.locked .jInfo b{color:#cfc4a6}
+.jCard.sel{outline:2px solid #fff;outline-offset:3px}
+.jLock{position:absolute;right:8px;top:8px;width:30px;height:30px;border-radius:50%;background:rgba(10,11,8,.8);display:flex;align-items:center;justify-content:center} .jLock svg{width:17px;height:17px;fill:none;stroke:#e6dcc0;stroke-width:2;stroke-linecap:round}
+/* the banner and the rally flag: the overview's 3D sprite strips (maps/banner.png, maps/flag.png: 32 frames of 220 x 200), played with steps() */
+.jSpr{position:absolute;right:-34px;top:-66px;width:121px;height:110px;background-repeat:no-repeat;background-size:3872px 110px;animation:jWave 2.513s steps(32) infinite;pointer-events:none}
+.jBan{background-image:url(maps/banner.png)} .jFlag{background-image:url(maps/flag.png);filter:drop-shadow(0 0 1.5px #fbeab0) drop-shadow(0 0 1px #fbeab0)}
+@keyframes jWave{to{background-position:-3872px 0}}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
@@ -226,7 +240,7 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 #campInfo h3{margin:0;font-family:var(--display);font-weight:400;font-size:19px;color:var(--gold)} #campInfo .sub{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 #campInfo .unl{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 10px;font-size:12px;color:var(--parch)}
 #campInfo .unl span{display:flex;align-items:center;gap:4px} #campInfo .unl svg{width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-@media (max-height:520px){ #campMap svg{max-height:calc(100dvh - 60px)!important} .campSheet{flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center} #campMap{flex:0 0 auto;width:auto} #campMap svg{max-height:calc(100dvh - 60px);width:auto;height:calc(100dvh - 60px)} #campInfo{width:200px} }
+@media (max-height:520px){ .jCard{width:min(40%,250px)} .jPic{aspect-ratio:2/1} .jInfo b{font-size:17px} #campaign{padding:8px} .campSheet{gap:4px} .campProg{margin-top:0} #campInfo{display:none} }
 .mapSub{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .maps{display:flex;gap:min(12px,2vw);justify-content:center;flex-wrap:wrap}
 .mapBtn{display:flex;flex-direction:column;align-items:stretch;gap:7px;padding:6px 6px 8px;border-radius:12px;background:#24261f;border-color:#4a4838;width:min(170px,25vw)}
@@ -6758,65 +6772,43 @@ const CAMP_RIVER = [
   [[718, 133], [690, 200, 655, 300, 616, 350], [590, 385, 565, 396, 540, 408], [505, 430, 480, 462, 451, 478], [410, 498, 365, 506, 335, 516], [300, 532, 288, 570, 284, 610], [280, 650, 252, 688, 210, 705], [160, 722, 110, 738, 32, 764]],
   [[451, 478], [458, 520, 466, 560, 448, 592], [428, 625, 398, 642, 360, 655], [322, 668, 292, 676, 262, 686]],
 ];
-function campaignSVG() {
-  // the ground is drawn stretched by CAMP_CY in height (a taller overview); trees, rocks, peaks and markers keep their shapes and just move down with it
-  const T = (y, el) => `<g transform="translate(0 ${(y * (CAMP_CY - 1)).toFixed(1)})">${el}</g>`;
-  const P = CAMPAIGN.map(c => c.at), hash2 = (a, b) => { const x = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return x - Math.floor(x); };
-  const noise = (x, y, s) => { const gx = x / s, gy = y / s, i = Math.floor(gx), j = Math.floor(gy), u = sstep(0, 1, gx - i), v = sstep(0, 1, gy - j);
-    return lerp(lerp(hash2(i, j), hash2(i + 1, j), u), lerp(hash2(i, j + 1), hash2(i + 1, j + 1), u), v); };
-  // the river as a path, and points along it to keep things off the water
-  const rivPts = [], rivPath = CAMP_RIVER.map(R => { let d = `M${R[0][0]} ${R[0][1]}`, [px, py] = R[0];
-    for (const [a, b, c, e, x, y] of R.slice(1)) { d += ` C${a} ${b} ${c} ${e} ${x} ${y}`;
-      for (let t = 0; t <= 1; t += .05) { const m = 1 - t; rivPts.push([m * m * m * px + 3 * m * m * t * a + 3 * m * t * t * c + t * t * t * x, m * m * m * py + 3 * m * m * t * b + 3 * m * t * t * e + t * t * t * y]); }
-      px = x; py = y; }
-    return d; });
-  const nearRiver = (x, y, r) => rivPts.some(([a, b]) => Math.hypot(a - x, b - y) < r);
-  const LAND = 'M40 880 C20 700 60 560 40 420 C25 300 60 160 120 40 L700 30 C760 160 770 330 750 480 C735 620 780 760 740 880 Z';
-  const onLand = (x, y) => x > 55 + (y > 420 ? 0 : (420 - y) * .12) && x < 745 && y > 60 && y < 868;
-  const S = P.map(([x, y]) => [x, y * CAMP_CY]);
-  // stages won (stars kept) get a hand-painted red X; the first stage not yet won is where the player is: the town's blue rally flag
-  const won = CAMPAIGN.map(c => !!(c.map && STARS[c.map] > 0));
-  let cur = CAMPAIGN.findIndex((c, i) => !won[i]); if (cur < 0) cur = CAMPAIGN.length - 1;
-  // the trail: a worn footpath winding from the first stage through every one won, up to the flag (the game's packed-earth path colours:
-  // a dark worn edge under a lighter trodden middle, edges roughened by #trailRough)
-  let trail = '';
-  for (let i = 1; i <= cur; i++) {
-    const [x0, y0] = S[i - 1], [x1, y1] = S[i], dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy), nx = -dy / len, ny = dx / len, sd = i % 2 ? 1 : -1;
-    const pt = t => { const m = 1 - t, a = len * .22 * sd, bx = x0 + dx / 3 + nx * a, by = y0 + dy / 3 + ny * a, cx = x0 + dx * 2 / 3 - nx * a * .8, cy = y0 + dy * 2 / 3 - ny * a * .8;
-      const wob = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 3 + i) * len * .05;
-      return [m * m * m * x0 + 3 * m * m * t * bx + 3 * m * t * t * cx + t * t * t * x1 + nx * wob, m * m * m * y0 + 3 * m * m * t * by + 3 * m * t * t * cy + t * t * t * y1 + ny * wob]; };
-    const pts = []; for (let k = 0; k <= 80; k++) { const q = pt(k / 80); if (Math.hypot(q[0] - x0, q[1] - y0) > 14 && Math.hypot(q[0] - x1, q[1] - y1) > 14) pts.push(q[0].toFixed(1) + ' ' + q[1].toFixed(1)); }
-    if (pts.length > 1) trail += `M${pts.join(' L')} `;
-  }
-  // markers drawn with the game's own models under the overview's sun (tools/render/markers.js): a strip of looping frames each, shown
-  // one at a time by stepping the strip along (calcMode discrete); `foot` is the model's foot in the frame, pinned on the stop
-  const MARKER = { FW: 220, FH: 200, NF: 32, PER: 2.513, flag: { foot: [64, 144], k: 1.05 }, banner: { foot: [64, 143], k: .95 } };
-  const sprite = (kind, i) => { const { FW, FH, NF, PER } = MARKER, m = MARKER[kind], k = m.k;
-    return `<svg x="${(-m.foot[0] * k).toFixed(1)}" y="${(-m.foot[1] * k).toFixed(1)}" width="${(FW * k).toFixed(1)}" height="${(FH * k).toFixed(1)}" viewBox="0 0 ${FW} ${FH}">` +
-      `<image href="maps/${kind}.png" width="${FW * NF}" height="${FH}"><animate attributeName="x" calcMode="discrete" dur="${PER}s" begin="${(-hash2(i, 5) * PER).toFixed(2)}s" repeatCount="indefinite" values="${Array.from({ length: NF }, (_, n) => -n * FW).join(';')}"/></image></svg>`; };
-  // the ground is one 3D landscape rendered from the game's own terrain, trees, rocks and buildings, seen straight down (maps/overview.jpg,
-  // tools/render/overview.js); the trail, the banners, the flag and the names are drawn over it
-  const marks = CAMPAIGN.map((c, i) => { const [x, y] = S[i], R = 46;
-    const ripple = `<circle r="8" fill="none" stroke="#ffe39a" stroke-width="1.6"><animate attributeName="r" values="7;26" dur="3s" repeatCount="indefinite"/><animate attributeName="stroke-opacity" values=".55;0" dur="3s" repeatCount="indefinite"/></circle>`;
-    const spot = won[i] ? sprite('banner', i) : i === cur ? `${ripple}<g filter="url(#mkOutline)">${sprite('flag', i)}</g>` : `<circle r="6" fill="#f2e6c4" fill-opacity=".85" stroke="#2a2b22" stroke-width="2.5"/>`;
-    // an invisible disc keeps the tap target big
-    return `<g class="mk${won[i] ? ' won' : ''}${i === cur ? ' cur' : ''}" data-i="${i}" transform="translate(${x} ${y})"><circle r="${R}" fill="#000" fill-opacity=".001"/><circle class="ring" r="${R}" fill="none" stroke="#fff" stroke-width="0"/>` +
-      spot +
-      `<text y="${R + 28}" text-anchor="middle" font-size="29" style="font-family:var(--display)" fill="#f6ecd0" stroke="#1a1a14" stroke-width="5.5" paint-order="stroke">${c.name}</text></g>`; }).join('');
-  return `<svg viewBox="0 0 800 ${900 * CAMP_CY}" xmlns="http://www.w3.org/2000/svg">
-    <defs><filter id="mkOutline" x="-20%" y="-20%" width="140%" height="140%"><feComponentTransfer in="SourceAlpha" result="solid"><feFuncA type="table" tableValues="0 0 0 0 1 1"/></feComponentTransfer>
-      <feMorphology in="solid" operator="dilate" radius="2.2" result="fat"/><feFlood flood-color="#fbeab0"/><feComposite in2="fat" operator="in" result="edge"/><feMerge><feMergeNode in="edge"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      <filter id="trailRough" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="4"/></filter><filter id="trailSoft"><feGaussianBlur stdDeviation="2"/></filter></defs>
-    <image href="maps/overview.jpg" x="0" y="0" width="800" height="${900 * CAMP_CY}" preserveAspectRatio="none"/>
-    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="${trail}" stroke="#2e2414" stroke-opacity=".45" stroke-width="12" filter="url(#trailSoft)"/><g filter="url(#trailRough)"><path d="${trail}" stroke="#4e3f2a" stroke-width="8"/><path d="${trail}" stroke="#8a7049" stroke-width="5.2"/><path d="${trail}" stroke="#a88d5f" stroke-opacity=".55" stroke-width="2" stroke-dasharray="9 5 4 7"/></g></g>
-    ${marks}
-  </svg>`;
+// ---------- the campaign as a journey (Jack: the overview map didn't work): one road scrolled upward from Greenvale at the bottom to the
+// Warlord's Hold at the top, every stage a card on it (its picture from above, maps/thumb/*.jpg, name, stars), the road passing through
+// bands of each stage's land; stages won fly the town's banner and the road behind you is trodden earth, the stage you're at has the
+// rally flag and a gold glow, stages ahead are dimmed with a padlock and the road on to them is only dashed. Opens at the current stage.
+const J_ROW = 236, J_PAD = 80;   // px per stage, room above and below
+const J_LAND = { vale: '#47703a', bridge: '#3f6a48', cross: '#566f38', watch: '#7d6c34', dune: '#93784a', bend: '#2f6458', crag: '#25411f', ford: '#5b6650', mere: '#46533a', plains: '#5f7c36', keep: '#6a2a1f', hold: '#7e8a94' };
+const LOCK_SVG = '<svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5 V8 a4 4 0 0 1 8 0 V10.5"/></svg>';
+function campaignJourney() {
+  const n = CAMPAIGN.length, H = n * J_ROW + J_PAD * 2, won = CAMPAIGN.map(c => !!(c.map && STARS[c.map] > 0));
+  let cur = CAMPAIGN.findIndex((c, i) => !won[i]); if (cur < 0) cur = n - 1;
+  // stage i's card: rows from the bottom, alternately left and right; centre in % across and px down
+  const at = i => ({ x: i % 2 ? 67 : 33, y: H - J_PAD - (i + .5) * J_ROW });
+  // the lands as soft bands, each blending into the next
+  const bands = CAMPAIGN.map((c, i) => `${J_LAND[c.map] || '#3d4a33'} ${((at(i).y / H) * 100).toFixed(1)}%`).reverse().join(', ');
+  // the road: a smooth curve through every card's centre; trodden earth up to the current stage, a faint dashed line beyond
+  const seg = (a, b) => { const p = at(a), q = at(b), m = (p.y + q.y) / 2; return ` C${p.x} ${m.toFixed(0)} ${q.x} ${m.toFixed(0)} ${q.x} ${q.y.toFixed(0)}`; };
+  let done = `M${at(0).x} ${H}` + ` L${at(0).x} ${at(0).y.toFixed(0)}`, ahead = `M${at(cur).x} ${at(cur).y.toFixed(0)}`;
+  for (let i = 1; i < n; i++) { if (i <= cur) done += seg(i - 1, i); else ahead += seg(i - 1, i); }
+  const road = `<svg class="jRoad" viewBox="0 0 100 ${H}" preserveAspectRatio="none">
+    <path d="${ahead}" stroke="rgba(240,226,190,.45)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round" fill="none" vector-effect="non-scaling-stroke"/>
+    <path d="${done}" stroke="rgba(30,22,10,.55)" stroke-width="15" fill="none" vector-effect="non-scaling-stroke"/>
+    <path d="${done}" stroke="#4e3f2a" stroke-width="11" fill="none" vector-effect="non-scaling-stroke"/>
+    <path d="${done}" stroke="#8a7049" stroke-width="7" fill="none" vector-effect="non-scaling-stroke"/>
+    <path d="${done}" stroke="#a88d5f" stroke-width="1.5" stroke-dasharray="8 6 3 7" stroke-opacity=".6" fill="none" vector-effect="non-scaling-stroke"/></svg>`;
+  // drawn from the top down, so each lower card (and its banner or flag, which pokes up) paints over the one above
+  const cards = CAMPAIGN.map((c, i) => { const p = at(i), st = won[i] ? 'won' : i === cur ? 'cur' : i > cur ? 'locked' : '';
+    const mark = won[i] ? '<i class="jSpr jBan"></i>' : i === cur ? '<i class="jSpr jFlag"></i>' : i > cur ? `<i class="jLock">${LOCK_SVG}</i>` : '';
+    return `<button class="jCard ${st}${c.boss ? ' boss' : ''}" data-i="${i}" style="top:${(p.y - 96).toFixed(0)}px;left:${p.x}%">
+      <span class="jPic" style="background-image:url(maps/thumb/${c.map}.jpg)"></span>
+      <span class="jInfo"><small>${c.boss ? 'Boss · ' : ''}Stage ${i + 1}</small><b>${c.name}</b>${c.map ? starsHTML(STARS[c.map] || 0) : ''}</span>${mark}</button>`; }).reverse().join('');
+  return { html: `<div class="journey" style="height:${H}px;background:linear-gradient(180deg, ${bands})">${road}${cards}</div>`, curY: at(cur).y };
 }
 // a stage's preview: its picture (the real stage where it's built, else its sketch), what it brings in, stars, Play
 const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' }, 2: { src: 'maps/cross.jpg' }, 3: { src: 'maps/watch.jpg' }, 4: { src: 'maps/dune.jpg' }, 5: { src: 'maps/bend.jpg' }, 6: { src: 'maps/crag.jpg' }, 7: { src: 'maps/ford.jpg' }, 8: { src: 'maps/mere.jpg' }, 9: { src: 'maps/plains.jpg' }, 10: { src: 'maps/keep.jpg' }, 11: { src: 'maps/hold.jpg' } };
 function openStage(i) {
   const c = CAMPAIGN[i], pic = STAGE_PIC[i];
-  document.querySelectorAll('#campMap .mk').forEach(m => m.classList.toggle('sel', +m.dataset.i === i));
+  document.querySelectorAll('#campMap .jCard').forEach(m => m.classList.toggle('sel', +m.dataset.i === i));
   $('#stPic').innerHTML = pic ? `<img src="${pic.src}" alt="">${pic.tag ? `<span class="tag">${pic.tag}</span>` : ''}` : '<span class="soon">Soon</span>';
   $('#stName').textContent = `Stage ${i + 1} · ${c.name}`;
   $('#stSub').textContent = [c.sub, c.land].filter(Boolean).join(' · ');
@@ -6832,10 +6824,12 @@ function openStage(i) {
   $('#stagePrev').hidden = false;
 }
 $('#stBack').addEventListener('click', () => { sfx('click'); $('#stagePrev').hidden = true; });
-$('#campMap').innerHTML = campaignSVG();
 markMapStars();
-$('#campMap').addEventListener('click', e => { const m = e.target.closest('.mk'); if (m) { sfx('click'); openStage(+m.dataset.i); } });
-function openCampaign(i) { $('#campMap').innerHTML = campaignSVG(); $('#mapPick').hidden = true; $('#campaign').hidden = false; { const st = CAMPAIGN.filter(c => c.map), won = st.filter(c => STARS[c.map] > 0).length, stars = starTotal(), max = st.length * 3;
+$('#campMap').addEventListener('click', e => { const m = e.target.closest('.jCard'); if (m) { sfx('click'); openStage(+m.dataset.i); } });
+function openCampaign(i) { const J = campaignJourney(), box = $('#campMap'); box.innerHTML = J.html; $('#mapPick').hidden = true; $('#campaign').hidden = false;
+  // open at the stage the player is at
+  box.scrollTop = J.curY - box.clientHeight / 2;
+  { const st = CAMPAIGN.filter(c => c.map), won = st.filter(c => STARS[c.map] > 0).length, stars = starTotal(), max = st.length * 3;
     $('#campStars').innerHTML = `<span>${won}/${st.length}</span><i><b style="width:${(won / st.length * 100).toFixed(1)}%"></b></i><span>★ ${stars}/${max}</span>`; } if (i !== undefined) openStage(i); }
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
 $('#campBack').addEventListener('click', () => { sfx('click'); $('#campaign').hidden = true; $('#mapPick').hidden = false; });
@@ -7504,6 +7498,7 @@ function adaptResolution(raw) {
 const MENUS = ['#mapPick', '#loadPick', '#campaign', '#stagePrev', '#newCards'].map(q => $(q));
 const menuOn = () => MENUS.some(m => !m.hidden);
 const mapPickEl = $('#mapPick');
+mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
 function frame(now) {
   adaptResolution((now - last) / 1000);
   const dt = Math.min(.05, (now - last) / 1000); last = now;
