@@ -131,7 +131,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .loadSheet h3{margin:0;font-family:var(--display);font-weight:400;font-size:20px;color:var(--gold)} .loadSheet h3 span{font-family:var(--body);font-size:14px;color:var(--muted)} .loadSheet h3 span.short{color:var(--bad)}
 .ldRows{display:flex;flex-direction:column;gap:6px}
 .ldRow{display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;align-items:stretch}
-.ldCat{display:flex;align-items:center;justify-content:center} .ldCat .ico{width:20px;height:20px} .ldCat .tag{font-size:10px;line-height:1.05;color:var(--muted);text-align:center;letter-spacing:.02em}
+.ldCat{display:flex;align-items:center;justify-content:center} .ldCat .ico{width:22px;height:22px} .ldCat .tag{font-size:10px;line-height:1.05;color:var(--muted);text-align:center;letter-spacing:.02em}
 .ldOpt{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;padding:5px 8px;border-radius:9px;background:#24261f;border-color:#4a4838;text-align:left;min-height:0;height:auto}
 .ldOpt .tIco{width:24px;height:24px;flex:0 0 auto;display:inline-flex;color:#cfc4a6} .ldOpt .tIco svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round} .ldOpt[aria-pressed="true"] .tIco{color:var(--gold)} .ldOpt b{font-family:var(--display);font-weight:400;font-size:16px;color:var(--parch);line-height:1.05;display:block}
 .ldOpt small{display:block;font-size:11px;color:var(--muted)} .ldOpt small .cost .ico{width:11px;height:11px}
@@ -158,10 +158,10 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #stagePrev{background:rgba(12,13,9,.94);z-index:62}
 /* the menus on old paper (Jack: to try): a warm parchment with fibres and stains (svg noise), darker burnt edges; dark ink text */
 .modal.paper{--parch:#2e2112;--muted:#6e5838;--gold:#7a2c14;--line:#9c8058;color:#2e2112;
-  background-color:#dcc796!important;background-image:radial-gradient(ellipse at 50% 45%, rgba(255,246,214,.55) 0%, rgba(255,240,200,0) 55%, rgba(120,78,30,.28) 85%, rgba(70,40,12,.55) 100%),
+  background-color:#dcc796!important;background-image:radial-gradient(ellipse at 50% 45%, rgba(255,246,214,.55) 0%, rgba(255,240,200,0) 55%, rgba(120,78,30,.28) 85%, rgba(70,40,12,.55) 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='2' seed='21'/%3E%3CfeColorMatrix values='0 0 0 0 .22 0 0 0 0 .13 0 0 0 0 .05 0 0 0 10 -6.7'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23s)'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='l'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.3' numOctaves='1' seed='5'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .97 0 0 0 0 .88 0 0 0 6 -4.3'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23l)'/%3E%3C/svg%3E"),
   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .24 0 0 0 0 .1 0 0 0 .28 0'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23f)'/%3E%3C/svg%3E"),
   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='4' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .3 0 0 0 0 .12 0 0 0 .55 -.18'/%3E%3C/filter%3E%3Crect width='600' height='600' filter='url(%23g)'/%3E%3C/svg%3E")!important;
-  background-size:cover,320px 320px,600px 600px!important}
+  background-size:cover,260px 260px,220px 220px,320px 320px,600px 600px!important}
 .modal.paper .gameTitle{color:#6e2410;text-shadow:0 1px 0 rgba(255,240,200,.6),0 2px 6px rgba(80,40,10,.25)}
 .modal.paper button{border-color:#9c8058}
 .modal.paper .mapBtn,.modal.paper .ldOpt{background:rgba(255,246,220,.42);border-color:#9c8058}
@@ -506,7 +506,8 @@ const cellAt = (x, z) => clamp(Math.floor(z / CELL), 0, N - 1) * N + clamp(Math.
 
 // ---------- icons ----------
 const ICON = {
-  range: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="#e8d9b0" stroke-width="1.3"/><circle cx="8" cy="8" r="2.8" fill="none" stroke="#e8d9b0" stroke-width="1.3"/><path d="M8 .8 V4 M8 12 V15.2 M.8 8 H4 M12 8 H15.2" stroke="#e8d9b0" stroke-width="1.3"/></svg>',
+  range: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#f3ead2" fill-opacity=".25" stroke="#d9503f" stroke-width="1.5"/><circle cx="8" cy="8" r="2.8" fill="none" stroke="#5b8de0" stroke-width="1.4"/><circle cx="8" cy="8" r="1" fill="#d9503f"/><path d="M8 .6 V4 M8 12 V15.4 M.6 8 H4 M12 8 H15.4" stroke="#c9a03e" stroke-width="1.4" stroke-linecap="round"/></svg>',
+  siege: '<svg viewBox="0 0 16 16"><path d="M2 12.2 H13.4" stroke="#6b4423" stroke-width="1.8" stroke-linecap="round"/><path d="M4.4 12 L7.4 6.2 L10.2 12" fill="none" stroke="#8b5a2b" stroke-width="1.5" stroke-linejoin="round"/><path d="M12.6 11.4 L3.6 3.2" stroke="#a87a45" stroke-width="1.5" stroke-linecap="round"/><path d="M2 2.2 C2.4 4.6 4.6 5 5.4 3.6" fill="#6b4423" stroke="#4e3015" stroke-width=".8"/><circle cx="3.3" cy="2.6" r="1.4" fill="#9a958b" stroke="#4d4a44" stroke-width=".7"/><circle cx="4.4" cy="13" r="1.9" fill="#6b4423" stroke="#3a2512" stroke-width=".8"/><circle cx="11" cy="13" r="1.9" fill="#6b4423" stroke="#3a2512" stroke-width=".8"/><circle cx="4.4" cy="13" r=".5" fill="#a9afb6"/><circle cx="11" cy="13" r=".5" fill="#a9afb6"/><path d="M7.4 6.2 L8.4 7" stroke="#a9afb6" stroke-width="1.2"/></svg>',
   rate: '<svg viewBox="0 0 16 16"><path d="M8 1.2 L3.5 9 H7.4 L6.2 14.8 L12.5 6.4 H8.6 L10 1.2 Z" fill="#f0c44a" stroke="#8a6416" stroke-width=".9" stroke-linejoin="round"/></svg>',
   prod: '<svg viewBox="0 0 16 16"><path d="M8 1.5 L9.3 3.2 L11.4 2.6 L11.8 4.8 L13.9 5.6 L13 7.6 L14.3 9.4 L12.3 10.5 L12.2 12.7 L10 12.5 L8.8 14.4 L7.2 12.8 L5 13.3 L4.7 11.1 L2.6 10.2 L3.6 8.2 L2.4 6.3 L4.5 5.4 L4.8 3.2 L7 3.6 Z" fill="#a9b4bd" stroke="#4f5961" stroke-width=".8" stroke-linejoin="round"/><circle cx="8.3" cy="8" r="2.2" fill="#4f5961"/></svg>',
   gold: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#e3b341" stroke="#8a6416" stroke-width="1.2"/><circle cx="8" cy="8" r="3.4" fill="none" stroke="#8a6416" stroke-width="1"/></svg>',
@@ -6370,6 +6371,8 @@ try {   // last game's picks; anything unknown falls back to the default
     if (D && D.length === DECOR_PICK && D.every(t => DECOR_ALL.includes(t))) LOADOUT.decor = D; }
 } catch (e) {}
 const LOAD_TAG = { ranged: 'Ranged', siege: 'Siege', barracks: 'Troops' };
+// the defence rows' icons (Jack): archers' bow for ranged, a catapult for siege, a sword for troops
+const LOAD_ICO = { ranged: 'bow', siege: 'siege', barracks: 'sword' };
 // a campaign stage with more decor unlocked than DECOR_PICK lets the player choose four on the town picker (the rest shown locked);
 // the picks are kept per stage in localStorage['mtd-stage-decor'], by default the newest four
 const stageDecorAll = m => CAMP_MAPS[m].cats.decor.filter(t => t !== 'road');
@@ -6413,7 +6416,7 @@ function renderLoadPick() {
   const opt = (t, on, slot) => lk(t) ? `<button class="ldOpt locked" data-slot="${slot}" data-t="${t}" aria-pressed="false" aria-label="Locked"><span class="tIco">${LOCK_ICO}</span></button>`
     : `<button class="ldOpt" data-slot="${slot}" data-t="${t}" aria-pressed="${on}"><span class="tIco">${TOOL_ICON[t]}</span><span><b>${DEF[t].name}</b><small>${costHTML(DEF[t].cost)}</small></span></button>`;
   for (const k of ['eco', 'def']) $(k === 'eco' ? '#ldEco' : '#ldDef').innerHTML = LOAD_SLOTS[k].map(([slot, opts]) =>
-    `<div class="ldRow"><span class="ldCat">${k === 'eco' ? `<span class="ico">${ICON[slot]}</span>` : `<span class="tag">${LOAD_TAG[slot]}</span>`}</span>${opts.map(t => opt(t, L[slot] === t, slot)).join('')}</div>`).join('');
+    `<div class="ldRow"><span class="ldCat">${k === 'eco' ? `<span class="ico">${ICON[slot]}</span>` : `<span class="ico" title="${LOAD_TAG[slot]}">${ICON[LOAD_ICO[slot]]}</span>`}</span>${opts.map(t => opt(t, L[slot] === t, slot)).join('')}</div>`).join('');
   $('#ldDecor').innerHTML = DECOR_ALL.map(t => lk(t) ? `<button class="ldOpt locked" data-slot="decor" data-t="${t}" aria-pressed="false" aria-label="Locked"><span class="tIco">${LOCK_ICO}</span></button>`
     : `<button class="ldOpt" data-slot="decor" data-t="${t}" aria-pressed="${L.decor.includes(t)}"><span class="tIco">${TOOL_ICON[t]}</span><b>${t === 'road' ? 'Path' : DEF[t].name}</b></button>`).join('');
   $('#ldBack').textContent = SM ? 'Back' : 'Maps';
@@ -6769,8 +6772,8 @@ function campaignSVG() {
   // the ground is one 3D landscape rendered from the game's own terrain, trees, rocks and buildings, seen straight down (maps/overview.jpg,
   // tools/render/overview.js); the trail, the crosses, the flag and the names are drawn over it
   const marks = CAMPAIGN.map((c, i) => { const [x, y] = S[i], col = c.boss ? '#e2715b' : '#e3b341', R = 46;
-    const badge = `<g transform="translate(${R * .72} ${-R * .72})"><circle r="15" fill="${c.boss ? '#6b2a24' : '#2a2b22'}" stroke="${col}" stroke-width="2.5"/>` +
-      (c.boss ? `<path d="M-6 -4 L6 7 M6 -4 L-6 7" stroke="#f3d5c8" stroke-width="2.6" stroke-linecap="round"/>` : `<text y="6" text-anchor="middle" font-size="17" font-family="Georgia,serif" fill="#f2e6c4">${i + 1}</text>`) + `</g>`;
+    const badge = !c.boss ? '' : `<g transform="translate(${R * .72} ${-R * .72})"><circle r="15" fill="${c.boss ? '#6b2a24' : '#2a2b22'}" stroke="${col}" stroke-width="2.5"/>` +
+      `<path d="M-6 -4 L6 7 M6 -4 L-6 7" stroke="#f3d5c8" stroke-width="2.6" stroke-linecap="round"/></g>`;
     const spot = won[i] ? XMARK : i === cur ? `<g transform="scale(1.35)">${FLAG}</g>` : `<circle r="6" fill="#f2e6c4" fill-opacity=".85" stroke="#2a2b22" stroke-width="2.5"/>`;
     // an invisible disc keeps the tap target big
     return `<g class="mk${won[i] ? ' won' : ''}${i === cur ? ' cur' : ''}" data-i="${i}" transform="translate(${x} ${y})"><circle r="${R}" fill="#000" fill-opacity=".001"/><circle class="ring" r="${R}" fill="none" stroke="#fff" stroke-width="0"/>` +
