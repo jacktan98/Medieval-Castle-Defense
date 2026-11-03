@@ -163,6 +163,10 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
   linear-gradient(rgba(14,16,11,.35), rgba(14,16,11,.35)), url("maps/menu-bg.jpg")!important;background-size:cover,cover,cover!important;background-position:center!important;background-repeat:no-repeat!important}
 .modal.tome .gameTitle{text-shadow:0 2px 0 rgba(0,0,0,.65),0 0 28px rgba(0,0,0,.85)}
 .modal.tome .mapSub{color:#cfc4a6;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+/* screen headings sit between two thin gold rules that fade out, each ending in a small diamond */
+.modal.tome .mapSub{display:flex;align-items:center;justify-content:center;gap:10px;width:min(320px,86%);align-self:center}
+.modal.tome .mapSub::before,.modal.tome .mapSub::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(212,168,78,0),rgba(212,168,78,.8))}
+.modal.tome .mapSub::after{background:linear-gradient(270deg,rgba(212,168,78,0),rgba(212,168,78,.8))}
 .modal.tome .mapBtn,.modal.tome .ldOpt{background:rgba(20,22,16,.78);border-color:rgba(201,160,62,.32)}
 .modal.tome .ldOpt[aria-pressed="true"]{background:rgba(52,44,22,.88);border-color:var(--gold)}
 .modal.tome .loadSheet,.modal.tome .stSide{background:rgba(14,16,11,.72);border:1px solid rgba(201,160,62,.28);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
@@ -170,13 +174,10 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .modal.tome .stSide{padding:12px 16px 14px}
 .modal.tome #campMap svg,.modal.tome .stPic{border-color:rgba(201,160,62,.45);box-shadow:0 0 0 1px rgba(0,0,0,.6),0 10px 34px rgba(0,0,0,.7)}
 .modal.tome button:not(.mapBtn):not(.ldOpt){background:rgba(20,22,16,.72)}
-/* a carved gold frame (Jack): a gold edge, a faint second line inside it, and small gold corner pieces (::after, .orn's svgs);
-   the same on every menu box and picture, and drawn into the campaign map's svg (ORN_PATH) */
-.modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide,.modal.tome .stPic{position:relative;border:1px solid rgba(201,160,62,.6)!important;box-shadow:inset 0 0 0 3px rgba(8,9,6,.55),inset 0 0 0 4px rgba(201,160,62,.22),0 8px 26px rgba(0,0,0,.55)!important}
-.modal.tome .mapBtn::after,.modal.tome .loadSheet::after,.modal.tome .stSide::after,.modal.tome .stPic::after{content:'';position:absolute;inset:3px;pointer-events:none;z-index:2;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg transform='rotate(0 14 14)' fill='none' stroke='%23d4a84e' stroke-linecap='round'%3E%3Cpath d='M2 26 V10 Q2 2 10 2 H26' stroke-width='1.8'/%3E%3Cpath d='M6 26 V12 Q6 6 12 6 H26' stroke-width='1' stroke-opacity='.55'/%3E%3Cpath d='M12 9 L15 12 L12 15 L9 12 Z' fill='%23d4a84e' stroke='none'/%3E%3Ccircle cx='2' cy='26' r='1.6' fill='%23d4a84e' stroke='none'/%3E%3Ccircle cx='26' cy='2' r='1.6' fill='%23d4a84e' stroke='none'/%3E%3C/g%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg transform='rotate(90 14 14)' fill='none' stroke='%23d4a84e' stroke-linecap='round'%3E%3Cpath d='M2 26 V10 Q2 2 10 2 H26' stroke-width='1.8'/%3E%3Cpath d='M6 26 V12 Q6 6 12 6 H26' stroke-width='1' stroke-opacity='.55'/%3E%3Cpath d='M12 9 L15 12 L12 15 L9 12 Z' fill='%23d4a84e' stroke='none'/%3E%3Ccircle cx='2' cy='26' r='1.6' fill='%23d4a84e' stroke='none'/%3E%3Ccircle cx='26' cy='2' r='1.6' fill='%23d4a84e' stroke='none'/%3E%3C/g%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg transform='rotate(270 14 14)' fill='none' stroke='%23d4a84e' stroke-linecap='round'%3E%3Cpath d='M2 26 V10 Q2 2 10 2 H26' stroke-width='1.8'/%3E%3Cpath d='M6 26 V12 Q6 6 12 6 H26' stroke-width='1' stroke-opacity='.55'/%3E%3Cpath d='M12 9 L15 12 L12 15 L9 12 Z' fill='%23d4a84e' stroke='none'/%3E%3Ccircle cx='2' cy='26' r='1.6' fill='%23d4a84e' stroke='none'/%3E%3Ccircle cx='26' cy='2' r='1.6' fill='%23d4a84e' stroke='none'/%3E%3C/g%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg transform='rotate(180 14 14)' fill='none' stroke='%23d4a84e' stroke-linecap='round'%3E%3Cpath d='M2 26 V10 Q2 2 10 2 H26' stroke-width='1.8'/%3E%3Cpath d='M6 26 V12 Q6 6 12 6 H26' stroke-width='1' stroke-opacity='.55'/%3E%3Cpath d='M12 9 L15 12 L12 15 L9 12 Z' fill='%23d4a84e' stroke='none'/%3E%3Ccircle cx='2' cy='26' r='1.6' fill='%23d4a84e' stroke='none'/%3E%3Ccircle cx='26' cy='2' r='1.6' fill='%23d4a84e' stroke='none'/%3E%3C/g%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left top,right top,left bottom,right bottom;background-size:22px 22px}
+/* a plain gold frame (Jack: no corner pieces, a thicker edge): a 2 px gold border with a faint inner line */
+.modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide,.modal.tome .stPic{position:relative;border:2px solid rgba(212,168,78,.75)!important;box-shadow:inset 0 0 0 2px rgba(8,9,6,.55),inset 0 0 0 3px rgba(212,168,78,.18),0 8px 26px rgba(0,0,0,.55)!important}
 .modal.tome .stPic,.modal.tome .mapBtn img{border-radius:6px} .modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide{border-radius:10px}
-.modal.tome #campMap svg{border:none!important;border-radius:6px;box-shadow:0 10px 34px rgba(0,0,0,.7)!important}
+.modal.tome #campMap svg{border:2px solid rgba(212,168,78,.75)!important;border-radius:8px;box-shadow:0 10px 34px rgba(0,0,0,.7)!important}
 /* the three map cards line up: names get two lines' room, so Mountain pass's picture sits level with the others */
 .mapBtn{justify-content:flex-start;padding:13px 13px 12px;width:min(186px,29vw)} .mapBtn b{min-height:2.3em;display:flex;align-items:center;justify-content:center;line-height:1.1}
 /* campaign progress: stages won, a slim gold bar, stars (Jack) */
@@ -6744,8 +6745,6 @@ const CAMP_RIVER = [
   [[718, 133], [690, 200, 655, 300, 616, 350], [590, 385, 565, 396, 540, 408], [505, 430, 480, 462, 451, 478], [410, 498, 365, 506, 335, 516], [300, 532, 288, 570, 284, 610], [280, 650, 252, 688, 210, 705], [160, 722, 110, 738, 32, 764]],
   [[451, 478], [458, 520, 466, 560, 448, 592], [428, 625, 398, 642, 360, 655], [322, 668, 292, 676, 262, 686]],
 ];
-// the gold corner piece of the menus' frame (also in the .modal.tome CSS), in a 28 × 28 box
-const ORN_PATH = `<path d="M2 26 V10 Q2 2 10 2 H26" stroke-width="1.8"/><path d="M6 26 V12 Q6 6 12 6 H26" stroke-width="1" stroke-opacity=".55"/><path d="M12 9 L15 12 L12 15 L9 12 Z" fill="#d4a84e" stroke="none"/><circle cx="2" cy="26" r="1.6" fill="#d4a84e" stroke="none"/><circle cx="26" cy="2" r="1.6" fill="#d4a84e" stroke="none"/>`;
 function campaignSVG() {
   // the ground is drawn stretched by CAMP_CY in height (a taller overview); trees, rocks, peaks and markers keep their shapes and just move down with it
   const T = (y, el) => `<g transform="translate(0 ${(y * (CAMP_CY - 1)).toFixed(1)})">${el}</g>`;
@@ -6778,15 +6777,15 @@ function campaignSVG() {
   }
   // markers drawn with the game's own models under the overview's sun (tools/render/markers.js): a strip of looping frames each, shown
   // one at a time by stepping the strip along (calcMode discrete); `foot` is the model's foot in the frame, pinned on the stop
-  const MARKER = { FW: 220, FH: 200, NF: 16, PER: 2.513, flag: { foot: [64, 144], k: 1.05 }, banner: { foot: [64, 143], k: .95 } };
+  const MARKER = { FW: 220, FH: 200, NF: 32, PER: 2.513, flag: { foot: [64, 144], k: 1.05 }, banner: { foot: [64, 143], k: .95 } };
   const sprite = (kind, i) => { const { FW, FH, NF, PER } = MARKER, m = MARKER[kind], k = m.k;
     return `<svg x="${(-m.foot[0] * k).toFixed(1)}" y="${(-m.foot[1] * k).toFixed(1)}" width="${(FW * k).toFixed(1)}" height="${(FH * k).toFixed(1)}" viewBox="0 0 ${FW} ${FH}">` +
       `<image href="maps/${kind}.png" width="${FW * NF}" height="${FH}"><animate attributeName="x" calcMode="discrete" dur="${PER}s" begin="${(-hash2(i, 5) * PER).toFixed(2)}s" repeatCount="indefinite" values="${Array.from({ length: NF }, (_, n) => -n * FW).join(';')}"/></image></svg>`; };
   // the ground is one 3D landscape rendered from the game's own terrain, trees, rocks and buildings, seen straight down (maps/overview.jpg,
   // tools/render/overview.js); the trail, the banners, the flag and the names are drawn over it
   const marks = CAMPAIGN.map((c, i) => { const [x, y] = S[i], R = 46;
-    const ripple = [0, 1].map(n => `<circle r="10" fill="none" stroke="#ffd76a" stroke-width="3"><animate attributeName="r" values="8;40" dur="2.2s" begin="${n * 1.1}s" repeatCount="indefinite"/><animate attributeName="stroke-opacity" values=".95;0" dur="2.2s" begin="${n * 1.1}s" repeatCount="indefinite"/></circle>`).join('');
-    const spot = won[i] ? sprite('banner', i) : i === cur ? `<ellipse rx="16" ry="16" fill="#ffd76a" fill-opacity=".28"/>${ripple}<g filter="url(#mkOutline)">${sprite('flag', i)}</g>` : `<circle r="6" fill="#f2e6c4" fill-opacity=".85" stroke="#2a2b22" stroke-width="2.5"/>`;
+    const ripple = `<circle r="8" fill="none" stroke="#ffe39a" stroke-width="1.6"><animate attributeName="r" values="7;26" dur="3s" repeatCount="indefinite"/><animate attributeName="stroke-opacity" values=".55;0" dur="3s" repeatCount="indefinite"/></circle>`;
+    const spot = won[i] ? sprite('banner', i) : i === cur ? `${ripple}<g filter="url(#mkOutline)">${sprite('flag', i)}</g>` : `<circle r="6" fill="#f2e6c4" fill-opacity=".85" stroke="#2a2b22" stroke-width="2.5"/>`;
     // an invisible disc keeps the tap target big
     return `<g class="mk${won[i] ? ' won' : ''}${i === cur ? ' cur' : ''}" data-i="${i}" transform="translate(${x} ${y})"><circle r="${R}" fill="#000" fill-opacity=".001"/><circle class="ring" r="${R}" fill="none" stroke="#fff" stroke-width="0"/>` +
       spot +
@@ -6798,9 +6797,6 @@ function campaignSVG() {
     <image href="maps/overview.jpg" x="0" y="0" width="800" height="${900 * CAMP_CY}" preserveAspectRatio="none"/>
     <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="${trail}" stroke="#2e2414" stroke-opacity=".45" stroke-width="12" filter="url(#trailSoft)"/><g filter="url(#trailRough)"><path d="${trail}" stroke="#4e3f2a" stroke-width="8"/><path d="${trail}" stroke="#8a7049" stroke-width="5.2"/><path d="${trail}" stroke="#a88d5f" stroke-opacity=".55" stroke-width="2" stroke-dasharray="9 5 4 7"/></g></g>
     ${marks}
-    <g fill="none" stroke="#d4a84e" stroke-linecap="round"><rect x="1.5" y="1.5" width="797" height="${900 * CAMP_CY - 3}" rx="10" stroke-opacity=".75" stroke-width="2.4"/>
-      <rect x="9" y="9" width="782" height="${900 * CAMP_CY - 18}" rx="6" stroke-opacity=".3" stroke-width="1.4"/>
-      ${[[0, 0, 0], [800, 0, 90], [0, 900 * CAMP_CY, 270], [800, 900 * CAMP_CY, 180]].map(([x, y, r]) => `<g transform="translate(${x} ${y}) rotate(${r}) translate(5 5) scale(1.9)">${ORN_PATH}</g>`).join('')}</g>
   </svg>`;
 }
 // a stage's preview: its picture (the real stage where it's built, else its sketch), what it brings in, stars, Play

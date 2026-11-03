@@ -3,28 +3,29 @@
 // Each is a strip of looping frames (the cloth's wave drawn with loop-friendly speeds) on a transparent background, with the model's
 // shadow on the ground. Evaluated inside the game's closure by tools/render/markers.js (window.G); returns { flag, banner } data URLs.
 (() => {
-  const FW = 220, FH = 200, NF = 16, PER = Math.PI * 2 / 2.5;   // frame size in px, frames per loop, loop length in s (waves at 2.5, 5 and 10 rad/s)
+  const FW = 220, FH = 200, NF = 32, PER = Math.PI * 2 / 2.5;   // frame size in px, frames per loop (32: 16 looked jerky), loop length in s (waves at 2.5 and 5 rad/s)
   const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   r.setPixelRatio(1); r.setSize(FW, FH, false); r.setClearColor(0, 0);
   r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
   r.outputEncoding = THREE.sRGBEncoding; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.1;
   const T = { value: 0 };
-  // the flag's and the banner's ripple, as in the game, with speeds that come round together every PER seconds
-  const flagM = M.flag.clone(); flagM.onBeforeCompile = sh => { sh.uniforms.uTime = T;
-    sh.vertexShader = 'uniform float uTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
-      float fu = clamp(transformed.x * 1.4 + .5, 0.0, 1.0);
-      transformed.z += sin(uTime * 5.0 - fu * 6.0) * .07 * fu + sin(uTime * 10.0 - fu * 9.0) * .02 * fu;
-      transformed.y += sin(uTime * 2.5 - fu * 4.0) * .025 * fu;`); };
-  flagM.customProgramCacheKey = () => 'marker-flag';
-  const drapeM = M.drape.clone(); drapeM.onBeforeCompile = sh => { sh.uniforms.uTime = T;
-    sh.vertexShader = 'uniform float uTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
-      float du = clamp(.5 - transformed.y * 1.1, 0.0, 1.0);
+  // the flag's and the banner's ripple, as in the game but smoother (no fast flutter), with speeds that come round together every PER
+  // seconds; the same bend goes into a depth material for each, so the shadow waves with the cloth (it stood still before)
+  const FLAG_W = `float fu = clamp(transformed.x * 1.4 + .5, 0.0, 1.0);
+      transformed.z += sin(uTime * 5.0 - fu * 5.5) * .085 * fu + sin(uTime * 2.5 - fu * 3.0) * .02 * fu;
+      transformed.y += sin(uTime * 2.5 - fu * 4.0) * .02 * fu;`;
+  const DRAPE_W = `float du = clamp(.5 - transformed.y * 1.1, 0.0, 1.0);
       transformed.z += (sin(uTime * 2.5 - du * 5.0) * .05 + .02) * du;
-      transformed.x += sin(uTime * 2.5 - du * 3.0 + 1.0) * .015 * du;`); };
-  drapeM.customProgramCacheKey = () => 'marker-drape';
+      transformed.x += sin(uTime * 2.5 - du * 3.0 + 1.0) * .015 * du;`;
+  const bend = (m, code, key) => { m.onBeforeCompile = sh => { sh.uniforms.uTime = T;
+    sh.vertexShader = 'uniform float uTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n' + code); };
+    m.customProgramCacheKey = () => key; return m; };
+  const flagM = bend(M.flag.clone(), FLAG_W, 'marker-flag'), drapeM = bend(M.drape.clone(), DRAPE_W, 'marker-drape');
+  const DEPTH = new Map([[flagM, bend(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }), FLAG_W, 'marker-flag-depth')],
+    [drapeM, bend(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }), DRAPE_W, 'marker-drape-depth')]]);
   const swap = (g, from, to) => g.traverse(o => { if (o.isMesh && o.material === from) o.material = to; });
   const sheet = (model, look) => {
-    const sc = new THREE.Scene(); sc.add(model); model.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    const sc = new THREE.Scene(); sc.add(model); model.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (DEPTH.has(o.material)) o.customDepthMaterial = DEPTH.get(o.material); } });
     const gr = new THREE.Mesh(new THREE.PlaneGeometry(12, 12).rotateX(-Math.PI / 2), new THREE.ShadowMaterial({ opacity: .3 })); gr.receiveShadow = true; sc.add(gr);
     sc.add(new THREE.HemisphereLight('#dfe8ff', '#6b5a3a', .55));
     const sun = new THREE.DirectionalLight('#ffe7c4', 1.25); sun.position.set(-90, 260, 60).normalize().multiplyScalar(20); sc.add(sun, sun.target);
