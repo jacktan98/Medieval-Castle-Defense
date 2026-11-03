@@ -152,7 +152,6 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .campSheet{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(720px,100%);max-height:100%}
 #campMap{width:100%;flex:1 1 auto;min-height:0;display:flex;justify-content:center}
 #campInfo{width:100%;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
-#stagePrev{background:rgba(12,13,9,.94);z-index:62}
 /* the menus sit in the game's own world: the campaign landscape (maps/menu-bg.jpg: maps/overview.jpg shrunk to 240 px and blurred, so the
    browser's upscale is soft and costs nothing) darkened toward the edges; the content on dark translucent panels edged in muted gold */
 .modal.tome{background-color:#10120e!important;background-image:radial-gradient(ellipse at 50% 40%, rgba(8,9,6,.25) 0%, rgba(8,9,6,.55) 55%, rgba(5,6,4,.9) 100%),
@@ -199,23 +198,41 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
   #mapPick .mapSub{font-size:15px;width:min(460px,50vw)}
   #mapPick #campBtn{font-size:clamp(19px,1.5vw,25px);padding:12px 34px}
 }
-/* the campaign journey: a tall scrolling column, the road and stage cards on bands of each stage's land */
-#campaign .campSheet{height:100%;max-height:100%}
-#campMap{display:block!important;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;border:2px solid rgba(212,168,78,.75);border-radius:10px;box-shadow:0 10px 34px rgba(0,0,0,.7);width:min(560px,100%);flex:1 1 auto;min-height:0;scrollbar-width:thin;scrollbar-color:#7a6230 transparent}
-.journey{position:relative;width:100%;box-shadow:inset 0 0 120px rgba(0,0,0,.55)}
-.journey::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.35),rgba(0,0,0,0) 30%,rgba(0,0,0,0) 70%,rgba(0,0,0,.35)),url("maps/menu-bg.jpg") center/cover;mix-blend-mode:soft-light;opacity:.7;pointer-events:none}
-.jRoad{position:absolute;inset:0;width:100%;height:100%;z-index:0}
-.jCard{position:absolute;transform:translateX(-50%);width:min(56%,290px);align-items:stretch;padding:0;display:flex;flex-direction:column;border:2px solid rgba(212,168,78,.7);border-radius:10px;background:#15170f;overflow:visible;z-index:1;box-shadow:0 6px 18px rgba(0,0,0,.6);text-align:left;color:var(--parch)}
-.jPic{display:block;width:100%;aspect-ratio:16/9;background-size:cover;background-position:center;border-radius:8px 8px 0 0}
-.jInfo{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:5px 10px 7px} .jInfo small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)} .jInfo b{font-family:var(--display);font-weight:400;font-size:20px;color:var(--gold);line-height:1.1} .jInfo .stars{font-size:13px}
-.jCard.boss{border-color:rgba(226,113,91,.8)} .jCard.boss .jInfo small{color:#e2715b}
-.jCard.cur{border-color:#f2d27a;animation:jGlow 1.8s ease-in-out infinite alternate}
-@keyframes jGlow{from{box-shadow:0 0 0 1px rgba(255,215,106,.4),0 0 14px rgba(255,200,80,.35),0 6px 18px rgba(0,0,0,.6)}to{box-shadow:0 0 0 2px rgba(255,215,106,.8),0 0 30px rgba(255,200,80,.7),0 6px 18px rgba(0,0,0,.6)}}
-.jCard.locked{filter:saturate(.25) brightness(.62)} .jCard.locked .jInfo b{color:#cfc4a6}
-.jCard.sel{outline:2px solid #fff;outline-offset:3px}
-.jLock{position:absolute;right:8px;top:8px;width:30px;height:30px;border-radius:50%;background:rgba(10,11,8,.8);display:flex;align-items:center;justify-content:center} .jLock svg{width:17px;height:17px;fill:none;stroke:#e6dcc0;stroke-width:2;stroke-linecap:round}
+/* the campaign carousel */
+#campaign{padding:10px 12px;overflow:hidden}
+.cBg,.cBg i{position:absolute;inset:0}
+.cBg i{background-size:cover;background-position:center;filter:blur(22px) saturate(1.15) brightness(.42);transform:scale(1.15);opacity:0;transition:opacity .6s}
+.cBg i.on{opacity:1} .cBg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%, rgba(0,0,0,0) 30%, rgba(0,0,0,.6) 100%)}
+#campaign .campSheet{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:6px;width:min(1100px,100%);height:100%;max-height:100%}
+.cHead{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%}
+.cMain{flex:1 1 auto;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;gap:8px}
+.cLeft{flex:1 1 auto;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;gap:8px}
+.cDeck{position:relative;flex:1 1 auto;min-height:0;width:100%;perspective:1100px;overflow-x:clip;overflow-y:visible;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.cCards{position:absolute;inset:0;transform-style:preserve-3d;pointer-events:none}
+.cCard{position:absolute;left:50%;top:50%;width:var(--cw);margin-left:calc(var(--cw) / -2);margin-top:calc((var(--cw) + 54px) / -2);padding:0;display:flex;flex-direction:column;
+  border:2px solid rgba(212,168,78,.75);border-radius:12px;background:#15170f;color:var(--parch);text-align:left;box-shadow:0 14px 34px rgba(0,0,0,.65);
+  transition:transform .42s cubic-bezier(.2,.8,.25,1),opacity .3s;filter:brightness(calc(1 - var(--dim, 0)));cursor:pointer}
+.cCard .cPic{display:block;width:100%;aspect-ratio:1/1;background-size:cover;background-position:center;border-radius:10px 10px 0 0}
+.cCard .cName{display:flex;flex-direction:column;gap:1px;padding:6px 12px 8px;height:54px;justify-content:center} .cName small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)} .cName b{font-family:var(--display);font-weight:400;font-size:20px;color:var(--gold);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cCard.boss{border-color:rgba(226,113,91,.85)} .cCard.boss .cName small{color:#e2715b}
+.cCard.locked .cPic{filter:grayscale(.75) brightness(.7)}
+.cCard.cur.front{border-color:#f2d27a;animation:jGlow 1.8s ease-in-out infinite alternate}
+@keyframes jGlow{from{box-shadow:0 0 0 1px rgba(255,215,106,.4),0 0 16px rgba(255,200,80,.35),0 14px 34px rgba(0,0,0,.65)}to{box-shadow:0 0 0 2px rgba(255,215,106,.8),0 0 34px rgba(255,200,80,.7),0 14px 34px rgba(0,0,0,.65)}}
+.jLock{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;background:rgba(10,11,8,.8);display:flex;align-items:center;justify-content:center} .jLock svg{width:19px;height:19px;fill:none;stroke:#e6dcc0;stroke-width:2;stroke-linecap:round}
+.cArrow{position:absolute;top:50%;transform:translateY(-50%);z-index:200;width:42px;height:42px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(14,16,11,.75)!important;border:1px solid rgba(212,168,78,.6)!important}
+.cArrow svg{width:22px;height:22px;fill:none;stroke:var(--gold);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round} .cArrow.l{left:2px} .cArrow.r{right:2px}
+.cDots{display:flex;align-items:center;justify-content:center;gap:3px;flex-wrap:nowrap;padding:2px 4px;position:relative}
+.cDots::before{content:'';position:absolute;left:14px;right:14px;top:50%;height:1px;background:rgba(212,168,78,.4)}
+.cDot{position:relative;flex:0 0 24px;width:24px;height:24px!important;min-height:0!important;min-width:0!important;padding:0!important;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(14,16,11,.9)!important;border:1px solid rgba(212,168,78,.45)!important}
+.cDot svg{width:16px;height:16px} .cDot.locked svg{width:12px;height:12px;fill:none;stroke:#a69e87;stroke-width:2.2;stroke-linecap:round}
+.cDot:not(.won):not(.cur):not(.locked)::after{content:'';width:6px;height:6px;border-radius:50%;background:#d9c79a}
+.cDot.boss{border-color:rgba(226,113,91,.9)!important} .cDot.sel{transform:scale(1.25);border-color:#f2d27a!important;box-shadow:0 0 8px rgba(255,205,90,.7)}
+.cDet{width:min(520px,100%);flex:0 0 auto}
+.cDet .stActs{display:flex;gap:10px;justify-content:center} .cDet .stActs button{min-width:110px;min-height:42px}
+@media (min-width:900px) and (min-height:600px){ .cMain{flex-direction:row;align-items:stretch;gap:24px} .cLeft{flex:1 1 auto} .cDet{width:330px;align-self:center} .cCard .cName b{font-size:24px} }
+@media (max-height:520px){ #campaign .cHead{flex-direction:row;gap:14px} #campaign .cHead .mapSub{width:auto} .cMain{flex-direction:row;align-items:stretch;gap:12px} .cDet{width:250px;align-self:center;padding:8px 10px!important;gap:5px} .cDet h3{font-size:18px} .cCard .cName{height:46px;padding:4px 10px} .cCard{margin-top:calc((var(--cw) + 46px) / -2)} }
 /* the banner and the rally flag: the overview's 3D sprite strips (maps/banner.png, maps/flag.png: 32 frames of 220 x 200), played with steps() */
-.jSpr{position:absolute;right:-34px;top:-66px;width:121px;height:110px;background-repeat:no-repeat;background-size:3872px 110px;animation:jWave 2.513s steps(32) infinite;pointer-events:none}
+.jSpr{position:absolute;right:-30px;top:-62px;width:121px;height:110px;background-repeat:no-repeat;background-size:3872px 110px;animation:jWave 2.513s steps(32) infinite;pointer-events:none}
 .jBan{background-image:url(maps/banner.png)} .jFlag{background-image:url(maps/flag.png);filter:drop-shadow(0 0 1.5px #fbeab0) drop-shadow(0 0 1px #fbeab0)}
 @keyframes jWave{to{background-position:-3872px 0}}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
@@ -240,7 +257,6 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 #campInfo h3{margin:0;font-family:var(--display);font-weight:400;font-size:19px;color:var(--gold)} #campInfo .sub{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 #campInfo .unl{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 10px;font-size:12px;color:var(--parch)}
 #campInfo .unl span{display:flex;align-items:center;gap:4px} #campInfo .unl svg{width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-@media (max-height:520px){ .jCard{width:min(40%,250px)} .jPic{aspect-ratio:2/1} .jInfo b{font-size:17px} #campaign{padding:8px} .campSheet{gap:4px} .campProg{margin-top:0} #campInfo{display:none} }
 .mapSub{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .maps{display:flex;gap:min(12px,2vw);justify-content:center;flex-wrap:wrap}
 .mapBtn{display:flex;flex-direction:column;align-items:stretch;gap:7px;padding:6px 6px 8px;border-radius:12px;background:#24261f;border-color:#4a4838;width:min(170px,25vw)}
@@ -476,11 +492,21 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
     </div>
   </div>
   <div class="modal tome" id="campaign" hidden>
+    <div class="cBg" id="cBg"><i></i><i></i></div>
     <div class="campSheet">
-      <div class="mapSub">Campaign</div><div class="campProg" id="campStars"></div>
-      <div id="campMap"></div>
-      <div id="campInfo">Tap a stage</div>
-      <button id="campBack">Back</button>
+      <div class="cHead"><div class="mapSub">Campaign</div><div class="campProg" id="campStars"></div></div>
+      <div class="cMain">
+        <div class="cLeft">
+          <div class="cDeck" id="campMap"><button class="cArrow l" id="cPrev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M15 5 L8 12 L15 19"/></svg></button><div class="cCards" id="cCards"></div><button class="cArrow r" id="cNext" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M9 5 L16 12 L9 19"/></svg></button></div>
+          <div class="cDots" id="cDots"></div>
+        </div>
+        <div class="stSide cDet">
+          <h3 id="stName"></h3><div class="sub" id="stSub"></div>
+          <div class="stNew" id="stNew"></div>
+          <div id="stStars"></div>
+          <div class="stActs"><button id="campBack">Back</button><span id="stPlay"></span></div>
+        </div>
+      </div>
     </div>
   </div>
   <div class="modal" id="newCards" hidden>
@@ -492,17 +518,6 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
         <div class="ncCost" id="ncCost"></div>
         <div class="ncStats" id="ncStats"></div>
         <button class="primary" id="ncNext">Next</button>
-      </div>
-    </div>
-  </div>
-  <div class="modal tome" id="stagePrev" hidden>
-    <div class="stageSheet">
-      <div class="stPic" id="stPic"></div>
-      <div class="stSide">
-        <h3 id="stName"></h3><div class="sub" id="stSub"></div>
-        <div class="stNew" id="stNew"></div>
-        <div id="stStars"></div>
-        <div class="stActs"><button id="stBack">Back</button><span id="stPlay"></span></div>
       </div>
     </div>
   </div>
@@ -6772,44 +6787,42 @@ const CAMP_RIVER = [
   [[718, 133], [690, 200, 655, 300, 616, 350], [590, 385, 565, 396, 540, 408], [505, 430, 480, 462, 451, 478], [410, 498, 365, 506, 335, 516], [300, 532, 288, 570, 284, 610], [280, 650, 252, 688, 210, 705], [160, 722, 110, 738, 32, 764]],
   [[451, 478], [458, 520, 466, 560, 448, 592], [428, 625, 398, 642, 360, 655], [322, 668, 292, 676, 262, 686]],
 ];
-// ---------- the campaign as a journey (Jack: the overview map didn't work): one road scrolled upward from Greenvale at the bottom to the
-// Warlord's Hold at the top, every stage a card on it (its picture from above, maps/thumb/*.jpg, name, stars), the road passing through
-// bands of each stage's land; stages won fly the town's banner and the road behind you is trodden earth, the stage you're at has the
-// rally flag and a gold glow, stages ahead are dimmed with a padlock and the road on to them is only dashed. Opens at the current stage.
-const J_ROW = 236, J_PAD = 80;   // px per stage, room above and below
-const J_LAND = { vale: '#47703a', bridge: '#3f6a48', cross: '#566f38', watch: '#7d6c34', dune: '#93784a', bend: '#2f6458', crag: '#25411f', ford: '#5b6650', mere: '#46533a', plains: '#5f7c36', keep: '#6a2a1f', hold: '#7e8a94' };
+// ---------- the campaign as a carousel (Jack's sketch; it replaced a scrolling road, which replaced the overview map): the stages are
+// cards in a 3D deck, the one in front large, the others angled away behind it on both sides; swipe, tap a side card, the arrows, the
+// arrow keys or the mouse wheel to turn it. Under it a row of twelve markers (banner = won, flag = where you are, padlock = ahead, red
+// = boss; tap one to jump there), then the front stage's details and Play. The background is that stage's own picture, blurred.
 const LOCK_SVG = '<svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5 V8 a4 4 0 0 1 8 0 V10.5"/></svg>';
-function campaignJourney() {
-  const n = CAMPAIGN.length, H = n * J_ROW + J_PAD * 2, won = CAMPAIGN.map(c => !!(c.map && STARS[c.map] > 0));
-  let cur = CAMPAIGN.findIndex((c, i) => !won[i]); if (cur < 0) cur = n - 1;
-  // stage i's card: rows from the bottom, alternately left and right; centre in % across and px down
-  const at = i => ({ x: i % 2 ? 67 : 33, y: H - J_PAD - (i + .5) * J_ROW });
-  // the lands as soft bands, each blending into the next
-  const bands = CAMPAIGN.map((c, i) => `${J_LAND[c.map] || '#3d4a33'} ${((at(i).y / H) * 100).toFixed(1)}%`).reverse().join(', ');
-  // the road: a smooth curve through every card's centre; trodden earth up to the current stage, a faint dashed line beyond
-  const seg = (a, b) => { const p = at(a), q = at(b), m = (p.y + q.y) / 2; return ` C${p.x} ${m.toFixed(0)} ${q.x} ${m.toFixed(0)} ${q.x} ${q.y.toFixed(0)}`; };
-  let done = `M${at(0).x} ${H}` + ` L${at(0).x} ${at(0).y.toFixed(0)}`, ahead = `M${at(cur).x} ${at(cur).y.toFixed(0)}`;
-  for (let i = 1; i < n; i++) { if (i <= cur) done += seg(i - 1, i); else ahead += seg(i - 1, i); }
-  const road = `<svg class="jRoad" viewBox="0 0 100 ${H}" preserveAspectRatio="none">
-    <path d="${ahead}" stroke="rgba(240,226,190,.45)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round" fill="none" vector-effect="non-scaling-stroke"/>
-    <path d="${done}" stroke="rgba(30,22,10,.55)" stroke-width="15" fill="none" vector-effect="non-scaling-stroke"/>
-    <path d="${done}" stroke="#4e3f2a" stroke-width="11" fill="none" vector-effect="non-scaling-stroke"/>
-    <path d="${done}" stroke="#8a7049" stroke-width="7" fill="none" vector-effect="non-scaling-stroke"/>
-    <path d="${done}" stroke="#a88d5f" stroke-width="1.5" stroke-dasharray="8 6 3 7" stroke-opacity=".6" fill="none" vector-effect="non-scaling-stroke"/></svg>`;
-  // drawn from the top down, so each lower card (and its banner or flag, which pokes up) paints over the one above
-  const cards = CAMPAIGN.map((c, i) => { const p = at(i), st = won[i] ? 'won' : i === cur ? 'cur' : i > cur ? 'locked' : '';
+const DOT_BAN = '<svg viewBox="0 0 24 24"><path d="M7 22 V3" stroke="#d9c79a" stroke-width="2" fill="none"/><path d="M7.5 4 H18 V15 L12.7 12.6 L7.5 15 Z" fill="#3a6fd0" stroke="#163a7a" stroke-width="1.2"/></svg>';
+const DOT_FLAG = '<svg viewBox="0 0 24 24"><path d="M6 22 V3" stroke="#f2d27a" stroke-width="2" fill="none"/><path d="M6.5 4 C10 2.5 13 6 18.5 4.5 V12.5 C13 14 10 10.5 6.5 12 Z" fill="#3a6fd0" stroke="#f2d27a" stroke-width="1.2"/></svg>';
+let cSel = 0, cCur = 0, cDrag = 0, cBgN = 0;
+function campState() { const won = CAMPAIGN.map(c => !!(c.map && STARS[c.map] > 0)); let cur = won.indexOf(false); if (cur < 0) cur = CAMPAIGN.length - 1; return { won, cur }; }
+function buildDeck() {
+  const { won, cur } = campState(); cCur = cur;
+  $('#cCards').innerHTML = CAMPAIGN.map((c, i) => { const st = won[i] ? 'won' : i === cur ? 'cur' : i > cur ? 'locked' : '';
     const mark = won[i] ? '<i class="jSpr jBan"></i>' : i === cur ? '<i class="jSpr jFlag"></i>' : i > cur ? `<i class="jLock">${LOCK_SVG}</i>` : '';
-    return `<button class="jCard ${st}${c.boss ? ' boss' : ''}" data-i="${i}" style="top:${(p.y - 96).toFixed(0)}px;left:${p.x}%">
-      <span class="jPic" style="background-image:url(maps/thumb/${c.map}.jpg)"></span>
-      <span class="jInfo"><small>${c.boss ? 'Boss · ' : ''}Stage ${i + 1}</small><b>${c.name}</b>${c.map ? starsHTML(STARS[c.map] || 0) : ''}</span>${mark}</button>`; }).reverse().join('');
-  return { html: `<div class="journey" style="height:${H}px;background:linear-gradient(180deg, ${bands})">${road}${cards}</div>`, curY: at(cur).y };
+    return `<button class="cCard ${st}${c.boss ? ' boss' : ''}" data-i="${i}" tabindex="-1"><span class="cPic" style="background-image:url(maps/thumb/${c.map}.jpg)"></span>
+      <span class="cName"><small>${c.boss ? 'Boss · ' : ''}Stage ${i + 1}</small><b>${c.name}</b></span>${mark}</button>`; }).join('');
+  $('#cDots').innerHTML = CAMPAIGN.map((c, i) => `<button class="cDot${c.boss ? ' boss' : ''}${won[i] ? ' won' : i === cur ? ' cur' : i > cur ? ' locked' : ''}" data-i="${i}" aria-label="Stage ${i + 1}">${won[i] ? DOT_BAN : i === cur ? DOT_FLAG : i > cur ? LOCK_SVG : ''}</button>`).join('');
 }
-// a stage's preview: its picture (the real stage where it's built, else its sketch), what it brings in, stars, Play
-const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' }, 2: { src: 'maps/cross.jpg' }, 3: { src: 'maps/watch.jpg' }, 4: { src: 'maps/dune.jpg' }, 5: { src: 'maps/bend.jpg' }, 6: { src: 'maps/crag.jpg' }, 7: { src: 'maps/ford.jpg' }, 8: { src: 'maps/mere.jpg' }, 9: { src: 'maps/plains.jpg' }, 10: { src: 'maps/keep.jpg' }, 11: { src: 'maps/hold.jpg' } };
+// place every card for the front index cSel plus the live drag (in cards); the card's size follows the room the deck has
+function layoutDeck(anim = true) {
+  const deck = $('#campMap'), W = Math.min(deck.clientWidth * .62, deck.clientHeight - 70, 480), f = cSel + cDrag;
+  deck.style.setProperty('--cw', Math.max(120, W) + 'px');
+  document.querySelectorAll('#cCards .cCard').forEach(el => {
+    const d = +el.dataset.i - f, a = Math.abs(d), sg = Math.sign(d), x = sg * (Math.min(a, 1) * .62 + Math.max(0, a - 1) * .2) * W;
+    el.style.transition = anim ? '' : 'none';
+    el.style.transform = `translateX(${x.toFixed(1)}px) translateZ(${(-Math.min(a, 4) * 70).toFixed(0)}px) rotateY(${(-Math.max(-1, Math.min(1, d)) * 34).toFixed(1)}deg) scale(${(1 - Math.min(a, 3) * .07).toFixed(3)})`;
+    el.style.zIndex = 100 - Math.round(a * 10); el.style.opacity = a > 3.4 ? 0 : Math.max(0, 1 - Math.max(0, a - 1.3) * .45).toFixed(2); el.style.pointerEvents = a > 3.4 ? 'none' : 'auto';
+    el.style.setProperty('--dim', Math.min(a, 1.5) * .4);
+    el.classList.toggle('front', a < .5);
+  });
+}
+function selectStage(i, quiet) {
+  i = Math.max(0, Math.min(CAMPAIGN.length - 1, i)); if (!quiet && i !== cSel) sfx('click'); cSel = i; cDrag = 0; layoutDeck(); openStage(i);
+}
 function openStage(i) {
-  const c = CAMPAIGN[i], pic = STAGE_PIC[i];
-  document.querySelectorAll('#campMap .jCard').forEach(m => m.classList.toggle('sel', +m.dataset.i === i));
-  $('#stPic').innerHTML = pic ? `<img src="${pic.src}" alt="">${pic.tag ? `<span class="tag">${pic.tag}</span>` : ''}` : '<span class="soon">Soon</span>';
+  const c = CAMPAIGN[i]; cSel = i;
+  document.querySelectorAll('#cDots .cDot').forEach(m => m.classList.toggle('sel', +m.dataset.i === i));
   $('#stName').textContent = `Stage ${i + 1} · ${c.name}`;
   $('#stSub').textContent = [c.sub, c.land].filter(Boolean).join(' · ');
   $('#stNew').innerHTML = c.adds.map(t => `<span>${TOOL_ICON[t] || ''}${t === 'road' ? 'Path' : DEF[t].name}</span>`).join('');
@@ -6817,20 +6830,39 @@ function openStage(i) {
   $('#stPlay').innerHTML = c.map ? '<button class="primary" id="campPlay">Play</button>' : '';
   if (c.map) $('#campPlay').addEventListener('click', () => {
     sfx('click');
-    MAP = c.map; $('#stagePrev').hidden = true; $('#mapPick').hidden = true;
-    if (stagePicks(MAP)) { showLoadPick(MAP); return; }   // more decor than fits: choose four first
+    MAP = c.map; $('#mapPick').hidden = true;
+    if (stagePicks(MAP)) { $('#campaign').hidden = true; showLoadPick(MAP); return; }   // more decor than fits: choose four first
     $('#campaign').hidden = true; paused = false; startGame();
   });
-  $('#stagePrev').hidden = false;
+  // the background crossfades to this stage's own picture, blurred
+  const L = $('#cBg').children, url = `url(maps/thumb/${c.map}.jpg)`;
+  if (L[cBgN].style.backgroundImage !== url) { cBgN = 1 - cBgN; L[cBgN].style.backgroundImage = url; L[cBgN].classList.add('on'); L[1 - cBgN].classList.remove('on'); }
 }
-$('#stBack').addEventListener('click', () => { sfx('click'); $('#stagePrev').hidden = true; });
+// turning the deck: drag (a tap without a drag on a side card brings it forward), arrows, keys, wheel, the markers
+{ const deck = $('#campMap'); let x0 = null, moved = 0, wheelT = 0, wheelAcc = 0;
+  deck.addEventListener('pointerdown', e => { if (e.target.closest('.cArrow')) return; x0 = e.clientX; moved = 0; deck.setPointerCapture(e.pointerId); });
+  deck.addEventListener('pointermove', e => { if (x0 === null) return; const dx = e.clientX - x0; moved = Math.max(moved, Math.abs(dx));
+    if (moved > 6) { cDrag = Math.max(-cSel - .4, Math.min(CAMPAIGN.length - 1 - cSel + .4, -dx / (parseFloat(deck.style.getPropertyValue('--cw')) * .62))); layoutDeck(false); } });
+  const up = e => { if (x0 === null) return; x0 = null;
+    if (moved > 6) selectStage(Math.round(cSel + cDrag));
+    else { const card = document.elementFromPoint(e.clientX, e.clientY)?.closest('.cCard'); if (card) selectStage(+card.dataset.i); } };
+  deck.addEventListener('pointerup', up); deck.addEventListener('pointercancel', () => { x0 = null; cDrag = 0; layoutDeck(); });
+  deck.addEventListener('wheel', e => { e.preventDefault(); wheelAcc += Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    const now = performance.now(); if (Math.abs(wheelAcc) > 40 && now - wheelT > 220) { selectStage(cSel + Math.sign(wheelAcc)); wheelAcc = 0; wheelT = now; } }, { passive: false });
+  $('#cPrev').addEventListener('click', () => selectStage(cSel - 1)); $('#cNext').addEventListener('click', () => selectStage(cSel + 1));
+  $('#cDots').addEventListener('click', e => { const d = e.target.closest('.cDot'); if (d) selectStage(+d.dataset.i); });
+  addEventListener('keydown', e => { if ($('#campaign').hidden) return; if (e.key === 'ArrowLeft') selectStage(cSel - 1); else if (e.key === 'ArrowRight') selectStage(cSel + 1); else if (e.key === 'Enter') $('#campPlay')?.click(); });
+  addEventListener('resize', () => { if (!$('#campaign').hidden) layoutDeck(false); });
+}
+const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' }, 2: { src: 'maps/cross.jpg' }, 3: { src: 'maps/watch.jpg' }, 4: { src: 'maps/dune.jpg' }, 5: { src: 'maps/bend.jpg' }, 6: { src: 'maps/crag.jpg' }, 7: { src: 'maps/ford.jpg' }, 8: { src: 'maps/mere.jpg' }, 9: { src: 'maps/plains.jpg' }, 10: { src: 'maps/keep.jpg' }, 11: { src: 'maps/hold.jpg' } };
 markMapStars();
-$('#campMap').addEventListener('click', e => { const m = e.target.closest('.jCard'); if (m) { sfx('click'); openStage(+m.dataset.i); } });
-function openCampaign(i) { const J = campaignJourney(), box = $('#campMap'); box.innerHTML = J.html; $('#mapPick').hidden = true; $('#campaign').hidden = false;
-  // open at the stage the player is at
-  box.scrollTop = J.curY - box.clientHeight / 2;
+function openCampaign(i) {
+  buildDeck(); $('#mapPick').hidden = true; $('#campaign').hidden = false;
   { const st = CAMPAIGN.filter(c => c.map), won = st.filter(c => STARS[c.map] > 0).length, stars = starTotal(), max = st.length * 3;
-    $('#campStars').innerHTML = `<span>${won}/${st.length}</span><i><b style="width:${(won / st.length * 100).toFixed(1)}%"></b></i><span>★ ${stars}/${max}</span>`; } if (i !== undefined) openStage(i); }
+    $('#campStars').innerHTML = `<span>${won}/${st.length}</span><i><b style="width:${(won / st.length * 100).toFixed(1)}%"></b></i><span>★ ${stars}/${max}</span>`; }
+  // opens on the given stage (Restart / Play again) or where the player is
+  cSel = i !== undefined ? i : cCur; cDrag = 0; layoutDeck(false); openStage(cSel);
+}
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
 $('#campBack').addEventListener('click', () => { sfx('click'); $('#campaign').hidden = true; $('#mapPick').hidden = false; });
 document.querySelectorAll('.mapBtn').forEach(b => b.addEventListener('click', () => {
@@ -7024,7 +7056,8 @@ const SHOWCASE = [   // type, cells from the castle's centre (x, z; the castle's
 // the scenes it moves between (Jack): it opens on the Meadow at dusk, then every SHOW_T seconds fades to another one at random
 // (the pass is ringed by mountains: its camera looks up the pass from the open south and only sways, `swing` rad either way)
 const SHOW_SCENES = [{ map: 'meadow', time: 'dusk' }, { map: 'isle', time: 'day' }, { map: 'pass', time: 'night', yaw: 0, swing: .45, pitch: .78, dist: 50 }], SHOW_T = 28;
-let showScene = 0, showT = 0, showFading = false, showYaw0 = 0, showPh = 0;
+let showScene = 0, showT = 0, showFading = false, showYaw0 = 0, showPh = 0, showDist = 40;
+const showC = new THREE.Vector3();
 function nextShowcase() {
   if (showFading) return; showFading = true; canvas.style.transition = 'opacity .7s'; canvas.style.opacity = '0';
   setTimeout(() => {
@@ -7045,7 +7078,7 @@ function buildShowcase(n = 0) {
   if (S.time === 'dusk') { PH.t = DUSK * .45; light = .25 + .75 * sstep(0, DUSK, PH.t); }   // low warm light, the torches and fires lit
   else if (S.time === 'night') { PH.kind = 'night'; light = 0; }                              // moonlight, every torch and fire burning
   const c = center(K); target.set(c.x, 1.5, c.z); showYaw0 = S.yaw !== undefined ? S.yaw : Math.random() * Math.PI * 2; showPh = 0; yaw = showYaw0;
-  pitch = S.pitch || .62; dist = (S.dist || 40) * (innerWidth < innerHeight ? 1.1 : 1); updateCam();   // far enough back that the whole town sits round the title, never behind it
+  pitch = S.pitch || .62; showC.copy(target); showDist = (S.dist || 40) * (innerWidth < innerHeight ? 1.35 : 1); dist = showDist; updateCam();
   $('#log').innerHTML = ''; $('#banner').className = 'banner';
   showcaseBuilt = true;
 }
@@ -7495,7 +7528,7 @@ function adaptResolution(raw) {
 }
 // a title screen, map or town picker, campaign or stage preview, or the new-building cards is up: the game underneath stands still
 // (setPaused(false) at startup used to set it running under the title screen, paying out gold)
-const MENUS = ['#mapPick', '#loadPick', '#campaign', '#stagePrev', '#newCards'].map(q => $(q));
+const MENUS = ['#mapPick', '#loadPick', '#campaign', '#newCards'].map(q => $(q));
 const menuOn = () => MENUS.some(m => !m.hidden);
 const mapPickEl = $('#mapPick');
 mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
@@ -7505,9 +7538,19 @@ function frame(now) {
   keyCamera(dt);
   if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now);
   const sc = showcaseBuilt && !mapPickEl.hidden; if (sc !== document.body.classList.contains('showcase')) document.body.classList.toggle('showcase', sc);
-  // the title's showcase town: the camera circles slowly; on a tall screen the picture is shifted so the town sits under the cards
-  if (sc) { showPh += dt * .03; const S = SHOW_SCENES[showScene]; yaw = S.swing ? showYaw0 + Math.sin(showPh * 2) * S.swing : showYaw0 + showPh; updateCam(); updateTrees(now); emitSmoke(dt); updateBirds(dt); camera.setViewOffset(1, 1, 0, innerHeight > innerWidth ? -.24 : -.1, 1, 1); if ((showT += dt) > SHOW_T) nextShowcase(); }
-  else if (camera.view && camera.view.enabled) camera.clearViewOffset();
+  // the title's showcase town: the camera circles slowly. It looks a little beyond the town, so the town sits low on the screen,
+  // under the cards (an off-centre lens did that before and skewed the picture: Jack found it squeezed); on a wide screen the view
+  // is narrowed to about 64 degrees across (45 degrees up and down gave nearly 90 across a laptop: wide-angle smear at the sides)
+  // and the camera steps back to keep the town the same size
+  if (sc) {
+    showPh += dt * .03; const S = SHOW_SCENES[showScene]; yaw = S.swing ? showYaw0 + Math.sin(showPh * 2) * S.swing : showYaw0 + showPh;
+    const asp = innerWidth / innerHeight, fov = clamp(2 * Math.atan(Math.tan(.56) / asp) * 180 / Math.PI, 30, 45);
+    if (Math.abs(camera.fov - fov) > .01) { camera.fov = fov; camera.updateProjectionMatrix(); }
+    dist = showDist * Math.tan(Math.PI / 8) / Math.tan(fov * Math.PI / 360);
+    const ahead = dist * (asp < 1 ? .3 : .12);
+    target.set(showC.x - Math.sin(yaw) * ahead, showC.y, showC.z - Math.cos(yaw) * ahead);
+    updateCam(); updateTrees(now); emitSmoke(dt); updateBirds(dt); if ((showT += dt) > SHOW_T) nextShowcase();
+  } else if (camera.fov !== 45) { camera.fov = 45; camera.updateProjectionMatrix(); }
   if (paused || menuOn()) { renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not
   if (!gameOver) { updatePhase(gdt); updateVillagers(gdt, now); updateEco(gdt); updateMoves(gdt); updateEnemies(gdt); updateDefense(gdt); separateUnits(gdt); updateDoors(gdt); updateFallen(gdt); updateChips(gdt); updateSplashes(gdt); }
