@@ -414,10 +414,6 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .card .row{gap:5px;flex-wrap:nowrap;justify-content:flex-end} .card .row .cost + .cost{margin-left:4px} .card .row .cost .ico{width:13px;height:13px}
 .card .row button{flex:1 1 0;min-width:0;min-height:30px;font-size:12.5px;border-radius:7px;background:#24261f;flex-direction:row;gap:5px;flex-wrap:nowrap;white-space:nowrap;padding:0 8px}
 .card .row button.primary{background:#3d3520;flex:1 0 auto}
-/* the upgrade's costs as dark price chips on the gold button, cream and bold; a cost you're short of turns red (Jack: the old costs were hard to read on gold) */
-#upBtn{gap:6px} #upBtn .cost{background:linear-gradient(180deg,#3a2c16,#22190b);border:1px solid rgba(255,214,130,.35);border-radius:999px;padding:1px 7px 1px 4px;color:#f6e8c4;font-weight:700;font-size:13px;gap:3px;text-shadow:none}
-.card .row #upBtn .cost + .cost{margin-left:0} #upBtn .cost.short{color:#ff8a76;border-color:#e0533f;background:linear-gradient(180deg,#4a1f16,#2c120c)}
-.card .row button#upBtn:disabled{opacity:1;cursor:not-allowed;background:linear-gradient(180deg,#9c8550 0%,#7a6538 100%)!important;border-color:#a8904f!important} #upBtn:disabled svg{opacity:.6}
 .card .row button.danger,.card .row button.ib{flex:0 0 auto} button.danger.armed{background:#8f3326;border-color:var(--bad);color:#fff} .card .row button.danger.armed{justify-content:center}
 button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .mini{display:inline-block;width:38px;height:5px;border-radius:3px;background:#3a3a30;overflow:hidden;margin-right:2px} .mini i{display:block;height:100%;background:#e6c46a} .card .row button.ib{width:34px;padding:0}
@@ -6279,7 +6275,7 @@ function refreshCard() {
   const up = $('#upBtn');
   if (!T.up) up.hidden = true;
   else if (B.tier >= 3 || B.tier >= tierCap() || B.site) up.hidden = true;
-  else { const c = T.up[k]; up.hidden = false; up.innerHTML = B.site ? '…' : `<svg class="bIco" viewBox="0 0 24 24"><path d="M5 14 L12 7 L19 14"/><path d="M5 19 L12 12 L19 19"/></svg>${RES_KEYS.filter(r => c[r]).map(r => `<span class="cost${res[r] < c[r] ? ' short' : ''}"><span class="ico">${ICON[r]}</span>${c[r]}</span>`).join('')}`; up.disabled = !!B.site || !canAfford(c); up.title = `Upgrade to ${T.tiers[k + 1]}`; }
+  else { const c = T.up[k]; up.hidden = false; up.innerHTML = B.site ? '…' : `<svg class="bIco" viewBox="0 0 24 24"><path d="M5 14 L12 7 L19 14"/><path d="M5 19 L12 12 L19 19"/></svg>${costHTML(c)}`; up.disabled = !!B.site || !canAfford(c); up.title = `Upgrade to ${T.tiers[k + 1]}`; }
   $('#cardRotBtn').hidden = !canRotate(B);
   const dem = $('#demBtn');
   dem.hidden = B.type === 'castle'; dem.disabled = PH.kind === 'night'; dem.title = PH.kind === 'night' ? 'Not at night' : 'Demolish';
