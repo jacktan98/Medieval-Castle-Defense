@@ -881,10 +881,10 @@ const ENEMY = {
   ballista: { hp: 150, speed: .55, range: 10, dmg: 24, rate: 4.5, engine: true, r: .8 },
   catapult: { hp: 170, speed: .45, range: 13, dmg: 30, rate: 6.5, engine: true, r: .85, splash: 1.6 },
   ram:      { hp: 280, speed: .6, range: 1.25, dmg: 45, rate: 2.4, engine: true, r: .9 },   // goes for walls and gates (range from its middle: the head reaches 1.3 m ahead)
-  // bosses (always sent at tier 3, so hp × 2.3): drawn bigger (boss: scale), a long red cloak, they head for the castle
-  // Jack: the Chief three times as strong (hp and damage), the Warlord twice
-  chief:    { hp: 1560, speed: 1.35, range: 1.0, dmg: 42, rate: 1.1, boss: 1.35 },                  // the Raider Chief, on foot: horned helm, war axe-sword, red shield
-  warlord:  { hp: 1640, speed: 2.0, range: 1.3, dmg: 36, rate: 1.0, mounted: true, boss: 1.3 },     // the Warlord, mounted: crowned helm with a red plume, barded black horse
+  // bosses (always sent at tier 3, but their hp and dmg are taken as they are): drawn bigger (boss: scale), a long red cloak, they head for the castle
+  // Jack: the Chief 3000 health and 30 damage, the Warlord 4000 and 40 (no tier multipliers for bosses)
+  chief:    { hp: 3000, speed: 1.35, range: 1.0, dmg: 30, rate: 1.1, boss: 1.35 },                  // the Raider Chief, on foot: horned helm, war axe-sword, red shield
+  warlord:  { hp: 4000, speed: 2.0, range: 1.3, dmg: 40, rate: 1.0, mounted: true, boss: 1.3 },     // the Warlord, mounted: crowned helm with a red plume, barded black horse
 };
 // raider tiers: the same three looks for every kind (raiderArmour), stronger by tier
 const RAIDER_T = { hp: [1, 1.6, 2.3], dmg: [1, 1.3, 1.65] };
@@ -4909,12 +4909,13 @@ function spawnEnemy(kind, sp, wave, tier = 1) {
   const E = ENEMY[kind], k = tier - 1, w = WAVES[wave - 1] || {}, p = makeRaider(kind, tier);
   // only a raider's bigger parts cast shadows: the Mountain pass sends up to 100 at once, and every shadow is another draw
   p.g.traverse(o => { if (o.isMesh) { const g = o.geometry; if (!g.boundingSphere) g.computeBoundingSphere(); if (g.boundingSphere.radius < .16) o.castShadow = false; } });
-  const hp = E.hp * RAIDER_T.hp[k] * (w.hp || 1);
+  // bosses take no tier multipliers: their numbers are their own (Jack)
+  const hp = E.boss ? E.hp : E.hp * RAIDER_T.hp[k] * (w.hp || 1);
   // a metre or so from the spawn point, but never onto ground they can't stand on (a mountain or hillside: they'd stand stuck)
   let sx = clamp(sp.x + (Math.random() - .5) * 2, 1, SIZE - 1), sz = clamp(sp.z + (Math.random() - .5) * 2, 1, SIZE - 1);
   if (!canStand(sx, sz, 2)) { sx = sp.x; sz = sp.z; }
   const e = Object.assign(p, { kind, tier, x: sx, z: sz,
-    hp, max: hp, speed: E.speed * (.9 + Math.random() * .2), range: E.range, dmg: E.dmg * RAIDER_T.dmg[k], rate: E.rate,
+    hp, max: hp, speed: E.speed * (.9 + Math.random() * .2), range: E.range, dmg: E.boss ? E.dmg : E.dmg * RAIDER_T.dmg[k], rate: E.rate,
     cool: E.engine ? E.rate * .5 : Math.random(), fresh: true, target: null, retarget: 0, dead: false, deadT: 0, phase: Math.random() * 6,
     bar: makeBar(E.boss ? 1.6 : E.engine ? 1.3 : E.mounted ? 1.0 : .8), barY: (E.engine ? (kind === 'catapult' ? [1.6, 1.8, 3.3][k] : kind === 'ram' ? 2.1 : 1.5) : 1.6 * UNIT_K + (E.mounted ? SADDLE : 0)) * (E.boss || 1) });
   if (E.boss) { p.g.scale.setScalar(E.boss); banner(RAIDER_NAME[kind], 'Boss', true); log(`<b>${RAIDER_NAME[kind]}</b> comes`, 'bad'); }
