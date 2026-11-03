@@ -1138,7 +1138,7 @@ function holdHeight(x, z) {
 // (they walk, stop a moment at each corner, walk on); the horse guard outside the gate the same; and a tier-3 archer tower of the
 // raiders' by each side bridge. Scenery: the fires and towers are kept clear in sceneryAt; the walkers just walk
 const HOLD_CAMPS = [
-  { fire: [6.5, 24.5], rest: [['spear', 3, 5.2, 23.6], ['archer', 2, 7.8, 25.4], ['sword', 3, 5.6, 25.8]],
+  { fire: [6.5, 24.5], banner: true, rest: [['spear', 3, 5.2, 23.6], ['archer', 2, 7.8, 25.4], ['sword', 3, 5.6, 25.8]],
     patrol: [['spear', 3, [[3, 22.2], [11, 23.4], [13, 28.5], [8.5, 26.6]]], ['sword', 2, [[18, 30.5], [24, 30.5], [24, 26], [18.5, 26.5]]]] },
   { fire: [73.5, 24.5], rest: [['spear', 3, 74.8, 23.6], ['archer', 2, 72.2, 25.4], ['sword', 3, 74.4, 25.8]],
     patrol: [['spear', 3, [[77, 22.2], [69, 23.4], [67, 28.5], [71.5, 26.6]]], ['sword', 2, [[62, 30.5], [56, 30.5], [56, 26], [61.5, 26.5]]]] },
@@ -5313,6 +5313,7 @@ function updateEnemies(dt) {
       continue;
     }
     e.walking = false; e.aiming = false; e.running = false;
+    if (e.dormant && dormantStep(e, dt)) {} else {
     if (!e.target || e.target.dead || (e.retarget -= dt) < 0) {
       const t = pickTarget(e); if (t !== e.target) e.lob = false; e.target = t; e.retarget = 3;
       if (t) e.tp = e.tpNew || { x: clamp(e.x, t.ev.x0, t.ev.x1), z: clamp(e.z, t.ev.z0, t.ev.z1) };   // the side they reach first, fixed until the next retarget
@@ -5364,6 +5365,7 @@ function updateEnemies(dt) {
         }
         if (e.cool < 0) e.cool = 0;
       }
+    }
     }
     if (e.kind === 'ram' && e.ramHit && e.attackT > 0 && 1 - e.attackT / RAM_T > RAM_HIT) {   // the ram strikes home
       const T = e.ramHit; e.ramHit = null;
@@ -6079,7 +6081,7 @@ function updatePhase(dt) {
   }
   else {
     if (spawnQueue.length && (spawnT -= dt) <= 0) { const [k, p, t] = spawnQueue.shift(); spawnEnemy(k, p, PH.wave, t); spawnT = SPAWN_GAP; }
-    if (!spawnQueue.length && !enemies.some(e => !e.dead)) { if (PH.wave >= NIGHTS && PH.testDay === undefined) endGame(true); else startDay(); }
+    if (!spawnQueue.length && !enemies.some(e => !e.dead && !e.dormant)) { if (PH.wave >= NIGHTS && PH.testDay === undefined) endGame(true); else startDay(); }
   }
   if (PH.kind === 'day' && (econT -= dt) <= 0) { econT = TICK; econTick(); }   // no payouts at night: the ring waits for dawn
 }
@@ -6159,7 +6161,7 @@ let phIcoKind = '';
 function updateHud() {
   const pt = $('#phaseText'), sub = $('#phaseSub');
   if (PH.kind === 'day') { pt.textContent = `Day ${PH.wave} of ${NIGHTS}`; pt.className = ''; sub.textContent = `Night in ${fmt(Math.max(0, PH.t))}`; $('#nightBtn').hidden = gameOver; }
-  else { const left = spawnQueue.length + enemies.filter(e => !e.dead).length; pt.textContent = `Night ${PH.wave} of ${NIGHTS}`; pt.className = 'night'; sub.textContent = `${left} raider${left === 1 ? '' : 's'} left`; $('#nightBtn').hidden = true; }
+  else { const left = spawnQueue.length + enemies.filter(e => !e.dead && !e.dormant).length; pt.textContent = `Night ${PH.wave} of ${NIGHTS}`; pt.className = 'night'; sub.textContent = `${left} raider${left === 1 ? '' : 's'} left`; $('#nightBtn').hidden = true; }
   const kind = PH.kind === 'day' ? 'sun' : 'moon'; if (phIcoKind !== kind) { phIcoKind = kind; $('#phIco').innerHTML = PH_ICON[kind]; }
   $('#tickRing').style.strokeDashoffset = (94.25 * (1 - econT / TICK)).toFixed(1); $('#tickN').textContent = Math.ceil(econT);
   const pop = popStats(), hungry = villagers.filter(v => v.hungry).length; const night = PH.kind === 'night', chipIco = night ? 'guard' : 'pop';
@@ -6835,9 +6837,11 @@ function buildWarlordsHold(g) {
   for (const sx of [-1, 1]) { const b = box(1, 3, .05, M.flag, cx + sx * 2.2, y0 + 6.8, cz + 3.15); b.castShadow = true; g.add(b); }
   // inside the walls: the town's garrison and royal stables; two trebuchets on the keep's roof, aimed south (Jack)
   placeModel(g, 'barracks', 3, 31.5, 9.5, 1, Math.PI / 2); placeModel(g, 'stables', 3, 48.5, 9.5, 1, -Math.PI / 2);
-  for (const sx of [-1, 1]) placeModel(g, 'catapult', 3, cx + sx * 1.7, cz, .9).position.y = y0 + 9.5;
+  const trebM = [-1, 1].map(sx => { const m = placeModel(g, 'catapult', 3, cx + sx * 1.7, cz, .9); m.position.y = y0 + 9.5; return m; });
   for (const [x, z] of HOLD_TOWERS) placeModel(g, 'tower', 3, x, z);
-  for (const c of HOLD_CAMPS) placeModel(g, 'campfire', 1, c.fire[0], c.fire[1]);
+  for (const c of HOLD_CAMPS) placeModel(g, c.banner ? 'banner' : 'campfire', 1, c.fire[0], c.fire[1]);
+  holdTrebs = trebM.map((m, i) => { let turret = null, arm = null; m.traverse(o => { if (o.userData.turret) turret = o; if (o.userData.arm) arm = o; });
+    return { m, turret, arm, x: cx + (i ? 1.7 : -1.7), z: cz, y: y0 + 9.5, cool: 3 + i * 1.5, fireT: 0 }; });
 }
 function placeBossScenery() {
   if (bossMesh) { scene.remove(bossMesh); bossMesh = null; }
@@ -6850,37 +6854,77 @@ function placeBossScenery() {
     for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + .3, h = .5 + hash(x + i, z) * 1.1, w = box(1.7, h, .22, charM, x + Math.cos(a) * .85, yy + h / 2 - .1, z + Math.sin(a) * .85); w.rotation.y = -a + Math.PI / 2; g.add(w); }
     const bm = box(2, .18, .18, charM, x, yy + .4, z); bm.rotation.set(.3, hash(x, z) * 3, .4); g.add(bm);
   }
-  if (MAP === 'hold') { holdRiders = [];
-    const fig = (kind, tier, x, z) => { const p = makeRaider(kind, tier); p.g.scale.setScalar(UNIT_K); p.g.position.set(x, hAt(x, z), z); p.g.traverse(o => { if (o.isMesh) o.castShadow = true; }); g.add(p.g); return p; };
-    for (const c of HOLD_CAMPS) {
-      for (const [k, t, x, z] of c.rest) { const p = fig(k, t, x, z), ry = Math.atan2(c.fire[0] - x, c.fire[1] - z); p.g.rotation.y = ry; holdRiders.push({ p, ry, s: x * 1.3 + z }); }
-      c.patrol.forEach(([k, t, pts], i) => holdRiders.push({ p: fig(k, t, ...pts[0]), pts, s: i * 3.1 + c.fire[0], walk: k === 'rider' ? 1.3 : .9 }));
-    } }
-  else holdRiders = [];
+  if (MAP === 'hold') {
+    // the camps' raiders are real raiders, dormant (holdDormant): resting or on patrol until troops come near, they're hurt, or the
+    // Warlord rides out on the last night (Jack)
+    HOLD_CAMPS.forEach((c, ci) => {
+      const put = (k, t, x, z, D) => { spawnEnemy(k, { x, z }, 1, t); const e = enemies[enemies.length - 1]; e.x = e.rx = x; e.z = e.rz = z; e.dormant = Object.assign({ camp: ci, u: 0, s: x * 1.3 + z }, D); e.g.rotation.y = D.ry || 0; };
+      for (const [k, t, x, z] of c.rest) put(k, t, x, z, { ry: Math.atan2(c.fire[0] - x, c.fire[1] - z) });
+      for (const [k, t, pts] of c.patrol) put(k, t, ...pts[0], { pts, i: 1, wait: 0, walk: k === 'rider' ? 1.3 : .9 });
+    });
+    // two crew to each trebuchet on the keep's roof: on patrol round the roof, at their engine whenever it has a target
+    const fig = (kind, tier, x, z, y) => { const p = makeRaider(kind, tier); p.g.scale.setScalar(UNIT_K); p.g.position.set(x, y, z); p.g.traverse(o => { if (o.isMesh) o.castShadow = true; }); g.add(p.g); return p; };
+    const roof = [[36.1, 7.2], [41.9, 7.2], [41.9, 11.8], [36.1, 11.8]];
+    holdRiders = holdTrebs.flatMap((T, i) => [0, 1].map(j => { const k = i * 2 + j, st = roof[k];
+      return { p: fig(j ? 'spear' : 'sword', 3, st[0], st[1], T.y), y: T.y, pts: roof, i: (k + 1) % 4, wait: k * .7, walk: .7, pos: [...st], T, post: [T.x + (j ? .8 : -.8), T.z + (j ? .5 : -.65)], s: k * 1.7 }; }));
+  }
+  else { holdRiders = []; holdTrebs = []; }
   scene.add(g); bossMesh = g;
 }
-// they shift their weight, turn a little, the horses now and then paw the ground and toss their heads
-let holdRiders = [];
-function animHoldRiders(t) {
+// a walker stepping round a loop of points (pts, next i), stopping 1.6 s at each corner; or, given a spot, walking there and staying
+function patrolStep(R, dt) {
+  let tx, tz;
+  if (R.goTo) [tx, tz] = R.goTo; else { if (R.wait > 0) { R.wait -= dt; return false; } [tx, tz] = R.pts[R.i]; }
+  const dx = tx - R.pos[0], dz = tz - R.pos[1], d = Math.hypot(dx, dz), st = R.walk * dt;
+  if (d <= st) { R.pos[0] = tx; R.pos[1] = tz; if (!R.goTo) { R.i = (R.i + 1) % R.pts.length; R.wait = 1.6; } return false; }
+  R.pos[0] += dx / d * st; R.pos[1] += dz / d * st; R.head = Math.atan2(dx, dz); return true;
+}
+const turnToward = (o, want, k) => { let d = want - o.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); o.rotation.y += d * k; };
+// the roof crew: on patrol, or at their trebuchet while it has a target; legs stride while they walk
+let holdRiders = [], holdTrebs = [];
+function animHoldRiders(t, dt) {
   for (const R of holdRiders) {
-    const { p, s } = R;
-    if (!R.pts) {   // resting by the fire: turn a little, shift, a horse paws now and then
-      const paw = Math.max(0, Math.sin(t * .5 + s)) ** 8; p.g.rotation.y = R.ry + .14 * Math.sin(t * .23 + s);
-      if (p.horseLegs) p.horseLegs.forEach((l, i) => { l.rotation.x = i === 0 ? -.6 * paw * Math.max(0, Math.sin(t * 6 + s)) : 0; });
-      continue;
-    }
-    // on patrol: each leg of the loop walked at R.walk m/s, then a 1.6 s stop at the corner
-    if (!R.seg) { R.seg = R.pts.map((a, i) => { const b = R.pts[(i + 1) % R.pts.length]; return { a, b, d: Math.hypot(b[0] - a[0], b[1] - a[1]) }; }); R.T = R.seg.reduce((n, q) => n + q.d / R.walk + 1.6, 0); }
-    let u = (t + s * 7) % R.T, moving = false, x = R.pts[0][0], z = R.pts[0][1], dx = 0, dz = 1;
-    for (const q of R.seg) { const w = q.d / R.walk; dx = q.b[0] - q.a[0]; dz = q.b[1] - q.a[1];
-      if (u < w) { const f = u / w; x = q.a[0] + dx * f; z = q.a[1] + dz * f; moving = true; break; } u -= w;
-      if (u < 1.6) { x = q.b[0]; z = q.b[1]; break; } u -= 1.6; }
-    p.g.position.set(x, hAt(x, z), z);
-    const want = Math.atan2(dx, dz); if (R.ry === undefined) R.ry = want; let d = want - R.ry; d = Math.atan2(Math.sin(d), Math.cos(d)); R.ry += d * .12; p.g.rotation.y = R.ry;
-    const ph = t * (p.horseLegs ? 7 : 6.5) + s, a = moving ? 1 : 0;
-    if (p.horseLegs) p.horseLegs.forEach((l, i) => { l.rotation.x = a * .45 * Math.sin(ph + (i === 0 || i === 3 ? 0 : Math.PI)); });
-    else { if (p.legs) p.legs.forEach((l, i) => { l.rotation.x = a * .5 * Math.sin(ph + i * Math.PI); }); if (p.arms) p.arms[0].rotation.x = a * -.35 * Math.sin(ph); }
+    const p = R.p; R.goTo = R.T.target ? R.post : null;
+    const moving = patrolStep(R, dt);
+    p.g.position.set(R.pos[0], R.y, R.pos[1]);
+    if (moving) turnToward(p.g, R.head, .15); else if (R.goTo) turnToward(p.g, Math.atan2(R.T.x - R.pos[0], R.T.z - R.pos[1]), .15);
+    const sw = moving ? .5 * Math.sin(t * 6.5 + R.s) : 0; p.legs[0].rotation.x = sw; p.legs[1].rotation.x = -sw;
+    p.arms[0].rotation.x = R.goTo && !moving ? -1.2 : -sw * .6;
   }
+}
+// the roof trebuchets: turn onto the nearest of the town's troops within 22 m and lob a heavy stone (both crew at their posts),
+// splashing 2.3 m round where it lands; the arm is let fly and winched back over the reload
+function updateHoldTrebs(dt) {
+  const [cock, thrown] = CATA_ARM[2];
+  for (const T of holdTrebs) {
+    T.target = nearestSoldier(T.x, T.z, 22);
+    T.fireT = Math.max(0, T.fireT - dt);
+    const ready = T.target && holdRiders.filter(R => R.T === T).every(R => Math.hypot(R.pos[0] - R.post[0], R.pos[1] - R.post[1]) < .2);
+    if (T.target && T.turret) turnToward(T.turret, Math.atan2(T.target.x - T.x, T.target.z - T.z), Math.min(1, dt * 1.2));
+    if (ready) T.cool -= dt;
+    if (T.arm) T.arm.rotation.x = T.fireT > 0 ? lerp(thrown, cock, Math.pow(T.fireT / .35, 2)) : lerp(thrown, cock, sstep(0, 1, 1 - Math.max(0, T.cool) / 5.5));
+    if (ready && T.cool <= 0) {
+      T.cool = 5.5; T.fireT = .35; const v = T.target, to = new THREE.Vector3(v.x, walkY(v.x, v.z), v.z), from = new THREE.Vector3(T.x, T.y + 2.2, T.z);
+      const m = fireArrow(from, to, () => { for (const o of villagers) if (o.soldier && o.g.visible) { const d = Math.hypot(o.x - to.x, o.z - to.z); if (d < 2.3) hurtSoldier(o, 52 * (1 - .5 * d / 2.3)); }
+        blastFx(to.x, to.z, 3, 2.3); shake(.11, to); }, 3 + from.distanceTo(to) * .25, 'stone');
+      m.scale.setScalar(CATA_SHOT[2]);
+    }
+  }
+}
+// a dormant camp raider: resting by the fire (shifting a little) or on patrol; wakes, with its whole camp, when troops come within
+// 7 m, when it's hurt, or when the boss is out on the last night (Jack: they join him). Returns true while still dormant
+let campsJoined = false;
+function dormantStep(e, dt) {
+  const D = e.dormant, last = PH.kind === 'night' && PH.wave >= NIGHTS && enemies.some(o => !o.dead && ENEMY[o.kind].boss);
+  if (e.hp < e.max || nearestSoldier(e.x, e.z, 7) || last) {
+    for (const o of enemies) if (o.dormant && o.dormant.camp === D.camp) { o.dormant = null; o.retarget = 0; o.target = null; }
+    if (last && !campsJoined) { campsJoined = true; log('<b>Raider camps</b> join the Warlord', 'bad'); }
+    return false;
+  }
+  if (!D.pts) { e.g.rotation.y = D.ry + .14 * Math.sin((D.u += dt) * .23 + D.s); return true; }
+  if (!D.pos) D.pos = [e.x, e.z];
+  const moving = patrolStep(D, dt); e.x = D.pos[0]; e.z = D.pos[1]; e.walking = moving; if (moving) turnToward(e.g, D.head, .15);
+  return true;
 }
 // paths laid along polylines, cell by cell, diagonal steps joined so they stay connected
 function layRoads(list) {
@@ -7249,7 +7293,7 @@ function findValid(type, ci0, cj0, opts = {}) {
   return null;
 }
 function startGame() {
-  showcaseBuilt = false; canvas.style.opacity = '1';
+  showcaseBuilt = false; campsJoined = false; canvas.style.opacity = '1';
   anims.length = 0; spawnQueue = [];
   for (const B of buildings) { scene.remove(B.group); scene.remove(B.bar.grp); scene.remove(B.pbar.grp); removeScaffold(B); hideDefenders(B); if (B.rallyFlag) setRally(B, null); } buildings.length = 0;
   for (const v of villagers) { scene.remove(v.g); if (v.sbar) scene.remove(v.sbar.grp); } villagers.length = 0;
@@ -7718,7 +7762,7 @@ function frame(now) {
   if (paused || menuOn()) { if (!lite || fresh || (liteN = (liteN + 1) % 2) === 0) renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not
   if (!gameOver) { updatePhase(gdt); updateVillagers(gdt, now); updateEco(gdt); updateMoves(gdt); updateEnemies(gdt); updateDefense(gdt); separateUnits(gdt); updateDoors(gdt); updateFallen(gdt); updateChips(gdt); updateSplashes(gdt); }
-  updateArrows(gdt); updateAmbience(dt); updateVolley(gdt); updateTrees(now); emitSmoke(gdt); updateBirds(gdt); if (holdRiders.length) animHoldRiders(now / 1000);
+  updateArrows(gdt); updateAmbience(dt); updateVolley(gdt); updateTrees(now); emitSmoke(gdt); updateBirds(gdt); if (holdRiders.length) { animHoldRiders(now / 1000, gdt); updateHoldTrebs(gdt); }
   if (anims.length) {
     for (let n = anims.length - 1; n >= 0; n--) { const a = anims[n], t = clamp((now - a.t0) / a.dur, 0, 1); applyPlan(a.plan, easeOut(t)); if (t >= 1) anims.splice(n, 1); }
     syncTerrain();
