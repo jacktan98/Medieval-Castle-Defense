@@ -200,9 +200,6 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 }
 /* the campaign carousel */
 #campaign{padding:10px 12px;overflow:hidden}
-.cBg,.cBg i{position:absolute;inset:0}
-.cBg i{background-size:cover;background-position:center;filter:blur(22px) saturate(1.15) brightness(.42);transform:scale(1.15);opacity:0;transition:opacity .6s}
-.cBg i.on{opacity:1} .cBg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%, rgba(0,0,0,0) 30%, rgba(0,0,0,.6) 100%)}
 #campaign .campSheet{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:6px;width:min(1100px,100%);height:100%;max-height:100%}
 .cHead{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%}
 .cMain{flex:1 1 auto;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;gap:8px}
@@ -235,6 +232,15 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 .jSpr{position:absolute;right:-30px;top:-62px;width:121px;height:110px;background-repeat:no-repeat;background-size:3872px 110px;animation:jWave 2.513s steps(32) infinite;pointer-events:none}
 .jBan{background-image:url(maps/banner.png)} .jFlag{background-image:url(maps/flag.png);filter:drop-shadow(0 0 1.5px #fbeab0) drop-shadow(0 0 1px #fbeab0)}
 @keyframes jWave{to{background-position:-3872px 0}}
+/* behind the campaign and the town picker the title's scene keeps running (Jack: it flashed up between them before); these screens only
+   darken it, more than the title does, so the cards and text stay clear */
+body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 45%, rgba(8,9,6,.45) 0%, rgba(8,9,6,.62) 60%, rgba(5,6,4,.9) 100%)!important}
+/* buttons stand out on the dark: a bronze plate with a gold rim, light gold text and a soft glow; the main action stays solid gold */
+.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
+  box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 12px rgba(212,168,78,.18),inset 0 1px 0 rgba(255,230,160,.25)!important;font-weight:500}
+.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):hover{filter:brightness(1.15)}
+.cArrow{background:linear-gradient(180deg,#4a3c22,#2e2515)!important;border:2px solid #c9a03e!important;box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 14px rgba(212,168,78,.25)!important}
+.cArrow svg{stroke:#f4e3b2}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
@@ -492,7 +498,6 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
     </div>
   </div>
   <div class="modal tome" id="campaign" hidden>
-    <div class="cBg" id="cBg"><i></i><i></i></div>
     <div class="campSheet">
       <div class="cHead"><div class="mapSub">Campaign</div><div class="campProg" id="campStars"></div></div>
       <div class="cMain">
@@ -6790,18 +6795,18 @@ const CAMP_RIVER = [
 // ---------- the campaign as a carousel (Jack's sketch; it replaced a scrolling road, which replaced the overview map): the stages are
 // cards in a 3D deck, the one in front large, the others angled away behind it on both sides; swipe, tap a side card, the arrows, the
 // arrow keys or the mouse wheel to turn it. Under it a row of twelve markers (banner = won, flag = where you are, padlock = ahead, red
-// = boss; tap one to jump there), then the front stage's details and Play. The background is that stage's own picture, blurred.
+// = boss; tap one to jump there), then the front stage's details and Play. Behind it the title's scene keeps running.
 const LOCK_SVG = '<svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5 V8 a4 4 0 0 1 8 0 V10.5"/></svg>';
 const DOT_BAN = '<svg viewBox="0 0 24 24"><path d="M7 22 V3" stroke="#d9c79a" stroke-width="2" fill="none"/><path d="M7.5 4 H18 V15 L12.7 12.6 L7.5 15 Z" fill="#3a6fd0" stroke="#163a7a" stroke-width="1.2"/></svg>';
 const DOT_FLAG = '<svg viewBox="0 0 24 24"><path d="M6 22 V3" stroke="#f2d27a" stroke-width="2" fill="none"/><path d="M6.5 4 C10 2.5 13 6 18.5 4.5 V12.5 C13 14 10 10.5 6.5 12 Z" fill="#3a6fd0" stroke="#f2d27a" stroke-width="1.2"/></svg>';
-let cSel = 0, cCur = 0, cDrag = 0, cBgN = 0;
+let cSel = 0, cCur = 0, cDrag = 0;
 function campState() { const won = CAMPAIGN.map(c => !!(c.map && STARS[c.map] > 0)); let cur = won.indexOf(false); if (cur < 0) cur = CAMPAIGN.length - 1; return { won, cur }; }
 function buildDeck() {
   const { won, cur } = campState(); cCur = cur;
   $('#cCards').innerHTML = CAMPAIGN.map((c, i) => { const st = won[i] ? 'won' : i === cur ? 'cur' : i > cur ? 'locked' : '';
-    const mark = won[i] ? '<i class="jSpr jBan"></i>' : i === cur ? '<i class="jSpr jFlag"></i>' : i > cur ? `<i class="jLock">${LOCK_SVG}</i>` : '';
+    const mark = i > cur ? `<i class="jLock">${LOCK_SVG}</i>` : '';
     return `<button class="cCard ${st}${c.boss ? ' boss' : ''}" data-i="${i}" tabindex="-1"><span class="cPic" style="background-image:url(maps/thumb/${c.map}.jpg)"></span>
-      <span class="cName"><small>${c.boss ? 'Boss · ' : ''}Stage ${i + 1}</small><b>${c.name}</b></span>${mark}</button>`; }).join('');
+      <span class="cName"><small>${c.boss ? 'Boss · ' : ''}Stage ${i + 1}${won[i] ? ' ' + starsHTML(STARS[c.map] || 0) : ''}</small><b>${c.name}</b></span>${mark}</button>`; }).join('');
   $('#cDots').innerHTML = CAMPAIGN.map((c, i) => `<button class="cDot${c.boss ? ' boss' : ''}${won[i] ? ' won' : i === cur ? ' cur' : i > cur ? ' locked' : ''}" data-i="${i}" aria-label="Stage ${i + 1}">${won[i] ? DOT_BAN : i === cur ? DOT_FLAG : i > cur ? LOCK_SVG : ''}</button>`).join('');
 }
 // place every card for the front index cSel plus the live drag (in cards); the card's size follows the room the deck has
@@ -6834,9 +6839,6 @@ function openStage(i) {
     if (stagePicks(MAP)) { $('#campaign').hidden = true; showLoadPick(MAP); return; }   // more decor than fits: choose four first
     $('#campaign').hidden = true; paused = false; startGame();
   });
-  // the background crossfades to this stage's own picture, blurred
-  const L = $('#cBg').children, url = `url(maps/thumb/${c.map}.jpg)`;
-  if (L[cBgN].style.backgroundImage !== url) { cBgN = 1 - cBgN; L[cBgN].style.backgroundImage = url; L[cBgN].classList.add('on'); L[1 - cBgN].classList.remove('on'); }
 }
 // turning the deck: drag (a tap without a drag on a side card brings it forward), arrows, keys, wheel, the markers
 { const deck = $('#campMap'); let x0 = null, moved = 0, wheelT = 0, wheelAcc = 0;
@@ -7530,14 +7532,14 @@ function adaptResolution(raw) {
 // (setPaused(false) at startup used to set it running under the title screen, paying out gold)
 const MENUS = ['#mapPick', '#loadPick', '#campaign', '#newCards'].map(q => $(q));
 const menuOn = () => MENUS.some(m => !m.hidden);
-const mapPickEl = $('#mapPick');
+const mapPickEl = $('#mapPick'), campEl = $('#campaign'), loadEl = $('#loadPick');
 mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
 function frame(now) {
   adaptResolution((now - last) / 1000);
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   keyCamera(dt);
   if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now);
-  const sc = showcaseBuilt && !mapPickEl.hidden; if (sc !== document.body.classList.contains('showcase')) document.body.classList.toggle('showcase', sc);
+  const sc = showcaseBuilt && (!mapPickEl.hidden || !campEl.hidden || !loadEl.hidden); if (sc !== document.body.classList.contains('showcase')) document.body.classList.toggle('showcase', sc);
   // the title's showcase town: the camera circles slowly. It looks a little beyond the town, so the town sits low on the screen,
   // under the cards (an off-centre lens did that before and skewed the picture: Jack found it squeezed); on a wide screen the view
   // is narrowed to about 64 degrees across (45 degrees up and down gave nearly 90 across a laptop: wide-angle smear at the sides)
