@@ -192,6 +192,9 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .modal.tome button.primary:disabled,#newCards button.primary:disabled{filter:grayscale(.8) brightness(.7)}
 .modal.tome button.primary::after,#newCards button.primary::after{content:'';position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,250,225,.55),transparent);animation:shine 3.2s ease-in-out infinite;pointer-events:none}
 @keyframes shine{0%,55%{left:-60%}100%{left:130%}}
+/* the title screen shows the showcase town through it: only a vignette, darker behind the title and the cards; the game's own HUD hidden */
+#mapPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse 90% 65% at 50% 50%, rgba(6,7,5,.15) 0%, rgba(6,7,5,.35) 55%, rgba(4,5,3,.85) 100%),linear-gradient(180deg, rgba(6,7,5,.55) 0%, rgba(6,7,5,0) 30%, rgba(6,7,5,0) 70%, rgba(6,7,5,.6) 100%)!important;background-size:cover!important}
+body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
@@ -6711,6 +6714,7 @@ function showStart() { if (CAMP_MAPS[MAP]) { showMapPick(); $('#mapPick').hidden
 function showMapPick() {
   if (paused && !$('#pausedTag').hidden) setPaused(false);
   $('#summary').hidden = true; paused = true; hideGhost(); $('#mapPick').hidden = false;
+  if (!showcaseBuilt) buildShowcase();
   markMapStars();
 }
 function markMapStars() { document.querySelectorAll('.mapBtn').forEach(b => { b.classList.toggle('last', b.dataset.map === MAP); const st = b.querySelector('.stars'); if (st) st.remove(); b.insertAdjacentHTML('beforeend', starsHTML(STARS[b.dataset.map] || 0)); }); }
@@ -7005,6 +7009,28 @@ $('#galDoors').addEventListener('click', () => { gDoors = gDoors ? 0 : 1; $('#ga
 $('#galWalk').addEventListener('click', () => { gWalk = !gWalk; $('#galWalk').setAttribute('aria-pressed', String(gWalk)); });
 
 // ---------- game setup ----------
+// ---------- the title screen's showcase: the real game behind "Medieval Town Defense", a small town on the Meadow at dusk, torches and
+// fires lit, the camera slowly circling it (Jack). Built with the game's own placement (free, instant), then left still: the sim doesn't
+// run under a menu, only the camera, the trees, smoke and embers, flags and flames move. Any game started afterwards replaces it.
+let showcaseBuilt = false;
+const SHOWCASE = [   // type, cells from the castle's centre (x, z; the castle's door faces +z), tier
+  ['house', -3, -1, 3], ['house', -3, 1, 2], ['house', -2, 3, 3], ['house', 3, 1, 2], ['house', 3, -1, 3], ['house', -4, 3, 1],
+  ['market', 1, 4, 3], ['tower', -3, -4, 3], ['tower', 3, -4, 2], ['tower', 5, 3, 2], ['farm', -7, -1, 2], ['barracks', 0, -5, 2],
+  ['lodge', -6, 4, 2], ['torch', -1, 2, 1], ['torch', 1, 2, 1], ['torch', -3, 5, 1], ['campfire', -1, 6, 1], ['banner', 2, -3, 1],
+  ['flowers', -4, 0, 1], ['flowers', 4, 0, 1], ['well', 4, 5, 1], ['statue', -2, -3, 1]];
+function buildShowcase() {
+  const keep = MAP; MAP = 'meadow'; startGame(); MAP = keep;
+  const K = buildings.find(B => B.type === 'castle');
+  const setTier = (B, t) => { if (!B || t < 2) return; B.tier = t; B.max = DEF[B.type].hp[t - 1]; B.hp = B.max; swapModel(B); };
+  setTier(K, 3);
+  const ci = Math.floor((K.ev.x0 + K.ev.x1) / 2 / CELL), cj = Math.floor((K.ev.z0 + K.ev.z1) / 2 / CELL);
+  for (const [type, dx, dz, t] of SHOWCASE) { const ev = findValid(type, ci + dx, cj + dz, { free: true }); if (ev) setTier(place(type, ev.ci, ev.cj, { instant: true, free: true, quiet: true }), t); }
+  for (const v of villagers) v.g.visible = false;                           // everyone indoors at dusk: the town doesn't move under the menu
+  PH.t = DUSK * .45; light = .25 + .75 * sstep(0, DUSK, PH.t);              // dusk: low warm light, the torches and fires lit
+  const c = center(K); target.set(c.x, 1.5, c.z); yaw = .4; pitch = .62; dist = innerWidth < innerHeight ? 44 : 40; updateCam();   // far enough back that the whole town sits round the title, never behind it
+  $('#log').innerHTML = ''; $('#banner').className = 'banner';
+  showcaseBuilt = true;
+}
 function findValid(type, ci0, cj0, opts = {}) {
   for (let r = 0; r < 24; r++) for (let dj = -r; dj <= r; dj++) for (let di = -r; di <= r; di++) {
     if (Math.max(Math.abs(di), Math.abs(dj)) !== r) continue;
@@ -7014,6 +7040,7 @@ function findValid(type, ci0, cj0, opts = {}) {
   return null;
 }
 function startGame() {
+  showcaseBuilt = false;
   anims.length = 0; spawnQueue = [];
   for (const B of buildings) { scene.remove(B.group); scene.remove(B.bar.grp); scene.remove(B.pbar.grp); removeScaffold(B); hideDefenders(B); if (B.rallyFlag) setRally(B, null); } buildings.length = 0;
   for (const v of villagers) { scene.remove(v.g); if (v.sbar) scene.remove(v.sbar.grp); } villagers.length = 0;
@@ -7061,8 +7088,8 @@ function startGame() {
 
 // ---------- loop ----------
 for (const t in DEF) if (t !== 'castle') makeGhost(t);   // here, once every model's materials exist (stables and siege use the soldiers' and horses')
-resize(); startGame();
-if (!/[?&](gallery|debug|map=)/.test(location.search)) showMapPick(); else $('#mapPick').hidden = true;   // shown from the first paint, so the game never flashes up behind it
+resize();
+if (!/[?&](gallery|debug|map=)/.test(location.search)) showMapPick(); else { startGame(); $('#mapPick').hidden = true; }   // shown from the first paint, so the game never flashes up behind it
 const easeOut = t => 1 - Math.pow(1 - t, 3);
 const BAR_TOP = { market: 3.0, barracks: 3.4, house: 3.4, farm: 1.6, lodge: 3.6, quarry: 3.0, tower: 6.4, castle: 7.2, wall: 2.8, gate: 3.6, well: 2.3, torch: 2.2, flowers: 1, statue: 3.2 };
 let last = performance.now(), hudT = 0, buildT = 0;
@@ -7452,11 +7479,16 @@ function adaptResolution(raw) {
 // (setPaused(false) at startup used to set it running under the title screen, paying out gold)
 const MENUS = ['#mapPick', '#loadPick', '#campaign', '#stagePrev', '#newCards'].map(q => $(q));
 const menuOn = () => MENUS.some(m => !m.hidden);
+const mapPickEl = $('#mapPick');
 function frame(now) {
   adaptResolution((now - last) / 1000);
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   keyCamera(dt);
   if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now);
+  const sc = showcaseBuilt && !mapPickEl.hidden; if (sc !== document.body.classList.contains('showcase')) document.body.classList.toggle('showcase', sc);
+  // the title's showcase town: the camera circles slowly; on a tall screen the picture is shifted so the town sits under the cards
+  if (sc) { yaw += dt * .03; updateCam(); updateTrees(now); emitSmoke(dt); updateBirds(dt); camera.setViewOffset(1, 1, 0, innerHeight > innerWidth ? -.24 : 0, 1, 1); }
+  else if (camera.view && camera.view.enabled) camera.clearViewOffset();
   if (paused || menuOn()) { renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not
   if (!gameOver) { updatePhase(gdt); updateVillagers(gdt, now); updateEco(gdt); updateMoves(gdt); updateEnemies(gdt); updateDefense(gdt); separateUnits(gdt); updateDoors(gdt); updateFallen(gdt); updateChips(gdt); updateSplashes(gdt); }
