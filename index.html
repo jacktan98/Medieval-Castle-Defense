@@ -22,9 +22,11 @@
   --body:"Alegreya Sans", system-ui, -apple-system, sans-serif;
   color-scheme:dark;
 }
-html{box-sizing:border-box;height:100%}
+/* the page itself never scrolls: iOS Safari ignores overflow:hidden on the body and could leave the whole game shifted up
+   (after a rotation or the toolbar resizing), so html and body are pinned to the screen (Jack saw the top panel pushed under the status bar) */
+html{box-sizing:border-box;height:100%;position:fixed;inset:0;overflow:hidden;overscroll-behavior:none}
 *,*::before,*::after{box-sizing:inherit}
-body{margin:0;height:100%;touch-action:manipulation;-webkit-user-select:none;user-select:none;background:var(--bg);color:var(--parch);font-family:var(--body);font-size:15px;line-height:1.45;overflow:hidden}
+body{margin:0;height:100%;position:fixed;inset:0;overscroll-behavior:none;touch-action:manipulation;-webkit-user-select:none;user-select:none;background:var(--bg);color:var(--parch);font-family:var(--body);font-size:15px;line-height:1.45;overflow:hidden}
 [hidden]{display:none!important}
 .flyCoin{position:fixed;left:0;top:0;width:16px;height:16px;pointer-events:none;z-index:60}
 .chip.pulse{animation:chipPulse .35s ease-out}
@@ -7173,6 +7175,10 @@ addEventListener('keydown', e => {
 });
 function resize() { const w = canvas.clientWidth, h = canvas.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize);
+// and if the browser scrolls the document anyway (iOS after a rotation or a toolbar change), put it straight back
+const keepTop = () => { if (scrollX || scrollY || document.documentElement.scrollTop || document.body.scrollTop) { scrollTo(0, 0); document.documentElement.scrollTop = document.body.scrollTop = 0; } };
+addEventListener('scroll', keepTop, { passive: true }); addEventListener('orientationchange', () => { keepTop(); setTimeout(keepTop, 300); setTimeout(() => { keepTop(); resize(); }, 700); });
+addEventListener('resize', () => setTimeout(keepTop, 50)); if (window.visualViewport) visualViewport.addEventListener('resize', () => setTimeout(keepTop, 50));
 const heldKeys = new Set();
 addEventListener('keyup', e => heldKeys.delete(e.key.toLowerCase()));
 addEventListener('blur', () => heldKeys.clear());
