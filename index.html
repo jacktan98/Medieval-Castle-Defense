@@ -3166,8 +3166,8 @@ function makeStables(tier, plinth) {
   g.add(pyramid(hw * .78, .6, hd / hw * 1.05, roofM, b + hh + .3, hx, hz));
   g.add(box(1.0, 1.42, .05, DOOR_M[tier], -1, b + .71, hz + hd / 2 + .03));
   // hay and a trough, side by side
-  // against the hut's back wall
-  const hb = hz - hd / 2; g.add(cyl(.3, .32, .4, 8, M.hay, -1.45, b + .2, hb - .32)); g.add(box(.7, .2, .25, M.wood, -.78, b + .1, hb - .125));
+  // against the horse shed's left wall, behind the armoury: the trough running along the wall, the hay beside it
+  g.add(box(.25, .2, .7, M.wood, sx0 - .125, b + .1, -.85)); g.add(cyl(.3, .32, .4, 8, M.hay, sx0 - .32, b + .2, -1.52));
   if (tier >= 2) {
     // the saddle rack, in front between the two stalls
     g.add(box(.5, .06, .08, M.timber, 1.075, b + .7, .75)); for (const x of [.875, 1.275]) g.add(box(.06, .7, .06, M.timber, x, b + .35, .75));
