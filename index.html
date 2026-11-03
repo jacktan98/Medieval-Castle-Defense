@@ -2270,8 +2270,9 @@ function makeCastle(tier, plinth) {
     }
     g.add(box(2.4, 2.4, 2.0, M.wood, 0, 1.5, -.6));
     g.add(pyramid(2.1, 1.45, .86, M.thatchOld, 3.42, 0, -.6));   // eaves stick out past the hall walls
-    g.add(box(.68, 1.12, .01, M.dark, 0, .86, .405)); g.add(leaf(.72, 1.16, .06, DOOR_M[1], -.36, .88, .42, 1, -1.4));   // hall door swings out
-    for (const sx of [-1, 1]) g.add(box(.26, .36, .06, M.glow, sx * .5, 1.98, .42));   // two plain lit windows either side above the door, like the stone keep's
+    // the hall door is wide and tall enough for a rider (the castle's Riders ride out of it): 1.0 x 1.42, swinging out
+    g.add(box(.96, 1.38, .01, M.dark, 0, .99, .405)); g.add(leaf(1.0, 1.42, .06, DOOR_M[1], -.5, 1.01, .42, 1, -1.4));
+    for (const sx of [-1, 1]) g.add(box(.26, .36, .06, M.glow, sx * .76, 1.98, .42));   // two plain lit windows either side above the door, like the stone keep's
     for (const [px, pz] of [[1.9, 1.9], [-1.9, 1.9], [1.9, -1.9], [-1.9, -1.9]]) {   // a small lookout platform in each corner of the stockade
       g.add(box(.8, .1, .8, M.rough, px, 2.5, pz));
       for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.09, 2.5, .09, M.rough, px + sx * .33, 1.25, pz + sz * .33));
@@ -2290,10 +2291,11 @@ function makeCastle(tier, plinth) {
       g.add(box(1.15, 3.45, 1.15, M.stone2, x, 1.8, z)); g.add(box(1.3, .12, 1.3, M.stone2, x, 3.5, z));
       for (const px of [-1, 1]) for (const pz of [-1, 1]) { g.add(box(.22, .28, .22, M.stone2, x + px * .54, 3.7, z + pz * .54)); }
     }
-    for (const sx of [-1, 1]) g.add(box(.62, 2.9, .9, M.stone2, sx * .75, 1.65, W));
-    g.add(box(2.1, .6, .9, M.stone2, 0, 3.0, W));
-    for (const s2 of [-.75, 0, .75]) g.add(box(.3, .3, .9, M.stone2, s2, 3.45, W));
-    for (const sx of [-1, 1]) g.add(leaf(.425, 1.7, .08, DOOR_M[2], sx * .425, 1.15, W + .42, -sx, -sx * 1.4));   // gatehouse doors swing in
+    // the gate is wide enough for a rider: the towers stand further apart, wider leaves under a longer lintel
+    for (const sx of [-1, 1]) g.add(box(.62, 2.9, .9, M.stone2, sx * .9, 1.65, W));
+    g.add(box(2.42, .6, .9, M.stone2, 0, 3.0, W));
+    for (const s2 of [-.9, 0, .9]) g.add(box(.3, .3, .9, M.stone2, s2, 3.45, W));
+    for (const sx of [-1, 1]) g.add(leaf(.57, 1.8, .08, DOOR_M[2], sx * .57, 1.2, W + .42, -sx, -sx * 1.4));   // gatehouse doors swing in
     g.add(box(2.4, 3.6, 2.4, M.stone2, 0, 2.0, -.4));
     g.add(box(.3, .42, .06, M.glow, -.45, 2.6, .82)); g.add(box(.3, .42, .06, M.glow, .45, 2.6, .82));
     g.add(box(DOOR_W / k, DOOR_H, .06, DOOR_M[2], 0, .32 + DOOR_H / 2, .82));   // the standard door (the keep is drawn at k in x)
@@ -2306,10 +2308,10 @@ function makeCastle(tier, plinth) {
       g.add(box(.35, .4, .55, M.stone2, s, 2.6, -W)); g.add(box(.55, .4, .35, M.stone2, W, 2.6, s)); g.add(box(.55, .4, .35, M.stone2, -W, 2.6, s));
       if (Math.abs(s) > 1) g.add(box(.35, .4, .55, M.stone2, s, 2.6, W));
     }
-    g.add(box(.7, 3.0, .9, M.stone2, -.75, 1.7, W)); g.add(box(.7, 3.0, .9, M.stone2, .75, 1.7, W));
-    g.add(box(2.2, .7, .9, M.stone2, 0, 3.0, W)); for (const s of [-.8, 0, .8]) g.add(box(.36, .34, .9, M.stone2, s, 3.52, W));   // merlons over the gate, the full depth as at tier 2
-    for (const sx of [-1, 1]) g.add(leaf(.425, 1.7, .08, DOOR_M[3], sx * .425, 1.15, W + .42, -sx, -sx * 1.4));
-    g.add(drapeBox(.5, .9, .04, M.drape, -.75, 2.2, W + .47)); g.add(drapeBox(.5, .9, .04, M.drape, .75, 2.2, W + .47));
+    g.add(box(.7, 3.0, .9, M.stone2, -.92, 1.7, W)); g.add(box(.7, 3.0, .9, M.stone2, .92, 1.7, W));
+    g.add(box(2.54, .7, .9, M.stone2, 0, 3.0, W)); for (const s of [-.92, 0, .92]) g.add(box(.36, .34, .9, M.stone2, s, 3.52, W));   // merlons over the gate, the full depth as at tier 2
+    for (const sx of [-1, 1]) g.add(leaf(.57, 1.8, .08, DOOR_M[3], sx * .57, 1.2, W + .42, -sx, -sx * 1.4));
+    g.add(drapeBox(.5, .9, .04, M.drape, -.92, 2.2, W + .47)); g.add(drapeBox(.5, .9, .04, M.drape, .92, 2.2, W + .47));
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
       g.add(cyl(.75, .85, 3.6, 8, M.stone2, sx * W, 2.0, sz * W)); g.add(cyl(.95, .95, .25, 8, M.stone, sx * W, 3.9, sz * W));
       g.add(coneRoof(1.0, 1.4, 8, M.roofBlue, sx * W, 4.7, sz * W));
@@ -5092,16 +5094,20 @@ function volleyPose(f, draw) {
 const SUMMON = { n: 2, cd: 20 }, HORSE_ICO = '<g transform="translate(12 0) scale(-1.3 1) translate(-12.6 0)"><path d="M10.6 4.3 L12 1.2 L12.4 4.2"/><path d="M14 4 L15.8 1.6 L15.4 5.7"/><path d="M10.6 4.3 C7.6 6.4 6.2 10 6.3 14.3 C6.4 18.4 9.2 21.4 12.6 22.9"/><path d="M15.4 5.7 C16.6 7.5 17.6 10.4 18 13.1 C18.3 14.2 19.3 14.6 18.9 15.8 C18.4 17.1 16.8 17.4 15.1 16.6"/><path d="M10 9.7 C10.8 12.6 12.6 15.2 15.1 16.6"/><path d="M12.9 14.9 C13.4 17.6 13.2 20.4 12.6 22.9"/></g>';
 var summonCd = 0, summonOut = false;
 const summoned = () => villagers.filter(v => v.summoned && !v.gone);
+// the way the castle's door looks out; the riders' places either side in front of it
+const faceAngle = B => { const [fx, fz] = faceRot(B.face || 0, 0, 1); return Math.atan2(fx, fz); };
+const summonSpot = (B, a) => faceRot(B.face || 0, a === 1 ? -.75 : .75, .9);
 function summonRiders() {
   const K = castleB(); if (!K) return;
   for (let a = 0; a < SUMMON.n; a++) {
     const v = makeVillager(K); v.summoned = true; v.inside = false; v.indoor = K;
     v.post = { B: K, a: a + 1, summon: true }; v.posted = true;
-    soldierKit(v, K.tier, true); v.sbar = makeBar(.6); exitDoor(v);
-    // horses don't squeeze through the hall's door walk: they stand out at the door, side by side, in a puff of dust
-    const dp = doorPoint(K), [sx, sz] = faceRot(K.face || 0, a ? .55 : -.55, .5); v.doorWalk = null; v.x = v.rx = v.tx = dp.x + sx; v.z = v.rz = v.tz = dp.z + sz;
-    if (!canStand(v.x, v.z, 1)) { const q = standNear(v.x, v.z); v.x = v.rx = q.x; v.z = v.rz = q.z; }
-    dustAt(v.x, walkY(v.x, v.z), v.z);
+    soldierKit(v, K.tier, true); v.sbar = makeBar(.6); v.indoor = null; v.hideT = 0;
+    // they ride out of the castle's door (widened for a horse) one after the other, the second unseen until its turn, and on to
+    // their places side by side in front of the door, where they turn to face outward (updateSoldier)
+    const p = innerDoor(K) || doorPoint(K), dp = doorPoint(K), [ox, oz] = summonSpot(K, a + 1);
+    v.x = v.rx = v.tx = p.x; v.z = v.rz = v.tz = p.z; v.g.visible = a === 0; v.g.rotation.y = faceAngle(K);
+    v.doorWalk = { x: p.x, z: p.z, hold: a * 1.4, on: u => { u.g.visible = true; }, next: { x: dp.x + ox, z: dp.z + oz } };
   }
   summonOut = true; sfx('neigh'); log(`<b>${RIDER.names[K.tier - 1]}s</b> ride out`, 'good');
 }
@@ -5590,7 +5596,7 @@ function nearestSoldier(x, z, r) { let best = null, bd = r; for (const v of vill
 function updateSoldier(v, dt) {
   const B = v.post.B, k = v.kitTier - 1, S = v.cav ? RIDER : SOLDIER, walkK = 1 + decorFx(v.x, v.z, 'troopWalk'), ride = (v.cav ? RIDER.speed : 1) * walkK;
   v.attackT = Math.max(0, (v.attackT || 0) - dt); v.cool = (v.cool || 0) - dt;
-  const base = (!v.post.fled && B.rally) || doorPoint(B), [ox, oz] = SQUAD[v.post.a % 3], hx = base.x + ox, hz = base.z + oz;
+  const base = (!v.post.fled && B.rally) || doorPoint(B), [ox, oz] = v.summoned && !B.rally ? summonSpot(B, v.post.a) : SQUAD[v.post.a % 3], hx = base.x + ox, hz = base.z + oz;
   if (v.skip && (v.skip.t -= dt) <= 0) v.skip = null;
   let foe = v.foe && !v.foe.dead && Math.hypot(v.foe.x - hx, v.foe.z - hz) < 9 ? v.foe : null;
   if (!foe) { let bd = 6; for (const e of enemies) if (!e.dead && (!v.skip || v.skip.e !== e)) { const d = Math.hypot(e.x - hx, e.z - hz); if (d < bd) { bd = d; foe = e; } } }
@@ -5601,6 +5607,8 @@ function updateSoldier(v, dt) {
     if (d > reach) { walkTo(v, foe.x, foe.z, dt, 1, reach * .9, 1.25 * ride); if (v.noProg > 4) { v.skip = { e: foe, t: 4 }; v.foe = null; } }    // can't reach that one
     else { turnTo(v, Math.atan2(foe.x - v.x, foe.z - v.z), dt); if (v.cool <= 0) { v.cool = S.rate * (1 - decorFx(v.x, v.z, 'troopRate')); v.attackT = v.toolKind === 'spear' ? SPEAR_T : SWORD_T; hurtEnemy(foe, S.dmg[k] * (1 + decorFx(v.x, v.z, 'troopDmg'))); sfx('clash', v); } }
   } else if (Math.hypot(hx - v.x, hz - v.z) > .35) walkTo(v, hx, hz, dt, 1, .3, 1.3 * ride);
+  // the castle's riders, at their place, face away from the castle (out of the door, or out from it at a rally flag)
+  else if (v.summoned) { const c = center(B); turnTo(v, B.rally ? Math.atan2(hx - c.x, hz - c.z) : faceAngle(B), dt); }
 }
 // dawn: back to the barracks, in, out of the kit, out again to the day's work (a lost barracks: change where they stand)
 // a change of job (or to and from building) means a change of clothes, on the spot: the villager stops, bends down,
