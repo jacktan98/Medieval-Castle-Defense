@@ -1,5 +1,5 @@
-// The campaign overview's markers, rendered with the game's own models and lit by the overview's sun (from the south-west, as in
-// overview-scene.js): the blue rally flag on the stage the player is at, and the town's garrison banner planted on every stage won.
+// The campaign overview's markers, rendered with the game's own models and lit from the overview's sun's direction (south-west, as in
+// overview-scene.js) but higher, so their shadows stay short and light (a long flag shadow looked wrong): the blue rally flag on the stage the player is at, and the town's garrison banner planted on every stage won.
 // Each is a strip of looping frames (the cloth's wave drawn with loop-friendly speeds) on a transparent background, with the model's
 // shadow on the ground. Evaluated inside the game's closure by tools/render/markers.js (window.G); returns { flag, banner } data URLs.
 (() => {
@@ -25,9 +25,9 @@
   const swap = (g, from, to) => g.traverse(o => { if (o.isMesh && o.material === from) o.material = to; });
   const sheet = (model, look) => {
     const sc = new THREE.Scene(); sc.add(model); model.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
-    const gr = new THREE.Mesh(new THREE.PlaneGeometry(12, 12).rotateX(-Math.PI / 2), new THREE.ShadowMaterial({ opacity: .42 })); gr.receiveShadow = true; sc.add(gr);
+    const gr = new THREE.Mesh(new THREE.PlaneGeometry(12, 12).rotateX(-Math.PI / 2), new THREE.ShadowMaterial({ opacity: .3 })); gr.receiveShadow = true; sc.add(gr);
     sc.add(new THREE.HemisphereLight('#dfe8ff', '#6b5a3a', .55));
-    const sun = new THREE.DirectionalLight('#ffe7c4', 1.25); sun.position.set(-90, 120, 60).normalize().multiplyScalar(20); sc.add(sun, sun.target);
+    const sun = new THREE.DirectionalLight('#ffe7c4', 1.25); sun.position.set(-90, 260, 60).normalize().multiplyScalar(20); sc.add(sun, sun.target);
     sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 1, far: 50 }); sun.shadow.bias = -.0005;
     // seen from the south, high up, like a figure on a map: up the screen is north, as on the overview
     const h = look.h, cam = new THREE.OrthographicCamera(-h * FW / FH / 2, h * FW / FH / 2, h / 2, -h / 2, .1, 100);

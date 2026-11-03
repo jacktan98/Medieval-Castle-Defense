@@ -152,7 +152,8 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .campSheet{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(720px,100%);max-height:100%}
 #campMap{width:100%;flex:1 1 auto;min-height:0;display:flex;justify-content:center}
 #campMap svg{width:100%;height:auto;max-height:calc(100dvh - 190px);border-radius:10px;border:1px solid #4a4838}
-#campMap .mk{cursor:pointer} #campMap .mk.sel circle.ring{stroke:#fff;stroke-width:3;stroke-dasharray:6 4}
+#campMap .mk{cursor:pointer} #campMap .mk circle.ring{transition:stroke-width .2s} #campMap .mk.sel circle.ring{stroke:#ffd76a;stroke-width:3.5;filter:drop-shadow(0 0 6px rgba(255,205,90,.95)) drop-shadow(0 0 14px rgba(255,190,60,.6));animation:selGlow 1.8s ease-in-out infinite alternate}
+@keyframes selGlow{from{stroke-opacity:.65}to{stroke-opacity:1}}
 #campInfo{width:100%;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 #campMap svg{max-height:calc(100dvh - 120px)!important}
 #stagePrev{background:rgba(12,13,9,.94);z-index:62}
@@ -178,6 +179,18 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .modal.tome #campMap svg{border:none!important;border-radius:6px;box-shadow:0 10px 34px rgba(0,0,0,.7)!important}
 /* the three map cards line up: names get two lines' room, so Mountain pass's picture sits level with the others */
 .mapBtn{justify-content:flex-start;padding:13px 13px 12px;width:min(186px,29vw)} .mapBtn b{min-height:2.3em;display:flex;align-items:center;justify-content:center;line-height:1.1}
+/* campaign progress: stages won, a slim gold bar, stars (Jack) */
+.campProg{display:flex;align-items:center;gap:8px;width:min(260px,70%);font-size:12px;color:#d9cfb3;letter-spacing:.04em;margin-top:-4px}
+.campProg i{flex:1;height:5px;border-radius:3px;background:rgba(0,0,0,.45);box-shadow:inset 0 0 0 1px rgba(201,160,62,.35);overflow:hidden} .campProg i b{display:block;height:100%;background:linear-gradient(90deg,#9c7224,#f0c95a)}
+/* menus fade in (shown by clearing [hidden], which restarts the animation) */
+.modal.tome:not([hidden]){animation:menuIn .28s ease-out} .modal.tome:not([hidden]) > *{animation:menuRise .34s ease-out}
+@keyframes menuIn{from{opacity:0}to{opacity:1}} @keyframes menuRise{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+/* buttons press in and brighten; the main action is gold with a slow shine passing over it */
+.modal.tome button,#newCards button{transition:transform .08s ease-out,filter .12s} .modal.tome button:active,#newCards button:active{transform:scale(.95);filter:brightness(1.25)}
+.modal.tome button.primary,#newCards button.primary{position:relative;overflow:hidden;background:linear-gradient(180deg,#e9c463 0%,#c7962f 55%,#a47422 100%)!important;color:#2a1a06!important;border-color:#f2d27a!important;font-weight:700;text-shadow:0 1px 0 rgba(255,236,170,.6);box-shadow:0 3px 10px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,245,200,.7)}
+.modal.tome button.primary:disabled,#newCards button.primary:disabled{filter:grayscale(.8) brightness(.7)}
+.modal.tome button.primary::after,#newCards button.primary::after{content:'';position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,250,225,.55),transparent);animation:shine 3.2s ease-in-out infinite;pointer-events:none}
+@keyframes shine{0%,55%{left:-60%}100%{left:130%}}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
@@ -437,7 +450,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
   </div>
   <div class="modal tome" id="campaign" hidden>
     <div class="campSheet">
-      <div class="mapSub">Campaign <span id="campStars"></span></div>
+      <div class="mapSub">Campaign</div><div class="campProg" id="campStars"></div>
       <div id="campMap"></div>
       <div id="campInfo">Tap a stage</div>
       <button id="campBack">Back</button>
@@ -6765,20 +6778,23 @@ function campaignSVG() {
   }
   // markers drawn with the game's own models under the overview's sun (tools/render/markers.js): a strip of looping frames each, shown
   // one at a time by stepping the strip along (calcMode discrete); `foot` is the model's foot in the frame, pinned on the stop
-  const MARKER = { FW: 220, FH: 200, NF: 16, PER: 2.513, flag: { foot: [64, 144], k: 1.15 }, banner: { foot: [64, 143], k: .95 } };
+  const MARKER = { FW: 220, FH: 200, NF: 16, PER: 2.513, flag: { foot: [64, 144], k: 1.05 }, banner: { foot: [64, 143], k: .95 } };
   const sprite = (kind, i) => { const { FW, FH, NF, PER } = MARKER, m = MARKER[kind], k = m.k;
     return `<svg x="${(-m.foot[0] * k).toFixed(1)}" y="${(-m.foot[1] * k).toFixed(1)}" width="${(FW * k).toFixed(1)}" height="${(FH * k).toFixed(1)}" viewBox="0 0 ${FW} ${FH}">` +
       `<image href="maps/${kind}.png" width="${FW * NF}" height="${FH}"><animate attributeName="x" calcMode="discrete" dur="${PER}s" begin="${(-hash2(i, 5) * PER).toFixed(2)}s" repeatCount="indefinite" values="${Array.from({ length: NF }, (_, n) => -n * FW).join(';')}"/></image></svg>`; };
   // the ground is one 3D landscape rendered from the game's own terrain, trees, rocks and buildings, seen straight down (maps/overview.jpg,
   // tools/render/overview.js); the trail, the banners, the flag and the names are drawn over it
   const marks = CAMPAIGN.map((c, i) => { const [x, y] = S[i], R = 46;
-    const spot = won[i] ? sprite('banner', i) : i === cur ? sprite('flag', i) : `<circle r="6" fill="#f2e6c4" fill-opacity=".85" stroke="#2a2b22" stroke-width="2.5"/>`;
+    const ripple = [0, 1].map(n => `<circle r="10" fill="none" stroke="#ffd76a" stroke-width="3"><animate attributeName="r" values="8;40" dur="2.2s" begin="${n * 1.1}s" repeatCount="indefinite"/><animate attributeName="stroke-opacity" values=".95;0" dur="2.2s" begin="${n * 1.1}s" repeatCount="indefinite"/></circle>`).join('');
+    const spot = won[i] ? sprite('banner', i) : i === cur ? `<ellipse rx="16" ry="16" fill="#ffd76a" fill-opacity=".28"/>${ripple}<g filter="url(#mkOutline)">${sprite('flag', i)}</g>` : `<circle r="6" fill="#f2e6c4" fill-opacity=".85" stroke="#2a2b22" stroke-width="2.5"/>`;
     // an invisible disc keeps the tap target big
     return `<g class="mk${won[i] ? ' won' : ''}${i === cur ? ' cur' : ''}" data-i="${i}" transform="translate(${x} ${y})"><circle r="${R}" fill="#000" fill-opacity=".001"/><circle class="ring" r="${R}" fill="none" stroke="#fff" stroke-width="0"/>` +
       spot +
-      `<text y="${R + 28}" text-anchor="middle" font-size="25" font-family="Georgia,serif" fill="#f2e6c4" stroke="#1a1a14" stroke-width="5" paint-order="stroke">${c.name}</text></g>`; }).join('');
+      `<text y="${R + 28}" text-anchor="middle" font-size="29" style="font-family:var(--display)" fill="#f6ecd0" stroke="#1a1a14" stroke-width="5.5" paint-order="stroke">${c.name}</text></g>`; }).join('');
   return `<svg viewBox="0 0 800 ${900 * CAMP_CY}" xmlns="http://www.w3.org/2000/svg">
-    <defs><filter id="trailRough" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="4"/></filter><filter id="trailSoft"><feGaussianBlur stdDeviation="2"/></filter></defs>
+    <defs><filter id="mkOutline" x="-20%" y="-20%" width="140%" height="140%"><feComponentTransfer in="SourceAlpha" result="solid"><feFuncA type="table" tableValues="0 0 0 0 1 1"/></feComponentTransfer>
+      <feMorphology in="solid" operator="dilate" radius="2.2" result="fat"/><feFlood flood-color="#fbeab0"/><feComposite in2="fat" operator="in" result="edge"/><feMerge><feMergeNode in="edge"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="trailRough" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="4"/></filter><filter id="trailSoft"><feGaussianBlur stdDeviation="2"/></filter></defs>
     <image href="maps/overview.jpg" x="0" y="0" width="800" height="${900 * CAMP_CY}" preserveAspectRatio="none"/>
     <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="${trail}" stroke="#2e2414" stroke-opacity=".45" stroke-width="12" filter="url(#trailSoft)"/><g filter="url(#trailRough)"><path d="${trail}" stroke="#4e3f2a" stroke-width="8"/><path d="${trail}" stroke="#8a7049" stroke-width="5.2"/><path d="${trail}" stroke="#a88d5f" stroke-opacity=".55" stroke-width="2" stroke-dasharray="9 5 4 7"/></g></g>
     ${marks}
@@ -6810,7 +6826,8 @@ $('#stBack').addEventListener('click', () => { sfx('click'); $('#stagePrev').hid
 $('#campMap').innerHTML = campaignSVG();
 markMapStars();
 $('#campMap').addEventListener('click', e => { const m = e.target.closest('.mk'); if (m) { sfx('click'); openStage(+m.dataset.i); } });
-function openCampaign(i) { $('#campMap').innerHTML = campaignSVG(); $('#mapPick').hidden = true; $('#campaign').hidden = false; $('#campStars').innerHTML = `· ★ ${starTotal()}`; if (i !== undefined) openStage(i); }
+function openCampaign(i) { $('#campMap').innerHTML = campaignSVG(); $('#mapPick').hidden = true; $('#campaign').hidden = false; { const st = CAMPAIGN.filter(c => c.map), won = st.filter(c => STARS[c.map] > 0).length, stars = starTotal(), max = st.length * 3;
+    $('#campStars').innerHTML = `<span>${won}/${st.length}</span><i><b style="width:${(won / st.length * 100).toFixed(1)}%"></b></i><span>★ ${stars}/${max}</span>`; } if (i !== undefined) openStage(i); }
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
 $('#campBack').addEventListener('click', () => { sfx('click'); $('#campaign').hidden = true; $('#mapPick').hidden = false; });
 document.querySelectorAll('.mapBtn').forEach(b => b.addEventListener('click', () => {
