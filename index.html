@@ -209,6 +209,8 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 /* the arrows sit outside the 3D deck, over it: inside it a side card's near edge, tipped toward the viewer, could cover the arrow and take the tap */
 .cDeckWrap{position:relative;flex:1 1 auto;min-height:0;width:100%}
 .cDeck{position:absolute;inset:0;perspective:1100px;overflow-x:clip;overflow-y:visible;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+/* the side cards fade out toward the screen's edges instead of being cut off by them (Jack); the front card stays clear of the fade */
+.cDeck{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16%,#000 84%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 16%,#000 84%,transparent 100%)}
 .cCards{position:absolute;inset:0;transform-style:preserve-3d;pointer-events:none}
 .cCard{position:absolute;left:50%;top:50%;width:var(--cw);margin-left:calc(var(--cw) / -2);margin-top:calc(var(--cw) / -2);padding:0;display:flex;flex-direction:column;
   border:2px solid rgba(212,168,78,.75);border-radius:12px;background:#15170f;color:var(--parch);text-align:left;box-shadow:0 14px 34px rgba(0,0,0,.65);
