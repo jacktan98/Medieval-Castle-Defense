@@ -2147,7 +2147,8 @@ const DOOR = {
   tower: [[0, -.92], [0, -.84], [0, -.8]], crossbow: [[0, -.86], [0, -.88], [0, -.68]], ballista: [[0, -1.1], [0, -1.15], [0, -1.22]],   // the hut at the back of the plot: log carriers cross the plot to it     // the adit: in through the timber (stone) portal in the face of the mound
 };
 // buildings the player can turn (walls and gates have their own E–W / N–S rotation); face 0 = +z, 1 = +x, 2 = -z, 3 = -x
-const FACING = { market: 1, house: 1, lodge: 1, quarry: 1, barracks: 1, farm: 1, tower: 1, crossbow: 1, ballista: 1, castle: 1, well: 1, torch: 1, flowers: 1, statue: 1 };
+const FACING = { market: 1, house: 1, lodge: 1, quarry: 1, barracks: 1, farm: 1, tower: 1, crossbow: 1, ballista: 1, castle: 1, well: 1, torch: 1, flowers: 1, statue: 1,
+  mine: 1, stables: 1, forester: 1, farmhouse: 1, banner: 1, campfire: 1, butts: 1, stores: 1, rack: 1 };
 const unrot = (f, x, z) => faceRot((4 - f) % 4, x, z);
 const faceRot = (f, x, z) => { const a = f * Math.PI / 2, c = Math.round(Math.cos(a)), s = Math.round(Math.sin(a)); return [x * c + z * s, -x * s + z * c]; };
 // the tile in front of the door when the building faces f, lined up with the door so villagers walk straight in
@@ -3535,7 +3536,7 @@ function evaluate(type, ci, cj, free) {
   }
   // smart rotate: keep the player's facing if its door tile is open, else the nearest turn whose door is
   r.face = FACING[type] ? placeFace : 0;
-  const faces = T.noRoad ? [r.face] : [0, 3, 1, 2].map(k => (placeFace + k) % 4).filter(f => (!T.faces || T.faces.includes(f)) && doorOk(doorCell(r, type, f)));
+  const faces = T.noRoad ? [r.face] : (FACING[type] ? [0, 3, 1, 2] : [0]).map(k => (placeFace + k) % 4).filter(f => (!T.faces || T.faces.includes(f)) && doorOk(doorCell(r, type, f)));
   if (!faces.length) return { ...r, ok: false, reason: 'Door blocked' };
   // and nobody may end up sealed in: the first of those turns that keeps every door, site and tower joined to the castle
   let cut = '';
@@ -6499,6 +6500,7 @@ function rotateBuilding(B) {
   const T = DEF[B.type];
   for (let k = 1; k < 4; k++) {
     const f = ((B.face || 0) + 4 - k) % 4, d = T.noRoad ? null : doorCell(B.ev, B.type, f);
+    if (T.faces && !T.faces.includes(f)) continue;
     if (d && !doorOk(d)) continue;
     if (d && B.type !== 'castle' && mainRegion() && regions()[d.b * N + d.a] !== mainRegion()) continue;   // a door turned into a sealed-off corner
     if (d && buildings.some(o => o !== B && !o.dead && !WALK[o.type] && o.type !== 'gate' && occB[d.b * N + d.a] === o)) continue;
