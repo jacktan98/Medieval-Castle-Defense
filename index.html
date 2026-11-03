@@ -7259,6 +7259,8 @@ function layoutDeck(anim = true) {
     el.style.setProperty('--dim', Math.min(a, 1.5) * .4);
     el.classList.toggle('front', a < .5);
   });
+  // no arrow past the ends: none to the left on Stage 1, none to the right on Stage 12 (Jack); hidden, not removed, so the deck keeps its place
+  $('#cPrev').style.visibility = cSel <= 0 ? 'hidden' : ''; $('#cNext').style.visibility = cSel >= CAMPAIGN.length - 1 ? 'hidden' : '';
 }
 function selectStage(i, quiet) {
   i = Math.max(0, Math.min(CAMPAIGN.length - 1, i)); if (!quiet && i !== cSel) sfx('click'); cSel = i; cDrag = 0; layoutDeck(); openStage(i);
