@@ -7372,6 +7372,15 @@ for (const t in DEF) if (t !== 'castle') makeGhost(t);   // here, once every mod
 resize();
 if (!/[?&](gallery|debug|map=)/.test(location.search)) showMapPick(); else { startGame(); $('#mapPick').hidden = true; }   // shown from the first paint, so the game never flashes up behind it
 const easeOut = t => 1 - Math.pow(1 - t, 3);
+// how high over a building its health bar floats; a type missing here (the newer buildings were) is measured from its model, per tier,
+// once it stands finished (it used to come out NaN, so their bars never showed)
+function barTop(B) {
+  if (BAR_TOP[B.type]) return BAR_TOP[B.type];
+  if (B.barTopT !== B.tier && !B.site && !B.rise && !B.pop) {
+    const y0 = B.group.position.y; B.barTopT = B.tier; B.barTopY = Math.max(1.4, new THREE.Box3().setFromObject(B.group).max.y - y0 + .45);
+  }
+  return B.barTopY || 3;
+}
 const BAR_TOP = { market: 3.0, barracks: 3.4, house: 3.4, farm: 1.6, lodge: 3.6, quarry: 3.0, tower: 6.4, castle: 7.2, wall: 2.8, gate: 3.6, well: 2.3, torch: 2.2, flowers: 1, statue: 3.2 };
 let last = performance.now(), hudT = 0, buildT = 0;
 var paused = false, gameSpeed = 1, instantBuild = false;
@@ -7803,13 +7812,13 @@ function frame(now) {
       if (B.site.kind === 'new') B.group.scale.y = .08 + .92 * p;
       if (B.site.kind === 'repair') B.hp = B.site.hp0 + (B.max - B.site.hp0) * p;
       B.pbar.grp.visible = true; B.pbar.set(Math.max(p, .02)); B.pbar.fg.material.color.set(B.site.kind === 'repair' ? '#8cc46e' : '#e0b84a');
-      B.pbar.grp.position.set(center(B).x, B.group.position.y + BAR_TOP[B.type] + .3, center(B).z);
+      B.pbar.grp.position.set(center(B).x, B.group.position.y + barTop(B) + .3, center(B).z);
       if (p >= 1) completeSite(B);
     }
     if (B.pop) { const t = clamp((now - B.pop) / 450, 0, 1), k = 1 + .09 * Math.sin(t * Math.PI) * (1 - t); B.group.scale.x = B.group.scale.z = k; if (t >= 1) { B.group.scale.x = B.group.scale.z = 1; B.pop = 0; } }
     if (B.rise) { const t = clamp((now - B.rise.t0) / 420, 0, 1); B.group.scale.y = Math.max(.001, lerp(B.rise.from, 1, easeOut(t))); if (t >= 1) B.rise = null; }
     const c = center(B);
-    B.bar.grp.visible = B.hp < B.max; B.bar.set(B.hp / B.max); B.bar.grp.position.set(c.x, B.group.position.y + BAR_TOP[B.type], c.z);
+    B.bar.grp.visible = B.hp < B.max; B.bar.set(B.hp / B.max); B.bar.grp.position.set(c.x, B.group.position.y + barTop(B), c.z);
   }
   for (let n = floats.length - 1; n >= 0; n--) { const f = floats[n]; f.t += dt; f.sp.position.y += dt * .9; f.sp.material.opacity = 1 - f.t / 1.8; if (f.t > 1.8) { scene.remove(f.sp); f.sp.material.dispose(); floats.splice(n, 1); } }
   if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); guideTick(); }
