@@ -1138,12 +1138,12 @@ function holdHeight(x, z) {
 // (they walk, stop a moment at each corner, walk on); the horse guard outside the gate the same; and a tier-3 archer tower of the
 // raiders' by each side bridge. Scenery: the fires and towers are kept clear in sceneryAt; the walkers just walk
 const HOLD_CAMPS = [
-  { fire: [6.5, 24.5], banner: true, rest: [['spear', 3, 5.2, 23.6], ['archer', 2, 7.8, 25.4], ['sword', 3, 5.6, 25.8]],
-    patrol: [['spear', 3, [[3, 22.2], [11, 23.4], [13, 28.5], [8.5, 26.6]]], ['sword', 2, [[18, 30.5], [24, 30.5], [24, 26], [18.5, 26.5]]]] },
+  { fire: [6.5, 24.5], banner: true, rest: [['spear', 3, 4.4, 25.2], ['archer', 2, 7.6, 26.4], ['sword', 3, 5.6, 25.8]],
+    patrol: [['spear', 3, [[2.5, 24.8], [10.5, 27.6], [13, 29.5], [7, 28.6]]], ['sword', 2, [[18, 30.5], [24, 30.5], [24, 28.2], [18.5, 28.2]]]] },
   { fire: [73.5, 24.5], rest: [['spear', 3, 74.8, 23.6], ['archer', 2, 72.2, 25.4], ['sword', 3, 74.4, 25.8]],
-    patrol: [['spear', 3, [[77, 22.2], [69, 23.4], [67, 28.5], [71.5, 26.6]]], ['sword', 2, [[62, 30.5], [56, 30.5], [56, 26], [61.5, 26.5]]]] },
+    patrol: [['spear', 3, [[77.5, 24.8], [69.5, 27.6], [67, 29.5], [73, 28.6]]], ['sword', 2, [[54.5, 31], [51.5, 31], [51.5, 25.2], [54.5, 25.2]]]] },
   { fire: [46.5, 22.5], rest: [['rider', 3, 45.2, 21.2], ['rider', 3, 47.8, 23.8]],
-    patrol: [['rider', 3, [[34, 18.8], [42.6, 18.8], [42.6, 27], [34, 27]]], ['rider', 3, [[42.6, 27], [34, 27], [34, 18.8], [42.6, 18.8]]], ['rider', 3, [[36, 22], [36, 30], [42, 30], [42, 22]]]] }];
+    patrol: [['rider', 3, [[37.5, 21.5], [43, 21.5], [43, 28], [37.5, 28]]], ['rider', 3, [[43, 28], [37.5, 28], [37.5, 21.5], [43, 21.5]]], ['rider', 3, [[44.8, 19.6], [50, 19.6], [50, 27.2], [44.8, 27.2]]]] }];
 const HOLD_TOWERS = [[20, 31], [60, 31]];
 const sceneryAt = (x, z) => MAP === 'hold' && (HOLD_CAMPS.some(c => Math.hypot(x - c.fire[0], z - c.fire[1]) < .9) || HOLD_TOWERS.some(([a, b]) => Math.hypot(x - a, z - b) < 1.2)) ? true : MAP === 'keep' ? inPoly(KEEP_POLY, x, z) || KEEP_RUINS.some(([a, b]) => Math.hypot(x - a, z - b) < 1.3) : MAP === 'hold' ? inPoly(HOLD_POLY, x, z) : false;
 // the maps with ground nobody may walk or build on (Mountain pass's mountains, Greenvale's hills)
