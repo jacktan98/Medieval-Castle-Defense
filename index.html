@@ -175,7 +175,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 /* the three map cards line up: names get two lines' room, so Mountain pass's picture sits level with the others */
 .mapBtn{justify-content:flex-start;padding:13px 13px 12px;width:min(186px,29vw)} .mapBtn b{min-height:2.3em;display:flex;align-items:center;justify-content:center;line-height:1.1}
 /* campaign progress: stages won, a slim gold bar, stars (Jack) */
-.campProg{display:flex;align-items:center;gap:8px;width:min(260px,70%);font-size:12px;color:#d9cfb3;letter-spacing:.04em;margin-top:-4px}
+.campProg{display:flex;align-items:center;justify-content:center;gap:10px;font-size:16px;color:#d9cfb3;letter-spacing:.03em;margin-top:-2px} .campProg b{color:var(--gold);font-weight:700} .campProg .sep{color:rgba(212,168,78,.6)}
 .campProg i{flex:1;height:5px;border-radius:3px;background:rgba(0,0,0,.45);box-shadow:inset 0 0 0 1px rgba(201,160,62,.35);overflow:hidden} .campProg i b{display:block;height:100%;background:linear-gradient(90deg,#9c7224,#f0c95a)}
 /* menus fade in (shown by clearing [hidden], which restarts the animation) */
 .modal.tome:not([hidden]){animation:menuIn .28s ease-out} .modal.tome:not([hidden]) > *{animation:menuRise .34s ease-out}
@@ -206,11 +206,11 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 .cLeft{flex:1 1 auto;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;gap:8px}
 .cDeck{position:relative;flex:1 1 auto;min-height:0;width:100%;perspective:1100px;overflow-x:clip;overflow-y:visible;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .cCards{position:absolute;inset:0;transform-style:preserve-3d;pointer-events:none}
-.cCard{position:absolute;left:50%;top:50%;width:var(--cw);margin-left:calc(var(--cw) / -2);margin-top:calc((var(--cw) + 54px) / -2);padding:0;display:flex;flex-direction:column;
+.cCard{position:absolute;left:50%;top:50%;width:var(--cw);margin-left:calc(var(--cw) / -2);margin-top:calc(var(--cw) / -2);padding:0;display:flex;flex-direction:column;
   border:2px solid rgba(212,168,78,.75);border-radius:12px;background:#15170f;color:var(--parch);text-align:left;box-shadow:0 14px 34px rgba(0,0,0,.65);
   transition:transform .42s cubic-bezier(.2,.8,.25,1),opacity .3s;filter:brightness(calc(1 - var(--dim, 0)));cursor:pointer}
-.cCard .cPic{display:block;width:100%;aspect-ratio:1/1;background-size:cover;background-position:center;border-radius:10px 10px 0 0}
-.cCard .cName{display:flex;flex-direction:column;gap:1px;padding:6px 12px 8px;height:54px;justify-content:center} .cName small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)} .cName b{font-family:var(--display);font-weight:400;font-size:20px;color:var(--gold);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cCard .cPic{display:block;width:100%;aspect-ratio:1/1;background-size:cover;background-position:center;border-radius:10px}
+.cCard .cName{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:1px;padding:16px 12px 8px;justify-content:flex-end;border-radius:0 0 10px 10px;background:linear-gradient(180deg,rgba(10,11,8,0) 0%,rgba(10,11,8,.55) 45%,rgba(10,11,8,.72) 100%);text-shadow:0 1px 3px rgba(0,0,0,.9)} .cName small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)} .cName b{font-family:var(--display);font-weight:400;font-size:20px;color:var(--gold);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cCard.boss{border-color:rgba(226,113,91,.85)} .cCard.boss .cName small{color:#e2715b}
 .cCard.locked .cPic{filter:grayscale(.75) brightness(.7)}
 .cCard.cur.front{border-color:#f2d27a;animation:jGlow 1.8s ease-in-out infinite alternate}
@@ -218,16 +218,10 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 .jLock{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;background:rgba(10,11,8,.8);display:flex;align-items:center;justify-content:center} .jLock svg{width:19px;height:19px;fill:none;stroke:#e6dcc0;stroke-width:2;stroke-linecap:round}
 .cArrow{position:absolute;top:50%;transform:translateY(-50%);z-index:200;width:42px;height:42px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(14,16,11,.75)!important;border:1px solid rgba(212,168,78,.6)!important}
 .cArrow svg{width:22px;height:22px;fill:none;stroke:var(--gold);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round} .cArrow.l{left:2px} .cArrow.r{right:2px}
-.cDots{display:flex;align-items:center;justify-content:center;gap:3px;flex-wrap:nowrap;padding:2px 4px;position:relative}
-.cDots::before{content:'';position:absolute;left:14px;right:14px;top:50%;height:1px;background:rgba(212,168,78,.4)}
-.cDot{position:relative;flex:0 0 24px;width:24px;height:24px!important;min-height:0!important;min-width:0!important;padding:0!important;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(14,16,11,.9)!important;border:1px solid rgba(212,168,78,.45)!important}
-.cDot svg{width:16px;height:16px} .cDot.locked svg{width:12px;height:12px;fill:none;stroke:#a69e87;stroke-width:2.2;stroke-linecap:round}
-.cDot:not(.won):not(.cur):not(.locked)::after{content:'';width:6px;height:6px;border-radius:50%;background:#d9c79a}
-.cDot.boss{border-color:rgba(226,113,91,.9)!important} .cDot.sel{transform:scale(1.25);border-color:#f2d27a!important;box-shadow:0 0 8px rgba(255,205,90,.7)}
 .cDet{width:min(520px,100%);flex:0 0 auto}
 .cDet .stActs{display:flex;gap:10px;justify-content:center} .cDet .stActs button{min-width:110px;min-height:42px}
 @media (min-width:900px) and (min-height:600px){ .cMain{flex-direction:row;align-items:stretch;gap:24px} .cLeft{flex:1 1 auto} .cDet{width:330px;align-self:center} .cCard .cName b{font-size:24px} }
-@media (max-height:520px){ #campaign .cHead{flex-direction:row;gap:14px} #campaign .cHead .mapSub{width:auto} .cMain{flex-direction:row;align-items:stretch;gap:12px} .cDet{width:250px;align-self:center;padding:8px 10px!important;gap:5px} .cDet h3{font-size:18px} .cCard .cName{height:46px;padding:4px 10px} .cCard{margin-top:calc((var(--cw) + 46px) / -2)} }
+@media (max-height:520px){ #campaign .cHead{flex-direction:row;gap:14px} #campaign .cHead .mapSub{width:auto} .cMain{flex-direction:row;align-items:stretch;gap:12px} .cDet{width:250px;align-self:center;padding:8px 10px!important;gap:5px} .cDet h3{font-size:18px} }
 /* the banner and the rally flag: the overview's 3D sprite strips (maps/banner.png, maps/flag.png: 32 frames of 220 x 200), played with steps() */
 .jSpr{position:absolute;right:-30px;top:-62px;width:121px;height:110px;background-repeat:no-repeat;background-size:3872px 110px;animation:jWave 2.513s steps(32) infinite;pointer-events:none}
 .jBan{background-image:url(maps/banner.png)} .jFlag{background-image:url(maps/flag.png);filter:drop-shadow(0 0 1.5px #fbeab0) drop-shadow(0 0 1px #fbeab0)}
@@ -241,6 +235,16 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):hover{filter:brightness(1.15)}
 .cArrow{background:linear-gradient(180deg,#4a3c22,#2e2515)!important;border:2px solid #c9a03e!important;box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 14px rgba(212,168,78,.25)!important}
 .cArrow svg{stroke:#f4e3b2}
+/* the campaign's progress under the deck: one segment per stage, filled gold for each won, the stage you're at outlined and pulsing,
+   the rest dark; bosses edged red; the one in front lifted with a light bar under it; tap one to turn the deck to it */
+.cDots{display:flex;align-items:center;gap:4px;width:min(420px,92%);padding:6px 0 4px}
+.cDot{flex:1 1 0;height:10px!important;min-height:0!important;min-width:0!important;padding:0!important;border-radius:3px;background:rgba(0,0,0,.5)!important;border:1px solid rgba(212,168,78,.4)!important;position:relative;transition:transform .2s}
+.cDot::before{content:'';position:absolute;inset:-9px 0}
+.cDot.won{background:linear-gradient(180deg,#f2d27a,#b8862a)!important;border-color:#f2d27a!important}
+.cDot.cur{border:2px solid #f2d27a!important;animation:segPulse 1.4s ease-in-out infinite alternate}
+@keyframes segPulse{from{box-shadow:0 0 0 rgba(255,210,100,0)}to{box-shadow:0 0 10px rgba(255,210,100,.8)}}
+.cDot.boss{border-color:#e2715b!important} .cDot.boss.won{background:linear-gradient(180deg,#f08a72,#a8402c)!important}
+.cDot.sel{transform:scaleY(1.5)} .cDot.sel::after{content:'';position:absolute;left:15%;right:15%;bottom:-8px;height:2px;border-radius:1px;background:#f4e3b2}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
@@ -6807,11 +6811,11 @@ function buildDeck() {
     const mark = i > cur ? `<i class="jLock">${LOCK_SVG}</i>` : '';
     return `<button class="cCard ${st}${c.boss ? ' boss' : ''}" data-i="${i}" tabindex="-1"><span class="cPic" style="background-image:url(maps/thumb/${c.map}.jpg)"></span>
       <span class="cName"><small>${c.boss ? 'Boss · ' : ''}Stage ${i + 1}${won[i] ? ' ' + starsHTML(STARS[c.map] || 0) : ''}</small><b>${c.name}</b></span>${mark}</button>`; }).join('');
-  $('#cDots').innerHTML = CAMPAIGN.map((c, i) => `<button class="cDot${c.boss ? ' boss' : ''}${won[i] ? ' won' : i === cur ? ' cur' : i > cur ? ' locked' : ''}" data-i="${i}" aria-label="Stage ${i + 1}">${won[i] ? DOT_BAN : i === cur ? DOT_FLAG : i > cur ? LOCK_SVG : ''}</button>`).join('');
+  $('#cDots').innerHTML = CAMPAIGN.map((c, i) => `<button class="cDot${c.boss ? ' boss' : ''}${won[i] ? ' won' : i === cur ? ' cur' : ''}" data-i="${i}" aria-label="Stage ${i + 1}"></button>`).join('');
 }
 // place every card for the front index cSel plus the live drag (in cards); the card's size follows the room the deck has
 function layoutDeck(anim = true) {
-  const deck = $('#campMap'), W = Math.min(deck.clientWidth * .62, deck.clientHeight - 70, 480), f = cSel + cDrag;
+  const deck = $('#campMap'), W = Math.min(deck.clientWidth * .62, deck.clientHeight - 16, 480), f = cSel + cDrag;
   deck.style.setProperty('--cw', Math.max(120, W) + 'px');
   document.querySelectorAll('#cCards .cCard').forEach(el => {
     const d = +el.dataset.i - f, a = Math.abs(d), sg = Math.sign(d), x = sg * (Math.min(a, 1) * .62 + Math.max(0, a - 1) * .2) * W;
@@ -6861,7 +6865,7 @@ markMapStars();
 function openCampaign(i) {
   buildDeck(); $('#mapPick').hidden = true; $('#campaign').hidden = false;
   { const st = CAMPAIGN.filter(c => c.map), won = st.filter(c => STARS[c.map] > 0).length, stars = starTotal(), max = st.length * 3;
-    $('#campStars').innerHTML = `<span>${won}/${st.length}</span><i><b style="width:${(won / st.length * 100).toFixed(1)}%"></b></i><span>★ ${stars}/${max}</span>`; }
+    $('#campStars').innerHTML = `<span><b>${won}</b> / ${st.length} stages</span><span class="sep">·</span><span><b>★ ${stars}</b> / ${max}</span>`; }
   // opens on the given stage (Restart / Play again) or where the player is
   cSel = i !== undefined ? i : cCur; cDrag = 0; layoutDeck(false); openStage(cSel);
 }
