@@ -3166,7 +3166,8 @@ function makeStables(tier, plinth) {
   g.add(pyramid(hw * .78, .6, hd / hw * 1.05, roofM, b + hh + .3, hx, hz));
   g.add(box(1.0, 1.42, .05, DOOR_M[tier], -1, b + .71, hz + hd / 2 + .03));
   // hay and a trough, side by side
-  g.add(cyl(.3, .32, .4, 8, M.hay, -1.45, b + .2, -1.1)); g.add(box(.7, .2, .25, M.wood, -.78, b + .1, -1.1));
+  // against the hut's back wall
+  const hb = hz - hd / 2; g.add(cyl(.3, .32, .4, 8, M.hay, -1.45, b + .2, hb - .32)); g.add(box(.7, .2, .25, M.wood, -.78, b + .1, hb - .125));
   if (tier >= 2) {
     // the saddle rack, in front between the two stalls
     g.add(box(.5, .06, .08, M.timber, 1.075, b + .7, .75)); for (const x of [.875, 1.275]) g.add(box(.06, .7, .06, M.timber, x, b + .35, .75));
@@ -4633,7 +4634,7 @@ function updateVillagers(dt, now) {
         }
       }
     } else {
-      if (v.summoned) { if (!v.gone) rideHome(v, dt); }
+      if (v.summoned) { if (!v.gone && !v.homeIn) rideHome(v, dt); }
       else if (v.unkit) { updateUnkit(v, dt); }
       else if (v.crewStrip > 0) { updateCrewStrip(v, dt); }
       else {
@@ -5120,10 +5121,14 @@ function summonRiders() {
   summonOut = true; sfx('neigh'); log(`<b>${RIDER.names[K.tier - 1]}s</b> ride out`, 'good');
 }
 // dawn: back to the castle door at a trot, and gone
+// dawn: back to the castle's door and in the way they came out: through the gate (or the hall door), then the keep's door, and gone
 function rideHome(v, dt) {
   const K = castleB(); if (!K) { v.gone = true; return; }
   const dp = doorPoint(K);
-  if (walkTo(v, dp.x, dp.z, dt, 1, .5, 1.6 * RIDER.speed) || v.noProg > 5) v.gone = true;
+  if (walkTo(v, dp.x, dp.z, dt, 1, .5, 1.6 * RIDER.speed) || v.noProg > 5) {
+    const g = innerDoor(K) || dp, k = keepDoor(K), end = { hide: true, on: u => { u.gone = true; } };
+    v.homeIn = true; v.doorWalk = k ? { x: g.x, z: g.z, next: { x: k.x, z: k.z, ...end } } : { x: g.x, z: g.z, ...end };
+  }
 }
 function dropSummoned() {
   for (let n = villagers.length - 1; n >= 0; n--) { const v = villagers[n]; if (!v.summoned || !v.gone) continue; scene.remove(v.g); if (v.sbar) scene.remove(v.sbar.grp); villagers.splice(n, 1); }
