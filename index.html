@@ -6776,37 +6776,46 @@ function buildRaiderKeep(g) {
 }
 function buildWarlordsHold(g) {
   const P = HOLD_POLY, [gx, gz] = HOLD_GATE, cx = 40, cz = 9.5, Y = (x, z) => hAt(x, z), y0 = Y(cx, cz);
+  // the hold stands on its crag's flat top, but its walls sit on the crag's edge where the ground falls away outside: every wall piece,
+  // tower and the keep reach down to the lowest ground under them (Jack saw the east side floating), their tops stay level
+  const low = (x, z, r) => { let m = Y(x, z); for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; for (const f of [.5, 1, 1.6]) m = Math.min(m, Y(x + Math.cos(a) * r * f, z + Math.sin(a) * r * f)); } return m - 1.2; };
+  const TOP = y0 + 4;   // the curtain walls' top all round
   const merlons = (ax, az, bx, bz, y, nx, nz) => { const L = Math.hypot(bx - ax, bz - az); for (let t = .45; t < L - .3; t += .9) { const x = ax + (bx - ax) * t / L - nx * .4, z = az + (bz - az) * t / L - nz * .4; const m = box(.5, .55, .32, M.stone, x, y + .27, z); m.rotation.y = -Math.atan2(bz - az, bx - ax); g.add(m); } };
-  const roundTower = (x, z, r, h, roof = true) => { const y = Y(x, z);
-    g.add(cyl(r, r * 1.08, h, 14, M.stone, x, y + h / 2 - .3, z)); g.add(cyl(r + .18, r + .12, .45, 14, M.stone2, x, y + h - .1, z));
-    for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; g.add(box(.42, .5, .3, M.stone, x + Math.cos(a) * (r + .05), y + h + .35, z + Math.sin(a) * (r + .05))); }
-    for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + .4; g.add(box(.12, .55, .08, M.dark, x + Math.cos(a) * (r + .02), y + h * .55, z + Math.sin(a) * (r + .02))); }   // arrow slits
-    if (roof) { g.add(coneRoof(r + .35, r * 1.6, 14, M.roofBlue, x, y + h + .3 + r * .8, z)); roofFlag(g, x, y + h + .3 + r * 1.6, z, .6); } };
-  for (let i = 0; i < P.length; i++) {   // curtain walls of masonry with a wall-walk behind merlons
+  // round towers: from the lowest ground under them up to a level top; a roofed tower has no merlons (they poked through its cone)
+  const roundTower = (x, z, r, h, roof = true) => { const b = low(x, z, r + .3), top = Y(x, z) + h;
+    g.add(cyl(r, r * 1.08, top - b, 14, M.stone, x, (top + b) / 2, z)); g.add(cyl(r + .18, r + .12, .45, 14, M.stone2, x, top - .1, z));
+    if (!roof) for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; g.add(box(.42, .5, .3, M.stone, x + Math.cos(a) * (r + .05), top + .35, z + Math.sin(a) * (r + .05))); }
+    for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + .4; g.add(box(.12, .55, .08, M.dark, x + Math.cos(a) * (r + .02), top - h * .45, z + Math.sin(a) * (r + .02))); }   // arrow slits
+    if (roof) { g.add(coneRoof(r + .35, r * 1.6, 14, M.roofBlue, x, top + .12 + r * .8, z)); roofFlag(g, x, top + .12 + r * 1.6, z, .6); } };
+  for (let i = 0; i < P.length; i++) {   // curtain walls of masonry with a wall-walk behind merlons, built in short pieces down to the ground
     const [ax, az] = P[i], [bx, bz] = P[(i + 1) % P.length], L = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / L, uz = (bz - az) / L;
     let nx = -uz, nz = ux; if ((cx - ax) * nx + (cz - az) * nz < 0) { nx = -nx; nz = -nz; }
-    const y = Math.min(Y(ax, az), Y(bx, bz)), gapT = (gx - ax) * ux + (gz - az) * uz, onGate = Math.abs((gx - ax) * nx + (gz - az) * nz) < .5 && gapT > 0 && gapT < L;
+    const gapT = (gx - ax) * ux + (gz - az) * uz, onGate = Math.abs((gx - ax) * nx + (gz - az) * nz) < .5 && gapT > 0 && gapT < L;
     const runs = onGate ? [[0, gapT - 2.3], [gapT + 2.3, L]] : [[0, L]];
-    for (const [t0, t1] of runs) { const sx = ax + ux * t0, sz = az + uz * t0, ex = ax + ux * t1, ez = az + uz * t1;
-      along(g, sx, sz, ex, ez, 1.1, 4, M.stone, y - .4); merlons(sx, sz, ex, ez, y + 3.6, -nx, -nz);
-      along(g, sx + nx * .9, sz + nz * .9, ex + nx * .9, ez + nz * .9, .8, .1, DOOR_M[3], y + 3.1); }
+    for (const [t0, t1] of runs) {
+      const n = Math.max(1, Math.round((t1 - t0) / 1.5)), d = (t1 - t0) / n;
+      for (let k = 0; k < n; k++) { const ta = t0 + k * d, tb = ta + d, mx = ax + ux * (ta + tb) / 2, mz = az + uz * (ta + tb) / 2, b = low(mx, mz, 1.8);
+        along(g, ax + ux * ta, az + uz * ta, ax + ux * (tb + .02), az + uz * (tb + .02), 1.1, TOP - b, M.stone, b); }
+      const sx = ax + ux * t0, sz = az + uz * t0, ex = ax + ux * t1, ez = az + uz * t1;
+      merlons(sx, sz, ex, ez, TOP, -nx, -nz);
+      along(g, sx + nx * .9, sz + nz * .9, ex + nx * .9, ez + nz * .9, .8, .1, DOOR_M[3], TOP - .5); }
     roundTower(ax, az, 1.9, 6.4);
   }
   // the gatehouse: two round towers either side of an arched passage, a portcullis
   for (const sx of [-1, 1]) roundTower(gx + sx * 2.4, gz, 1.5, 6.8);
-  { const y = Y(gx, gz); g.add(box(3.4, 4.6, 2.6, M.stone, gx, y + 2, gz)); g.add(box(2.2, 2.8, 2.7, M.dark, gx, y + 1.1, gz + .02));
+  { const y = Y(gx, gz), b = low(gx, gz, 1.6); g.add(box(3.4, y + 4.3 - b, 2.6, M.stone, gx, (y + 4.3 + b) / 2, gz)); g.add(box(2.2, 2.8, 2.7, M.dark, gx, y + 1.1, gz + .02));
     for (let k = -.8; k <= .81; k += .4) g.add(box(.06, 2.6, .06, M.iron, gx + k, y + 1.2, gz + 1.32)); g.add(box(2, .08, .06, M.iron, gx, y + 1.9, gz + 1.32));
     merlons(gx - 1.7, gz + 1.25, gx + 1.7, gz + 1.25, y + 4.3, 0, -1); }
   // the keep: a tall masonry block, four corner turrets with cone roofs, two rows of windows, a framed door, hanging banners
-  g.add(box(7.4, 9.5, 6.2, M.stone, cx, y0 + 4.5, cz));
-  g.add(box(7.8, .4, 6.6, M.stone2, cx, y0 + 9.3, cz)); merlons(cx - 3.9, cz + 3.3, cx + 3.9, cz + 3.3, y0 + 9.5, 0, -1); merlons(cx - 3.9, cz - 3.3, cx + 3.9, cz - 3.3, y0 + 9.5, 0, 1);
-  for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const tx = cx + dx * 3.7, tz = cz + dz * 3.1;
-    g.add(cyl(.95, 1, 11, 12, M.stone, tx, y0 + 5.2, tz)); g.add(coneRoof(1.25, 2.4, 12, M.roofBlue, tx, y0 + 11.9, tz)); roofFlag(g, tx, y0 + 13.1, tz, .6); }
+  { const b = low(cx, cz, 3.8); g.add(box(7.4, y0 + 9.3 - b, 6.2, M.stone, cx, (y0 + 9.3 + b) / 2, cz)); }
+  g.add(box(7.8, .4, 6.6, M.stone2, cx, y0 + 9.3, cz)); merlons(cx - 2.7, cz + 3.3, cx + 2.7, cz + 3.3, y0 + 9.5, 0, -1); merlons(cx - 2.7, cz - 3.3, cx + 2.7, cz - 3.3, y0 + 9.5, 0, 1);
+  for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const tx = cx + dx * 3.7, tz = cz + dz * 3.1, b = low(tx, tz, 1);
+    g.add(cyl(.95, 1, y0 + 10.7 - b, 12, M.stone, tx, (y0 + 10.7 + b) / 2, tz)); g.add(coneRoof(1.25, 2.4, 12, M.roofBlue, tx, y0 + 11.9, tz)); roofFlag(g, tx, y0 + 13.1, tz, .6); }
   for (const r of [3.6, 6.4]) for (const k of [-2.2, 0, 2.2]) g.add(box(.55, .9, .06, M.glow, cx + k, y0 + r, cz + 3.12));
   g.add(box(1.3, 2.1, .1, DOOR_M[3], cx, y0 + 1.05, cz + 3.13)); for (const sx of [-1, 1]) g.add(box(.25, 2.4, .25, M.stone2, cx + sx * .8, y0 + 1.2, cz + 3.15)); g.add(box(1.85, .3, .3, M.stone2, cx, y0 + 2.4, cz + 3.15));
   for (const sx of [-1, 1]) { const b = box(1, 3, .05, M.flag, cx + sx * 2.2, y0 + 6.8, cz + 3.15); b.castShadow = true; g.add(b); }
-  // inside the walls: the town's garrison and royal stables
-  placeModel(g, 'barracks', 3, 31.5, 9.5, 1, Math.PI / 2); placeModel(g, 'stables', 3, 48.5, 9.5, 1, -Math.PI / 2);
+  // inside the walls: the town's garrison (the royal stables were dropped: Jack)
+  placeModel(g, 'barracks', 3, 31.5, 9.5, 1, Math.PI / 2);
 }
 function placeBossScenery() {
   if (bossMesh) { scene.remove(bossMesh); bossMesh = null; }
