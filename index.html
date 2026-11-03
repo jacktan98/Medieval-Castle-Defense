@@ -3161,12 +3161,12 @@ function makeStables(tier, plinth) {
   g.add(box(w + .1, .1, .1, M.timber, cx, b + h - .05, sz1));
   const rf = pyramid(w * .74, .75, dpt / w * 1.25, roofM, b + h + .37, cx, (sz0 + sz1) / 2); g.add(rf);
   // the armoury hut at the front left, its door the building's
-  // big enough for a rider inside: 1.8 x 1.3, 1.65 m to the eaves (lowered: Jack); the door stays 1.0 x 1.42 (centred on x -1)
+  // big enough for a rider inside: 1.8 x 1.3, 1.65 m to the eaves (lowered: Jack); the door .78 x 1.42 (centred on x -1)
   const hx = -1, hz = .2, hw = 1.8, hd = 1.3, hh = 1.65;
   g.add(box(hw, hh, hd, wallM, hx, b + hh / 2, hz));
   if (tier > 1) for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.08, hh + .02, .08, M.timber, hx + sx * (hw / 2 - .02), b + hh / 2, hz + sz * (hd / 2 - .02)));
   g.add(pyramid(hw * .78, .6, hd / hw * 1.05, roofM, b + hh + .3, hx, hz));
-  g.add(box(1.0, 1.42, .05, DOOR_M[tier], -1, b + .71, hz + hd / 2 + .03));
+  g.add(box(.78, 1.42, .05, DOOR_M[tier], -1, b + .71, hz + hd / 2 + .03));   // narrower than the castle's (Jack), still room for a horse's .34 m
   // hay and a trough, side by side
   // behind the armoury: the trough runs out from the horse shed's left wall, the hay at its far end (Jack)
   g.add(box(.7, .2, .25, M.wood, sx0 - .35, b + .1, -1.3)); g.add(cyl(.3, .32, .4, 8, M.hay, sx0 - .7 - .32, b + .2, -1.3));
