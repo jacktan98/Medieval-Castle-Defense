@@ -16,7 +16,7 @@
 <style>
 /* Layout: full-bleed 3D field; town ledger top-left, tabbed build dock at the bottom, banners centred. Single dark look by choice. */
 :root{
-  --bg:#141a17; --panel:rgba(20,22,18,.9); --line:#3b3a2f; --parch:#ece2c8; --muted:#a69e87;
+  --bg:#141a17; --panel:linear-gradient(180deg,rgba(44,34,18,.92) 0%,rgba(26,20,11,.93) 100%); --line:rgba(212,168,78,.4); --parch:#ece2c8; --muted:#a69e87;
   --gold:#d4a84e; --ok:#8cc46e; --bad:#e2715b; --night:#a9bcf2;
   --display:"IM Fell English SC", Georgia, "Times New Roman", serif;
   --body:"Alegreya Sans", system-ui, -apple-system, sans-serif;
@@ -295,6 +295,24 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .modal.tome .mapBtn .stars{font-size:22px!important;letter-spacing:.1em;line-height:1} .modal.tome .mapBtn .stars span{color:rgba(20,16,8,.55);-webkit-text-stroke:1px rgba(240,201,90,.75)}
 .modal.tome .mapBtn .stars .on{color:#f0c95a;-webkit-text-stroke:1px #fff1c4;text-shadow:0 0 10px rgba(255,205,90,.6)}
 @media (min-width:900px) and (min-height:600px){ .modal.tome .mapBtn .stars{font-size:28px!important} }
+/* the title's map cards: every name strip two lines tall, so the stars line up whether the name takes one line or two */
+.modal.tome .mapBtn b{min-height:calc(2.3em + 12px)!important;box-sizing:border-box}
+/* the game's own UI in the menus' bronze plaque look (Jack): bronze panels (--panel) with a gold rim and a soft shadow; title bands
+   and headers on a lighter gold band; secondary buttons as bronze plates; the main action gold */
+.panel,.bar,.card,.ncCard,.pauseCard,.admin,.pill,.guideCard,#summary .sheet{border:2px solid rgba(212,168,78,.72)!important;box-shadow:0 4px 16px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,230,160,.12)}
+.phase,.barTop,.adminHead{border-bottom-color:rgba(212,168,78,.45)!important}
+#pauseBtn,.cornerBtns .iconBtn{background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;box-shadow:0 2px 10px rgba(0,0,0,.55),0 0 10px rgba(212,168,78,.18)!important}
+#pauseBtn svg,.cornerBtns .iconBtn svg{stroke:#f4e3b2} .cornerBtns .iconBtn .spd{color:#f4e3b2}
+.tabs{background:rgba(10,8,4,.45)!important;border:1px solid rgba(212,168,78,.3)}
+.tab[aria-pressed="true"]{background:linear-gradient(180deg,rgba(150,112,52,.55),rgba(100,74,34,.55))!important;border-color:#f0c95a!important;color:#ffe2a0!important}
+.tools button{background:rgba(70,54,26,.38);border-color:rgba(212,168,78,.4)}
+.tools button[aria-pressed="true"]{background:linear-gradient(180deg,rgba(150,112,52,.6),rgba(100,74,34,.6))!important;border-color:#f0c95a!important;box-shadow:0 0 8px rgba(240,200,90,.3)}
+.ncCard h3,.card h3,.cardName{color:#ffe2a0}
+.ncCard button.primary,.card button.primary,.pauseCard button.primary,#summary button.primary{background:linear-gradient(180deg,#e9c463 0%,#c7962f 55%,#a47422 100%)!important;color:#2a1a06!important;border-color:#f2d27a!important;font-weight:700}
+.card button.primary svg{stroke:#2a1a06!important} .card button.primary .ico{filter:drop-shadow(0 0 1px rgba(0,0,0,.6))}
+.pauseCard button:not(.primary),#summary button:not(.primary),.card .row button:not(.primary):not(.danger){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%);border:1px solid #c9a03e;color:#f4e3b2}
+#summary .sheet{background:var(--panel)!important}
+#summary .stars.big .on{color:#f0c95a;-webkit-text-stroke:1px #fff1c4;text-shadow:0 0 12px rgba(255,205,90,.6)} #summary .stars.big span{-webkit-text-stroke:1px rgba(240,201,90,.75)}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
