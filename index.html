@@ -315,6 +315,17 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .pauseCard button:not(.primary),#summary button:not(.primary),.card .row button:not(.primary):not(.danger){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%);border:1px solid #c9a03e;color:#f4e3b2}
 #summary .sheet{background:var(--panel)!important}
 #summary .stars.big .on{color:#f0c95a;-webkit-text-stroke:1px #fff1c4;text-shadow:0 0 12px rgba(255,205,90,.6)} #summary .stars.big span{-webkit-text-stroke:1px rgba(240,201,90,.75)}
+/* new-building cards in the bronze plaque look (Jack: the side-by-side card looked off): "New · 1/2" and the name on a gold title
+   band, the building's icon large in a gold-rimmed medallion, cost and stats centred under it, Next / Play centred at the foot */
+#newCards .ncCard{flex-direction:column!important;align-items:center;width:min(300px,86vw);min-width:0;padding:0 0 14px!important;gap:10px;overflow:hidden}
+#newCards .ncInfo{display:contents}
+#newCards .ncStep{order:0;width:100%;text-align:center;padding:7px 0 0;margin-bottom:-10px;color:#e6d6ae;background:linear-gradient(90deg,rgba(150,112,52,.5),rgba(190,145,70,.62) 50%,rgba(150,112,52,.5))}
+#newCards h3{order:1;width:100%;text-align:center;font-size:21px!important;padding:2px 10px 8px;color:#ffe2a0!important;text-shadow:0 1px 2px rgba(0,0,0,.7);background:linear-gradient(90deg,rgba(150,112,52,.5),rgba(190,145,70,.62) 50%,rgba(150,112,52,.5));border-bottom:1px solid rgba(212,168,78,.55)}
+#newCards .ncIcon{order:2;align-self:center;width:72px;height:72px;border-radius:50%;justify-content:center;align-items:center;border:2px solid rgba(212,168,78,.75);background:radial-gradient(circle at 50% 35%,rgba(110,84,40,.6),rgba(30,23,12,.8));box-shadow:inset 0 1px 0 rgba(255,230,160,.2),0 2px 8px rgba(0,0,0,.5)}
+#newCards .ncIcon svg{width:42px;height:42px}
+#newCards .ncCost{order:3;justify-content:center;font-size:14px} #newCards .ncCost .ico svg{width:16px;height:16px}
+#newCards .ncStats{order:4;justify-content:center;font-size:14px;gap:6px 14px;padding:0 14px} #newCards .ncStats .ico svg{width:16px;height:16px}
+#newCards button{order:5;align-self:center!important;min-width:120px!important;min-height:38px!important;font-size:15px!important;margin-top:2px!important}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
@@ -6201,7 +6212,7 @@ function refreshCard() {
   if (T.range) {
     const m = (B.manned || []).filter(Boolean).length, n = (T.archers || T.crew)[k];
     st.push(STAT('guard', PH.kind === 'night' ? `${m}/${n}` : `${n}`, T.crew && PH.kind === 'night' && m < n ? 'warn' : '', T.crew ? 'Crew' : undefined));
-    st.push(STAT(B.type === 'catapult' ? 'stone' : 'bow', `${T.dmg[k]}`, '', 'Damage'));
+    st.push(STAT('siege', `${T.dmg[k]}`, '', 'Damage'));
     const R = rangeOf(B); st.push(STAT('range', `${+R.toFixed(1)} m`, R > T.range[k] ? 'good' : '', 'Range'));
     if (T.crew && siegeRate(B) < T.rate[k]) st.push(STAT('rate', `+${Math.round((1 - siegeRate(B) / T.rate[k]) * 100)}%`, 'good', 'Reload'));
   }
@@ -6639,7 +6650,7 @@ function newCardStats(t) {
   if (T.hp) st.push(STAT('hp', T.hp[0]));
   if (T.residents) st.push(STAT('home', T.residents[0])); if (T.gold) st.push(STAT('gold', `+${T.gold[0]}`)); if (T.food) st.push(STAT('food', `+${T.food[0]}`));
   if (T.workers) st.push(STAT('hammer', T.workers[0])); if (T.reach) st.push(STAT('range', `${T.reach} m`, '', 'Reach'));
-  if (T.archers) st.push(STAT('guard', T.archers[0])); if (T.dmg && T.archers) st.push(STAT('bow', T.dmg[0])); if (T.range) st.push(STAT('range', `${T.range[0]} m`, '', 'Range'));
+  if (T.archers) st.push(STAT('guard', T.archers[0])); if (T.dmg && T.archers) st.push(STAT('bow', T.dmg[0])); if (T.dmg && T.crew) st.push(STAT('guard', T.crew[0], '', 'Crew'), STAT('siege', T.dmg[0], '', 'Damage')); if (T.range) st.push(STAT('range', `${T.range[0]} m`, '', 'Range'));
   if (T.soldiers) st.push(STAT('guard', T.soldiers[0], '', 'Soldiers'), STAT('sword', SOLDIER.dmg[0]));
   if (T.decor) { st.push(...fxStats(t, (i, v, n) => STAT(i, v, 'good', n))); if (T.charm) st.push(STAT('charm', `+${Math.round(T.charm * 100)}%`, 'good')); }
   return st.join('');
