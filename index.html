@@ -2298,7 +2298,8 @@ function makeCastle(tier, plinth) {
     for (const sx of [-1, 1]) g.add(leaf(.57, 1.8, .08, DOOR_M[2], sx * .57, 1.2, W + .42, -sx, -sx * 1.4));   // gatehouse doors swing in
     g.add(box(2.4, 3.6, 2.4, M.stone2, 0, 2.0, -.4));
     g.add(box(.3, .42, .06, M.glow, -.45, 2.6, .82)); g.add(box(.3, .42, .06, M.glow, .45, 2.6, .82));
-    g.add(box(DOOR_W / k, DOOR_H, .06, DOOR_M[2], 0, .32 + DOOR_H / 2, .82));   // the standard door (the keep is drawn at k in x)
+    // the keep's door is the palisade fort's hall door's size (1.0 x 1.42 m once drawn at k), so the castle's riders come out of it
+    g.add(box(.96 / k, 1.38, .01, M.dark, 0, .32 + .69, .805)); g.add(leaf(1.0 / k, 1.42, .06, DOOR_M[2], -.5 / k, .32 + .71, .82, 1, -1.4));
     g.add(pyramid(1.95, 1.5, 1, M.thatch, 4.55, 0, -.4));
     g.add(box(.07, 1.3, .07, M.timber, 0, 5.8, -.4)); g.add(flagBox(.8, .45, .04, M.flag, .43, 6.2, -.4));
   } else {                     // castle: round towers, gatehouse, tall keep, banners
@@ -2325,7 +2326,9 @@ function makeCastle(tier, plinth) {
       g.add(box(.4, .45, .4, M.stone2, s, 5.0, -1.4)); g.add(box(.4, .45, .4, M.stone2, s, 5.0, .6));
       g.add(box(.4, .45, .4, M.stone2, -1.0, 5.0, s - .4)); g.add(box(.4, .45, .4, M.stone2, 1.0, 5.0, s - .4));
     }
-    g.add(box(.5, .7, .06, M.glow, 0, 3.4, .82)); g.add(box(.5, .7, .06, M.glow, 0, 2.0, .82));
+    g.add(box(.5, .7, .06, M.glow, 0, 3.4, .82)); g.add(box(.5, .5, .06, M.glow, 0, 2.3, .82));
+    // a rider-sized door into the keep, as at tier 2
+    g.add(box(.96 / k, 1.38, .01, M.dark, 0, .32 + .69, .805)); g.add(leaf(1.0 / k, 1.42, .06, DOOR_M[3], -.5 / k, .32 + .71, .82, 1, -1.4));
     g.add(box(.07, 1.8, .07, M.timber, 0, 5.9, -.4)); g.add(flagBox(.9, .5, .04, M.flag, .48, 6.5, -.4));
   }
   return root;
@@ -3156,11 +3159,12 @@ function makeStables(tier, plinth) {
   g.add(box(w + .1, .1, .1, M.timber, cx, b + h - .05, sz1));
   const rf = pyramid(w * .74, .75, dpt / w * 1.25, roofM, b + h + .37, cx, (sz0 + sz1) / 2); g.add(rf);
   // the armoury hut at the front left, its door the building's
-  const hx = -1, hz = .2, hw = 1.05, hd = .85, hh = 1.25;                                    // centred on the door (x -1)
+  // bigger than a house so a rider comes out of it: 1.35 x 1.0, 1.65 m to the eaves, the door 1.0 x 1.42 (centred on x -1)
+  const hx = -1, hz = .2, hw = 1.35, hd = 1.0, hh = 1.65;
   g.add(box(hw, hh, hd, wallM, hx, b + hh / 2, hz));
   if (tier > 1) for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.08, hh + .02, .08, M.timber, hx + sx * (hw / 2 - .02), b + hh / 2, hz + sz * (hd / 2 - .02)));
   g.add(pyramid(hw * .78, .6, hd / hw * 1.05, roofM, b + hh + .3, hx, hz));
-  g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[tier], -1, b + DOOR_H / 2, .4 + .23));
+  g.add(box(1.0, 1.42, .05, DOOR_M[tier], -1, b + .71, hz + hd / 2 + .03));
   g.add(cyl(.3, .32, .4, 8, M.hay, -1.45, b + .2, -1.1)); g.add(box(.7, .2, .25, M.wood, -.65, b + .1, -1.2));   // hay and a trough
   if (tier >= 2) {
     g.add(box(.5, .06, .08, M.timber, .6, b + .7, .75)); for (const x of [.4, .8]) g.add(box(.06, .7, .06, M.timber, x, b + .35, .75));   // saddle rack
@@ -4433,7 +4437,7 @@ function exitDoor(v) {
 }
 // one step of a door walk; true while it lasts (the villager's own logic waits)
 function doorStep(v, dt) {
-  const W = v.doorWalk, dx = W.x - v.x, dz = W.z - v.z, d = Math.hypot(dx, dz), step = v.speed * dt;
+  const W = v.doorWalk, dx = W.x - v.x, dz = W.z - v.z, d = Math.hypot(dx, dz), step = v.speed * (v.horse ? RIDER.speed : 1) * dt;   // a rider goes through a doorway at a trot
   if (d > step) { v.walking = true; turnTo(v, Math.atan2(dx, dz), dt); v.x += dx / d * step; v.z += dz / d * step; return true; }
   v.x = W.x; v.z = W.z;
   if (W.hold > 0) { if (W.face != null) turnTo(v, W.face, dt); W.hold -= dt; return true; }   // a pause on the way (picking up, tipping out)
@@ -5096,6 +5100,8 @@ var summonCd = 0, summonOut = false;
 const summoned = () => villagers.filter(v => v.summoned && !v.gone);
 // the way the castle's door looks out; the riders' places either side in front of it
 const faceAngle = B => { const [fx, fz] = faceRot(B.face || 0, 0, 1); return Math.atan2(fx, fz); };
+// the keep's own door inside the courtyard (tiers 2-3); at tier 1 the hall door is the castle's inner door already
+const keepDoor = B => { if (B.tier === 1) return null; const c = center(B), [x, z] = faceRot(B.face || 0, 0, .9 * CASTLE_K[B.tier - 1]); return { x: c.x + x, z: c.z + z }; };
 const summonSpot = (B, a) => faceRot(B.face || 0, a === 1 ? -.75 : .75, .9);
 function summonRiders() {
   const K = castleB(); if (!K) return;
@@ -5105,9 +5111,9 @@ function summonRiders() {
     soldierKit(v, K.tier, true); v.sbar = makeBar(.6); v.indoor = null; v.hideT = 0;
     // they ride out of the castle's door (widened for a horse) one after the other, the second unseen until its turn, and on to
     // their places side by side in front of the door, where they turn to face outward (updateSoldier)
-    const p = innerDoor(K) || doorPoint(K), dp = doorPoint(K), [ox, oz] = summonSpot(K, a + 1);
+    const g = innerDoor(K) || doorPoint(K), p = keepDoor(K) || g, dp = doorPoint(K), [ox, oz] = summonSpot(K, a + 1), out = { x: dp.x + ox, z: dp.z + oz };
     v.x = v.rx = v.tx = p.x; v.z = v.rz = v.tz = p.z; v.g.visible = a === 0; v.g.rotation.y = faceAngle(K);
-    v.doorWalk = { x: p.x, z: p.z, hold: a * 1.4, on: u => { u.g.visible = true; }, next: { x: dp.x + ox, z: dp.z + oz } };
+    v.doorWalk = { x: p.x, z: p.z, hold: a * 1.1, on: u => { u.g.visible = true; }, next: p === g ? out : { x: g.x, z: g.z, next: out } };
   }
   summonOut = true; sfx('neigh'); log(`<b>${RIDER.names[K.tier - 1]}s</b> ride out`, 'good');
 }
