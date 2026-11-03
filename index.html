@@ -393,11 +393,11 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .card{border-radius:10px;border-color:#6b5a2e;padding:7px 8px;gap:5px;box-shadow:0 2px 10px rgba(0,0,0,.35);width:fit-content;max-width:min(400px,100%);align-self:flex-end}   /* as narrow as its content (a path's is tiny), on the right */
 .cardHead{display:flex;align-items:center;gap:6px}
 .cardHead .iconBtn{width:30px;min-width:30px;height:30px;min-height:30px}
-#volleyBtn{position:relative}
-#volleyBtn .cd{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font:700 11px/1 system-ui,sans-serif;color:#e8e2cc}
-#volleyBtn.cool svg{opacity:.25}
-#volleyBtn.off svg{opacity:.4}
-#volleyBtn.cool .cd{display:flex}
+#volleyBtn,#summonBtn{position:relative}
+#volleyBtn .cd,#summonBtn .cd{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font:700 11px/1 system-ui,sans-serif;color:#e8e2cc}
+#volleyBtn.cool svg,#summonBtn.cool svg{opacity:.25}
+#volleyBtn.off svg,#summonBtn.off svg{opacity:.4}
+#volleyBtn.cool .cd,#summonBtn.cool .cd{display:flex}
 .cardIco{width:30px;height:30px;border-radius:7px;background:#24261f;border:1px solid #4a4838;display:inline-flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0}
 .cardIco svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .cardName{flex:1;min-width:0}
@@ -546,6 +546,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
         <button class="iconBtn" id="rallyBtn" title="Rally: tap, then a spot" aria-label="Rally"><svg viewBox="0 0 24 24"><path d="M6 21 V3.5"/><path d="M6 4 H17.5 L15 8 L17.5 12 H6"/></svg></button><button class="iconBtn" id="recallBtn" title="Recall to the barracks" aria-label="Recall"><svg viewBox="0 0 24 24"><path d="M9 14 L4 9 L9 4"/><path d="M4 9 H14 A5.5 5.5 0 0 1 14 20 H9"/></svg></button>
         <button class="iconBtn" id="moveBtn" hidden title="Move: tap, then a tile" aria-label="Move"><svg viewBox="0 0 24 24"><path d="M12 3 V21 M3 12 H21"/><path d="M9 6 L12 3 L15 6 M9 18 L12 21 L15 18 M6 9 L3 12 L6 15 M18 9 L21 12 L18 15"/></svg></button>
         <button class="iconBtn" id="volleyBtn" hidden title="Arrow volley: tap, then a spot" aria-label="Arrow volley"><svg viewBox="0 0 24 24"><path d="M4 4 L13 13 M9 2.5 L18 11.5 M2.5 9 L11.5 18"/><path class="solid" d="M15 15 L11.2 14.2 L14.2 11.2 Z M20 13.5 L16.2 12.7 L19.2 9.7 Z M13.5 20 L12.7 16.2 L9.7 19.2 Z"/></svg><b class="cd"></b></button>
+        <button class="iconBtn" id="summonBtn" hidden title="Riders: two for the night" aria-label="Summon riders"><svg viewBox="0 0 24 24"></svg><b class="cd"></b></button>
         <button class="iconBtn" id="cardRotBtn" hidden aria-label="Rotate" title="Rotate"><svg viewBox="0 0 24 24"><path d="M19 12 a7 7 0 1 1-2.05-4.95"/><path d="M19.2 3.8 V7.5 H15.5"/></svg></button>
         <button class="iconBtn" id="closeCard" aria-label="Close" title="Close"><svg viewBox="0 0 24 24"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
       </div>
@@ -4106,7 +4107,7 @@ function makeVillager(home) {
 // houses (and the castle) are where villagers come from; each tier houses more people
 function syncResidents(B) {
   const R = DEF[B.type].residents; if (!R || !B.built) return;
-  let have = villagers.filter(v => v.home === B && !v.homeless).length + respawns.filter(r => r.home === B && !r.homeless).length;   // the fallen come back on their own
+  let have = villagers.filter(v => v.home === B && !v.homeless && !v.summoned).length + respawns.filter(r => r.home === B && !r.homeless).length;   // the fallen come back on their own
   // the homeless move in first; only room left over brings new villagers
   for (const v of villagers) if (have < R[B.tier - 1] && v.homeless) { v.homeless = false; v.home = B; have++; }
   for (const r of respawns) if (have < R[B.tier - 1] && r.homeless) { r.homeless = false; r.home = B; have++; }
@@ -4117,7 +4118,8 @@ function syncResidents(B) {
 // food is low below 3 meals a head, or while the town eats more than it grows (each villager eats 1 per payout; farms and the
 // castle make food each payout): farms are filled first, and if nobody is free a lumberjack or mason is moved to the field
 const foodMade = () => buildings.reduce((s, B) => !B.built ? s : DEF[B.type].field ? s + DEF[B.type].food[B.tier - 1] * farmersAt(B) / DEF[B.type].workers[B.tier - 1] * prodK(B) : B.type === 'castle' ? s + DEF.castle.food[B.tier - 1] : s, 0);
-const foodLow = () => res.food < villagers.length * 3 || foodMade() < villagers.length;
+const townsfolk = () => villagers.filter(v => !v.summoned);
+const foodLow = () => res.food < townsfolk().length * 3 || foodMade() < townsfolk().length;
 var foodLogT = -1e9;
 function assignJobs() {
   const low = foodLow(), order = buildings.slice().sort((a, b) => !!DEF[b.type].field - !!DEF[a.type].field);
@@ -4139,7 +4141,7 @@ function assignJobs() {
     }
   }
 }
-const popStats = () => ({ total: villagers.length, idle: villagers.filter(v => !v.job && !v.build).length });
+const popStats = () => { const t = townsfolk(); return { total: t.length, idle: t.filter(v => !v.job && !v.build).length }; };
 // each construction site gets up to two builders: idle villagers first, a worker only if nobody else is building
 function assignBuilders() {
   if (PH.kind === 'night') return;
@@ -4623,7 +4625,8 @@ function updateVillagers(dt, now) {
         }
       }
     } else {
-      if (v.unkit) { updateUnkit(v, dt); }
+      if (v.summoned) { if (!v.gone) rideHome(v, dt); }
+      else if (v.unkit) { updateUnkit(v, dt); }
       else if (v.crewStrip > 0) { updateCrewStrip(v, dt); }
       else {
       if (v.inside) { v.inside = false; exitDoor(v); v.state = v.build ? 'tobuild' : v.job ? 'commute' : 'find'; v.wait = Math.random() * 1.5; }
@@ -5082,8 +5085,40 @@ function volleyPose(f, draw) {
   const [l, r] = f.arms; l.rotation.set(-2.35, 0, .6);
   if (draw) r.rotation.set(-2.2, 0, -.62); else r.rotation.set(-1.7, 0, .2);
 }
+// the castle's second ability (Jack): two of the town's riders, of the castle's tier, ride out of the castle for the night; the button
+// then rallies them (tap it, then a spot); once both have fallen it waits SUMMON.cd s of game time before it can call two more; at dawn
+// they ride back in and are gone. They are villagers marked summoned, posted to the castle (post.summon), never counted as the town's
+// people (housing, idle, food), never respawned, and they hold the castle's rally flag
+const SUMMON = { n: 2, cd: 20 }, HORSE_ICO = '<path d="M7.5 20.5 H17.5 C17.3 15.5 16.6 11.5 17 8.4 C17.3 5.9 15.8 4 13.4 3.6 L12.6 2.4 L11.7 3.9 C9.5 4.5 7.7 6.4 6.3 8.9 L4.7 11.5 C4.3 12.3 4.9 13.2 5.8 13 L8.4 12.3 C9.3 12.1 10.2 12.4 10.7 13.1 C9 15.1 7.8 17.6 7.5 20.5 Z"/><path d="M11.4 7.6 h.01"/><path d="M14.6 6.2 C15.6 8.6 15.4 12.4 15.6 16"/>';
+var summonCd = 0, summonOut = false;
+const summoned = () => villagers.filter(v => v.summoned && !v.gone);
+function summonRiders() {
+  const K = castleB(); if (!K) return;
+  for (let a = 0; a < SUMMON.n; a++) {
+    const v = makeVillager(K); v.summoned = true; v.inside = false; v.indoor = K;
+    v.post = { B: K, a: a + 1, summon: true }; v.posted = true;
+    soldierKit(v, K.tier, true); v.sbar = makeBar(.6); exitDoor(v);
+    // horses don't squeeze through the hall's door walk: they stand out at the door, side by side, in a puff of dust
+    const dp = doorPoint(K), [sx, sz] = faceRot(K.face || 0, a ? .55 : -.55, .5); v.doorWalk = null; v.x = v.rx = v.tx = dp.x + sx; v.z = v.rz = v.tz = dp.z + sz;
+    if (!canStand(v.x, v.z, 1)) { const q = standNear(v.x, v.z); v.x = v.rx = q.x; v.z = v.rz = q.z; }
+    dustAt(v.x, walkY(v.x, v.z), v.z);
+  }
+  summonOut = true; sfx('neigh'); log(`<b>${RIDER.names[K.tier - 1]}s</b> ride out`, 'good');
+}
+// dawn: back to the castle door at a trot, and gone
+function rideHome(v, dt) {
+  const K = castleB(); if (!K) { v.gone = true; return; }
+  const dp = doorPoint(K);
+  if (walkTo(v, dp.x, dp.z, dt, 1, .5, 1.6 * RIDER.speed) || v.noProg > 5) v.gone = true;
+}
+function dropSummoned() {
+  for (let n = villagers.length - 1; n >= 0; n--) { const v = villagers[n]; if (!v.summoned || !v.gone) continue; scene.remove(v.g); if (v.sbar) scene.remove(v.sbar.grp); villagers.splice(n, 1); }
+}
 function updateVolley(dt) {
   if (volleyCd > 0) volleyCd = Math.max(0, volleyCd - dt);
+  if (summonCd > 0) summonCd = Math.max(0, summonCd - dt);
+  dropSummoned();
+  if (summonOut && !summoned().length) { summonOut = false; if (PH.kind === 'night') { summonCd = SUMMON.cd; log('<b>Riders</b> fallen', 'warn'); } const K = castleB(); if (K && K.rally) setRally(K, null); if (rallyFor === K) rallyFor = null; refreshCard(); }
   if (volleyRingT > 0) volleyRingT -= dt;
   if (volleyAim && PH.kind !== 'night') { volleyAim = false; refreshCard(); }
   if (!volleyAim && volleyRingT <= 0) volleyLine.visible = false;
@@ -5484,7 +5519,7 @@ function assignPosts() {
   // manned in priority order: the castle, then archer towers, then barracks with whoever is left (a barracks may go short)
   const rank = B => B.type === 'castle' ? 0 : DEF[B.type].archers ? 1 : DEF[B.type].crew ? 1.5 : 2;
   const order = buildings.filter(B => (DEF[B.type].archers || DEF[B.type].soldiers || DEF[B.type].crew) && B.built).sort((a, b) => rank(a) - rank(b));
-  for (const B of order) { const T = DEF[B.type]; B.manned = B.manned || []; for (let a = 0; a < (T.archers || T.soldiers || T.crew)[B.tier - 1]; a++) if (!villagers.some(v => v.post && !v.post.fled && v.post.B === B && v.post.a === a)) slots.push({ B, a }); }
+  for (const B of order) { const T = DEF[B.type]; B.manned = B.manned || []; for (let a = 0; a < (T.archers || T.soldiers || T.crew)[B.tier - 1]; a++) if (!villagers.some(v => v.post && !v.post.fled && !v.post.summon && v.post.B === B && v.post.a === a)) slots.push({ B, a }); }
   let posted = 0;
   const free = () => villagers.filter(v => !v.post && !v.sleeping).length;
   for (const S of slots) {
@@ -5591,6 +5626,7 @@ function hurtSoldier(v, d) {
   if (v.hp > 0) return;
   // fallen: out of the town's count; a villager comes back to the same home after 60 s of daylight
   if (v.horse) stripKit(v);
+  if (v.summoned) { v.gone = true; v.soldier = false; release(v); villagers.splice(villagers.indexOf(v), 1); if (v.sbar) scene.remove(v.sbar.grp); fallen.push({ v, t: 0 }); return; }
   log(`<b>${(v.cav ? RIDER : SOLDIER).names[v.kitTier - 1]}</b> fallen`, 'warn'); stats.fallen++;
   if (v.post && !v.post.fled && v.post.B.manned) v.post.B.manned[v.post.a] = false;
   release(v); villagers.splice(villagers.indexOf(v), 1); if (v.sbar) scene.remove(v.sbar.grp);
@@ -6040,6 +6076,7 @@ function startDay() {
   sfx('rooster'); if (test === undefined) PH.wave++; PH.kind = 'day'; PH.t = test !== undefined ? Math.max(test, DUSK + 5) : DAYLEN[PH.wave - 1];
   for (const v of villagers) if (v.climb && v.climb.up) { v.climb.up = false; v.post = null; v.posted = false; }   // dawn caught them on the way up: back down
   for (const v of villagers) if (v.post) {
+    if (v.summoned) { v.foe = null; v.path = null; v.prog = null; continue; }
     if (v.soldier) { v.unkit = v.post.B; v.posted = false; v.prog = null; v.path = null; }     // walk back to the barracks to change
     else if (v.kitT > 0) { v.kitT = 0; v.posted = false; if (!v.g.visible || v.doorWalk) { v.indoor = v.post.B; exitDoor(v); } }   // dawn caught them changing
     else if (v.posted) {                                           // out of the post itself, back in their own clothes
@@ -6184,7 +6221,7 @@ function updateHud() {
   $('#cHouse').classList.toggle('short', villagers.some(v => v.homeless) || pop.total > beds);
   // by day: idle villagers (spare hands: dimmed at 0); by night: manning the castle, towers and barracks / villagers
   if ($('#cPop').dataset.ico !== chipIco) { $('#cPop').dataset.ico = chipIco; $('#cPop .ico').innerHTML = ICON[chipIco]; $('#cPop').title = night ? 'Soldiers / villagers' : 'Idle'; }
-  const popTxt = night ? `${villagers.filter(v => v.post).length}/${pop.total}` : `${pop.idle}`;
+  const popTxt = night ? `${townsfolk().filter(v => v.post).length}/${pop.total}` : `${pop.idle}`;
   if ($('#cPop b').textContent !== popTxt) $('#cPop b').textContent = popTxt;
   $('#cPop').classList.toggle('dim', !night && pop.idle === 0);
   const eaters = hungry ? 1e9 : 1;
@@ -6243,7 +6280,7 @@ function refreshCard() {
   }
   if (B.type === 'forester' && B.built) st.push(STAT('wood', `${(B.grove || []).filter(t => t.g >= 1).length}/${T.grove[k]}`, '', 'Trees grown'));
   if (T.field) { const f = +(T.food[k] * farmersAt(B) / T.workers[k] * prodK(B)).toFixed(1); st.push(STAT('food', `+${f}`, f < T.food[k] ? 'warn' : '')); }
-  if (T.residents) st.push(STAT('home', `${villagers.filter(v => v.home === B && !v.homeless).length}/${B.built ? T.residents[B.tier - 1] : 0}`));   // housing: residents / room
+  if (T.residents) st.push(STAT('home', `${villagers.filter(v => v.home === B && !v.homeless && !v.summoned).length}/${B.built ? T.residents[B.tier - 1] : 0}`));   // housing: residents / room
   if (T.workers && B.built) { const w = villagers.filter(v => v.job === B).length; st.push(STAT('hammer', `${w}/${T.workers[k]}`, w < T.workers[k] ? 'warn' : '')); }
   if (T.range) {
     const m = (B.manned || []).filter(Boolean).length, n = (T.archers || T.crew)[k];
@@ -6271,6 +6308,14 @@ function refreshCard() {
   $('#rallyBtn').hidden = $('#recallBtn').hidden = !T.soldiers || !B.built;
   $('#rallyBtn').setAttribute('aria-pressed', String(rallyFor === B)); $('#recallBtn').disabled = !B.rally;
   $('#moveBtn').hidden = !T.movable || !B.built || !!B.site; $('#moveBtn').setAttribute('aria-pressed', String(moveFor === B));
+  const sb = $('#summonBtn'); sb.hidden = B.type !== 'castle' || !B.built;
+  if (!sb.hidden) {
+    const out = summoned().length > 0, cool = !out && summonCd > 0, day = PH.kind !== 'night';
+    const ico = out ? 'rally' : 'horse'; if (sb.dataset.ico !== ico) { sb.dataset.ico = ico; sb.querySelector('svg').innerHTML = out ? '<path d="M6 21 V3.5"/><path d="M6 4 H17.5 L15 8 L17.5 12 H6"/>' : HORSE_ICO; }
+    sb.classList.toggle('cool', cool); sb.classList.toggle('off', day && !out && !cool); sb.disabled = cool;
+    sb.title = out ? 'Rally: tap, then a spot' : day ? 'Night only' : 'Riders: two for the night'; sb.setAttribute('aria-pressed', String(out && rallyFor === B));
+    sb.querySelector('.cd').textContent = cool ? Math.ceil(summonCd) : '';
+  }
   const vb = $('#volleyBtn'); vb.hidden = B.type !== 'castle';
   if (!vb.hidden) { const cool = volleyCd > 0, day = PH.kind !== 'night'; vb.classList.toggle('cool', cool); vb.classList.toggle('off', day && !cool); vb.disabled = cool; vb.title = day ? 'Night only' : 'Arrow volley: tap, then a spot'; vb.querySelector('.cd').textContent = cool ? Math.ceil(volleyCd) : ''; vb.setAttribute('aria-pressed', String(volleyAim)); }
   const up = $('#upBtn');
@@ -7266,6 +7311,12 @@ $('#volleyBtn').addEventListener('click', () => {
   if (paused) return setHint('Paused', 'bad'); if (volleyCd > 0) return; if (PH.kind !== 'night') return setHint('Night only', 'bad');
   volleyAim = !volleyAim; if (!volleyAim) volleyLine.visible = false; setHint(volleyAim ? 'Tap a spot' : 'Select a building'); refreshCard();
 });
+$('#summonBtn').addEventListener('click', () => {
+  if (paused) return setHint('Paused', 'bad'); const K = selected; if (!K || K.type !== 'castle') return;
+  if (summoned().length) { rallyFor = rallyFor === K ? null : K; setHint(rallyFor ? 'Tap a spot' : 'Select a building'); refreshCard(); return; }
+  if (summonCd > 0) return; if (PH.kind !== 'night') return setHint('Night only', 'bad');
+  summonRiders(); refreshCard();
+});
 $('#recallBtn').addEventListener('click', () => { if (selected) { setRally(selected, null); rallyFor = null; setHint('Recalled'); refreshCard(); } });
 $('#galBack').addEventListener('click', closeGallery);
 $('#galTurn').addEventListener('click', () => { for (const it of gItems) if (it.turns) it.g.userData.turn++; });
@@ -7326,7 +7377,7 @@ function startGame() {
   for (const v of villagers) { scene.remove(v.g); if (v.sbar) scene.remove(v.sbar.grp); } villagers.length = 0;
   for (const f of fallen) scene.remove(f.v.g); fallen.length = 0; for (const c of chips) scene.remove(c.m); chips.length = 0; respawns.length = 0; rallyFor = null; moveFor = null;
   for (const e of enemies) { scene.remove(e.g); scene.remove(e.bar.grp); } enemies.length = 0;
-  for (const a of arrows) scene.remove(a.m); arrows.length = 0; volleyQ = []; volleyCd = 0; volleyAim = false; volleyLine.visible = false;
+  for (const a of arrows) scene.remove(a.m); arrows.length = 0; volleyQ = []; volleyCd = 0; volleyAim = false; summonCd = 0; summonOut = false; volleyLine.visible = false;
   for (const f of floats) scene.remove(f.sp); floats.length = 0;
   for (const p of puffs) scene.remove(p.sp); puffs.length = 0;
   mapRules();
