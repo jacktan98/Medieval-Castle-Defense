@@ -210,7 +210,8 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 .cCards{position:absolute;inset:0;transform-style:preserve-3d;pointer-events:none}
 .cCard{position:absolute;left:50%;top:50%;width:var(--cw);margin-left:calc(var(--cw) / -2);margin-top:calc(var(--cw) / -2);padding:0;display:flex;flex-direction:column;
   border:2px solid rgba(212,168,78,.75);border-radius:12px;background:#15170f;color:var(--parch);text-align:left;box-shadow:0 14px 34px rgba(0,0,0,.65);
-  transition:transform .42s cubic-bezier(.2,.8,.25,1),opacity .3s;filter:brightness(calc(1 - var(--dim, 0)));cursor:pointer}
+  transition:transform .38s cubic-bezier(.2,.8,.25,1),opacity .3s;will-change:transform;backface-visibility:hidden;cursor:pointer}
+.cCard::after{content:'';position:absolute;inset:0;border-radius:10px;background:#000;opacity:var(--dim, 0);pointer-events:none;transition:opacity .3s}
 .cCard .cPic{display:block;width:100%;aspect-ratio:1/1;background-size:cover;background-position:center;border-radius:10px}
 .cCard .cName{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:1px;padding:16px 12px 8px;justify-content:flex-end;border-radius:0 0 10px 10px;background:linear-gradient(180deg,rgba(10,11,8,0) 0%,rgba(10,11,8,.55) 45%,rgba(10,11,8,.72) 100%);text-shadow:0 1px 3px rgba(0,0,0,.9)} .cName small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)} .cName b{font-family:var(--display);font-weight:400;font-size:20px;color:var(--gold);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cCard.boss{border-color:rgba(226,113,91,.85)} .cCard.boss .cName small{color:#e2715b}
@@ -270,6 +271,9 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .modal.tome .ldOpt[aria-pressed="true"] b{color:#fff1c4!important;text-shadow:0 1px 2px rgba(0,0,0,.6)} .modal.tome .ldOpt[aria-pressed="true"] .tIco{color:#ffe2a0}
 /* the card's "Stage N" line reads clearly over the picture */
 .cName small{font-size:13px!important;letter-spacing:.1em!important;color:#f0e2bc!important;font-weight:600}
+.cArrow,.cDot,.cCard,.cDet button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+/* the progress bar sits a little higher, clear of the details' title */
+.cDots{margin:-6px 0 6px}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
@@ -6880,8 +6884,8 @@ function openStage(i) {
   deck.addEventListener('pointerup', up); deck.addEventListener('pointercancel', () => { x0 = null; cDrag = 0; layoutDeck(); });
   deck.addEventListener('wheel', e => { e.preventDefault(); wheelAcc += Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
     const now = performance.now(); if (Math.abs(wheelAcc) > 40 && now - wheelT > 220) { selectStage(cSel + Math.sign(wheelAcc)); wheelAcc = 0; wheelT = now; } }, { passive: false });
-  $('#cPrev').addEventListener('click', () => selectStage(cSel - 1)); $('#cNext').addEventListener('click', () => selectStage(cSel + 1));
-  $('#cDots').addEventListener('click', e => { const d = e.target.closest('.cDot'); if (d) selectStage(+d.dataset.i); });
+  $('#cPrev').addEventListener('pointerdown', e => { e.preventDefault(); selectStage(cSel - 1); }); $('#cNext').addEventListener('pointerdown', e => { e.preventDefault(); selectStage(cSel + 1); });
+  $('#cDots').addEventListener('pointerdown', e => { const d = e.target.closest('.cDot'); if (d) { e.preventDefault(); selectStage(+d.dataset.i); } });
   addEventListener('keydown', e => { if ($('#campaign').hidden) return; if (e.key === 'ArrowLeft') selectStage(cSel - 1); else if (e.key === 'ArrowRight') selectStage(cSel + 1); else if (e.key === 'Enter') $('#campPlay')?.click(); });
   addEventListener('resize', () => { if (!$('#campaign').hidden) layoutDeck(false); });
 }
@@ -7561,7 +7565,7 @@ function adaptResolution(raw) {
 // (setPaused(false) at startup used to set it running under the title screen, paying out gold)
 const MENUS = ['#mapPick', '#loadPick', '#campaign', '#newCards'].map(q => $(q));
 const menuOn = () => MENUS.some(m => !m.hidden);
-const mapPickEl = $('#mapPick'), campEl = $('#campaign'), loadEl = $('#loadPick');
+const mapPickEl = $('#mapPick'), campEl = $('#campaign'), loadEl = $('#loadPick'); let liteN = 0;
 mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
 function frame(now) {
   adaptResolution((now - last) / 1000);
@@ -7582,7 +7586,11 @@ function frame(now) {
     target.set(showC.x - Math.sin(yaw) * ahead, showC.y, showC.z - Math.cos(yaw) * ahead);
     updateCam(); updateTrees(now); emitSmoke(dt); updateBirds(dt); if ((showT += dt) > SHOW_T) nextShowcase();
   } else if (camera.fov !== 45) { camera.fov = 45; camera.updateProjectionMatrix(); }
-  if (paused || menuOn()) { renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
+  // behind the campaign and the town picker the scene is darkened under panels: drawn at 1x pixels and every other frame, so the
+  // phone keeps its time for the cards (Jack found the carousel slow to answer); full detail again on the title and in the game
+  const lite = sc && (!campEl.hidden || !loadEl.hidden), pr = lite ? Math.min(pixelK, 1) : pixelK;
+  if (renderer.getPixelRatio() !== pr) { renderer.setPixelRatio(pr); resize(); }
+  if (paused || menuOn()) { if (!lite || (liteN = (liteN + 1) % 2) === 0) renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not
   if (!gameOver) { updatePhase(gdt); updateVillagers(gdt, now); updateEco(gdt); updateMoves(gdt); updateEnemies(gdt); updateDefense(gdt); separateUnits(gdt); updateDoors(gdt); updateFallen(gdt); updateChips(gdt); updateSplashes(gdt); }
   updateArrows(gdt); updateAmbience(dt); updateVolley(gdt); updateTrees(now); emitSmoke(gdt); updateBirds(gdt);
