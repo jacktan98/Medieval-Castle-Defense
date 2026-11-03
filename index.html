@@ -882,8 +882,9 @@ const ENEMY = {
   catapult: { hp: 170, speed: .45, range: 13, dmg: 30, rate: 6.5, engine: true, r: .85, splash: 1.6 },
   ram:      { hp: 280, speed: .6, range: 1.25, dmg: 45, rate: 2.4, engine: true, r: .9 },   // goes for walls and gates (range from its middle: the head reaches 1.3 m ahead)
   // bosses (always sent at tier 3, so hp × 2.3): drawn bigger (boss: scale), a long red cloak, they head for the castle
-  chief:    { hp: 520, speed: 1.35, range: 1.0, dmg: 14, rate: 1.1, boss: 1.35 },                  // the Raider Chief, on foot: horned helm, war axe-sword, red shield
-  warlord:  { hp: 820, speed: 2.0, range: 1.3, dmg: 18, rate: 1.0, mounted: true, boss: 1.3 },     // the Warlord, mounted: crowned helm with a red plume, barded black horse
+  // Jack: the Chief three times as strong (hp and damage), the Warlord twice
+  chief:    { hp: 1560, speed: 1.35, range: 1.0, dmg: 42, rate: 1.1, boss: 1.35 },                  // the Raider Chief, on foot: horned helm, war axe-sword, red shield
+  warlord:  { hp: 1640, speed: 2.0, range: 1.3, dmg: 36, rate: 1.0, mounted: true, boss: 1.3 },     // the Warlord, mounted: crowned helm with a red plume, barded black horse
 };
 // raider tiers: the same three looks for every kind (raiderArmour), stronger by tier
 const RAIDER_T = { hp: [1, 1.6, 2.3], dmg: [1, 1.3, 1.65] };
@@ -5393,14 +5394,15 @@ function updateEnemies(dt) {
     const strikeT = SPEARS(e.kind) ? SPEAR_T : SWORD_T;
     if (foe) {                                               // a soldier in the way: fight them first
       const d = Math.hypot(foe.x - e.x, foe.z - e.z), reach = Math.max(.75, e.range) + (e.horse ? .3 : 0);
-      e.running = !e.horse && d > reach;
+      e.running = (!e.horse || e.kind === 'warlord') && d > reach;
       if (d > reach) steer(e, foe.x, foe.z, dt, 2, reach * .9, e.running ? 1.3 : 1);
       else { e.g.rotation.y = Math.atan2(foe.x - e.x, foe.z - e.z); if ((e.cool -= dt) <= 0) { e.cool = e.rate; e.attackT = strikeT; sfx('clash', e); hurtSoldier(foe, e.dmg); } }
     } else if (B) {
       const d = distRect(B, e.x, e.z), shoots = SHOOTER[e.kind] || e.kind === 'ballista' || e.kind === 'catapult';
       if (e.detour) { steer(e, e.detour.x, e.detour.z, dt, 2); if ((e.detour.t -= dt) < 0) e.detour = null; }
       else if (d > e.range + (e.lob ? 3.5 : 0)) {
-        e.running = !shoots && !E.engine && !e.horse && d < 6;
+        // the Warlord charges from further out (riders otherwise keep their pace)
+        e.running = !shoots && !E.engine && (!e.horse || e.kind === 'warlord') && d < (e.horse ? 10 : 6);
         // route on the cell grid like villagers (round water, over bridges, round walls); straight in once close
         const tp = e.tp || { x: clamp(e.x, B.ev.x0, B.ev.x1), z: clamp(e.z, B.ev.z0, B.ev.z1) };
         const qx = clamp(e.x, B.ev.x0, B.ev.x1), qz = clamp(e.z, B.ev.z0, B.ev.z1), ql = Math.hypot(e.x - qx, e.z - qz) || 1;
@@ -5452,6 +5454,7 @@ function updateEnemies(dt) {
       if (e.torso && e.torso.material !== m) { e.torso.material = m; e.arms.forEach(a => a.userData.sleeve.material = m); }
       if (!on) e.flashT = undefined;
     }
+    if (e.kind === 'warlord') { const now = performance.now(); if (e.running && !e.charging && !(e.neighT > now)) { sfx('neigh', e); e.neighT = now + 4000; } e.charging = e.running; }   // his horse neighs as the charge begins
     const sw = Math.sin(e.phase) * (e.running ? .95 : .6) * stride(e, dt, e.running ? 14 : E.engine ? 6 : 9);
     if (E.engine) animEngine(e, dt, sw);
     else {
@@ -7499,13 +7502,15 @@ function spawnRaiders(list) {
 }
 function renderRaidDash() {
   $('#rdCount').innerHTML = [1, 5, 10].map(n => `<button data-n="${n}" class="${n === rdN ? 'on' : ''}">×${n}</button>`).join('');
-  $('#rdList').innerHTML = Object.keys(ENEMY).map(k => `<span>${RD_NAME[k] || RAIDER_NAME[k]}</span>` + [1, 2, 3].map(t => `<button data-k="${k}" data-t="${t}" title="Tier ${t}">${t}</button>`).join('')).join('');
+  // bosses have no tiers (always sent at tier 3): one button across the three columns
+  $('#rdList').innerHTML = Object.keys(ENEMY).map(k => `<span>${RD_NAME[k] || RAIDER_NAME[k]}</span>` + (ENEMY[k].boss ? `<button data-k="${k}" data-t="3" style="grid-column:span 3">Boss</button>`
+    : [1, 2, 3].map(t => `<button data-k="${k}" data-t="${t}" title="Tier ${t}">${t}</button>`).join(''))).join('');
 }
 $('#rdCount').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { rdN = +b.dataset.n; renderRaidDash(); } });
 $('#rdList').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   spawnRaiders(Array.from({ length: rdN }, () => [b.dataset.k, +b.dataset.t]));
-  log(`<b>${RD_NAME[b.dataset.k] || RAIDER_NAME[b.dataset.k]} ${b.dataset.t}</b> ×${rdN}`, 'warn');
+  log(`<b>${RD_NAME[b.dataset.k] || RAIDER_NAME[b.dataset.k]}${ENEMY[b.dataset.k].boss ? '' : ' ' + b.dataset.t}</b> ×${rdN}`, 'warn');
 });
 const openRaidDash = open => { $('#raidDash').hidden = !open; $('#admin').hidden = open; if (open) renderRaidDash(); };
 $('#adRaid').addEventListener('click', () => openRaidDash(true));
