@@ -156,15 +156,25 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #campInfo{width:100%;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 #campMap svg{max-height:calc(100dvh - 120px)!important}
 #stagePrev{background:rgba(12,13,9,.94);z-index:62}
-/* the menus (Jack: dark, but medieval): dark tooled leather like an old book's binding, soft warm mottling, a fine grain, a black
-   vignette, and a thin gold frame with corner ornaments (::before, ::after) */
-.modal.tome{background-color:#1b150e!important;background-image:radial-gradient(ellipse at 50% 42%, rgba(120,86,46,.22) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,.55) 88%, rgba(0,0,0,.8) 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700' viewBox='0 0 700 700' preserveAspectRatio='xMidYMid slice'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.007' numOctaves='5' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .3 0 0 0 0 .17 0 0 0 .75 -.26'/%3E%3C/filter%3E%3Crect width='700' height='700' filter='url(%23g)'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.42' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 -.12'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23f)'/%3E%3C/svg%3E")!important;
-  background-repeat:no-repeat,no-repeat,repeat!important;background-position:center,center,0 0!important;background-size:cover,cover,240px 240px!important}
-.modal.tome::before{content:'';position:fixed;inset:7px;border:1px solid rgba(201,160,62,.5);box-shadow:inset 0 0 0 3px rgba(0,0,0,.35),inset 0 0 0 4px rgba(201,160,62,.22);border-radius:3px;pointer-events:none}
-.modal.tome::after{content:'';position:fixed;inset:3px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg transform='rotate(0 22 22)' fill='none' stroke='%23c9a03e' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M3 41 V14 Q3 3 14 3 H41'/%3E%3Cpath d='M8 41 V17 Q8 8 17 8 H41' stroke-opacity='.55' stroke-width='1'/%3E%3Cpath d='M14 14 l4 -4 l4 4 l-4 4 z' fill='%23c9a03e'/%3E%3Cpath d='M3 22 q6 0 6 6 M22 3 q0 6 6 6'/%3E%3C/g%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg transform='rotate(90 22 22)' fill='none' stroke='%23c9a03e' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M3 41 V14 Q3 3 14 3 H41'/%3E%3Cpath d='M8 41 V17 Q8 8 17 8 H41' stroke-opacity='.55' stroke-width='1'/%3E%3Cpath d='M14 14 l4 -4 l4 4 l-4 4 z' fill='%23c9a03e'/%3E%3Cpath d='M3 22 q6 0 6 6 M22 3 q0 6 6 6'/%3E%3C/g%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg transform='rotate(270 22 22)' fill='none' stroke='%23c9a03e' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M3 41 V14 Q3 3 14 3 H41'/%3E%3Cpath d='M8 41 V17 Q8 8 17 8 H41' stroke-opacity='.55' stroke-width='1'/%3E%3Cpath d='M14 14 l4 -4 l4 4 l-4 4 z' fill='%23c9a03e'/%3E%3Cpath d='M3 22 q6 0 6 6 M22 3 q0 6 6 6'/%3E%3C/g%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg transform='rotate(180 22 22)' fill='none' stroke='%23c9a03e' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M3 41 V14 Q3 3 14 3 H41'/%3E%3Cpath d='M8 41 V17 Q8 8 17 8 H41' stroke-opacity='.55' stroke-width='1'/%3E%3Cpath d='M14 14 l4 -4 l4 4 l-4 4 z' fill='%23c9a03e'/%3E%3Cpath d='M3 22 q6 0 6 6 M22 3 q0 6 6 6'/%3E%3C/g%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left top,right top,left bottom,right bottom;background-size:44px 44px}
-.modal.tome .gameTitle{text-shadow:0 1px 0 rgba(0,0,0,.9),0 0 18px rgba(212,168,78,.25),0 2px 18px rgba(0,0,0,.6)}
-.modal.tome .mapBtn,.modal.tome .ldOpt{background:rgba(36,30,20,.82);border-color:#5e4c2c}
-.modal.tome #campMap svg,.modal.tome .stPic{border-color:#7a6230;box-shadow:0 0 0 3px rgba(0,0,0,.4),0 4px 18px rgba(0,0,0,.6)}
+/* the menus as an unrolled scroll (Jack): muted parchment between a roll at the top and one at the bottom (::before, ::after: the
+   paper wound round a rod, shaded as a cylinder, turned wooden knobs at the ends, a soft shadow on the sheet); dark ink text */
+.modal.tome{--parch:#2e2112;--muted:#6a5638;--gold:#7a2c14;--line:#9c8058;color:#2e2112;padding-top:52px;padding-bottom:52px;
+  background-color:#dcc8a0!important;background-image:linear-gradient(180deg, rgba(70,45,15,.35) 0, rgba(70,45,15,0) 70px, rgba(70,45,15,0) calc(100% - 70px), rgba(70,45,15,.35) 100%),
+  linear-gradient(90deg, rgba(110,72,30,.32) 0, rgba(110,72,30,0) 14%, rgba(110,72,30,0) 86%, rgba(110,72,30,.32) 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700' viewBox='0 0 700 700' preserveAspectRatio='xMidYMid slice'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='5' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .58 0 0 0 0 .42 0 0 0 0 .22 0 0 0 1.4 -.56'/%3E%3C/filter%3E%3Crect width='700' height='700' filter='url(%23g)'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .33 0 0 0 0 .18 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23f)'/%3E%3C/svg%3E")!important;
+  background-repeat:no-repeat,no-repeat,no-repeat,repeat!important;background-position:0 0,0 0,center,0 0!important;background-size:100% 100%,100% 100%,cover,300px 300px!important}
+.modal.tome::before,.modal.tome::after{content:'';position:fixed;left:0;right:0;height:34px;z-index:5;pointer-events:none;
+  background:radial-gradient(ellipse 50% 50% at 50% 50%, #8a5a2c 0, #5c3818 60%, #2e1a08 96%, rgba(0,0,0,0) 100%) left center / 18px 30px no-repeat,
+  radial-gradient(ellipse 50% 50% at 50% 50%, #8a5a2c 0, #5c3818 60%, #2e1a08 96%, rgba(0,0,0,0) 100%) right center / 18px 30px no-repeat,
+  linear-gradient(180deg, #7c6038 0, #b8996a 18%, #ead6ac 42%, #d4b98a 60%, #9c7c4e 82%, #5e4628 100%) center / calc(100% - 26px) 100% no-repeat;
+  filter:drop-shadow(0 3px 4px rgba(40,24,6,.45))}
+.modal.tome::before{top:0} .modal.tome::after{bottom:0;filter:drop-shadow(0 -3px 4px rgba(40,24,6,.45))}
+.modal.tome .gameTitle{color:#6e2410;text-shadow:0 1px 0 rgba(255,240,200,.6),0 2px 6px rgba(80,40,10,.25)}
+.modal.tome button{border-color:#9c8058}
+.modal.tome .mapBtn,.modal.tome .ldOpt{background:rgba(255,246,220,.4);border-color:#9c8058}
+.modal.tome .ldOpt[aria-pressed="true"]{background:rgba(255,236,190,.75)}
+.modal.tome .ldOpt .tIco{color:#5a4428}
+.modal.tome .stars{color:#a89770} .modal.tome .stars .on{color:#b07a12}
+.modal.tome #campMap svg,.modal.tome .stPic{border-color:#7a5f38;box-shadow:0 2px 10px rgba(60,35,10,.35)}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
@@ -6737,62 +6747,35 @@ function campaignSVG() {
   // stages won (stars kept) get a hand-painted red X; the first stage not yet won is where the player is: the town's blue rally flag
   const won = CAMPAIGN.map(c => !!(c.map && STARS[c.map] > 0));
   let cur = CAMPAIGN.findIndex((c, i) => !won[i]); if (cur < 0) cur = CAMPAIGN.length - 1;
-  // a brush stroke: a filled outline round a slightly bowed line, thick through the middle and tapering to points at both ends (Jack's reference)
-  const brush = (x0, y0, x1, y1, bow, W, seed) => { const L = [], R = [], dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy), nx = -dy / len, ny = dx / len;
-    for (let k = 0; k <= 24; k++) { const t = k / 24, b = Math.sin(t * Math.PI) * bow, cx = x0 + dx * t + nx * b, cy = y0 + dy * t + ny * b;
-      const hw = W * Math.pow(Math.sin(Math.PI * (.03 + .94 * t)), .55) * (1 - .35 * t) * (.9 + .2 * hash2(seed, k));
-      L.push(`${(cx + nx * hw).toFixed(1)} ${(cy + ny * hw).toFixed(1)}`); R.push(`${(cx - nx * hw).toFixed(1)} ${(cy - ny * hw).toFixed(1)}`); }
-    return `M${L.join(' L')} L${R.reverse().join(' L')} Z`; };
-  // both strokes bow upward, like two arches crossing (Jack's sketch)
-  const XB = [brush(-26, -21, 25, 22, -9, 8.5, 1), brush(23, -23, -23, 21, 9, 8, 2)];
-  const XMARK = `<g transform="translate(2.5 3.5)" filter="url(#xShade)" fill="#000" fill-opacity=".45">${XB.map(d => `<path d="${d}"/>`).join('')}</g>` +
-    XB.map(d => `<path d="${d}" fill="#d0281c" stroke="#8e140c" stroke-width="1.2" stroke-linejoin="round"/>`).join('');
-  // the trail: irregular red dashes winding from the first stage through every one won, up to the flag
+  // the trail: a worn footpath winding from the first stage through every one won, up to the flag (the game's packed-earth path colours:
+  // a dark worn edge under a lighter trodden middle, edges roughened by #trailRough)
   let trail = '';
   for (let i = 1; i <= cur; i++) {
     const [x0, y0] = S[i - 1], [x1, y1] = S[i], dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy), nx = -dy / len, ny = dx / len, sd = i % 2 ? 1 : -1;
     const pt = t => { const m = 1 - t, a = len * .22 * sd, bx = x0 + dx / 3 + nx * a, by = y0 + dy / 3 + ny * a, cx = x0 + dx * 2 / 3 - nx * a * .8, cy = y0 + dy * 2 / 3 - ny * a * .8;
       const wob = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 3 + i) * len * .05;
       return [m * m * m * x0 + 3 * m * m * t * bx + 3 * m * t * t * cx + t * t * t * x1 + nx * wob, m * m * m * y0 + 3 * m * m * t * by + 3 * m * t * t * cy + t * t * t * y1 + ny * wob]; };
-    let acc = 0, next = 6, prev = pt(0), n = 0;
-    for (let k = 1; k <= 300; k++) { const q = pt(k / 300); acc += Math.hypot(q[0] - prev[0], q[1] - prev[1]);
-      if (acc >= next) { const r = hash2(i * 7.1, n), w = 6 + r * 5, ang = Math.atan2(q[1] - prev[1], q[0] - prev[0]) * 180 / Math.PI;
-        if (Math.hypot(q[0] - x0, q[1] - y0) > 38 && Math.hypot(q[0] - x1, q[1] - y1) > 38)
-          trail += `<ellipse cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" rx="${w.toFixed(1)}" ry="${(3.4 + hash2(n, i) * 1.4).toFixed(1)}" transform="rotate(${(ang + (hash2(n * 3, i) - .5) * 14).toFixed(0)} ${q[0].toFixed(1)} ${q[1].toFixed(1)})"/>`;
-        next = acc + w * 2 + 6 + hash2(n, i * 3) * 6; n++; }
-      prev = q; }
+    const pts = []; for (let k = 0; k <= 80; k++) { const q = pt(k / 80); if (Math.hypot(q[0] - x0, q[1] - y0) > 14 && Math.hypot(q[0] - x1, q[1] - y1) > 14) pts.push(q[0].toFixed(1) + ' ' + q[1].toFixed(1)); }
+    if (pts.length > 1) trail += `M${pts.join(' L')} `;
   }
-  // the town's blue rally flag on the stage the player is at
-  // the town's blue rally flag, shaded round and waving: a turned pole, a gilded knob, the cloth's outline animated through one wave
-  // (pinned at the pole, swinging more toward the fly) with light and dark folds sliding along it in step
-  const flagD = ph => { const top = [], bot = [];
-    for (let k = 0; k <= 12; k++) { const x = 1.5 + k * 2.65, a = .4 + (x / 33) * 2.6, w = a * Math.sin(x / 22 * Math.PI * 2 - ph);
-      top.push(`${x.toFixed(1)} ${(-48 + w).toFixed(1)}`); bot.push(`${x.toFixed(1)} ${(-27 + w + (x / 33) * 1.5).toFixed(1)}`); }
-    return `M${top.join(' L')} L${bot.reverse().join(' L')} Z`; };
-  const FR = Array.from({ length: 9 }, (_, n) => flagD(n / 8 * Math.PI * 2)).join(';');
-  const FLAG = `<ellipse cx="3" cy="6" rx="10" ry="3.8" fill="#000" fill-opacity=".4"/>` +
-    `<rect x="-2" y="-50" width="4" height="56" rx="1.6" fill="url(#fPole)"/>` +
-    `<path fill="#2f63c4" stroke="#163a7a" stroke-width="1.2" stroke-linejoin="round"><animate attributeName="d" dur="1.3s" repeatCount="indefinite" values="${FR}"/></path>` +
-    `<path fill="url(#fFold)"><animate attributeName="d" dur="1.3s" repeatCount="indefinite" values="${FR}"/></path>` +
-    `<circle cy="-51.5" r="3.4" fill="url(#fKnob)" stroke="#6b4a12" stroke-width=".6"/>`;
+  // markers drawn with the game's own models under the overview's sun (tools/render/markers.js): a strip of looping frames each, shown
+  // one at a time by stepping the strip along (calcMode discrete); `foot` is the model's foot in the frame, pinned on the stop
+  const MARKER = { FW: 220, FH: 200, NF: 16, PER: 2.513, flag: { foot: [64, 144], k: 1.15 }, banner: { foot: [64, 143], k: .95 } };
+  const sprite = (kind, i) => { const { FW, FH, NF, PER } = MARKER, m = MARKER[kind], k = m.k;
+    return `<svg x="${(-m.foot[0] * k).toFixed(1)}" y="${(-m.foot[1] * k).toFixed(1)}" width="${(FW * k).toFixed(1)}" height="${(FH * k).toFixed(1)}" viewBox="0 0 ${FW} ${FH}">` +
+      `<image href="maps/${kind}.png" width="${FW * NF}" height="${FH}"><animate attributeName="x" calcMode="discrete" dur="${PER}s" begin="${(-hash2(i, 5) * PER).toFixed(2)}s" repeatCount="indefinite" values="${Array.from({ length: NF }, (_, n) => -n * FW).join(';')}"/></image></svg>`; };
   // the ground is one 3D landscape rendered from the game's own terrain, trees, rocks and buildings, seen straight down (maps/overview.jpg,
-  // tools/render/overview.js); the trail, the crosses, the flag and the names are drawn over it
-  const marks = CAMPAIGN.map((c, i) => { const [x, y] = S[i], col = c.boss ? '#e2715b' : '#e3b341', R = 46;
-    const badge = '';
-      `<path d="M-6 -4 L6 7 M6 -4 L-6 7" stroke="#f3d5c8" stroke-width="2.6" stroke-linecap="round"/></g>`;
-    const spot = won[i] ? XMARK : i === cur ? `<g transform="scale(1.35)">${FLAG}</g>` : `<circle r="6" fill="#f2e6c4" fill-opacity=".85" stroke="#2a2b22" stroke-width="2.5"/>`;
+  // tools/render/overview.js); the trail, the banners, the flag and the names are drawn over it
+  const marks = CAMPAIGN.map((c, i) => { const [x, y] = S[i], R = 46;
+    const spot = won[i] ? sprite('banner', i) : i === cur ? sprite('flag', i) : `<circle r="6" fill="#f2e6c4" fill-opacity=".85" stroke="#2a2b22" stroke-width="2.5"/>`;
     // an invisible disc keeps the tap target big
     return `<g class="mk${won[i] ? ' won' : ''}${i === cur ? ' cur' : ''}" data-i="${i}" transform="translate(${x} ${y})"><circle r="${R}" fill="#000" fill-opacity=".001"/><circle class="ring" r="${R}" fill="none" stroke="#fff" stroke-width="0"/>` +
-      spot + badge +
+      spot +
       `<text y="${R + 28}" text-anchor="middle" font-size="25" font-family="Georgia,serif" fill="#f2e6c4" stroke="#1a1a14" stroke-width="5" paint-order="stroke">${c.name}</text></g>`; }).join('');
   return `<svg viewBox="0 0 800 ${900 * CAMP_CY}" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="fPole" x1="0" x2="1"><stop offset="0" stop-color="#7a5532"/><stop offset=".35" stop-color="#a87a4a"/><stop offset="1" stop-color="#2a1a0c"/></linearGradient>
-      <radialGradient id="fKnob" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#fff2b8"/><stop offset=".45" stop-color="#e3b341"/><stop offset="1" stop-color="#7a5212"/></radialGradient>
-      <linearGradient id="fFold" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="22" y2="0" spreadMethod="repeat"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".5" stop-color="#05102e" stop-opacity=".38"/><stop offset="1" stop-color="#fff" stop-opacity=".28"/>
-        <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="22 0" dur="1.3s" repeatCount="indefinite"/></linearGradient>
-      <filter id="xShade" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
+    <defs><filter id="trailRough" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="4"/></filter><filter id="trailSoft"><feGaussianBlur stdDeviation="2"/></filter></defs>
     <image href="maps/overview.jpg" x="0" y="0" width="800" height="${900 * CAMP_CY}" preserveAspectRatio="none"/>
-    <g fill="#000" fill-opacity=".35" transform="translate(1.5 2)">${trail}</g><g fill="#c8261b" stroke="#7e130c" stroke-width=".8">${trail}</g>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="${trail}" stroke="#2e2414" stroke-opacity=".45" stroke-width="12" filter="url(#trailSoft)"/><g filter="url(#trailRough)"><path d="${trail}" stroke="#4e3f2a" stroke-width="8"/><path d="${trail}" stroke="#8a7049" stroke-width="5.2"/><path d="${trail}" stroke="#a88d5f" stroke-opacity=".55" stroke-width="2" stroke-dasharray="9 5 4 7"/></g></g>
     ${marks}
   </svg>`;
 }
