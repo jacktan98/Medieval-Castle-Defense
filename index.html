@@ -178,7 +178,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .campProg{display:flex;align-items:center;justify-content:center;gap:10px;font-size:16px;color:#d9cfb3;letter-spacing:.03em;margin-top:-2px} .campProg b{color:var(--gold);font-weight:700} .campProg .sep{color:rgba(212,168,78,.6)}
 .campProg i{flex:1;height:5px;border-radius:3px;background:rgba(0,0,0,.45);box-shadow:inset 0 0 0 1px rgba(201,160,62,.35);overflow:hidden} .campProg i b{display:block;height:100%;background:linear-gradient(90deg,#9c7224,#f0c95a)}
 /* menus fade in (shown by clearing [hidden], which restarts the animation) */
-.modal.tome:not([hidden]){animation:menuIn .28s ease-out} .modal.tome:not([hidden]) > *{animation:menuRise .34s ease-out}
+.modal.tome:not([hidden]) > *{animation:menuRise .3s ease-out}
 @keyframes menuIn{from{opacity:0}to{opacity:1}} @keyframes menuRise{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
 /* buttons press in and brighten; the main action is gold with a slow shine passing over it */
 .modal.tome button,#newCards button{transition:transform .08s ease-out,filter .12s} .modal.tome button:active,#newCards button:active{transform:scale(.95);filter:brightness(1.25)}
@@ -274,6 +274,13 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .cArrow,.cDot,.cCard,.cDet button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 /* the progress bar sits a little higher, clear of the details' title */
 .cDots{margin:-6px 0 6px}
+/* the canvas itself is dark, so nothing light ever shows through before the first frame is drawn */
+#c{background:#0d0f0b}
+/* stage details: "New" clear above the chips; room for two rows of chips on every stage so the box keeps its height */
+.cDet .stNew{padding-top:18px!important;margin-top:-6px!important;min-height:calc(18px + 2 * 29px + 7px);align-content:flex-start}
+.cDet .stNew::before{top:0!important}
+/* on a tall screen the progress bar and the details sit a little higher, into the spare room under the card (Jack: a small shift only) */
+@media (max-aspect-ratio:3/4){ .cDots{margin:-28px 0 6px} }
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
@@ -7589,8 +7596,9 @@ function frame(now) {
   // behind the campaign and the town picker the scene is darkened under panels: drawn at 1x pixels and every other frame, so the
   // phone keeps its time for the cards (Jack found the carousel slow to answer); full detail again on the title and in the game
   const lite = sc && (!campEl.hidden || !loadEl.hidden), pr = lite ? Math.min(pixelK, 1) : pixelK;
-  if (renderer.getPixelRatio() !== pr) { renderer.setPixelRatio(pr); resize(); }
-  if (paused || menuOn()) { if (!lite || (liteN = (liteN + 1) % 2) === 0) renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
+  // (a resize clears the canvas, so that frame is always drawn: a skipped one showed a blank canvas for a moment)
+  let fresh = false; if (renderer.getPixelRatio() !== pr) { renderer.setPixelRatio(pr); resize(); fresh = true; }
+  if (paused || menuOn()) { if (!lite || fresh || (liteN = (liteN + 1) % 2) === 0) renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not
   if (!gameOver) { updatePhase(gdt); updateVillagers(gdt, now); updateEco(gdt); updateMoves(gdt); updateEnemies(gdt); updateDefense(gdt); separateUnits(gdt); updateDoors(gdt); updateFallen(gdt); updateChips(gdt); updateSplashes(gdt); }
   updateArrows(gdt); updateAmbience(dt); updateVolley(gdt); updateTrees(now); emitSmoke(gdt); updateBirds(gdt);
