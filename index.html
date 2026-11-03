@@ -771,7 +771,7 @@ const BUILD_T = { butts: 4, stores: 4, banner: 4, campfire: 3, rack: 4, stables:
 for (const t in BUILD_T) DEF[t].build = BUILD_T[t];
 DEF.well.charm = .25; DEF.torch.charm = .1; DEF.flowers.charm = .15; DEF.statue.charm = .35; DEF.banner.charm = .2; DEF.campfire.charm = .15; DEF.rack.charm = .12; DEF.butts.charm = .1; DEF.stores.charm = .1;
 const PATH_COST = { gold: 1 }, PATH_SPEED = 1.6, PATH_CHARM = .02, CHARM_R = 8, WALK = { farm: 1, forester: 1, farmhouse: 1, torch: 1, flowers: 1 };
-const CATS = { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'stables', 'wall', 'gate'], decor: ['road', 'well', 'torch', 'flowers', 'statue', 'banner', 'campfire', 'rack'] };
+const CATS = { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'stables', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'banner'] };
 const WALLY = { wall: 1, gate: 1 };   // walls join only walls and gates
 // each wave: how many of each raider kind come, by tier ([tier 1, tier 2, tier 3]); spearmen are the basic raider and come
 // first, the rest join wave by wave, tiers climb, siege engines come last in the column
@@ -6624,8 +6624,8 @@ const LOAD_SLOTS = {
   eco: [['food', ['farm', 'farmhouse']], ['wood', ['lodge', 'forester']], ['stone', ['quarry', 'mine']]],
   def: [['ranged', ['tower', 'crossbow']], ['siege', ['ballista', 'catapult']], ['barracks', ['barracks', 'stables']]],
 };
-const DECOR_ALL = ['flowers', 'statue', 'torch', 'campfire', 'butts', 'banner', 'rack', 'stores', 'well'], DECOR_PICK = 4;   // plus the path, always there: five tools, one row in the dock
-const LOAD_DEFAULT = { food: 'farm', wood: 'lodge', stone: 'quarry', ranged: 'tower', siege: 'ballista', barracks: 'barracks', decor: ['flowers', 'torch', 'banner', 'well'] };
+const DECOR_ALL = ['flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'], DECOR_PICK = 4;   // plus the path, always there: five tools, one row in the dock
+const LOAD_DEFAULT = { food: 'farm', wood: 'lodge', stone: 'quarry', ranged: 'tower', siege: 'ballista', barracks: 'barracks', decor: ['flowers', 'torch', 'well', 'banner'] };
 var LOADOUT = { ...LOAD_DEFAULT, decor: LOAD_DEFAULT.decor.slice() };
 try {   // last game's picks; anything unknown falls back to the default
   const L = JSON.parse(localStorage.getItem('mtd-loadout') || 'null');
@@ -6658,7 +6658,7 @@ function applyLoadout() {
     if (stageDecorAll(MAP).length > DECOR_PICK) { const d = stageDecor(MAP); CATS.decor = ['road', ...stageDecorAll(MAP).filter(t => d.includes(t))]; }
     for (const [slot, opts] of stageBoth(MAP)) { const keep = stagePair(MAP, slot, opts); for (const k of ['eco', 'def']) CATS[k] = CATS[k].filter(t => !opts.includes(t) || t === keep); }
   }
-  else { CATS.eco = ['house', L.food, L.wood, L.stone, 'market']; CATS.def = [L.ranged, L.siege, L.barracks, 'wall', 'gate']; CATS.decor = ['road', ...L.decor]; }
+  else { CATS.eco = ['house', L.food, L.wood, L.stone, 'market']; CATS.def = [L.ranged, L.siege, L.barracks, 'wall', 'gate']; CATS.decor = ['road', ...DECOR_ALL.filter(t => L.decor.includes(t))]; }
   // the first day's guide follows the picks (a stage may have its own)
   GUIDE = [];
   if (CM && CM.guide) { GUIDE = CM.guide(); return; }
