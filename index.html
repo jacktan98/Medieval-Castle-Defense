@@ -1104,12 +1104,43 @@ const KEEP_DITCH = smoothPts([[22, 23], [31, 28], [41, 29.5], [51, 28], [60, 23]
 const KEEP_ROADS = [smoothPts([[41, 25.5], [39, 33], [33, 40], [30, 47], [33, 54], [38, 59], [40, 62]]), smoothPts([[41, 25.5], [45, 33], [52, 38], [56, 47], [52, 54], [46, 59], [42, 62]])];
 // the burned village: ruined watchtowers like Watchhill's, burnt, a few still on fire (fire: 1)
 const KEEP_RUINS = [[25, 40, 1], [28, 36.5], [56, 38, 1], [60, 42], [42.5, 42.5, 1], [46, 46]];
-// the raiders' camps either side of the keep (Jack): a campfire, torches, a banner and a target range, raiders resting by the fire,
-// horsemen and a foot patrol on loops round the camp; the right camp mirrors the left round the keep's middle (x 41)
-const KEEP_CAMPS = [0, 1].map(side => { const X = x => side ? 82 - x : x, P = pts => pts.map(([x, z]) => [X(x), z]);
-  return { fire: [X(17), 16.5], props: [['torch', X(13.5), 13], ['torch', X(20.5), 13], ['torch', X(13.5), 20.5], ['banner', X(17), 12.5], ['butts', X(21.5), 18.5]],
-    rest: [['spear', 2, X(15.6), 17.8], ['archer', 2, X(18.4), 17.9], ['sword', 3, X(17.2), 15.1], ['spear', 3, X(19.2), 20.6]],
-    patrol: [['lancer', 2, P([[10.5, 10.5], [22, 10], [24, 19.5], [11, 22]])], ['rider', 3, P([[24, 19.5], [11, 22], [10.5, 10.5], [22, 10]])], ['sword', 2, P([[13, 14.5], [21.5, 14.5], [21.5, 21], [13, 21]])]] }; });
+// the raiders' camps either side of the keep, up on its rise (Jack): laid out afresh each game (rollKeepCamps, after the terrain), the
+// two sides unalike: only one has a campfire (torches round it, raiders resting by the fire), the other is tents, stores and a parked
+// catapult with a torch; banners, weapon racks and target ranges scattered; horsemen and a foot patrol on loose loops round each
+let KEEP_CAMPS = [];
+function rollKeepCamps() {
+  const fireSide = Math.random() < .5 ? 0 : 1, ring = [...KEEP_POLY, KEEP_POLY[0]], pick = a => a[(Math.random() * a.length) | 0];
+  KEEP_CAMPS = [0, 1].map(side => {
+    const X0 = side ? 57 : 5, X1 = side ? 77 : 25, used = [], props = [], rest = [], patrol = [];
+    const ok = (x, z, r) => x > X0 && x < X1 && z > 2.5 && z < 14 && !inPoly(KEEP_POLY, x, z) && polyDist(ring, x, z) > 3 + r && polyDist(KEEP_DITCH, x, z) > 4 + r
+      && slopeAt(x, z) < .9 && used.every(([a, b, rr]) => Math.hypot(x - a, z - b) > r + rr + .6);
+    const spot = (r, near, d = 4) => { for (let n = 0; n < 400; n++) {
+      const x = near ? near[0] + (Math.random() - .5) * 2 * d : lerp(X0, X1, Math.random()), z = near ? near[1] + (Math.random() - .5) * 2 * d : 2.5 + Math.random() * 11.5;
+      if (ok(x, z, r)) { used.push([x, z, r]); return [x, z]; } } return null; };
+    const put = (t, r, near, d) => { const q = spot(r, near, d); if (q) props.push([t, q[0], q[1], Math.random() * 6.3, r]); return q; };
+    let fire = null, at;
+    if (side === fireSide) {
+      fire = spot(1.6); at = fire;
+      for (let n = 0, k = 1 + (Math.random() < .5); n < k; n++) put('torch', .3, fire, 3.5);
+      for (let n = 0, k = 1 + (Math.random() < .6); n < k; n++) put('tent', 1.2, fire, 5);
+      put('banner', .5, fire, 5); if (Math.random() < .6) put('rack', .6, fire, 5); if (Math.random() < .5) put('butts', .8, fire, 6);
+      for (let n = 0, k = 3 + (Math.random() < .5); n < k; n++) { const a = n / k * 6.3 + Math.random() * .8, d = 1.5 + Math.random() * .4; rest.push([pick(['spear', 'sword', 'archer', 'spear']), 2 + (Math.random() < .4), fire[0] + Math.cos(a) * d, fire[1] + Math.sin(a) * d]); }
+    } else {
+      at = put('tent', 1.2) || [(X0 + X1) / 2, 8];
+      for (let n = 0, k = 1 + (Math.random() < .6); n < k; n++) put('tent', 1.2, at, 5);
+      put('catapult', 1.1, at, 6); put('stores', .6, at, 5); put('torch', .3, at, 4);
+      if (Math.random() < .7) put('rack', .6, at, 5); if (Math.random() < .5) put('banner', .5, at, 6); if (Math.random() < .4) put('butts', .8, at, 6);
+      for (let n = 0, k = 2 + (Math.random() < .5); n < k; n++) { const q = spot(.4, at, 4); if (q) { used.pop(); rest.push([pick(['spear', 'sword', 'xbow']), 2 + (Math.random() < .4), q[0], q[1], Math.random() * 6.3]); } }
+    }
+    // loose loops round the camp, each its own way round
+    const loop = r => { const a0 = Math.random() * 6.3, n = 4 + (Math.random() < .5); return Array.from({ length: n }, (_, i) => { const a = a0 + i / n * 6.3 + (Math.random() - .5) * .6, d = r * (.7 + Math.random() * .5);
+      return [clamp(at[0] + Math.cos(a) * d, X0 - 2, X1 + 2), clamp(at[1] + Math.sin(a) * d * .7, 2, 16)]; }); };
+    patrol.push([pick(['rider', 'lancer']), 2 + (Math.random() < .5), loop(6.5)]);
+    if (Math.random() < .6) patrol.push([pick(['rider', 'lancer']), 2 + (Math.random() < .5), loop(5)]);
+    patrol.push([pick(['spear', 'sword']), 2, loop(3.5)]);
+    return { at, fire, props, rest, patrol };
+  });
+}
 const KEEP_RED = new THREE.Color('#7d4d3c'), KEEP_ASH = new THREE.Color('#6b5d45');
 function keepHeight(x, z) {
   let h = 2.2 + 1.4 * fbm(x * .05, z * .05);
@@ -1159,7 +1190,7 @@ const HOLD_CAMPS = [
     patrol: [['rider', 3, [[37.5, 21.5], [43, 21.5], [43, 28], [37.5, 28]]], ['rider', 3, [[43, 28], [37.5, 28], [37.5, 21.5], [43, 21.5]]], ['rider', 3, [[44.8, 19.6], [50, 19.6], [50, 27.2], [44.8, 27.2]]]] }];
 const HOLD_TOWERS = [[20, 31], [60, 31]];
 const bossCamps = () => MAP === 'hold' ? HOLD_CAMPS : MAP === 'keep' ? KEEP_CAMPS : [];
-const campProp = (x, z) => bossCamps().some(c => Math.hypot(x - c.fire[0], z - c.fire[1]) < .9 || (c.props || []).some(([, a, b]) => Math.hypot(x - a, z - b) < .8));
+const campProp = (x, z) => bossCamps().some(c => (c.fire && Math.hypot(x - c.fire[0], z - c.fire[1]) < .9) || (c.props || []).some(([, a, b, , r]) => Math.hypot(x - a, z - b) < (r || .8)));
 const sceneryAt = (x, z) => (MAP === 'hold' || MAP === 'keep') && campProp(x, z) ? true : MAP === 'hold' && HOLD_TOWERS.some(([a, b]) => Math.hypot(x - a, z - b) < 1.2) ? true : MAP === 'keep' ? inPoly(KEEP_POLY, x, z) || KEEP_RUINS.some(([a, b]) => Math.hypot(x - a, z - b) < 1.7) : MAP === 'hold' ? inPoly(HOLD_POLY, x, z) : false;
 // the maps with ground nobody may walk or build on (Mountain pass's mountains, Greenvale's hills)
 const mapOpen = (x, z) => MAP === 'pass' ? passOpen(x, z) : MAP === 'vale' ? valeOpen(x, z) : MAP === 'hold' ? holdOpen(x, z) : true;
@@ -1701,7 +1732,7 @@ function genTrees() {
       const roads = MAP === 'keep' ? KEEP_ROADS : HOLD_ROADS;
       if (roads.some(p => polyDist(p, x, z) < 2.6)) continue;
       if (MAP === 'keep') {
-        if (polyDist(KEEP_DITCH, x, z) < 3 || inPoly(KEEP_POLY, x, z) || KEEP_RUINS.some(([a, b]) => Math.hypot(x - a, z - b) < 3) || KEEP_CAMPS.some(c => Math.hypot(x - c.fire[0], z - c.fire[1]) < 9)) continue;
+        if (polyDist(KEEP_DITCH, x, z) < 3 || inPoly(KEEP_POLY, x, z) || KEEP_RUINS.some(([a, b]) => Math.hypot(x - a, z - b) < 3) || KEEP_CAMPS.some(c => Math.hypot(x - c.at[0], z - c.at[1]) < 9)) continue;
         if (z > 28 && z < 56 && hash(x * 1.9, z * 2.3) < .07) { trees.push({ x, z, s: .7 + hash(z, x) * .4, k: 1, bare: true, deco: true }); continue; }
         const wood = [[9, 70, 6, 5], [71, 70, 6, 5]].some(([cx, cz, rx, rz]) => Math.hypot((x - cx) / rx, (z - cz) / rz) < 1) && hash(x * 1.3, z * .7) < .65;
         if (wood || (z > 56 && hash(x * 2.1, z * 1.7) < .02)) trees.push({ x, z, s: .75 + hash(z, x) * .45, k: 1 });
@@ -1864,7 +1895,7 @@ function genRocks() {
     for (const [cx, cz, want, sp] of groups) for (let n = 0, k = 0; n < 400 && k < want; n++) {
       const x = cx + (Math.random() - .5) * 2 * sp, z = cz + (Math.random() - .5) * 2 * sp, roads = MAP === 'keep' ? KEEP_ROADS : HOLD_ROADS;
       if (!mapOpen(x, z) || sceneryAt(x, z) || hAt(x, z) < .8 || Math.hypot(x - KX, z - KZ) < 7 || roads.some(p => polyDist(p, x, z) < 2) || rocks.some(r => Math.hypot(r.x - x, r.z - z) < 2)) continue;
-      if (MAP === 'keep' && (polyDist(KEEP_DITCH, x, z) < 2.5 || KEEP_CAMPS.some(c => Math.hypot(x - c.fire[0], z - c.fire[1]) < 8.5))) continue;
+      if (MAP === 'keep' && (polyDist(KEEP_DITCH, x, z) < 2.5 || KEEP_CAMPS.some(c => Math.hypot(x - c.at[0], z - c.at[1]) < 8.5))) continue;
       addRock(x, z, .75 + Math.random() * .6, [Math.random() * 3, Math.random() * 3, Math.random() * 3]); k++;
     }
     return;
@@ -6890,6 +6921,17 @@ function darkFort(g) {
 // a straight piece from (ax, az) to (bx, bz) in the group's frame: a box of width w and height h, its foot at y
 function along(g, ax, az, bx, bz, w, h, m, y) { const L = Math.hypot(bx - ax, bz - az), o = box(L, h, w, m, (ax + bx) / 2, y + h / 2, (az + bz) / 2); o.rotation.y = -Math.atan2(bz - az, bx - ax); g.add(o); return o; }
 function placeModel(g, type, tier, x, z, k = 1, ry = 0, mask = 0) { const m = makeModel(type, tier, true, mask, 0); m.scale.setScalar(k); m.rotation.y = ry; m.position.set(x, hAt(x, z), z); g.add(m); return m; }
+// a raiders' tent: red canvas over a ridge pole, the flaps tied back at the front, pegged guy ropes
+function raiderTent() {
+  const g = new THREE.Group(), W = 1.7, D = 2.1, H = 1.35;
+  for (const s2 of [-1, 1]) { const sl = box(.04, Math.hypot(W / 2, H), D, raiderRed, s2 * W / 4, H / 2, 0); sl.rotation.z = s2 * Math.atan2(W / 2, H); g.add(sl); }
+  // the ends: canvas at the back, the front open on a dark inside
+  const end = (w, h, m, z) => { const t = prism(.03, w, h, m, 0, 0, z); t.rotation.y = Math.PI / 2; g.add(t); };
+  end(W * .96, H * .96, raiderRed, -D / 2 + .02); end(W * .96, H * .96, raiderRed, D / 2 - .03); end(W * .55, H * .58, M.dark, D / 2 + .01);
+  g.add(box(.05, .05, D + .3, M.timber, 0, H, 0)); for (const z of [-D / 2 - .1, D / 2 + .1]) g.add(box(.05, H + .05, .05, M.timber, 0, H / 2, z));
+  g.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = true; });
+  return g;
+}
 function buildRaiderKeep(g) {
   const P = KEEP_POLY, [gx, gz] = KEEP_GATE, cx = 41, cz = 15.5, Y = (x, z) => hAt(x, z), GW = KEEP_GATE_W / 2;
   for (let i = 0; i < P.length; i++) {
@@ -6931,7 +6973,8 @@ function buildRaiderKeep(g) {
   // the yard: the town's weapon rack, campfire and siege stores
   placeModel(g, 'rack', 1, 46, 19); placeModel(g, 'campfire', 1, 46.5, 14.5); placeModel(g, 'stores', 1, 36.5, 12.5); placeModel(g, 'rack', 1, 48, 17);
   // the camps either side: a campfire, torches, a banner, a target range
-  for (const c of KEEP_CAMPS) { placeModel(g, 'campfire', 1, c.fire[0], c.fire[1], 1.2); for (const [t, x, z] of c.props) placeModel(g, t, 1, x, z, 1, t === 'butts' ? Math.PI / 2 * (x > 41 ? 1 : -1) : 0); }
+  for (const c of KEEP_CAMPS) { if (c.fire) placeModel(g, 'campfire', 1, c.fire[0], c.fire[1], 1.2);
+    for (const [t, x, z, ry] of c.props) { if (t === 'tent') { const m = raiderTent(); m.rotation.y = ry; m.position.set(x, Y(x, z), z); g.add(m); } else placeModel(g, t, 1, x, z, 1, t === 'torch' ? 0 : ry); } }
 }
 function buildWarlordsHold(g) {
   const P = HOLD_POLY, [gx, gz] = HOLD_GATE, cx = gx, cz = 9.5, Y = (x, z) => hAt(x, z), y0 = Y(cx, cz);
@@ -6992,13 +7035,13 @@ function placeBossScenery() {
     const r = makeRuin(i + 1, !!fire); r.rotation.y = hash(x, z) * 6.3; r.position.set(x, Y(x, z) - .1, z); g.add(r); r.updateMatrixWorld(true); ruinFires(r);
   });
   // the camps' campfires and torches burn like the town's
-  for (const c of bossCamps()) { if (!c.banner) sceneFires.push({ x: c.fire[0], y: Y(c.fire[0], c.fire[1]) + .6, z: c.fire[1], k: 1.1 });
+  for (const c of bossCamps()) { if (c.fire && !c.banner) sceneFires.push({ x: c.fire[0], y: Y(c.fire[0], c.fire[1]) + .6, z: c.fire[1], k: 1.1 });
     for (const [t, x, z] of c.props || []) if (t === 'torch') sceneFires.push({ x, y: Y(x, z) + 2.25, z, k: 1, torch: true }); }
   // the camps' raiders are real raiders, dormant: resting or on patrol until troops come near, they're hurt, or the boss is out on the
   // last night (Jack); the patrols' corners shift a little each game, so they wander their own way round
   bossCamps().forEach((c, ci) => {
     const put = (k, t, x, z, D) => { spawnEnemy(k, { x, z }, 1, t); const e = enemies[enemies.length - 1]; e.x = e.rx = x; e.z = e.rz = z; e.dormant = Object.assign({ camp: ci, u: 0, s: x * 1.3 + z }, D); e.g.rotation.y = D.ry || 0; };
-    for (const [k, t, x, z] of c.rest) put(k, t, x, z, { ry: Math.atan2(c.fire[0] - x, c.fire[1] - z) });
+    for (const [k, t, x, z, ry] of c.rest) put(k, t, x, z, { ry: ry !== undefined ? ry : Math.atan2(c.fire[0] - x, c.fire[1] - z) });
     for (const [k, t, pts] of c.patrol) { const P = patrolRoute(MAP === 'keep' ? pts.map(([x, z]) => [x + (Math.random() - .5) * 3, z + (Math.random() - .5) * 3]) : pts); put(k, t, P[0][0], P[0][1], { pts: P, i: 1, wait: 0, walk: ENEMY[k].mounted ? 1.3 : .9 }); }
   });
   if (MAP === 'hold') {
@@ -7007,6 +7050,15 @@ function placeBossScenery() {
     const roof = [[36.1, 7.2], [41.9, 7.2], [41.9, 11.8], [36.1, 11.8]];
     holdRiders = holdTrebs.flatMap((T, i) => [0, 1].map(j => { const k = i * 2 + j, st = roof[k];
       return { p: fig(j ? 'spear' : 'sword', 3, st[0], st[1], T.y), y: T.y, pts: roof, i: (k + 1) % 4, wait: k * .7, walk: .7, pos: [...st], T, post: [T.x + (j ? .8 : -.8), T.z + (j ? .5 : -.65)], s: k * 1.7 }; }));
+  }
+  else if (MAP === 'keep') {
+    // raiders inside the keep's yard (Jack): wandering round its campfire, and two on watch walking to and fro behind the gate. Scenery
+    holdTrebs = [];
+    const fig = (kind, tier, x, z) => { const p = makeRaider(kind, tier); p.g.scale.setScalar(UNIT_K); p.g.position.set(x, Y(x, z), z); p.g.traverse(o => { if (o.isMesh) o.castShadow = true; }); g.add(p.g); return p; };
+    const walker = (kind, tier, pts, walk, i0) => { const st = pts[i0 % pts.length]; return { p: fig(kind, tier, st[0], st[1]), pts, i: (i0 + 1) % pts.length, wait: Math.random() * 2, walk, pos: [...st], s: Math.random() * 9 }; };
+    const fire = [46.5, 14.5], round = (r, n, a0) => Array.from({ length: n }, (_, i) => { const a = a0 + i / n * 6.3; return [fire[0] + Math.cos(a) * r * (.85 + Math.random() * .3), fire[1] + Math.sin(a) * r * .8 * (.85 + Math.random() * .3)]; });
+    holdRiders = [walker('spear', 2, round(1.9, 5, 0), .6, 0), walker('archer', 2, round(2.1, 4, 2), .55, 1), walker('sword', 3, round(1.7, 6, 4), .5, 3),
+      walker('spear', 3, [[37.4, 21.6], [44.6, 21.6]], .8, 0), walker('xbow', 2, [[44.6, 22.2], [37.4, 22.2]], .75, 0)];
   }
   else { holdRiders = []; holdTrebs = []; }
   scene.add(g); bossMesh = g;
@@ -7036,10 +7088,10 @@ const turnToward = (o, want, k) => { let d = want - o.rotation.y; d = Math.atan2
 let holdRiders = [], holdTrebs = [];
 function animHoldRiders(t, dt) {
   for (const R of holdRiders) {
-    const p = R.p; R.goTo = R.T.target ? R.post : null;
+    const p = R.p; R.goTo = R.T && R.T.target ? R.post : null;
     const moving = patrolStep(R, dt);
-    p.g.position.set(R.pos[0], R.y, R.pos[1]);
-    if (moving) turnToward(p.g, R.head, .15); else if (R.goTo) turnToward(p.g, Math.atan2(R.T.x - R.pos[0], R.T.z - R.pos[1]), .15);
+    p.g.position.set(R.pos[0], R.T ? R.y : hAt(R.pos[0], R.pos[1]), R.pos[1]);
+    if (moving) turnToward(p.g, R.head, .15); else if (R.goTo && R.T) turnToward(p.g, Math.atan2(R.T.x - R.pos[0], R.T.z - R.pos[1]), .15);
     const sw = moving ? .5 * Math.sin(t * 6.5 + R.s) : 0; p.legs[0].rotation.x = sw; p.legs[1].rotation.x = -sw;
     p.arms[0].rotation.x = R.goTo && !moving ? -1.2 : -sw * .6;
   }
@@ -7469,7 +7521,7 @@ function startGame() {
   PH = { kind: 'day', wave: 1, t: DAYLEN[0] }; econT = TICK; gameOver = false; light = 1; if (paused) setPaused(false); setMusic('day');
   if (MAP === 'isle') { KX = 27; KZ = 27; } else if (MAP === 'pass') { KX = 27; KZ = 21; } else if (MAP === 'vale') { KX = 25; KZ = 33; } else if (MAP === 'bridge') { KX = 29; KZ = 37; } else if (MAP === 'cross') { KX = 17; KZ = 39; } else if (MAP === 'watch') { KX = 17; KZ = 29; } else if (MAP === 'dune') { KX = 15; KZ = 26; } else if (MAP === 'bend') { KX = 21; KZ = 28; } else if (MAP === 'crag') { KX = 25; KZ = 33; } else if (MAP === 'ford') { KX = 29; KZ = 43; } else if (MAP === 'mere') { KX = 15; KZ = 43; } else if (MAP === 'plains') { KX = 28; KZ = 28; } else if (MAP === 'keep') { KX = 41; KZ = 67; } else if (MAP === 'hold') { KX = 39; KZ = 65; } else { KX = 19; KZ = 27; }
   setMapSize(MAP_N[MAP] || 28);
-  genTerrain(); genBridges(); genTrees(); genRocks(); genClutter(); syncTerrain(); buildBridges(); genShore(); hideGhost(); deselect();
+  genTerrain(); if (MAP === 'keep') rollKeepCamps(); genBridges(); genTrees(); genRocks(); genClutter(); syncTerrain(); buildBridges(); genShore(); hideGhost(); deselect();
   Object.assign(res, (MAP_RULES[MAP] || {}).res || { gold: 40, wood: 45, stone: 0, food: 20 });
   stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, t0: performance.now() };
   $('#summary').hidden = true; $('#log').innerHTML = '';
