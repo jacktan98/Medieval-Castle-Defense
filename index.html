@@ -156,19 +156,15 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #campInfo{width:100%;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 #campMap svg{max-height:calc(100dvh - 120px)!important}
 #stagePrev{background:rgba(12,13,9,.94);z-index:62}
-/* the menus on old paper (Jack: to try): a warm parchment with fibres and stains (svg noise), darker burnt edges; dark ink text */
-.modal.paper{--parch:#2e2112;--muted:#6e5838;--gold:#7a2c14;--line:#9c8058;color:#2e2112;
-  background-color:#ecd3a0!important;background-image:radial-gradient(ellipse at 50% 46%, rgba(255,244,214,.6) 0%, rgba(255,236,196,0) 45%, rgba(184,108,36,.42) 72%, rgba(128,64,14,.78) 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700' viewBox='0 0 700 700' preserveAspectRatio='xMidYMid slice'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='5' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .62 0 0 0 0 .38 0 0 0 0 .12 0 0 0 2.6 -1.05'/%3E%3C/filter%3E%3Crect width='700' height='700' filter='url(%23g)'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .32 0 0 0 0 .12 0 0 0 .3 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23f)'/%3E%3C/svg%3E")!important;
-  background-repeat:no-repeat,no-repeat,repeat!important;
-  background-position:center,center,0 0!important;
-  background-size:cover,cover,300px 300px!important}
-.modal.paper .gameTitle{color:#6e2410;text-shadow:0 1px 0 rgba(255,240,200,.6),0 2px 6px rgba(80,40,10,.25)}
-.modal.paper button{border-color:#9c8058}
-.modal.paper .mapBtn,.modal.paper .ldOpt{background:rgba(255,246,220,.42);border-color:#9c8058}
-.modal.paper .ldOpt[aria-pressed="true"]{background:rgba(255,236,190,.75)}
-.modal.paper .ldOpt .tIco{color:#5a4428}
-.modal.paper .stars{color:#a89770} .modal.paper .stars .on{color:#b07a12}
-.modal.paper #campMap svg,.modal.paper .stPic{border-color:#7a5f38;box-shadow:0 2px 10px rgba(60,35,10,.35)}
+/* the menus (Jack: dark, but medieval): dark tooled leather like an old book's binding, soft warm mottling, a fine grain, a black
+   vignette, and a thin gold frame with corner ornaments (::before, ::after) */
+.modal.tome{background-color:#1b150e!important;background-image:radial-gradient(ellipse at 50% 42%, rgba(120,86,46,.22) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,.55) 88%, rgba(0,0,0,.8) 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700' viewBox='0 0 700 700' preserveAspectRatio='xMidYMid slice'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.007' numOctaves='5' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .3 0 0 0 0 .17 0 0 0 .75 -.26'/%3E%3C/filter%3E%3Crect width='700' height='700' filter='url(%23g)'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.42' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 -.12'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23f)'/%3E%3C/svg%3E")!important;
+  background-repeat:no-repeat,no-repeat,repeat!important;background-position:center,center,0 0!important;background-size:cover,cover,240px 240px!important}
+.modal.tome::before{content:'';position:fixed;inset:7px;border:1px solid rgba(201,160,62,.5);box-shadow:inset 0 0 0 3px rgba(0,0,0,.35),inset 0 0 0 4px rgba(201,160,62,.22);border-radius:3px;pointer-events:none}
+.modal.tome::after{content:'';position:fixed;inset:3px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg transform='rotate(0 22 22)' fill='none' stroke='%23c9a03e' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M3 41 V14 Q3 3 14 3 H41'/%3E%3Cpath d='M8 41 V17 Q8 8 17 8 H41' stroke-opacity='.55' stroke-width='1'/%3E%3Cpath d='M14 14 l4 -4 l4 4 l-4 4 z' fill='%23c9a03e'/%3E%3Cpath d='M3 22 q6 0 6 6 M22 3 q0 6 6 6'/%3E%3C/g%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg transform='rotate(90 22 22)' fill='none' stroke='%23c9a03e' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M3 41 V14 Q3 3 14 3 H41'/%3E%3Cpath d='M8 41 V17 Q8 8 17 8 H41' stroke-opacity='.55' stroke-width='1'/%3E%3Cpath d='M14 14 l4 -4 l4 4 l-4 4 z' fill='%23c9a03e'/%3E%3Cpath d='M3 22 q6 0 6 6 M22 3 q0 6 6 6'/%3E%3C/g%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg transform='rotate(270 22 22)' fill='none' stroke='%23c9a03e' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M3 41 V14 Q3 3 14 3 H41'/%3E%3Cpath d='M8 41 V17 Q8 8 17 8 H41' stroke-opacity='.55' stroke-width='1'/%3E%3Cpath d='M14 14 l4 -4 l4 4 l-4 4 z' fill='%23c9a03e'/%3E%3Cpath d='M3 22 q6 0 6 6 M22 3 q0 6 6 6'/%3E%3C/g%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg transform='rotate(180 22 22)' fill='none' stroke='%23c9a03e' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M3 41 V14 Q3 3 14 3 H41'/%3E%3Cpath d='M8 41 V17 Q8 8 17 8 H41' stroke-opacity='.55' stroke-width='1'/%3E%3Cpath d='M14 14 l4 -4 l4 4 l-4 4 z' fill='%23c9a03e'/%3E%3Cpath d='M3 22 q6 0 6 6 M22 3 q0 6 6 6'/%3E%3C/g%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left top,right top,left bottom,right bottom;background-size:44px 44px}
+.modal.tome .gameTitle{text-shadow:0 1px 0 rgba(0,0,0,.9),0 0 18px rgba(212,168,78,.25),0 2px 18px rgba(0,0,0,.6)}
+.modal.tome .mapBtn,.modal.tome .ldOpt{background:rgba(36,30,20,.82);border-color:#5e4c2c}
+.modal.tome #campMap svg,.modal.tome .stPic{border-color:#7a6230;box-shadow:0 0 0 3px rgba(0,0,0,.4),0 4px 18px rgba(0,0,0,.6)}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
@@ -414,7 +410,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
     </div>
   </div>
   <div class="galBar" id="galBar" hidden><b>Gallery</b><button id="galTurn">Turn</button><button id="galDoors">Doors</button><button id="galWalk">Walk</button><button class="primary" id="galBack">Back</button></div>
-  <div class="modal paper" id="mapPick">
+  <div class="modal tome" id="mapPick">
     <div class="mapSheet">
       <h1 class="gameTitle">Medieval Town Defense</h1>
       <div class="mapSub">Choose map</div>
@@ -426,7 +422,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
       <button id="campBtn">Campaign</button>
     </div>
   </div>
-  <div class="modal paper" id="campaign" hidden>
+  <div class="modal tome" id="campaign" hidden>
     <div class="campSheet">
       <div class="mapSub">Campaign <span id="campStars"></span></div>
       <div id="campMap"></div>
@@ -446,7 +442,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
       </div>
     </div>
   </div>
-  <div class="modal paper" id="stagePrev" hidden>
+  <div class="modal tome" id="stagePrev" hidden>
     <div class="stageSheet">
       <div class="stPic" id="stPic"></div>
       <div class="stSide">
@@ -457,7 +453,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
       </div>
     </div>
   </div>
-  <div class="modal paper" id="loadPick" hidden>
+  <div class="modal tome" id="loadPick" hidden>
     <div class="loadSheet">
       <div class="mapSub">Choose your town</div>
       <section><h3>Economy</h3><div class="ldRows" id="ldEco"></div></section>
