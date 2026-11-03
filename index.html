@@ -1108,12 +1108,15 @@ function keepHeight(x, z) {
 }
 // Warlord's Hold (stage 12, final boss, 80 m): snowy mountains round the north and both sides, the hold on a crag at the top, a river
 // across the middle (a stone bridge on the gate's road, frozen crossings where the two mountain passes come down), pines on the slopes
-const HOLD_POLY = [[28, 4.5], [52, 4.5], [54, 15], [26, 15]], HOLD_GATE = [40, 15];
+// the gate, the grand bridge and the road all on x 39, the middle of the road's cell (Jack: the road ran a cell right of the door)
+const HOLD_POLY = [[28, 4.5], [52, 4.5], [54, 15], [26, 15]], HOLD_GATE = [39, 15];
 const HOLD_MTNS = [[14, 12, 20, 16, 1], [66, 12, 20, 16, 2], [6, 52, 11, 23, 3], [74.5, 52, 11, 23, 4]];
 const HOLD_RIVER = smoothPts([[-1, 38], [12, 36], [26, 40], [40, 38], [54, 36], [66, 40], [81, 38]]);
-const HOLD_PASSES = [smoothPts([[-1, 25], [8, 28], [15, 33], [20, 42], [24, 49], [30, 56], [35, 61]]), smoothPts([[81, 25], [72, 28], [65, 33], [60, 42], [56, 49], [50, 56], [45, 61]])];
-const HOLD_ROADS = [[[40, 17], [40, 33]], [[40, 43], [40, 60]], ...HOLD_PASSES];
-const HOLD_ICE = [17.6, 61.8];   // where the two passes cross the river: a plain land crossing (a ford of grass and earth)
+// the two mountain passes: down from the side edges to a stone bridge each (x 16 and 64), then in long straight runs to the castle's
+// sides (Jack: the diagonal roads laid as zigzags; they crossed the river by land before)
+const HOLD_PASSES = [[[-1, 25], [8, 28], [14, 31], [16, 33], [16, 45], [22, 45], [22, 65], [34, 65]], [[81, 25], [72, 28], [66, 31], [64, 33], [64, 45], [58, 45], [58, 65], [44, 65]]];
+const HOLD_ROADS = [[[39, 17], [39, 33]], [[39, 43], [39, 60]], ...HOLD_PASSES];
+const HOLD_ICE = [];   // where the two passes cross the river: a plain land crossing (a ford of grass and earth)
 const holdMtn = (x, z) => Math.max(...HOLD_MTNS.map(([cx, cz, rx, rz, sd]) => 1 - sstep(.75, 1.05, blobD(x, z, [cx, cz, rx, rz], sd)))) * sstep(3, 6, Math.min(...HOLD_PASSES.map(p => polyDist(p, x, z))));
 const holdOpen = (x, z) => holdMtn(x, z) < .5;
 const holdRiverZ = x => { const P = HOLD_RIVER; for (let i = 0; i < P.length - 1; i++) if (x >= P[i][0] && x <= P[i + 1][0]) return lerp(P[i][1], P[i + 1][1], (x - P[i][0]) / (P[i + 1][0] - P[i][0])); return 38; };
@@ -1122,13 +1125,17 @@ function holdHeight(x, z) {
   h += holdMtn(x, z) * (9 + 12 * fbm(x * .07 + 5, z * .07 + 9));
   h += 3.2 * (1 - sstep(.4, 1.1, blobD(x, z, [40, 9.5, 16, 10], 6)));
   if (inPoly(HOLD_POLY, x, z)) h = 6 + .1 * fbm(x * .3, z * .3);
+  // a ramp down from the gate, so its door meets the ground (Jack)
+  else if (z > 14.5 && z < 22) h = lerp(h, lerp(6, h, sstep(15.4, 21.5, z)), sstep(3.4, 2.2, Math.abs(x - HOLD_GATE[0])));
   h = lerp(3 + (h - 3) * .35, h, sstep(6, 11, Math.hypot(x - KX, z - KZ)));
   const fd = Math.min(...HOLD_ICE.map(f => Math.abs(x - f))), ice = sstep(4.2, 2.6, fd), ramp = sstep(9, 4.5, fd);
   const d = polyDist(HOLD_RIVER, x, z), river = lerp(-1.3, h, lerp(sstep(2.2, 4.6, d), sstep(2.4, 9, d), ramp));
   return d < 5 ? Math.max(river, lerp(river, .6 + .05 * vnoise(x * .9, z * .9), ice)) : river;
 }
 // the boss stages' fixed scenery nobody walks through or builds on: the keep and the burned village's ruins, the hold
-const sceneryAt = (x, z) => MAP === 'keep' ? inPoly(KEEP_POLY, x, z) || KEEP_RUINS.some(([a, b]) => Math.hypot(x - a, z - b) < 1.3) : MAP === 'hold' ? inPoly(HOLD_POLY, x, z) : false;
+// the Warlord's horse guard idling outside the gate (Jack: livelier): tier-3 horse swords, scenery
+const HOLD_RIDERS = [[36.6, 19.2, .3], [41.6, 19, -.3], [36.2, 22.4, -.15], [42, 22.6, .2], [42.8, 25.6, -.1]];
+const sceneryAt = (x, z) => MAP === 'hold' && HOLD_RIDERS.some(([a, b]) => Math.hypot(x - a, z - b) < .8) ? true : MAP === 'keep' ? inPoly(KEEP_POLY, x, z) || KEEP_RUINS.some(([a, b]) => Math.hypot(x - a, z - b) < 1.3) : MAP === 'hold' ? inPoly(HOLD_POLY, x, z) : false;
 // the maps with ground nobody may walk or build on (Mountain pass's mountains, Greenvale's hills)
 const mapOpen = (x, z) => MAP === 'pass' ? passOpen(x, z) : MAP === 'vale' ? valeOpen(x, z) : MAP === 'hold' ? holdOpen(x, z) : true;
 function genHeight(x, z) {
@@ -1188,7 +1195,7 @@ const bridgeCell = new Uint8Array(N_MAX * N_MAX), BRIDGE_RISE = .45, DECK_W = 1.
 // where each map's bridges cross: a start point and a direction, marched along until the river is crossed
 function bridgeRays() {
   if (MAP === 'pass' || MAP === 'vale' || MAP === 'cross' || MAP === 'watch' || MAP === 'dune' || MAP === 'crag' || MAP === 'plains' || MAP === 'keep') return [];
-  if (MAP === 'hold') { const z0 = holdRiverZ(40); return [{ ox: 40, oz: z0 - 9, dx: 0, dz: 1, stone: true, grand: true, w: 3.2 }]; }
+  if (MAP === 'hold') return [{ ox: 39, oz: holdRiverZ(39) - 9, dx: 0, dz: 1, stone: true, grand: true, w: 3.2 }, ...[16, 64].map(x => ({ ox: x, oz: holdRiverZ(x) - 9, dx: 0, dz: 1, stone: true }))];
   if (MAP === 'mere') return [MERE_BRIDGE];
   if (MAP === 'ford') return [{ ox: FORD_BRIDGE_X, oz: fordRiverZ(FORD_BRIDGE_X) - 10, dx: 0, dz: 1, stone: true }];
   if (MAP === 'bend') return BEND_BRIDGES.map(([ox, oz, dx, dz]) => ({ ox, oz, dx, dz }));
@@ -2741,7 +2748,7 @@ function makeStoneBridge(b) {
     for (const s of [-1, 1]) for (const x of [-1, 1]) {
       const z = s * (L / 2 - .6), y = yAt(z), tw = box(1.1, 3.2, 1.1, M.stone2, x * (W / 2 + .5), y + 1.4, z); g.add(tw);
       const cap = new THREE.Mesh(new THREE.ConeGeometry(.85, 1.1, 4), M.plainStone); cap.position.set(x * (W / 2 + .5), y + 3.55, z); cap.rotation.y = Math.PI / 4; g.add(cap);
-      g.add(cyl(.035, .035, 1.2, 5, M.timber, x * (W / 2 + .5), y + 4.6, z)); const f = box(.03, .34, .55, raiderRed, x * (W / 2 + .5), y + 4.95, z - .28); g.add(f);
+      g.add(cyl(.035, .035, 1.2, 5, M.timber, x * (W / 2 + .5), y + 4.6, z)); g.add(flagBox(.55, .34, .03, raiderFlagM(), x * (W / 2 + .5) + .28, y + 4.95, z));
     }
     for (let z = -L / 2 + 1.4; z < L / 2 - 1.3; z += .9) for (const x of [-1, 1]) g.add(box(.26, .2, .34, M.stone2, x * (W / 2 + .1), yAt(z) + .74, z));
   }
@@ -2749,6 +2756,8 @@ function makeStoneBridge(b) {
   g.position.set(b.mx, 0, b.mz); g.rotation.y = Math.atan2(b.dx, b.dz);
   return g;
 }
+// the raiders' red flag, waving like the town's (M.flag's shader); the grand bridge's flags fly the same way as the hold's
+let _rfm = null; const raiderFlagM = () => { if (!_rfm) { _rfm = M.flag.clone(); _rfm.onBeforeCompile = M.flag.onBeforeCompile; _rfm.color.set('#8e1d16'); } return _rfm; };
 function buildBridges() { for (const b of bridges) { b.g = makeBridge(b); scene.add(b.g); } }
 
 // ---------- the other economy picks: forester, mine, farmhouse ----------
@@ -6775,7 +6784,7 @@ function buildRaiderKeep(g) {
   placeModel(g, 'rack', 1, 45, 19); placeModel(g, 'campfire', 1, 45.5, 14.5); placeModel(g, 'stores', 1, 35.5, 12.5); placeModel(g, 'rack', 1, 47, 17);
 }
 function buildWarlordsHold(g) {
-  const P = HOLD_POLY, [gx, gz] = HOLD_GATE, cx = 40, cz = 9.5, Y = (x, z) => hAt(x, z), y0 = Y(cx, cz);
+  const P = HOLD_POLY, [gx, gz] = HOLD_GATE, cx = gx, cz = 9.5, Y = (x, z) => hAt(x, z), y0 = Y(cx, cz);
   // the hold stands on its crag's flat top, but its walls sit on the crag's edge where the ground falls away outside: every wall piece,
   // tower and the keep reach down to the lowest ground under them (Jack saw the east side floating), their tops stay level
   const low = (x, z, r) => { let m = Y(x, z); for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; for (const f of [.5, 1, 1.6]) m = Math.min(m, Y(x + Math.cos(a) * r * f, z + Math.sin(a) * r * f)); } return m - 1.2; };
@@ -6803,7 +6812,7 @@ function buildWarlordsHold(g) {
   }
   // the gatehouse: two round towers either side of an arched passage, a portcullis
   for (const sx of [-1, 1]) roundTower(gx + sx * 2.4, gz, 1.5, 6.8);
-  { const y = Y(gx, gz), b = low(gx, gz, 1.6); g.add(box(3.4, y + 4.3 - b, 2.6, M.stone, gx, (y + 4.3 + b) / 2, gz)); g.add(box(2.2, 2.8, 2.7, M.dark, gx, y + 1.1, gz + .02));
+  { const y = Y(gx, gz), b = low(gx, gz, 1.6); g.add(box(3.4, y + 4.3 - b, 2.6, M.stone, gx, (y + 4.3 + b) / 2, gz)); g.add(box(2.2, 2.9, 2.7, M.dark, gx, y + 1.15, gz + .02));
     for (let k = -.8; k <= .81; k += .4) g.add(box(.06, 2.6, .06, M.iron, gx + k, y + 1.2, gz + 1.32)); g.add(box(2, .08, .06, M.iron, gx, y + 1.9, gz + 1.32));
     merlons(gx - 1.7, gz + 1.25, gx + 1.7, gz + 1.25, y + 4.3, 0, -1); }
   // the keep: a tall masonry block, four corner turrets with cone roofs, two rows of windows, a framed door, hanging banners
@@ -6814,8 +6823,9 @@ function buildWarlordsHold(g) {
   for (const r of [3.6, 6.4]) for (const k of [-2.2, 0, 2.2]) g.add(box(.55, .9, .06, M.glow, cx + k, y0 + r, cz + 3.12));
   g.add(box(1.3, 2.1, .1, DOOR_M[3], cx, y0 + 1.05, cz + 3.13)); for (const sx of [-1, 1]) g.add(box(.25, 2.4, .25, M.stone2, cx + sx * .8, y0 + 1.2, cz + 3.15)); g.add(box(1.85, .3, .3, M.stone2, cx, y0 + 2.4, cz + 3.15));
   for (const sx of [-1, 1]) { const b = box(1, 3, .05, M.flag, cx + sx * 2.2, y0 + 6.8, cz + 3.15); b.castShadow = true; g.add(b); }
-  // inside the walls: the town's garrison (the royal stables were dropped: Jack)
-  placeModel(g, 'barracks', 3, 31.5, 9.5, 1, Math.PI / 2);
+  // inside the walls: the town's garrison and royal stables; two trebuchets on the keep's roof, aimed south (Jack)
+  placeModel(g, 'barracks', 3, 31.5, 9.5, 1, Math.PI / 2); placeModel(g, 'stables', 3, 48.5, 9.5, 1, -Math.PI / 2);
+  for (const sx of [-1, 1]) placeModel(g, 'catapult', 3, cx + sx * 1.7, cz, .9).position.y = y0 + 9.5;
 }
 function placeBossScenery() {
   if (bossMesh) { scene.remove(bossMesh); bossMesh = null; }
@@ -6828,7 +6838,19 @@ function placeBossScenery() {
     for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + .3, h = .5 + hash(x + i, z) * 1.1, w = box(1.7, h, .22, charM, x + Math.cos(a) * .85, yy + h / 2 - .1, z + Math.sin(a) * .85); w.rotation.y = -a + Math.PI / 2; g.add(w); }
     const bm = box(2, .18, .18, charM, x, yy + .4, z); bm.rotation.set(.3, hash(x, z) * 3, .4); g.add(bm);
   }
+  if (MAP === 'hold') { holdRiders = HOLD_RIDERS.map(([x, z, ry], i) => { const p = makeRaider('rider', 3); p.g.scale.setScalar(UNIT_K); p.g.position.set(x, hAt(x, z), z); p.g.rotation.y = ry; p.g.traverse(o => { if (o.isMesh) o.castShadow = true; }); g.add(p.g); return { p, ry, s: i * 1.9 + .7 }; }); }
+  else holdRiders = [];
   scene.add(g); bossMesh = g;
+}
+// they shift their weight, turn a little, the horses now and then paw the ground and toss their heads
+let holdRiders = [];
+function animHoldRiders(t) {
+  for (const R of holdRiders) { const { p, s } = R, paw = Math.max(0, Math.sin(t * .5 + s)) ** 8;
+    p.g.rotation.y = R.ry + .14 * Math.sin(t * .23 + s);
+    if (p.horse) { p.horse.rotation.x = -.03 * paw + .012 * Math.sin(t * 1.3 + s); p.horse.position.y = .01 * Math.sin(t * 1.1 + s); }
+    if (p.horseLegs) p.horseLegs.forEach((l, i) => { l.rotation.x = i === 0 ? -.6 * paw * Math.max(0, Math.sin(t * 6 + s)) : 0; });
+    if (p.arms) p.arms[1].rotation.x = -.25 + .08 * Math.sin(t * .7 + s);
+  }
 }
 // paths laid along polylines, cell by cell, diagonal steps joined so they stay connected
 function layRoads(list) {
@@ -7229,7 +7251,11 @@ function startGame() {
   if (MAP === 'plains') { yaw = 0; target.z -= 2; layRoads(PLAINS_ROADS); rebuildRoads(); }
   placeBossScenery();
   if (MAP === 'keep') { yaw = 0; target.z -= 10; layRoads(KEEP_ROADS); rebuildRoads(); }   // from the south, looking up at the keep
-  if (MAP === 'hold') { yaw = 0; target.z -= 10; layRoads(HOLD_ROADS); rebuildRoads(); }                   // from the south: the fords ahead                   // from the south: the north bridge at the top
+  if (MAP === 'hold') { yaw = 0; target.z -= 10; layRoads(HOLD_ROADS); rebuildRoads();
+    // a tier-3 archer tower of the town's by each side bridge, on the near bank (Jack)
+    for (const [x, z] of [[19, 48], [61, 48]]) { const ev = findValid('tower', Math.floor(x / CELL), Math.floor(z / CELL), { free: true }); if (!ev) continue;
+      const B = place('tower', ev.ci, ev.cj, { instant: true, free: true, quiet: true }); if (B) { B.tier = 3; B.max = DEF.tower.hp[2]; B.hp = B.max; swapModel(B); } }
+  }                   // from the south: the fords ahead                   // from the south: the north bridge at the top
   if (MAP === 'watch') { yaw = 0; target.x += 7; target.z -= 4; layRoads(WATCH_ROADS); rebuildRoads(); placeRuin(); }   // from the south: Watch hill ahead, the gully on the right   // from the south, the cross and the north road ahead
   BANK_WALL = MAP === 'bridge' ? BANK_WALL : [];
   if (MAP === 'vale') guideOn = true;               // the tutorial stage: the guided first day every time (Skip ends it)
@@ -7665,7 +7691,7 @@ function frame(now) {
   if (paused || menuOn()) { if (!lite || fresh || (liteN = (liteN + 1) % 2) === 0) renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not
   if (!gameOver) { updatePhase(gdt); updateVillagers(gdt, now); updateEco(gdt); updateMoves(gdt); updateEnemies(gdt); updateDefense(gdt); separateUnits(gdt); updateDoors(gdt); updateFallen(gdt); updateChips(gdt); updateSplashes(gdt); }
-  updateArrows(gdt); updateAmbience(dt); updateVolley(gdt); updateTrees(now); emitSmoke(gdt); updateBirds(gdt);
+  updateArrows(gdt); updateAmbience(dt); updateVolley(gdt); updateTrees(now); emitSmoke(gdt); updateBirds(gdt); if (holdRiders.length) animHoldRiders(now / 1000);
   if (anims.length) {
     for (let n = anims.length - 1; n >= 0; n--) { const a = anims[n], t = clamp((now - a.t0) / a.dur, 0, 1); applyPlan(a.plan, easeOut(t)); if (t >= 1) anims.splice(n, 1); }
     syncTerrain();
