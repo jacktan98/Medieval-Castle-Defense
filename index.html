@@ -3146,11 +3146,11 @@ function makeStables(tier, plinth) {
   const g = new THREE.Group(), b = plinth ? .2 : SLAB_TOP;
   if (plinth) g.add(box(4.0, 1.8, 4.0, tier === 2 ? M.plainStone : M.stone, 0, -.7, 0));
   const wallM = tier === 1 ? M.rough : M.plaster, roofM = tier === 1 ? M.thatchOld : tier === 2 ? M.thatch : M.roofBlue;
-  const sx0 = -.25, sx1 = 1.9, sz0 = -1.75, sz1 = .1, h = 1.45, cx = (sx0 + sx1) / 2, w = sx1 - sx0, dpt = sz1 - sz0;
+  const sx0 = .25, sx1 = 1.9, sz0 = -1.75, sz1 = .1, h = 1.45, cx = (sx0 + sx1) / 2, w = sx1 - sx0, dpt = sz1 - sz0;
   g.add(box(w, h, .12, wallM, cx, b + h / 2, sz0 + .06));                                   // back wall
   for (const x of [sx0 + .06, sx1 - .06]) g.add(box(.12, h, dpt, wallM, x, b + h / 2, (sz0 + sz1) / 2));
   if (tier > 1) for (const x of [sx0 + .04, sx1 - .04]) for (const z of [sz0 + .04, sz1 - .02]) g.add(box(.1, h + .02, .1, M.timber, x, b + h / 2, z));   // brown corner posts (tier 2 and 3)
-  const stalls = tier === 3 ? 3 : 2;
+  const stalls = 2;   // two stalls and two horses on every tier; the shed is kept to the right to give the armoury room
   for (let n = 1; n < stalls; n++) g.add(box(.08, .9, dpt - .2, M.timber, sx0 + n * w / stalls, b + .45, (sz0 + sz1) / 2));
   for (let n = 0; n < stalls; n++) {                                                        // half doors and a horse looking over each
     const x = sx0 + (n + .5) * w / stalls; g.add(box(w / stalls - .14, .55, .06, DOOR_M[tier], x, b + .28, sz1));
@@ -3159,8 +3159,8 @@ function makeStables(tier, plinth) {
   g.add(box(w + .1, .1, .1, M.timber, cx, b + h - .05, sz1));
   const rf = pyramid(w * .74, .75, dpt / w * 1.25, roofM, b + h + .37, cx, (sz0 + sz1) / 2); g.add(rf);
   // the armoury hut at the front left, its door the building's
-  // bigger than a house so a rider comes out of it: 1.35 x 1.0, 1.65 m to the eaves, the door 1.0 x 1.42 (centred on x -1)
-  const hx = -1, hz = .2, hw = 1.35, hd = 1.0, hh = 1.65;
+  // big enough for a rider inside: 1.8 x 1.3, 2.0 m to the eaves; the door stays 1.0 x 1.42 (centred on x -1)
+  const hx = -1, hz = .2, hw = 1.8, hd = 1.3, hh = 2.0;
   g.add(box(hw, hh, hd, wallM, hx, b + hh / 2, hz));
   if (tier > 1) for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.08, hh + .02, .08, M.timber, hx + sx * (hw / 2 - .02), b + hh / 2, hz + sz * (hd / 2 - .02)));
   g.add(pyramid(hw * .78, .6, hd / hw * 1.05, roofM, b + hh + .3, hx, hz));
@@ -3172,8 +3172,8 @@ function makeStables(tier, plinth) {
     roofFlag(g, cx, b + h + .8, (sz0 + sz1) / 2);
   }
   if (tier === 3) {                                                                          // a stand of armour beside the armoury
-    g.add(box(.05, 1.0, .05, M.timber, -.35, b + .5, .85)); g.add(cyl(.15, .19, .4, 8, mailM, -.35, b + .85, .85)); g.add(cyl(.15, .2, .3, 8, kiteM, -.35, b + .62, .85));
-    const hm = new THREE.Mesh(new THREE.SphereGeometry(.12, 10, 6, 0, Math.PI * 2, 0, Math.PI * .55), steelM); hm.position.set(-.35, b + 1.12, .85); g.add(hm);
+    g.add(box(.05, 1.0, .05, M.timber, .05, b + .5, 1.15)); g.add(cyl(.15, .19, .4, 8, mailM, .05, b + .85, 1.15)); g.add(cyl(.15, .2, .3, 8, kiteM, .05, b + .62, 1.15));
+    const hm = new THREE.Mesh(new THREE.SphereGeometry(.12, 10, 6, 0, Math.PI * 2, 0, Math.PI * .55), steelM); hm.position.set(.05, b + 1.12, 1.15); g.add(hm);
   }
   return g;
 }
