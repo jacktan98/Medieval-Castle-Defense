@@ -277,7 +277,12 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 /* the canvas itself is dark, so nothing light ever shows through before the first frame is drawn */
 #c{background:#0d0f0b}
 /* stage details: "New" clear above the chips; room for two rows of chips on every stage so the box keeps its height */
-.cDet .stNew{padding-top:18px!important;margin-top:-6px!important;min-height:calc(18px + 2 * 29px + 7px);align-content:flex-start}
+.cDet .stNew{padding-top:18px!important;margin-top:-6px!important}
+.cDet .stNew:empty{display:none}
+/* the details shrink to their content (one row of chips, or none on the boss stages), but their slot keeps the tallest height seen,
+   so the progress bar above never moves (Jack); the box sits at the slot's top on a tall screen, centred beside the deck on a wide one */
+.cDetSlot{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;width:100%;flex:0 0 auto}
+@media (min-width:900px) and (min-height:600px), (max-height:520px){ .cDetSlot{width:auto;justify-content:center;align-self:center} }
 .cDet .stNew::before{top:0!important}
 /* on a tall screen the progress bar and the details sit a little higher, into the spare room under the card (Jack: a small shift only) */
 @media (max-aspect-ratio:3/4){ .cDots{margin:-28px 0 6px} }
@@ -545,12 +550,12 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
           <div class="cDeckWrap"><div class="cDeck" id="campMap"><div class="cCards" id="cCards"></div></div><button class="cArrow l" id="cPrev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M15 5 L8 12 L15 19"/></svg></button><button class="cArrow r" id="cNext" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M9 5 L16 12 L9 19"/></svg></button></div>
           <div class="cDots" id="cDots"></div>
         </div>
-        <div class="stSide cDet">
+        <div class="cDetSlot" id="cDetSlot"><div class="stSide cDet">
           <h3 id="stName"></h3><div class="sub" id="stSub"></div>
           <div class="stNew" id="stNew"></div>
           <div id="stStars"></div>
           <div class="stActs"><button id="campBack">Back</button><span id="stPlay"></span></div>
-        </div>
+        </div></div>
       </div>
     </div>
   </div>
@@ -6872,6 +6877,10 @@ function openStage(i) {
   $('#stSub').textContent = [c.sub, c.land].filter(Boolean).join(' · ');
   $('#stNew').innerHTML = c.adds.map(t => `<span>${TOOL_ICON[t] || ''}<b>${t === 'road' ? 'Path' : DEF[t].name}</b></span>`).join('');
   $('#stStars').innerHTML = starsHTML(c.map ? STARS[c.map] || 0 : 0);
+  requestAnimationFrame(() => { const slot = $('#cDetSlot'), det = slot.firstElementChild, chips = [...det.querySelectorAll('.stNew span')];
+    const rows = new Set(chips.map(e => e.offsetTop)).size, ch = chips[0] ? chips[0].offsetHeight + 7 : 0;
+    const full = det.offsetHeight + (rows === 1 ? ch : 0);
+    if (full > (slot._h || 0) || slot._w !== innerWidth) { slot._h = Math.max(full, slot._w === innerWidth ? slot._h || 0 : 0); slot._w = innerWidth; slot.style.minHeight = slot._h + 'px'; } });
   $('#stPlay').innerHTML = c.map ? '<button class="primary" id="campPlay">Play</button>' : '';
   if (c.map) $('#campPlay').addEventListener('click', () => {
     sfx('click');
