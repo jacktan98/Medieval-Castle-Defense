@@ -742,7 +742,7 @@ const DEF = {
             up: [{ wood: 25, gold: 30 }, { stone: 25, gold: 50 }], tiers: ['Market stall', 'Market', 'Market hall'], key: '9' },
   // the other economy picks (one of each pair before a game): a grove grown on its own plot, a mine dug down into its own ground,
   // a yard of animals; none of them needs forest or rock nearby
-  forester: { size: 2, dz: 3, faces: [0, 2], name: 'Forester', maxdh: 1.6, plot: true, hp: [100, 140, 200], cost: { gold: 30, wood: 5 },
+  forester: { size: 2, dz: 3, turnDims: true, name: 'Forester', maxdh: 1.6, plot: true, hp: [100, 140, 200], cost: { gold: 30, wood: 5 },
             up: [{ gold: 55, stone: 10 }, { gold: 85, stone: 25 }], workers: [1, 2, 3], grove: [5, 7, 8], grow: [40, 34, 28], chop: [8, 7.2, 6.5],
             tiers: ["Forester's hut", 'Coppice', 'Tree farm'] },
   mine:   { size: 2, name: 'Mine', maxdh: 2.6, hp: [160, 230, 320], cost: { gold: 30, wood: 20 },
@@ -1788,7 +1788,7 @@ function genTrees() {
       // the only wood: trees round the pool and a few in the oasis
       const p = ellD(x, z, DUNE_POOL), o = oasisD(x, z);
       if (dk < 7.5 || polyDist(DUNE_ROAD, x, z) < 2.6 || p < 1.3) continue;
-      if ((p < 2.2 && hash(x * 1.3, z * .7) < .5) || (o < .85 && hash(x * 2.1, z * 1.7) < .02)) trees.push({ x, z, s: .7 + hash(z, x) * .4, k: 1 });
+      if ((p < 2.2 && hash(x * 1.3, z * .7) < .33) || (o < .85 && hash(x * 2.1, z * 1.7) < .012)) trees.push({ x, z, s: .7 + hash(z, x) * .4, k: 1 });
       continue;
     }
     if (MAP === 'bend') {
@@ -3602,8 +3602,10 @@ function countRes(type, cx, cz) {
   if (type === 'quarry') return rocks.filter(r => r.amount > 0 && Math.hypot(r.x - cx, r.z - cz) < R).length;
   return 0;
 }
+// a building's footprint in cells, x by z, when it faces f: the forester (2 wide, 3 deep) turned sideways is 3 by 2 (Jack)
+const dimsFor = (type, f) => { const T = DEF[type], s = T.size, sz = T.dz || s; return T.turnDims && f % 2 ? [sz, s] : [s, sz]; };
 function evaluate(type, ci, cj, free) {
-  const T = DEF[type], s = T.size, sz = T.dz || s, x0 = ci * CELL, z0 = cj * CELL, x1 = x0 + s * CELL, z1 = z0 + sz * CELL;
+  const T = DEF[type], [s, sz] = dimsFor(type, placeFace), x0 = ci * CELL, z0 = cj * CELL, x1 = x0 + s * CELL, z1 = z0 + sz * CELL;
   const r = { type, ci, cj, s, sz, x0, z0, x1, z1, ok: true, reason: '' };
   if (ci < 0 || cj < 0 || ci + s > N || cj + sz > N) return { ...r, ok: false, reason: 'Off the map' };
   for (let b = cj; b < cj + sz; b++) for (let a = ci; a < ci + s; a++) if (sceneryAt((a + .5) * CELL, (b + .5) * CELL)) return { ...r, ok: false, reason: 'Occupied' };
@@ -3627,7 +3629,7 @@ function evaluate(type, ci, cj, free) {
   }
   // smart rotate: keep the player's facing if its door tile is open, else the nearest turn whose door is
   r.face = FACING[type] ? placeFace : 0;
-  const faces = T.noRoad ? [r.face] : (FACING[type] ? [0, 3, 1, 2] : [0]).map(k => (placeFace + k) % 4).filter(f => (!T.faces || T.faces.includes(f)) && doorOk(doorCell(r, type, f)));
+  const faces = T.noRoad ? [r.face] : (FACING[type] ? [0, 3, 1, 2] : [0]).map(k => (placeFace + k) % 4).filter(f => (!T.faces || T.faces.includes(f)) && (!T.turnDims || f % 2 === placeFace % 2) && doorOk(doorCell(r, type, f)));
   if (!faces.length) return { ...r, ok: false, reason: 'Door blocked' };
   // and nobody may end up sealed in: the first of those turns that keeps every door, site and tower joined to the castle
   let cut = '';
@@ -6508,7 +6510,7 @@ function showGhostAt(point) {
     if (ev.ok) setHint(`<b>Path</b><i class="gap"></i>${costHTML(PATH_COST)}<i class="gap"></i><span class="cost" title="Walk speed"><span class="ico">${ICON.speed}</span>×${PATH_SPEED}</span>`, 'ok'); else setHint(ev.reason, 'bad');
     return;
   }
-  const T = DEF[tool], [ci, cj] = cellFor(point, T.size, T.dz), ev = evaluate(tool, ci, cj);
+  const T = DEF[tool], [ci, cj] = cellFor(point, ...dimsFor(tool, placeFace)), ev = evaluate(tool, ci, cj);
   for (const t in ghosts) ghosts[t].visible = t === tool;
   const g = ghosts[tool], cx = (ev.x0 + ev.x1) / 2, cz = (ev.z0 + ev.z1) / 2;
   g.position.set(cx, adapt && tool !== 'wall' && ev.target != null ? ev.target : hAt(cx, cz), cz);
@@ -6637,7 +6639,7 @@ function tap(e) {
   if (hb) { select(hb); return; }
   if (!building) { const pt = pick(e), c = pt && cellAt(pt.x, pt.z); if (pt && road[c]) selectPath(c % N, Math.floor(c / N)); else deselect(); return; }
   const pt = pick(e); if (!pt) return;
-  const [ci, cj] = cellFor(pt, DEF[tool].size, DEF[tool].dz);
+  const [ci, cj] = cellFor(pt, ...dimsFor(tool, placeFace));
   if (e.pointerType !== 'mouse' && !(cur && cur.ci === ci && cur.cj === cj && cur.type === tool && ghosts[tool].visible)) { showGhostAt(pt); return; }
   if (place(tool, ci, cj)) { sfx('click'); if (e.pointerType === 'mouse') showGhostAt(pt); else { hideGhost(); setHint('Placed'); } }
 }
@@ -6655,6 +6657,8 @@ function rotateBuilding(B) {
   for (let k = 1; k < 4; k++) {
     const f = ((B.face || 0) + 4 - k) % 4, d = T.noRoad ? null : doorCell(B.ev, B.type, f);
     if (T.faces && !T.faces.includes(f)) continue;
+    // a placed forester only turns end for end: a quarter turn would change its 2 x 3 plot to 3 x 2
+    if (T.turnDims && f % 2 !== (B.face || 0) % 2) continue;
     if (d && !doorOk(d)) continue;
     if (d && B.type !== 'castle' && mainRegion() && regions()[d.b * N + d.a] !== mainRegion()) continue;   // a door turned into a sealed-off corner
     if (d && buildings.some(o => o !== B && !o.dead && !WALK[o.type] && o.type !== 'gate' && occB[d.b * N + d.a] === o)) continue;
