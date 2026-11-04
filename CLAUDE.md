@@ -200,6 +200,7 @@ Roof colours: tier 3 roofs use `M.roofBlue` (blue is the town's colour, red the 
 
 ## Gotchas fixed before (don't reintroduce)
 - `var paused` (not `let`) — TDZ crash on startup.
+- Anything `showMapPick` (or anything else run during startup) touches must exist before the script reaches it: `hushSfx` read a `const liveSfx` declared further down, the startup `showMapPick` threw, the rest of the script never ran and the Campaign button was dead (Jack). It is a `var` now and `hushSfx` returns while the audio state isn't set up. Test the plain `index.html` (no `?debug`/`?map=`) after touching startup paths: `tools/render/serve.js` waits for `G`, which only `?debug` defines.
 - No two faces at the same height in one model: the arbalest tower's shaft and platform slab shared a top face and the platform flickered between greys as the camera turned (z-fighting); keep stacked boxes' faces a centimetre or more apart (the great ballista's shaft stops .02 short of its slab).
 - `crowns.instanceColor` is pre-sized to `MAXT`: r128 sizes it from `.count` at the first `setColorAt`, so switching to a map with more trees showed garbage crown colours.
 - Global `[hidden]{display:none!important}` — otherwise flex modals ignore `hidden`.

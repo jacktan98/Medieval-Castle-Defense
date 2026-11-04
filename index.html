@@ -7821,10 +7821,12 @@ function sfx(name, at, vol = 1) {
   return src;
 }
 // every one-shot still sounding, so leaving a game can cut them off (Jack heard the last stage's sounds carry on in the menu)
-const liveSfx = new Set();
+var liveSfx = new Set();
 // (also the fire, river and hoof loops: behind a menu the game is paused and updateAmbience doesn't run, so they kept the last
 // game's volume and played on in the menu)
 function hushSfx() {
+  // showMapPick runs at startup, before the audio setup here has run (liveSfx, ambK not set yet): nothing to hush then
+  if (!liveSfx || !ambK) return;
   for (const src of liveSfx) if (src.sndName !== 'click') { try { src.stop(); } catch (e) {} liveSfx.delete(src); }
   for (const k of ['fire', 'river', 'gallop']) { ambK[k] = 0; ambK[k + 'Goal'] = 0; if (loopNode[k]) loopNode[k].gain.value = 0; }
   syncMusic();
