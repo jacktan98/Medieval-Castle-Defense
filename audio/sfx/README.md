@@ -15,7 +15,7 @@
 | `Market_trade.mp3` | A trade at the market |
 | `Morning_rooster.mp3` | Dawn, when a night is won |
 | `Villager_yawn.mp3` | A hungry villager goes to sleep (at most once every 3 s) |
-| `Not_allowed.mp3` | A tap or key that can't be done (any red hint right after it: "Occupied", "Need 5 wood", "Night only"…) |
+| `Error_sound.mp3` | A tap or key that can't be done (any red hint right after it: "Occupied", "Need 5 wood", "Night only"…) |
 | `Woodcutter_axe.mp3` | One chop per axe swing (single strikes are cut out of the recording automatically) |
 | `Mason_pick.mp3` | One hit per pick swing (cut the same way) |
 | `Farmer_hoe.mp3` | One stroke per hoe swing |

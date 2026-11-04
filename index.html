@@ -7713,7 +7713,7 @@ var SND = {   // game event -> file in audio/sfx (or audio/music) and its trim a
   trade:     { file: 'sfx/Market_trade.mp3',         trim: .7 },
   rooster:   { file: 'sfx/Morning_rooster.mp3',      trim: 1.1 },     // dawn: the night is won
   yawn:      { file: 'sfx/Villager_yawn.mp3',        trim: .6 },     // a hungry villager goes to sleep
-  nope:      { file: 'sfx/Not_allowed.mp3',          trim: .5 },     // a tap that can't be done (any red hint straight after a tap or key)
+  nope:      { file: 'sfx/Error_sound.mp3',          trim: .5 },     // a tap that can't be done (any red hint straight after a tap or key)
   // long recordings of repeated work: single strikes are cut out of them (see strikes()) and one plays per swing
   chop:      { file: 'sfx/Woodcutter_axe.mp3',       trim: .736, strikes: true },
   pick:      { file: 'sfx/Mason_pick.mp3',           trim: .736, strikes: true },
@@ -7749,7 +7749,7 @@ var LOOPS = {
   gallop: { file: 'sfx/Horse_gallop.mp3',          vol: .4, amb: true },   // horses on the move (loudest .3 s RMS .126)
 };
 // bump when a sound file is replaced, so phones fetch the new file instead of a cached copy
-var AUDIO_V = 4;
+var AUDIO_V = 5;
 var TARGET_LOUD = .09, LOUD_WINDOW = .3, GAIN_MIN = .1, GAIN_MAX = 6, MASTER = .9, PEAK_CEILING = .95 / MASTER;
 var SFX_GAP = { ramHit: .3, hen: 2, pig: 1.5, cow: 4, neigh: 3, bolt: .1, qbolt: .06, rockFire: .15, rockHit: .15, path: .12, clash: .12, arrowHit: .08, grunt: 3, yawn: 3, nope: .3, rooster: 2, chop: .15, pick: .15, hoe: .2, hammer: .12, arrow: .08, attack: .1, coins: .3, click: .05 };   // min seconds between repeats
 var STROKE_SFX = { axe: 'chop', pick: 'pick', hoe: 'hoe', hammer: 'hammer' };
