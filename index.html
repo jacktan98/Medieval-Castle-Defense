@@ -6264,7 +6264,8 @@ function updateLight(dt, now) {
 const hintEl = $('#hint');
 // a red hint straight after the player's own tap or key press gets the "not allowed" knock (hover hints stay silent)
 let userActT = -1e9; for (const ev of ['pointerup', 'click', 'keydown']) addEventListener(ev, () => { userActT = performance.now(); }, true);
-function setHint(html, cls) { if (cls === 'bad' && performance.now() - userActT < 80) sfx('nope'); hintEl.innerHTML = html; hintEl.className = 'pill' + (cls ? ' ' + cls : ''); }
+// quiet: a red hint that isn't a refusal (pausing shows "Paused" in red), so no error sound
+function setHint(html, cls, quiet) { if (cls === 'bad' && !quiet && performance.now() - userActT < 80) sfx('nope'); hintEl.innerHTML = html; hintEl.className = 'pill' + (cls ? ' ' + cls : ''); }
 const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const TOOL_ICON = {
   market: '<svg viewBox="0 0 24 24"><path d="M3.5 9 L5.5 4 H18.5 L20.5 9 Z"/><path d="M3.5 9 a2.75 2.2 0 0 0 5.5 0 a2.75 2.2 0 0 0 5.5 0 a2.75 2.2 0 0 0 5.5 0"/><path d="M5 11.5 V20 H19 V11.5"/><path d="M9.5 20 V15 H14.5 V20"/></svg>',
@@ -7643,7 +7644,7 @@ let last = performance.now(), hudT = 0, buildT = 0;
 var paused = false, gameSpeed = 1, instantBuild = false;
 function setPaused(on) {
   paused = on; $('#pauseBtn').setAttribute('aria-pressed', String(on)); $('#pausedTag').hidden = !on;
-  if (on) { hideGhost(); setHint('Paused', 'bad'); } else setHint(tool === 'select' ? 'Select a building' : isTouch ? 'Tap to place' : 'Pick a spot');
+  if (on) { hideGhost(); setHint('Paused', 'bad', true); } else setHint(tool === 'select' ? 'Select a building' : isTouch ? 'Tap to place' : 'Pick a spot');
   $('#pauseBtn').innerHTML = on ? '<svg viewBox="0 0 24 24"><path class="solid" d="M8 5 L19 12 L8 19 Z"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M8 5 V19 M16 5 V19" stroke-width="3.2"/></svg>';
   $('#pauseBtn').setAttribute('aria-label', on ? 'Resume' : 'Pause'); $('#pauseBtn').title = on ? 'Resume (P)' : 'Pause (P)';
 }
