@@ -963,7 +963,7 @@ const STAGE_GOALS = {
   watch: [['Build 2 ballistas', () => made('ballista') >= 2], ['Upgrade 1 ballista to tier 2', () => upTo('ballista', 2)]],
   dune: [['Build 2 foresters', () => made('forester') >= 2], [`Fell ${GOAL_N.felled} forester trees`, () => stats.felled >= GOAL_N.felled]],
   bend: [['Build 2 crossbows', () => made('crossbow') >= 2], [`Boosted crossbows slay ${GOAL_N.xbowKills} raiders`, () => (stats.boostKills.crossbow || 0) >= GOAL_N.xbowKills]],
-  crag: [['Build 2 mines', () => made('mine') >= 2], [`Mine ${GOAL_N.mined} stone`, () => stats.mined >= GOAL_N.mined]],
+  crag: [['Build 2 mines', () => made('mine') >= 2], [`Mine ${GOAL_N.mined} stones`, () => stats.mined >= GOAL_N.mined]],
   ford: [['Build 2 catapults', () => made('catapult') >= 2], [`Boosted catapults slay ${GOAL_N.cataKills} raiders`, () => (stats.boostKills.catapult || 0) >= GOAL_N.cataKills]],
   mere: [['Build 2 farmhouses', () => made('farmhouse') >= 2], ['Upgrade 1 farmhouse to tier 3', () => upTo('farmhouse', 3)]],
   plains: [['Build 2 stables', () => made('stables') >= 2], ['Upgrade 1 stables to tier 3', () => upTo('stables', 3)]],
@@ -7098,14 +7098,14 @@ function applyLoadout() {
   GUIDE = [];
   if (CM && CM.guide) { GUIDE = CM.guide(); return; }
   // each step says what to build and why, in the tips' style (Jack: more detail; no "·" or full stop)
-  const STEP = { lodge: 'Build <b>Lumber</b> near the trees to gather wood', forester: 'Build a <b>Forester</b> to grow trees for wood',
-    farm: 'Build <b>Fields</b> to grow food for your villagers', farmhouse: 'Build a <b>Farmhouse</b> to raise animals for food',
-    tower: 'Build <b>Archers</b> where the raiders come in', crossbow: 'Build a <b>Crossbow</b> tower where the raiders come in' };
-  GUIDE.push({ text: 'Build a <b>House</b> so more villagers can move in', tool: 'house', cat: 'eco', done: () => buildings.some(B => B.type === 'house') },
+  const STEP = { lodge: 'Build <b>Lumber</b> near trees for wood', forester: 'Build a <b>Forester</b> for wood',
+    farm: 'Build <b>Fields</b> for food', farmhouse: 'Build a <b>Farmhouse</b> for food',
+    tower: 'Build <b>Archers</b> to guard the town', crossbow: 'Build a <b>Crossbow</b> to guard the town' };
+  GUIDE.push({ text: 'Build a <b>House</b> for more villagers', tool: 'house', cat: 'eco', done: () => buildings.some(B => B.type === 'house') },
     { text: STEP[L.wood], tool: L.wood, cat: 'eco', done: () => buildings.some(B => B.type === L.wood) },
     { text: STEP[L.food], tool: L.food, cat: 'eco', done: () => buildings.some(B => B.type === L.food) },
     { text: STEP[L.ranged], tool: L.ranged, cat: 'def', done: () => buildings.some(B => B.type === L.ranged) },
-    { text: 'Tap a building, then <b>Upgrade</b> it', tool: 'select', done: () => buildings.some(B => B.tier > 1 || (B.site && B.site.kind === 'up')) });
+    { text: 'Tap a building to <b>Upgrade</b> it', tool: 'select', done: () => buildings.some(B => B.tier > 1 || (B.site && B.site.kind === 'up')) });
   if (tierCap() < 2) GUIDE.pop();   // no upgrades on this stage
 }
 const LOCK_ICO = '<svg class="lockIco" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V8 a4 4 0 0 1 8 0 V11"/></svg>';
