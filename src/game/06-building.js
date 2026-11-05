@@ -1,5 +1,5 @@
 // ---------- state ----------
-let adapt = true, tool = 'select', cat = 'eco', cur = null, selected = null, gameOver = false;
+let adapt = true, tool = 'select', cat = 'eco', cur = null, selected = null, gameOver = false, endCheer = 0;
 const anims = [], buildings = [], villagers = [], enemies = [], arrows = [];
 const res = { gold: 0, wood: 0, stone: 0, food: 0 };
 let stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, lostB: 0, felled: 0, mined: 0, boostKills: {}, t0: 0 };

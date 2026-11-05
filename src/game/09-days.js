@@ -233,9 +233,8 @@ function resumeGame() {
   $('#log').innerHTML = ''; log(`Survive <b>${NIGHTS} nights</b>`); log(`<b>Day ${S.wave}</b> · resumed`, 'good'); banner(`Day ${S.wave}`, 'Resumed');
   goalsKey = ''; renderGoals();
 }
-function startDay() {
-  const test = PH.testDay; PH.testDay = undefined; nextPts = null;   // the end of an admin test raid: back to the same day, the wave not used up
-  sfx('rooster'); if (test === undefined) PH.wave++; PH.kind = 'day'; PH.t = test !== undefined ? Math.max(test, DUSK + 5) : DAYLEN[PH.wave - 1];
+// everyone off their posts and out again (dawn, and the cheer after the last night is won)
+function standDown() {
   for (const v of villagers) if (v.climb && v.climb.up) { v.climb.up = false; v.post = null; v.posted = false; }   // dawn caught them on the way up: back down
   for (const v of villagers) if (v.post) {
     if (v.summoned) { v.foe = null; v.path = null; v.prog = null; continue; }
@@ -257,6 +256,11 @@ function startDay() {
     v.post = null;
   }
   for (const B of buildings) { B.manned = []; hideDefenders(B); }
+}
+function startDay() {
+  const test = PH.testDay; PH.testDay = undefined; nextPts = null;   // the end of an admin test raid: back to the same day, the wave not used up
+  sfx('rooster'); if (test === undefined) PH.wave++; PH.kind = 'day'; PH.t = test !== undefined ? Math.max(test, DUSK + 5) : DAYLEN[PH.wave - 1];
+  standDown();
   const hurt = startRepairs();
   banner(`Day ${PH.wave}`, hurt ? `${hurt} to repair` : 'Wave held'); setMusic('day');
   for (const v of villagers) v.cheerT = 2.6;   // the town cheers as everyone comes out
@@ -264,7 +268,11 @@ function startDay() {
   if (test === undefined) { saveGame(); log('Saved'); }
 }
 function endGame(won) {
-  if (gameOver) return; gameOver = true; clearSave(); setMusic(won ? 'victory' : 'defeat');
+  if (gameOver) return; gameOver = true; clearSave();
+  // a win: dawn breaks, everyone comes out and cheers (`endCheer` keeps the villagers moving in `frame`), and the victory
+  // music waits for the summary (Jack); a defeat sounds at once
+  if (won) { PH.kind = 'day'; PH.t = DAYLEN[PH.wave - 1] || 120; standDown(); for (const v of villagers) v.cheerT = 3.4; endCheer = 3.6; setMusic('none'); sfx('rooster'); }
+  else setMusic('defeat');
   const el = (performance.now() - stats.t0) / 1000;
   $('#sumTitle').textContent = won ? 'The town holds' : 'The castle has fallen';
   $('#sumTitle').className = won ? '' : 'lost';
@@ -287,10 +295,10 @@ function endGame(won) {
   if (won && stats.playT && !(BEST[MAP] <= stats.playT)) { BEST[MAP] = Math.round(stats.playT); try { localStorage.setItem('mtd-best', JSON.stringify(BEST)); } catch (e) {} }
   // Jack: not straight to the summary; a pause on the field first, then the stars pop in one at a time (a sound per star: SND.star, Star_sound.mp3)
   sumTimers.push(setTimeout(() => {
-    $('#summary').hidden = false;
+    $('#summary').hidden = false; if (won) setMusic('victory');
     const el = [...$('#sumStars').querySelectorAll('span span')];
     for (let i = 0; i < n; i++) sumTimers.push(setTimeout(() => { el[i].classList.add('on', 'pop'); sfx('star'); }, 650 + i * 650));
-  }, won ? 2200 : 2600));
+  }, won ? 3600 : 2600));
 }
 var sumTimers = [];
 // a crown per stage won on hard (localStorage 'mtd-crowns')
