@@ -6790,7 +6790,10 @@ const stageOpen = m => new Set([...CAMP_MAPS[m].cats.eco, ...CAMP_MAPS[m].cats.d
 const stageBoth = m => SLOTS_ALL().filter(([, o]) => o.every(t => stageOpen(m).has(t)));   // pairs with both unlocked: the player picks one
 const stagePicks = m => stageDecorAll(m).length > DECOR_PICK || stageBoth(m).length > 0;
 var STAGE_PAIR = {}; try { STAGE_PAIR = JSON.parse(localStorage.getItem('mtd-stage-pair') || '{}') || {}; } catch (e) {}
-const stagePair = (m, slot, opts) => (STAGE_PAIR[m] && opts.includes(STAGE_PAIR[m][slot])) ? STAGE_PAIR[m][slot] : (CAMP_MAPS[m].prefer || {})[slot] || opts[0];   // a stage may suggest one (Ironcrag: the mine)
+// with both of a pair unlocked, a stage starts on the newer one (the second of each pair: farmhouse, forester, mine, crossbow, catapult,
+// stables; Jack: the new buildings by default, the old still a tap away) unless it suggests otherwise (Siegeford: the quarry, stone
+// lying about) or the player picked on this stage before
+const stagePair = (m, slot, opts) => (STAGE_PAIR[m] && opts.includes(STAGE_PAIR[m][slot])) ? STAGE_PAIR[m][slot] : (CAMP_MAPS[m].prefer || {})[slot] || opts[1];
 var STAGE_DECOR = {}; try { STAGE_DECOR = JSON.parse(localStorage.getItem('mtd-stage-decor') || '{}') || {}; } catch (e) {}
 function stageDecor(m) {
   const all = stageDecorAll(m), d = STAGE_DECOR[m];
