@@ -110,7 +110,7 @@ function smoothPts(p, it = 2) { for (let k = 0; k < it; k++) { const q = [p[0]];
 // a caravan road west to east past them, two rock mesas (stone) in the north-east and south-west
 const DUNE_POOL = [26.6, 24.2, 4.6, 3.1], DUNE_OASIS = [24.5, 25.9, 13.3, 11.5], DUNE_MESAS = [[46.2, 11.9, 7.4, 5.6], [9.1, 46.2, 6.7, 5.3]];
 const DUNE_ROAD = smoothPts([[-1, 32.9], [8.4, 32.9], [12.6, 31], [17.5, 30.6], [23.1, 30], [30.1, 29.6], [36.4, 26.6], [43.4, 23.5], [49, 23.1], [57, 23.1]]);
-const MERE_C = new THREE.Color('#646238'), PLAINS_C = new THREE.Color('#7e9b45'), DUNE_SAND = new THREE.Color('#c9ad72'), DUNE_ROCK = new THREE.Color('#9a6f4c');
+const MERE_DEAD = new THREE.Color('#8a7745'), MERE_C = new THREE.Color('#646238'), PLAINS_C = new THREE.Color('#7e9b45'), DUNE_SAND = new THREE.Color('#c9ad72'), DUNE_ROCK = new THREE.Color('#9a6f4c');
 const ellD = (x, z, [cx, cz, rx, rz]) => Math.hypot((x - cx) / rx, (z - cz) / rz);
 // the oasis's edge: an ellipse pulled into lobes and bays by angle and noise, ragged where grass gives way to sand (Jack: too oval)
 function oasisD(x, z) {

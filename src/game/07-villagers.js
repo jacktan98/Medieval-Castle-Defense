@@ -336,14 +336,16 @@ function assignBuilders() {
     if (!S.site) continue;
     const crew = villagers.filter(v => v.build === S).length;
     if (crew >= 2) continue;
-    const anyBuilding = villagers.some(v => v.build), c = center(S), repair = S.site.kind === 'repair';
+    // the castle's repair comes first (Jack saw nobody mend it after a night: every workplace's own workers took their own repair
+    // and job-holders only help elsewhere while nobody builds): two builders at once, idle ones first, else off their jobs
+    const anyBuilding = villagers.some(v => v.build), c = center(S), repair = S.site.kind === 'repair', urgent = repair && S.type === 'castle';
     const reach = new Set(ringCells(S.ev).map(n => R[n]).filter(Boolean));   // only someone who can walk there
     let best = null, bd = 1e9;
     for (const v of villagers) {
       if (v.build || v.post || v.hungry || v.unkit) continue;
       if (!reach.has(villagerRegion(v, R)) || (v.noBuild && v.noBuild.S === S && v.noBuild.t > now)) continue;
       const own = repair && v.job === S;
-      if (v.job && !own && (anyBuilding || crew > 0)) continue;
+      if (v.job && !own && !urgent && (anyBuilding || crew > 0)) continue;
       if (v.carryLog.visible || v.carryStone.visible) continue;
       const d = Math.hypot(v.x - c.x, v.z - c.z) + (own ? -100 : v.job ? 40 : 0); if (d < bd) { bd = d; best = v; }
     }

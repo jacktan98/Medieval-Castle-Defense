@@ -373,7 +373,8 @@ function genClutter() {
       if (reed && c.kind === 'bush' && Math.random() > .3) continue;
       const n = counts[ci]++;
       clutter.push({ ci, n, x, z, s: .7 + Math.random() * .7, rot: Math.random() * 6.28 });
-      if (c.kind === 'tuft') { if (reed) col.setHSL(.13 + Math.random() * .03, .38, .3 + Math.random() * .08); else if (sand) col.setHSL(.11 + Math.random() * .03, .32, .33 + Math.random() * .08); else col.setHSL(.21 + Math.random() * .05, .3 + Math.random() * .12, .2 + Math.random() * .07); }
+      // Meadowmere: most tufts withered, like the sand's
+      if (c.kind === 'tuft') { if (reed) col.setHSL(.13 + Math.random() * .03, .38, .3 + Math.random() * .08); else if (sand || (MAP === 'mere' && Math.random() < .65)) col.setHSL(.11 + Math.random() * .03, .32, .33 + Math.random() * .08); else col.setHSL(.21 + Math.random() * .05, .3 + Math.random() * .12, .2 + Math.random() * .07); }
       else if (c.kind === 'bush') col.setHSL(.24 + Math.random() * .05, .33, .15 + Math.random() * .08);
       else col.setHSL(.1, .06, .4 + Math.random() * .15);
       c.mesh.setColorAt(n, col);

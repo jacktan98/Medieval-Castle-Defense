@@ -597,7 +597,7 @@ function frame(now) {
     const c = center(B);
     B.bar.grp.visible = B.hp < B.max; B.bar.set(B.hp / B.max); B.bar.grp.position.set(c.x, B.group.position.y + barTop(B), c.z);
   }
-  for (let n = floats.length - 1; n >= 0; n--) { const f = floats[n]; f.t += dt; f.sp.position.y += dt * .9; f.sp.material.opacity = 1 - f.t / 1.8; if (f.t > 1.8) { scene.remove(f.sp); f.sp.material.dispose(); floats.splice(n, 1); } }
+  for (let n = floats.length - 1; n >= 0; n--) { const f = floats[n]; const L = f.life || 1.8; f.t += dt; f.sp.position.y += dt * (L > 2 ? .25 : .9); f.sp.material.opacity = L > 2 ? 1 - sstep(L - 1.5, L, f.t) : 1 - f.t / L; if (f.t > L) { scene.remove(f.sp); f.sp.material.dispose(); floats.splice(n, 1); } }
   if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); guideTick(); goalTick(); updatePowers(); updateBossBar(); }
   updateDebris(dt); updateRaidMarks(dt); updateHitMarks(dt, now); updateTips(dt); updateGuideSpot(now);
   const sh = shakeOffset(dt); camera.position.add(sh);

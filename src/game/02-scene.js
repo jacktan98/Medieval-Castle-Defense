@@ -67,15 +67,17 @@ water.receiveShadow = true; scene.add(water);
 // from a small texture of the heightmap (hTex, refreshed by syncTerrain).
 const hData = new Uint8Array(V_MAX * V_MAX * 4), hTex = new THREE.DataTexture(hData, V_MAX, V_MAX, THREE.RGBAFormat);   // always V_MAX wide   // the bed under the water
 hTex.magFilter = hTex.minFilter = THREE.LinearFilter;
-const waterU = { uIsle: { value: 0 }, uC: { value: new THREE.Vector2() } };
+const waterU = { uIsle: { value: 0 }, uC: { value: new THREE.Vector2() }, uFoul: { value: 0 } };
 function syncWaterTex() {
   for (let j = 0; j < V; j++) for (let i = 0; i < V; i++) hData[(j * V_MAX + i) * 4] = clamp(Math.round((H[idx(i, j)] + 3) / 6 * 255), 0, 255);
   hTex.needsUpdate = true; waterU.uIsle.value = MAP === 'isle' ? 1 : MAP === 'bridge' || MAP === 'bend' || MAP === 'ford' || MAP === 'hold' ? 2 : 0; waterU.uC.value.set(KX, KZ);
+  // Meadowmere's water is foul (Jack: show why fields do badly there): murky olive with a scum of algae, yellowish froth
+  const foul = MAP === 'mere'; waterU.uFoul.value = foul ? 1 : 0; edgeWater.material.color.set(foul ? '#4a4d24' : '#3d6e86');
 }
 waterMat.onBeforeCompile = sh => {
-  sh.uniforms.uTime = windU; sh.uniforms.uH = { value: hTex }; sh.uniforms.uIsle = waterU.uIsle; sh.uniforms.uC = waterU.uC;
+  sh.uniforms.uTime = windU; sh.uniforms.uH = { value: hTex }; sh.uniforms.uIsle = waterU.uIsle; sh.uniforms.uC = waterU.uC; sh.uniforms.uFoul = waterU.uFoul;
   sh.vertexShader = 'varying vec3 vWP;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vWP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-  sh.fragmentShader = `uniform float uTime; uniform sampler2D uH; uniform float uIsle; uniform vec2 uC; varying vec3 vWP;
+  sh.fragmentShader = `uniform float uTime; uniform sampler2D uH; uniform float uIsle; uniform vec2 uC; uniform float uFoul; varying vec3 vWP;
     float wh(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     float wn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
       return mix(mix(wh(i), wh(i + vec2(1, 0)), f.x), mix(wh(i + vec2(0, 1)), wh(i + vec2(1, 1)), f.x), f.y); }
@@ -91,10 +93,13 @@ waterMat.onBeforeCompile = sh => {
     vec2 q1 = flowAt(vWP.xz, 1.0), q2 = flowAt(vWP.xz, 1.6);
     float streak = smoothstep(.5, .85, wn(q1 * 1.1) * .55 + wn(q2 * 2.4) * .45), dark = smoothstep(.55, .2, wn(q2 * .7 + 3.1));
     diffuseColor.rgb *= .88 + .12 * dark;
-    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.7 + vec3(.05, .07, .08), streak * .6);
+    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.7 + vec3(.05, .07, .08), streak * .6 * (1.0 - .7 * uFoul));
+    float scum = uFoul * smoothstep(.54, .78, wn(q2 * .8 + 5.0) * .6 + wn(vWP.xz * 3.1) * .4);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.27, .22, .06), scum * .75);
+    diffuseColor.a = mix(diffuseColor.a, 1.0, scum * .6);
     float shore = 1.0 - smoothstep(.02, .3, depth);
     float froth = smoothstep(.45, .75, wn(q1 * 2.6 + vec2(0.0, uTime * .7)) * .6 + wn(vWP.xz * 5.0 - uTime * .9) * .4 + shore * .35);
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.86, .9, .9), shore * froth * .85);
+    diffuseColor.rgb = mix(diffuseColor.rgb, mix(vec3(.86, .9, .9), vec3(.48, .45, .22), uFoul), shore * froth * .85);
     diffuseColor.a = mix(diffuseColor.a, 1.0, shore * froth * .6);`);
 };
 waterMat.customProgramCacheKey = () => 'flowing-water';
@@ -114,7 +119,13 @@ function recolor() {
     if (MAP === 'dune') { const od = oasisD(i, j); tmpC.lerp(C.dry, sstep(.68, .95, od) * .75); tmpC.lerp(DUNE_SAND, sstep(.86, 1.14, od) * .92); for (const m of DUNE_MESAS) tmpC.lerp(DUNE_ROCK, sstep(1.12, .95, ellD(i, j, m)) * .8); }   // sand beyond the oasis; red-brown rock mesas
     if (MAP === 'keep') { tmpC.lerp(KEEP_ASH, sstep(62, 40, j) * .55); tmpC.lerp(KEEP_RED, sstep(40, 12, j) * .7); }   // red north, scorched middle
     if (MAP === 'hold') tmpC.lerp(C.dry, .2);   // cold grass
-    if (MAP === 'mere') tmpC.lerp(MERE_C, marshW(i / MK, j / MK) * (.7 + .3 * fbm(i * .3, j * .3)));   // the marsh: brownish olive, patchy
+    if (MAP === 'mere') {
+      // the marsh: brownish olive, patchy; and (Jack: show the fields will do badly) withered straw-brown grass over most of the dry
+      // ground too, in broad patches, least on the castle's mound
+      tmpC.lerp(MERE_C, marshW(i / MK, j / MK) * (.7 + .3 * fbm(i * .3, j * .3)));
+      const wf = sstep(.36, .56, fbm(i / MK * .09 + 3.7, j / MK * .09 + 1.3)) * (.55 + .45 * fbm(i * .4, j * .4));
+      tmpC.lerp(MERE_DEAD, Math.max(wf * .85, marshW(i / MK, j / MK) * .45) * (.6 + .4 * sstep(5, 10, Math.hypot(i - KX, j - KZ))));
+    }
     if (MAP === 'plains') tmpC.lerp(PLAINS_C, .35);              // the plains: a fresh, lighter green
     if (MAP === 'crag') tmpC.lerp(C.rock, (1 - sstep(.75, 1.05, blobD(i / MK, j / MK, CRAG_ROCK, 2))) * .85);   // the grey crag
     if (MAP === 'ford') tmpC.lerp(C.dry, .3);                                                          // highland grass

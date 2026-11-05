@@ -124,7 +124,14 @@ function rangeOf(B) {
 const siegeRate = B => DEF[B.type].rate[B.tier - 1] * (1 - decorFx(center(B).x, center(B).z, 'siegeRate'));
 // Meadowmere (Jack: a better reason for the farmhouse): its sodden ground grows fields at half anywhere, and in the marsh itself at .3;
 // the farmhouse's yard is not a field, so it keeps its full yield
-const prodK = B => (1 + decorFx(center(B).x, center(B).z, 'prod')) * (MAP === 'mere' && B.type === 'farm' ? (marshW(center(B).x / MK, center(B).z / MK) > .5 ? .3 : .5) : 1);
+const soddenK = B => MAP === 'mere' && B.type === 'farm' ? (marshW(center(B).x / MK, center(B).z / MK) > .5 ? .3 : .5) : 1;
+const prodK = B => (1 + decorFx(center(B).x, center(B).z, 'prod')) * soddenK(B);
+// Jack: fields built on Meadowmere anyway show what they lose: a red "−50%" (−70% in the marsh) with the food icon over them,
+// held a few seconds then fading, when placed and again when built
+function soddenPop(B) {
+  const k = soddenK(B); if (k >= 1) return;
+  const c = center(B); floatRes('food', '\u2212' + Math.round((1 - k) * 100) + '%', c.x, B.group.position.y + 2.6, c.z, 4.5).scale.multiplyScalar(1.7);
+}
 const housesNear = (x, z) => buildings.filter(B => B.type === 'house' && Math.hypot(center(B).x - x, center(B).z - z) <= CHARM_R).length;
 function center(B) { return { x: (B.ev.x0 + B.ev.x1) / 2, z: (B.ev.z0 + B.ev.z1) / 2 }; }
 function doorPoint(B) { const d = B.door; if (!d) return { x: center(B).x, z: B.ev.z1 + .6 }; const [sx, sz] = doorShift(B); return { x: (d.a + .5) * CELL + sx, z: (d.b + .5) * CELL + sz }; }
@@ -173,6 +180,7 @@ function place(type, ci, cj, opts = {}) {
     g.position.set(c.x, ev.target, c.z);
   } else g.position.set(c.x, ev.center, c.z);
   B.face = FACING[type] ? ev.face : 0; g.rotation.y = B.face * Math.PI / 2;
+  if (!opts.free) soddenPop(B);
   B.door = T.noRoad ? null : doorCell(ev, type, B.face);     // paths are the player's to lay
   scene.add(g); buildings.push(B);
   const bw = type === 'castle' ? 2.6 : T.size === 1 ? 1.2 : 1.8;
@@ -246,7 +254,7 @@ function completeSite(B) {
   }
   if (S.kind !== 'repair') { B.pop = performance.now(); for (let n = 0; n < 6; n++) { const a = n / 6 * 6.283, r = B.ev.s * CELL * .55; dustAt(c.x + Math.cos(a) * r, B.group.position.y, c.z + Math.sin(a) * r); } }
   if (S.kind === 'new') {
-    B.built = true; B.group.scale.y = 1; stats.built++; stats.made[B.type] = (stats.made[B.type] || 0) + 1; if (B.type !== 'castle' || stats.built > 1) sfx('build', c);
+    B.built = true; B.group.scale.y = 1; soddenPop(B); stats.built++; stats.made[B.type] = (stats.made[B.type] || 0) + 1; if (B.type !== 'castle' || stats.built > 1) sfx('build', c);
     if (B.type !== 'wall') log(`<b>${T.tiers[0]}</b> built${T.residents ? ` · +${T.residents[0]}` : ''}`, 'good');
     // the first of a kind: a one-line tip for what it can do
     if (T.soldiers) tipOnce('rally', 'Tap the barracks, then <b>Rally</b> to send soldiers to a spot');

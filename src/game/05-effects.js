@@ -69,8 +69,9 @@ function resTex(kind, n) {
   const key = 'res:' + kind + n; if (texCache[key]) return texCache[key];
   const c = document.createElement('canvas'); c.width = 256; c.height = 64; const x = c.getContext('2d');
   x.font = 'bold 40px "Alegreya Sans", system-ui, sans-serif'; x.textAlign = 'right'; x.textBaseline = 'middle';
-  const col = { gold: '#f2c95e', food: '#e6cf74', wood: '#d9a46a', stone: '#c9c6bd' }[kind] || '#e6cf74';
-  x.lineWidth = 7; x.strokeStyle = 'rgba(0,0,0,.75)'; x.strokeText('+' + n, 136, 33); x.fillStyle = col; x.fillText('+' + n, 136, 33);
+  // n a number: "+n" in the resource's colour; a string (e.g. "−50%", Meadowmere's poor fields): as given, in red
+  const neg = typeof n === 'string', col = neg ? '#ff6a55' : { gold: '#f2c95e', food: '#e6cf74', wood: '#d9a46a', stone: '#c9c6bd' }[kind] || '#e6cf74', s = neg ? n : '+' + n;
+  x.lineWidth = 7; x.strokeStyle = 'rgba(0,0,0,.75)'; x.strokeText(s, 136, 33); x.fillStyle = col; x.fillText(s, 136, 33);
   const im = ICON_IMG[kind];
   if (im.complete && im.naturalWidth) { x.shadowColor = 'rgba(0,0,0,.7)'; x.shadowBlur = 6; x.drawImage(im, 144, 8, 48, 48); }
   else { x.fillStyle = col; x.beginPath(); x.arc(168, 32, 20, 0, 7); x.fill(); }
@@ -78,9 +79,10 @@ function resTex(kind, n) {
   if (im.complete && im.naturalWidth) texCache[key] = tx;
   return tx;
 }
-function floatRes(kind, n, x, y, z) {
+// life: seconds it lasts (fading all the way) and rises at .9 m/s; a long one (life > 2) rises slowly and holds before it fades
+function floatRes(kind, n, x, y, z, life = 1.8) {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: resTex(kind, n), depthTest: false, transparent: true, toneMapped: false }));
-  sp.scale.set(2.6, .65, 1); sp.position.set(x, y, z); sp.renderOrder = 30; scene.add(sp); floats.push({ sp, t: 0 });
+  sp.scale.set(2.6, .65, 1); sp.position.set(x, y, z); sp.renderOrder = 30; scene.add(sp); floats.push({ sp, t: 0, life }); return sp;
 }
 function floatText(s, color, x, y, z) {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: textTex(s, color), depthTest: false, transparent: true, toneMapped: false }));

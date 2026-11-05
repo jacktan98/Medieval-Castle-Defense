@@ -336,6 +336,8 @@ function updateLight(dt, now) {
   sun.intensity = lerp(.68, 1.05, light); sun.color.copy(SUN_NIGHT).lerp(SUN_DAY, light).lerp(SUN_DUSK, Math.min(dusk, .7));
   hemi.intensity = lerp(.52, .72, light); hemi.color.copy(HEMI_NIGHT).lerp(HEMI_DAY, light);
   M.glow.emissiveIntensity = lerp(1.3, .1, light);
-  waterMat.color.setRGB(lerp(.17, .24, light), lerp(.27, .43, light), lerp(.4, .48, light)).convertSRGBToLinear();
+  // Meadowmere's foul water: murky olive instead of blue
+  if (waterU.uFoul.value) waterMat.color.setRGB(lerp(.12, .23, light), lerp(.13, .24, light), lerp(.07, .1, light)).convertSRGBToLinear();
+  else waterMat.color.setRGB(lerp(.17, .24, light), lerp(.27, .43, light), lerp(.4, .48, light)).convertSRGBToLinear();
 }
 

@@ -423,12 +423,12 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .cardHead .iconBtn{width:30px;min-width:30px;height:30px;min-height:30px}
 #volleyBtn,#summonBtn{position:relative}
 /* the castle's night powers, also as two big round buttons in a corner at night (Kingdom Rush style): no need to find the castle's card */
-.powers{position:absolute;left:12px;z-index:5;display:flex;gap:10px}
+.powers{position:absolute;left:12px;z-index:5;display:flex;gap:8px}
 .powers.col{flex-direction:column-reverse}
-.pw{position:relative;width:54px;height:54px;min-height:0!important;padding:0!important;border-radius:50%!important;background:radial-gradient(circle at 50% 35%,#5a4626,#241b0d)!important;border:2px solid #d9b04e!important;color:#ffe2a0;
+.pw{position:relative;width:42px;height:42px;min-height:0!important;padding:0!important;border-radius:50%!important;background:radial-gradient(circle at 50% 35%,#5a4626,#241b0d)!important;border:2px solid #d9b04e!important;color:#ffe2a0;
   box-shadow:0 3px 10px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,230,160,.25);display:flex;align-items:center;justify-content:center;touch-action:manipulation}
-.pw svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round} .pw svg .solid{fill:currentColor}
-.pw .cd{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font:700 16px/1 system-ui,sans-serif;color:#fff1c4;text-shadow:0 1px 3px #000}
+.pw svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round} .pw svg .solid{fill:currentColor}
+.pw .cd{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font:700 13px/1 system-ui,sans-serif;color:#fff1c4;text-shadow:0 1px 3px #000}
 .pw.cool svg{opacity:.25} .pw.cool .cd{display:flex} .pw.cool{border-color:#7a6638!important}
 .pw[aria-pressed="true"]{border-color:#fff1c4!important;box-shadow:0 0 0 3px rgba(240,201,90,.5),0 3px 10px rgba(0,0,0,.55)}
 .pw:not(.cool):not([aria-pressed="true"]){animation:pwGlow 2.4s ease-in-out infinite}
@@ -1128,7 +1128,7 @@ function smoothPts(p, it = 2) { for (let k = 0; k < it; k++) { const q = [p[0]];
 // a caravan road west to east past them, two rock mesas (stone) in the north-east and south-west
 const DUNE_POOL = [26.6, 24.2, 4.6, 3.1], DUNE_OASIS = [24.5, 25.9, 13.3, 11.5], DUNE_MESAS = [[46.2, 11.9, 7.4, 5.6], [9.1, 46.2, 6.7, 5.3]];
 const DUNE_ROAD = smoothPts([[-1, 32.9], [8.4, 32.9], [12.6, 31], [17.5, 30.6], [23.1, 30], [30.1, 29.6], [36.4, 26.6], [43.4, 23.5], [49, 23.1], [57, 23.1]]);
-const MERE_C = new THREE.Color('#646238'), PLAINS_C = new THREE.Color('#7e9b45'), DUNE_SAND = new THREE.Color('#c9ad72'), DUNE_ROCK = new THREE.Color('#9a6f4c');
+const MERE_DEAD = new THREE.Color('#8a7745'), MERE_C = new THREE.Color('#646238'), PLAINS_C = new THREE.Color('#7e9b45'), DUNE_SAND = new THREE.Color('#c9ad72'), DUNE_ROCK = new THREE.Color('#9a6f4c');
 const ellD = (x, z, [cx, cz, rx, rz]) => Math.hypot((x - cx) / rx, (z - cz) / rz);
 // the oasis's edge: an ellipse pulled into lobes and bays by angle and noise, ragged where grass gives way to sand (Jack: too oval)
 function oasisD(x, z) {
@@ -1526,15 +1526,17 @@ water.receiveShadow = true; scene.add(water);
 // from a small texture of the heightmap (hTex, refreshed by syncTerrain).
 const hData = new Uint8Array(V_MAX * V_MAX * 4), hTex = new THREE.DataTexture(hData, V_MAX, V_MAX, THREE.RGBAFormat);   // always V_MAX wide   // the bed under the water
 hTex.magFilter = hTex.minFilter = THREE.LinearFilter;
-const waterU = { uIsle: { value: 0 }, uC: { value: new THREE.Vector2() } };
+const waterU = { uIsle: { value: 0 }, uC: { value: new THREE.Vector2() }, uFoul: { value: 0 } };
 function syncWaterTex() {
   for (let j = 0; j < V; j++) for (let i = 0; i < V; i++) hData[(j * V_MAX + i) * 4] = clamp(Math.round((H[idx(i, j)] + 3) / 6 * 255), 0, 255);
   hTex.needsUpdate = true; waterU.uIsle.value = MAP === 'isle' ? 1 : MAP === 'bridge' || MAP === 'bend' || MAP === 'ford' || MAP === 'hold' ? 2 : 0; waterU.uC.value.set(KX, KZ);
+  // Meadowmere's water is foul (Jack: show why fields do badly there): murky olive with a scum of algae, yellowish froth
+  const foul = MAP === 'mere'; waterU.uFoul.value = foul ? 1 : 0; edgeWater.material.color.set(foul ? '#4a4d24' : '#3d6e86');
 }
 waterMat.onBeforeCompile = sh => {
-  sh.uniforms.uTime = windU; sh.uniforms.uH = { value: hTex }; sh.uniforms.uIsle = waterU.uIsle; sh.uniforms.uC = waterU.uC;
+  sh.uniforms.uTime = windU; sh.uniforms.uH = { value: hTex }; sh.uniforms.uIsle = waterU.uIsle; sh.uniforms.uC = waterU.uC; sh.uniforms.uFoul = waterU.uFoul;
   sh.vertexShader = 'varying vec3 vWP;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vWP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-  sh.fragmentShader = `uniform float uTime; uniform sampler2D uH; uniform float uIsle; uniform vec2 uC; varying vec3 vWP;
+  sh.fragmentShader = `uniform float uTime; uniform sampler2D uH; uniform float uIsle; uniform vec2 uC; uniform float uFoul; varying vec3 vWP;
     float wh(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     float wn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
       return mix(mix(wh(i), wh(i + vec2(1, 0)), f.x), mix(wh(i + vec2(0, 1)), wh(i + vec2(1, 1)), f.x), f.y); }
@@ -1550,10 +1552,13 @@ waterMat.onBeforeCompile = sh => {
     vec2 q1 = flowAt(vWP.xz, 1.0), q2 = flowAt(vWP.xz, 1.6);
     float streak = smoothstep(.5, .85, wn(q1 * 1.1) * .55 + wn(q2 * 2.4) * .45), dark = smoothstep(.55, .2, wn(q2 * .7 + 3.1));
     diffuseColor.rgb *= .88 + .12 * dark;
-    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.7 + vec3(.05, .07, .08), streak * .6);
+    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.7 + vec3(.05, .07, .08), streak * .6 * (1.0 - .7 * uFoul));
+    float scum = uFoul * smoothstep(.54, .78, wn(q2 * .8 + 5.0) * .6 + wn(vWP.xz * 3.1) * .4);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.27, .22, .06), scum * .75);
+    diffuseColor.a = mix(diffuseColor.a, 1.0, scum * .6);
     float shore = 1.0 - smoothstep(.02, .3, depth);
     float froth = smoothstep(.45, .75, wn(q1 * 2.6 + vec2(0.0, uTime * .7)) * .6 + wn(vWP.xz * 5.0 - uTime * .9) * .4 + shore * .35);
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.86, .9, .9), shore * froth * .85);
+    diffuseColor.rgb = mix(diffuseColor.rgb, mix(vec3(.86, .9, .9), vec3(.48, .45, .22), uFoul), shore * froth * .85);
     diffuseColor.a = mix(diffuseColor.a, 1.0, shore * froth * .6);`);
 };
 waterMat.customProgramCacheKey = () => 'flowing-water';
@@ -1573,7 +1578,13 @@ function recolor() {
     if (MAP === 'dune') { const od = oasisD(i, j); tmpC.lerp(C.dry, sstep(.68, .95, od) * .75); tmpC.lerp(DUNE_SAND, sstep(.86, 1.14, od) * .92); for (const m of DUNE_MESAS) tmpC.lerp(DUNE_ROCK, sstep(1.12, .95, ellD(i, j, m)) * .8); }   // sand beyond the oasis; red-brown rock mesas
     if (MAP === 'keep') { tmpC.lerp(KEEP_ASH, sstep(62, 40, j) * .55); tmpC.lerp(KEEP_RED, sstep(40, 12, j) * .7); }   // red north, scorched middle
     if (MAP === 'hold') tmpC.lerp(C.dry, .2);   // cold grass
-    if (MAP === 'mere') tmpC.lerp(MERE_C, marshW(i / MK, j / MK) * (.7 + .3 * fbm(i * .3, j * .3)));   // the marsh: brownish olive, patchy
+    if (MAP === 'mere') {
+      // the marsh: brownish olive, patchy; and (Jack: show the fields will do badly) withered straw-brown grass over most of the dry
+      // ground too, in broad patches, least on the castle's mound
+      tmpC.lerp(MERE_C, marshW(i / MK, j / MK) * (.7 + .3 * fbm(i * .3, j * .3)));
+      const wf = sstep(.36, .56, fbm(i / MK * .09 + 3.7, j / MK * .09 + 1.3)) * (.55 + .45 * fbm(i * .4, j * .4));
+      tmpC.lerp(MERE_DEAD, Math.max(wf * .85, marshW(i / MK, j / MK) * .45) * (.6 + .4 * sstep(5, 10, Math.hypot(i - KX, j - KZ))));
+    }
     if (MAP === 'plains') tmpC.lerp(PLAINS_C, .35);              // the plains: a fresh, lighter green
     if (MAP === 'crag') tmpC.lerp(C.rock, (1 - sstep(.75, 1.05, blobD(i / MK, j / MK, CRAG_ROCK, 2))) * .85);   // the grey crag
     if (MAP === 'ford') tmpC.lerp(C.dry, .3);                                                          // highland grass
@@ -2183,7 +2194,8 @@ function genClutter() {
       if (reed && c.kind === 'bush' && Math.random() > .3) continue;
       const n = counts[ci]++;
       clutter.push({ ci, n, x, z, s: .7 + Math.random() * .7, rot: Math.random() * 6.28 });
-      if (c.kind === 'tuft') { if (reed) col.setHSL(.13 + Math.random() * .03, .38, .3 + Math.random() * .08); else if (sand) col.setHSL(.11 + Math.random() * .03, .32, .33 + Math.random() * .08); else col.setHSL(.21 + Math.random() * .05, .3 + Math.random() * .12, .2 + Math.random() * .07); }
+      // Meadowmere: most tufts withered, like the sand's
+      if (c.kind === 'tuft') { if (reed) col.setHSL(.13 + Math.random() * .03, .38, .3 + Math.random() * .08); else if (sand || (MAP === 'mere' && Math.random() < .65)) col.setHSL(.11 + Math.random() * .03, .32, .33 + Math.random() * .08); else col.setHSL(.21 + Math.random() * .05, .3 + Math.random() * .12, .2 + Math.random() * .07); }
       else if (c.kind === 'bush') col.setHSL(.24 + Math.random() * .05, .33, .15 + Math.random() * .08);
       else col.setHSL(.1, .06, .4 + Math.random() * .15);
       c.mesh.setColorAt(n, col);
@@ -3564,8 +3576,9 @@ function resTex(kind, n) {
   const key = 'res:' + kind + n; if (texCache[key]) return texCache[key];
   const c = document.createElement('canvas'); c.width = 256; c.height = 64; const x = c.getContext('2d');
   x.font = 'bold 40px "Alegreya Sans", system-ui, sans-serif'; x.textAlign = 'right'; x.textBaseline = 'middle';
-  const col = { gold: '#f2c95e', food: '#e6cf74', wood: '#d9a46a', stone: '#c9c6bd' }[kind] || '#e6cf74';
-  x.lineWidth = 7; x.strokeStyle = 'rgba(0,0,0,.75)'; x.strokeText('+' + n, 136, 33); x.fillStyle = col; x.fillText('+' + n, 136, 33);
+  // n a number: "+n" in the resource's colour; a string (e.g. "−50%", Meadowmere's poor fields): as given, in red
+  const neg = typeof n === 'string', col = neg ? '#ff6a55' : { gold: '#f2c95e', food: '#e6cf74', wood: '#d9a46a', stone: '#c9c6bd' }[kind] || '#e6cf74', s = neg ? n : '+' + n;
+  x.lineWidth = 7; x.strokeStyle = 'rgba(0,0,0,.75)'; x.strokeText(s, 136, 33); x.fillStyle = col; x.fillText(s, 136, 33);
   const im = ICON_IMG[kind];
   if (im.complete && im.naturalWidth) { x.shadowColor = 'rgba(0,0,0,.7)'; x.shadowBlur = 6; x.drawImage(im, 144, 8, 48, 48); }
   else { x.fillStyle = col; x.beginPath(); x.arc(168, 32, 20, 0, 7); x.fill(); }
@@ -3573,9 +3586,10 @@ function resTex(kind, n) {
   if (im.complete && im.naturalWidth) texCache[key] = tx;
   return tx;
 }
-function floatRes(kind, n, x, y, z) {
+// life: seconds it lasts (fading all the way) and rises at .9 m/s; a long one (life > 2) rises slowly and holds before it fades
+function floatRes(kind, n, x, y, z, life = 1.8) {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: resTex(kind, n), depthTest: false, transparent: true, toneMapped: false }));
-  sp.scale.set(2.6, .65, 1); sp.position.set(x, y, z); sp.renderOrder = 30; scene.add(sp); floats.push({ sp, t: 0 });
+  sp.scale.set(2.6, .65, 1); sp.position.set(x, y, z); sp.renderOrder = 30; scene.add(sp); floats.push({ sp, t: 0, life }); return sp;
 }
 function floatText(s, color, x, y, z) {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: textTex(s, color), depthTest: false, transparent: true, toneMapped: false }));
@@ -3830,7 +3844,14 @@ function rangeOf(B) {
 const siegeRate = B => DEF[B.type].rate[B.tier - 1] * (1 - decorFx(center(B).x, center(B).z, 'siegeRate'));
 // Meadowmere (Jack: a better reason for the farmhouse): its sodden ground grows fields at half anywhere, and in the marsh itself at .3;
 // the farmhouse's yard is not a field, so it keeps its full yield
-const prodK = B => (1 + decorFx(center(B).x, center(B).z, 'prod')) * (MAP === 'mere' && B.type === 'farm' ? (marshW(center(B).x / MK, center(B).z / MK) > .5 ? .3 : .5) : 1);
+const soddenK = B => MAP === 'mere' && B.type === 'farm' ? (marshW(center(B).x / MK, center(B).z / MK) > .5 ? .3 : .5) : 1;
+const prodK = B => (1 + decorFx(center(B).x, center(B).z, 'prod')) * soddenK(B);
+// Jack: fields built on Meadowmere anyway show what they lose: a red "−50%" (−70% in the marsh) with the food icon over them,
+// held a few seconds then fading, when placed and again when built
+function soddenPop(B) {
+  const k = soddenK(B); if (k >= 1) return;
+  const c = center(B); floatRes('food', '\u2212' + Math.round((1 - k) * 100) + '%', c.x, B.group.position.y + 2.6, c.z, 4.5).scale.multiplyScalar(1.7);
+}
 const housesNear = (x, z) => buildings.filter(B => B.type === 'house' && Math.hypot(center(B).x - x, center(B).z - z) <= CHARM_R).length;
 function center(B) { return { x: (B.ev.x0 + B.ev.x1) / 2, z: (B.ev.z0 + B.ev.z1) / 2 }; }
 function doorPoint(B) { const d = B.door; if (!d) return { x: center(B).x, z: B.ev.z1 + .6 }; const [sx, sz] = doorShift(B); return { x: (d.a + .5) * CELL + sx, z: (d.b + .5) * CELL + sz }; }
@@ -3879,6 +3900,7 @@ function place(type, ci, cj, opts = {}) {
     g.position.set(c.x, ev.target, c.z);
   } else g.position.set(c.x, ev.center, c.z);
   B.face = FACING[type] ? ev.face : 0; g.rotation.y = B.face * Math.PI / 2;
+  if (!opts.free) soddenPop(B);
   B.door = T.noRoad ? null : doorCell(ev, type, B.face);     // paths are the player's to lay
   scene.add(g); buildings.push(B);
   const bw = type === 'castle' ? 2.6 : T.size === 1 ? 1.2 : 1.8;
@@ -3952,7 +3974,7 @@ function completeSite(B) {
   }
   if (S.kind !== 'repair') { B.pop = performance.now(); for (let n = 0; n < 6; n++) { const a = n / 6 * 6.283, r = B.ev.s * CELL * .55; dustAt(c.x + Math.cos(a) * r, B.group.position.y, c.z + Math.sin(a) * r); } }
   if (S.kind === 'new') {
-    B.built = true; B.group.scale.y = 1; stats.built++; stats.made[B.type] = (stats.made[B.type] || 0) + 1; if (B.type !== 'castle' || stats.built > 1) sfx('build', c);
+    B.built = true; B.group.scale.y = 1; soddenPop(B); stats.built++; stats.made[B.type] = (stats.made[B.type] || 0) + 1; if (B.type !== 'castle' || stats.built > 1) sfx('build', c);
     if (B.type !== 'wall') log(`<b>${T.tiers[0]}</b> built${T.residents ? ` · +${T.residents[0]}` : ''}`, 'good');
     // the first of a kind: a one-line tip for what it can do
     if (T.soldiers) tipOnce('rally', 'Tap the barracks, then <b>Rally</b> to send soldiers to a spot');
@@ -4376,14 +4398,16 @@ function assignBuilders() {
     if (!S.site) continue;
     const crew = villagers.filter(v => v.build === S).length;
     if (crew >= 2) continue;
-    const anyBuilding = villagers.some(v => v.build), c = center(S), repair = S.site.kind === 'repair';
+    // the castle's repair comes first (Jack saw nobody mend it after a night: every workplace's own workers took their own repair
+    // and job-holders only help elsewhere while nobody builds): two builders at once, idle ones first, else off their jobs
+    const anyBuilding = villagers.some(v => v.build), c = center(S), repair = S.site.kind === 'repair', urgent = repair && S.type === 'castle';
     const reach = new Set(ringCells(S.ev).map(n => R[n]).filter(Boolean));   // only someone who can walk there
     let best = null, bd = 1e9;
     for (const v of villagers) {
       if (v.build || v.post || v.hungry || v.unkit) continue;
       if (!reach.has(villagerRegion(v, R)) || (v.noBuild && v.noBuild.S === S && v.noBuild.t > now)) continue;
       const own = repair && v.job === S;
-      if (v.job && !own && (anyBuilding || crew > 0)) continue;
+      if (v.job && !own && !urgent && (anyBuilding || crew > 0)) continue;
       if (v.carryLog.visible || v.carryStone.visible) continue;
       const d = Math.hypot(v.x - c.x, v.z - c.z) + (own ? -100 : v.job ? 40 : 0); if (d < bd) { bd = d; best = v; }
     }
@@ -6596,7 +6620,9 @@ function updateLight(dt, now) {
   sun.intensity = lerp(.68, 1.05, light); sun.color.copy(SUN_NIGHT).lerp(SUN_DAY, light).lerp(SUN_DUSK, Math.min(dusk, .7));
   hemi.intensity = lerp(.52, .72, light); hemi.color.copy(HEMI_NIGHT).lerp(HEMI_DAY, light);
   M.glow.emissiveIntensity = lerp(1.3, .1, light);
-  waterMat.color.setRGB(lerp(.17, .24, light), lerp(.27, .43, light), lerp(.4, .48, light)).convertSRGBToLinear();
+  // Meadowmere's foul water: murky olive instead of blue
+  if (waterU.uFoul.value) waterMat.color.setRGB(lerp(.12, .23, light), lerp(.13, .24, light), lerp(.07, .1, light)).convertSRGBToLinear();
+  else waterMat.color.setRGB(lerp(.17, .24, light), lerp(.27, .43, light), lerp(.4, .48, light)).convertSRGBToLinear();
 }
 
 // ---------- HUD ----------
@@ -8534,7 +8560,7 @@ function frame(now) {
     const c = center(B);
     B.bar.grp.visible = B.hp < B.max; B.bar.set(B.hp / B.max); B.bar.grp.position.set(c.x, B.group.position.y + barTop(B), c.z);
   }
-  for (let n = floats.length - 1; n >= 0; n--) { const f = floats[n]; f.t += dt; f.sp.position.y += dt * .9; f.sp.material.opacity = 1 - f.t / 1.8; if (f.t > 1.8) { scene.remove(f.sp); f.sp.material.dispose(); floats.splice(n, 1); } }
+  for (let n = floats.length - 1; n >= 0; n--) { const f = floats[n]; const L = f.life || 1.8; f.t += dt; f.sp.position.y += dt * (L > 2 ? .25 : .9); f.sp.material.opacity = L > 2 ? 1 - sstep(L - 1.5, L, f.t) : 1 - f.t / L; if (f.t > L) { scene.remove(f.sp); f.sp.material.dispose(); floats.splice(n, 1); } }
   if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); guideTick(); goalTick(); updatePowers(); updateBossBar(); }
   updateDebris(dt); updateRaidMarks(dt); updateHitMarks(dt, now); updateTips(dt); updateGuideSpot(now);
   const sh = shakeOffset(dt); camera.position.add(sh);
