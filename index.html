@@ -6188,11 +6188,14 @@ function startNight() {
   const w = WAVES[PH.wave - 1];
   PH.kind = 'night'; spawnQueue = []; sfx('horn');
   const pts = [edgePoint(), edgePoint()];
-  // foot and horse mixed through the column (spearmen first), siege engines at its tail; each entry [kind, spawn point, tier]
+  // siege engines at the head of the column (Jack: they are slow, so they set off first), then foot and horse mixed (spearmen first),
+  // bosses last of all; each entry [kind, spawn point, tier]
   const each = (k, f) => (w[k] || []).forEach((c, t) => { for (let n = 0; n < c; n++) f(t + 1, n); });
   each('spear', (t, n) => spawnQueue.push(['spear', pts[n % 2], t]));
   for (const k of ['archer', 'sword', 'xbow', 'lancer', 'rider']) each(k, (t, n) => spawnQueue.splice(Math.floor(Math.random() * (spawnQueue.length + 1)), 0, [k, pts[n % 2], t]));
-  for (const k of ['ram', 'ballista', 'catapult', 'chief', 'warlord']) each(k, (t, n) => spawnQueue.push([k, pts[n % 2], t]));   // bosses last of all
+  const siege = []; for (const k of ['ram', 'ballista', 'catapult']) each(k, (t, n) => siege.push([k, pts[n % 2], t]));
+  spawnQueue.unshift(...siege);
+  for (const k of ['chief', 'warlord']) each(k, (t, n) => spawnQueue.push([k, pts[n % 2], t]));
   spawnT = 1;
   const ps = assignPosts();
   banner(`Night ${PH.wave}`, `${spawnQueue.length} raiders`, true); setMusic('night');
