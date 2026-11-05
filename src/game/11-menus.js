@@ -411,6 +411,9 @@ function buildWarlordsHold(g) {
 function placeBossScenery() {
   if (bossMesh) { scene.remove(bossMesh); bossMesh = null; }
   sceneFires = [];
+  // cleared before the early return: Warlord's Hold's roof trebuchets kept lobbing stones, unseen, at troops near where they had stood
+  // in the next game's stage (Jack's riders fell to rocks across Stonebridge's river on night 1)
+  holdRiders = []; holdTrebs = [];
   if (MAP !== 'keep' && MAP !== 'hold') return;
   const g = new THREE.Group(), Y = (x, z) => hAt(x, z);
   if (MAP === 'keep') buildRaiderKeep(g); else buildWarlordsHold(g);

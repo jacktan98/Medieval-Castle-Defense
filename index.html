@@ -160,10 +160,11 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #campBtn{margin-top:4px;padding:9px 22px;font-family:var(--display);font-size:17px;color:var(--gold)}
 .modal.tome .setBtn{background:none!important;border:0!important;box-shadow:none!important}
 .setBtn{position:absolute;top:calc(12px + env(safe-area-inset-top));right:12px;z-index:4;width:40px;height:40px;min-height:0!important;padding:0!important;display:flex;align-items:center;justify-content:center}
-.modal.tome .setBtn svg{width:26px;height:26px;fill:none;stroke:#f4e3b2;stroke-width:1.7;filter:drop-shadow(0 1px 3px rgba(0,0,0,.8));stroke-linecap:round;stroke-linejoin:round}
+.modal.tome .setBtn svg{width:26px;height:26px;fill:none;stroke:#f0c95a;stroke-width:1.8;filter:drop-shadow(0 1px 3px rgba(0,0,0,.85)) drop-shadow(0 0 5px rgba(240,201,90,.35));stroke-linecap:round;stroke-linejoin:round}
 .setSub{font-family:var(--display);font-size:15px;color:#f0c95a;text-align:center;margin-bottom:-4px}
 .setVols{display:flex;flex-direction:column;gap:10px;padding:0 18px}
-.colCard{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;width:min(300px,86vw);display:flex;flex-direction:column;gap:12px;align-items:stretch;padding:0 0 14px;border-radius:12px;background:linear-gradient(180deg,#3d3020,#241b10);border:2px solid rgba(212,168,78,.8);box-shadow:0 10px 30px rgba(0,0,0,.6);overflow:hidden}
+/* centred by inset + auto margins, not a transform: the menus' rise animation sets transform and threw it right, then it jumped */
+.colCard{position:absolute;inset:0;margin:auto;height:fit-content;z-index:5;width:min(300px,86vw);display:flex;flex-direction:column;gap:12px;align-items:stretch;padding:0 0 14px;border-radius:12px;background:linear-gradient(180deg,#3d3020,#241b10);border:2px solid rgba(212,168,78,.8);box-shadow:0 10px 30px rgba(0,0,0,.6);overflow:hidden}
 .colCard h3{margin:0;padding:7px 10px;text-align:center;font-family:var(--display);font-weight:400;font-size:18px;color:#ffe2a0;background:linear-gradient(90deg,rgba(150,112,52,.5),rgba(190,145,70,.62) 50%,rgba(150,112,52,.5))}
 .colRow{display:flex;flex-direction:column;align-items:center;gap:7px;padding:0 12px} .colRow>span{font-size:13px;color:#e6d6ae;letter-spacing:.04em}
 .colSw{display:flex;gap:10px}
@@ -178,7 +179,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .pauseCard .colSw .sw.on{border-color:#f0c95a!important;box-shadow:0 0 0 2px rgba(240,201,90,.35),0 0 10px rgba(240,201,90,.55)!important}
 .colCard #colDone{align-self:center;min-width:110px}
 #adReset.armed{background:#8e2a20!important;border-color:#e0705a!important;color:#fff!important}
-#saveResume{padding:9px 30px;font-family:var(--display);font-size:17px;-webkit-text-stroke:.6px currentColor}
+#saveResume{padding:9px 30px;font-family:var(--display);font-size:17px;-webkit-text-stroke:.35px currentColor}
 .saveInfo{margin-top:-9px;font-size:12px;font-weight:600;color:#f4e3b2;letter-spacing:.02em;text-shadow:0 1px 3px rgba(0,0,0,.85)}
 #campaign{background:#14150f}
 .campSheet{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(720px,100%);max-height:100%}
@@ -7694,6 +7695,9 @@ function buildWarlordsHold(g) {
 function placeBossScenery() {
   if (bossMesh) { scene.remove(bossMesh); bossMesh = null; }
   sceneFires = [];
+  // cleared before the early return: Warlord's Hold's roof trebuchets kept lobbing stones, unseen, at troops near where they had stood
+  // in the next game's stage (Jack's riders fell to rocks across Stonebridge's river on night 1)
+  holdRiders = []; holdTrebs = [];
   if (MAP !== 'keep' && MAP !== 'hold') return;
   const g = new THREE.Group(), Y = (x, z) => hAt(x, z);
   if (MAP === 'keep') buildRaiderKeep(g); else buildWarlordsHold(g);
