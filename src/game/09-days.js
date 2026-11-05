@@ -168,6 +168,7 @@ function placePop(e) {
 }
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.raidMark,.wavePop')) $('#wavePop').hidden = true; }, true);
 function startNight() {
+  $('#nightBtn').classList.remove('skipGlow');
   const w = WAVES[PH.wave - 1];
   PH.kind = 'night'; spawnQueue = []; sfx('horn');
   const pts = nightPts().map((p, i) => cellPass(cellAt(p.x, p.z), 2) ? p : edgePoint(i)); nextPts = null;

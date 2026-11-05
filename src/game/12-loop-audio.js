@@ -49,6 +49,7 @@ function findValid(type, ci0, cj0, opts = {}) {
 var gameSeed = 0, nextSeed = null, hardOn = false;
 function seededRandom(a) { return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function startGame() {
+  $('#nightBtn').classList.remove('skipGlow');
   gameSeed = nextSeed != null ? nextSeed : (Math.random() * 2147483647) | 0; nextSeed = null;
   showcaseBuilt = false; campsJoined = false; canvas.style.opacity = '1';
   anims.length = 0; spawnQueue = [];
@@ -528,7 +529,8 @@ function guideTick() {
   if (guideEndT && performance.now() > guideEndT) { guideEndT = 0; g.hidden = true; }
   if (!guideOn) return;
   const next = GUIDE.findIndex(S => !S.done());
-  if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').textContent = 'Great job'; guideEndT = performance.now() + 3500; guideFinish(); g.hidden = false; return; }
+  // the last step done (Stage 1: the archers): point at Skip day (Jack), which glows until it's pressed or night falls
+  if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').innerHTML = 'Ready? <b>Skip day</b> to face the raiders'; guideEndT = performance.now() + 6000; guideFinish(); g.hidden = false; $('#nightBtn').classList.add('skipGlow'); return; }
   if (next !== guideStep) { guideStep = next; guideMark(); }
 }
 $('#gSkip').addEventListener('click', () => { guideFinish(); $('#guide').hidden = true; });

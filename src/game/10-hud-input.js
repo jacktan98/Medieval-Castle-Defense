@@ -235,7 +235,7 @@ $('#cancelBtn').addEventListener('click', () => {
 });
 $('#closeCard').addEventListener('click', deselect);
 // calling the night early pays for the time left (Kingdom Rush style): a gold for every 4 s, at most 60
-$('#nightBtn').addEventListener('click', () => {
+$('#nightBtn').addEventListener('click', () => { $('#nightBtn').classList.remove('skipGlow');
   if (PH.kind !== 'day' || gameOver) return;
   const g = Math.min(60, Math.round(PH.t / 4)), K = castleB();
   if (g > 0) { res.gold += g; stats.gold += g; log(`<b>Early</b> · +${g} gold`, 'good'); if (K) { const c = center(K), y = K.group.position.y + 4; floatRes('gold', g, c.x, y, c.z); coinFly(c.x, y, c.z, 3); } }
