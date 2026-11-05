@@ -875,7 +875,7 @@ const upTo = (t, n) => buildings.some(B => B.type === t && !B.dead && B.tier >= 
 const GOAL_N = { felled: 100, mined: 120, folk: 40, xbowKills: 40, cataKills: 50 };
 const STAGE_GOALS = {
   vale: [['Follow the tutorial', () => guideDone], ['No buildings lost', () => stats.lostB === 0, true]],
-  bridge: [['Build a barracks', () => made('barracks') >= 1], ['No buildings lost · walls OK', () => stats.lostB === 0, true]],
+  bridge: [['Build a barracks', () => made('barracks') >= 1], ['No buildings lost', () => stats.lostB === 0, true]],
   cross: [['Build a market', () => made('market') >= 1], ['Upgrade to tier 2', () => stats.upgrades >= 1]],
   watch: [['Build 2 ballistas', () => made('ballista') >= 2], ['Ballista to tier 2', () => upTo('ballista', 2)]],
   dune: [['Build 2 foresters', () => made('forester') >= 2], [`Fell ${GOAL_N.felled} forester trees`, () => stats.felled >= GOAL_N.felled]],
@@ -5300,14 +5300,14 @@ function engineWreck(e, y) {
   }
   for (let i = 0; i < 8; i++) dustAt(e.x + (Math.random() - .5) * 1.6, y, e.z + (Math.random() - .5) * 1.6);
 }
-// by: the building whose shot it was (crossbow towers and catapults pass it): a kill while a target range or siege stores boosts it
-// counts toward Riverbend's and Siegeford's goals (stats.boostKills)
+// by: the building whose shot it was (crossbow towers and catapults pass it): a kill while any decor boosts it (Jack: not only the
+// target range or siege stores: a torch or campfire's range counts too) goes toward Riverbend's and Siegeford's goals (stats.boostKills)
 const BOOST_KEY = { crossbow: 'rangeArch', catapult: 'siegeRate' };
 function hurtEnemy(e, d, by) {
   if (e.dead) return; e.hp -= d; e.flashT = .14;
   if (e.hp <= 0) {
     e.dead = true; e.bar.grp.visible = false; stats.slain++; const y = walkY(e.x, e.z);
-    if (by && BOOST_KEY[by.type] && !by.dead && decorFx(center(by).x, center(by).z, BOOST_KEY[by.type]) > 0) stats.boostKills[by.type] = (stats.boostKills[by.type] || 0) + 1;
+    if (by && BOOST_KEY[by.type] && !by.dead && (decorFx(center(by).x, center(by).z, BOOST_KEY[by.type]) > 0 || decorFx(center(by).x, center(by).z, 'range') > 0)) stats.boostKills[by.type] = (stats.boostKills[by.type] || 0) + 1;
     if (e.engine) { engineWreck(e, y); return; }
     sfx('grunt', e) || sfx('arrowHit', e); for (let i = 0; i < 5; i++) dustAt(e.x, y, e.z);   // a puff of dust as they fall
   }
