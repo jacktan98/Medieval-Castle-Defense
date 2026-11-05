@@ -409,6 +409,22 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .cardHead{display:flex;align-items:center;gap:6px}
 .cardHead .iconBtn{width:30px;min-width:30px;height:30px;min-height:30px}
 #volleyBtn,#summonBtn{position:relative}
+/* the castle's night powers, also as two big round buttons in a corner at night (Kingdom Rush style): no need to find the castle's card */
+.powers{position:absolute;left:12px;z-index:5;display:flex;gap:10px}
+.powers.col{flex-direction:column-reverse}
+.pw{position:relative;width:54px;height:54px;min-height:0!important;padding:0!important;border-radius:50%!important;background:radial-gradient(circle at 50% 35%,#5a4626,#241b0d)!important;border:2px solid #d9b04e!important;color:#ffe2a0;
+  box-shadow:0 3px 10px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,230,160,.25);display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+.pw svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round} .pw svg .solid{fill:currentColor}
+.pw .cd{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font:700 16px/1 system-ui,sans-serif;color:#fff1c4;text-shadow:0 1px 3px #000}
+.pw.cool svg{opacity:.25} .pw.cool .cd{display:flex} .pw.cool{border-color:#7a6638!important}
+.pw[aria-pressed="true"]{border-color:#fff1c4!important;box-shadow:0 0 0 3px rgba(240,201,90,.5),0 3px 10px rgba(0,0,0,.55)}
+.pw:not(.cool):not([aria-pressed="true"]){animation:pwGlow 2.4s ease-in-out infinite}
+@keyframes pwGlow{0%,100%{box-shadow:0 3px 10px rgba(0,0,0,.55),0 0 0 0 rgba(240,201,90,.0)}50%{box-shadow:0 3px 10px rgba(0,0,0,.55),0 0 12px 2px rgba(240,201,90,.45)}}
+/* a boss's health across the top while one is out */
+.bossBar{position:absolute;left:50%;transform:translateX(-50%);z-index:5;width:min(300px,70vw);display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none}
+.bossBar b{font-family:var(--display);font-weight:400;font-size:16px;color:#ff9a80;text-shadow:0 1px 3px #000}
+.bossBar span{display:block;width:100%;height:10px;border-radius:6px;background:rgba(20,8,6,.8);border:1px solid #c9a03e;overflow:hidden}
+.bossBar i{display:block;height:100%;width:100%;background:linear-gradient(180deg,#e0533e,#8f1d14);transition:width .2s}
 #volleyBtn .cd,#summonBtn .cd{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font:700 11px/1 system-ui,sans-serif;color:#e8e2cc}
 #volleyBtn.cool svg,#summonBtn.cool svg{opacity:.25}
 #volleyBtn.off svg,#summonBtn.off svg{opacity:.4}
@@ -520,6 +536,8 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
   <canvas id="c"></canvas>
   <button class="raidMark" id="raidMark0" hidden aria-label="Next wave"></button><button class="raidMark" id="raidMark1" hidden aria-label="Next wave"></button>
   <div class="wavePop" id="wavePop" hidden></div>
+  <div class="powers" id="powers" hidden><button class="pw" id="pwVolley" aria-label="Arrow volley"></button><button class="pw" id="pwRiders" aria-label="Riders"></button></div>
+  <div class="bossBar" id="bossBar" hidden><b id="bossName"></b><span><i id="bossFill"></i></span></div>
   <div class="panel">
     <div class="phase">
       <span class="phIco" id="phIco"></span>
@@ -7686,16 +7704,44 @@ $('#cardTrade').addEventListener('click', e => {
   pay(give); res[t.get] += n; const y = B.group.position.y + 2.4;
   floatRes(t.get, n, c.x, y, c.z); coinFly(c.x, y, c.z, Math.min(4, Math.ceil(n / 2)), t.get); sfx('trade'); refreshCard();
 });
-$('#volleyBtn').addEventListener('click', () => {
+function volleyAct() {
   if (paused) return setHint('Paused', 'bad'); if (volleyCd > 0) return; if (PH.kind !== 'night') return setHint('Night only', 'bad');
-  volleyAim = !volleyAim; if (!volleyAim) volleyLine.visible = false; setHint(volleyAim ? 'Tap a spot' : 'Select a building'); refreshCard();
-});
-$('#summonBtn').addEventListener('click', () => {
-  if (paused) return setHint('Paused', 'bad'); const K = selected; if (!K || K.type !== 'castle') return;
-  if (summoned().length) { rallyFor = rallyFor === K ? null : K; setHint(rallyFor ? 'Tap a spot' : 'Select a building'); refreshCard(); return; }
+  volleyAim = !volleyAim; if (volleyAim) rallyFor = null; if (!volleyAim) volleyLine.visible = false; setHint(volleyAim ? 'Tap a spot' : 'Select a building'); refreshCard(); updatePowers();
+}
+function ridersAct(K) {
+  if (paused) return setHint('Paused', 'bad'); if (!K || K.type !== 'castle') return;
+  if (summoned().length) { rallyFor = rallyFor === K ? null : K; if (rallyFor) volleyAim = false; setHint(rallyFor ? 'Tap a spot' : 'Select a building'); refreshCard(); updatePowers(); return; }
   if (summonCd > 0) return; if (PH.kind !== 'night') return setHint('Night only', 'bad');
-  summonRiders(); refreshCard();
-});
+  summonRiders(); refreshCard(); updatePowers();
+}
+$('#volleyBtn').addEventListener('click', volleyAct);
+$('#summonBtn').addEventListener('click', () => ridersAct(selected));
+$('#pwVolley').addEventListener('click', volleyAct);
+$('#pwRiders').addEventListener('click', () => ridersAct(castleB()));
+// the night powers' corner buttons: shown at night while the castle stands, mirroring the card's buttons (cooldowns, rally flag)
+function updatePowers() {
+  const K = castleB(), el = $('#powers'), on = PH.kind === 'night' && !gameOver && K && K.built && !menuOn() && !galleryOn && !showcaseBuilt;
+  el.hidden = !on; if (!on) return;
+  const v = $('#pwVolley'), r = $('#pwRiders');
+  if (!v.innerHTML) { v.innerHTML = $('#volleyBtn').querySelector('svg').outerHTML + '<b class="cd"></b>'; r.innerHTML = '<svg viewBox="0 0 24 24"></svg><b class="cd"></b>'; }
+  v.classList.toggle('cool', volleyCd > 0); v.querySelector('.cd').textContent = volleyCd > 0 ? Math.ceil(volleyCd) : ''; v.setAttribute('aria-pressed', String(volleyAim));
+  const out = summoned().length > 0, rc = !out && summonCd > 0, ico = out ? 'rally' : 'horse';
+  if (r.dataset.ico !== ico) { r.dataset.ico = ico; r.querySelector('svg').innerHTML = out ? '<path d="M6 21 V3.5"/><path d="M6 4 H17.5 L15 8 L17.5 12 H6"/>' : HORSE_ICO; }
+  r.classList.toggle('cool', rc); r.querySelector('.cd').textContent = rc ? Math.ceil(summonCd) : ''; r.setAttribute('aria-pressed', String(out && rallyFor === K));
+  r.setAttribute('aria-label', out ? 'Rally riders' : 'Riders');
+  // above the dock on a phone held upright; in the bottom-left corner, stacked, when the dock leaves room there (sideways, laptop)
+  const d = document.querySelector('.dock').getBoundingClientRect(), side = d.left >= 76;
+  el.classList.toggle('col', side); el.style.bottom = (side ? 12 : innerHeight - d.top + 10) + 'px';
+}
+// the boss's health along the top while one is out
+function updateBossBar() {
+  const B = enemies.find(e => !e.dead && !e.dormant && ENEMY[e.kind].boss), el = $('#bossBar');
+  el.hidden = !B || gameOver || menuOn(); if (el.hidden) return;
+  // under the top panel when it spans the screen (upright), else beside it, clear of its right edge (sideways)
+  const top = document.querySelector('.panel').getBoundingClientRect(), wide = top.right > innerWidth * .6, w = el.offsetWidth;
+  el.style.top = (wide ? top.bottom + 8 : 10) + 'px'; el.style.left = (wide ? innerWidth / 2 : Math.max(innerWidth / 2, top.right + 14 + w / 2)) + 'px';
+  $('#bossName').textContent = RAIDER_NAME[B.kind]; $('#bossFill').style.width = Math.max(0, B.hp / B.max * 100) + '%';
+}
 $('#recallBtn').addEventListener('click', () => { if (selected) { setRally(selected, null); rallyFor = null; setHint('Recalled'); refreshCard(); } });
 $('#galBack').addEventListener('click', closeGallery);
 $('#galTurn').addEventListener('click', () => { for (const it of gItems) if (it.turns) it.g.userData.turn++; });
@@ -8272,7 +8318,7 @@ function frame(now) {
     B.bar.grp.visible = B.hp < B.max; B.bar.set(B.hp / B.max); B.bar.grp.position.set(c.x, B.group.position.y + barTop(B), c.z);
   }
   for (let n = floats.length - 1; n >= 0; n--) { const f = floats[n]; f.t += dt; f.sp.position.y += dt * .9; f.sp.material.opacity = 1 - f.t / 1.8; if (f.t > 1.8) { scene.remove(f.sp); f.sp.material.dispose(); floats.splice(n, 1); } }
-  if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); guideTick(); goalTick(); }
+  if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); guideTick(); goalTick(); updatePowers(); updateBossBar(); }
   updateDebris(dt); updateRaidMarks(dt);
   const sh = shakeOffset(dt); camera.position.add(sh);
   renderer.render(scene, camera);
