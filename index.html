@@ -116,11 +116,9 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .util button{background:#24261f}
 .util button{min-height:28px;font-size:12px;padding:1px 7px}
 #nightBtn{min-height:28px;font-size:12px;padding:2px 9px;flex-shrink:0;background:#24261f;border-color:#57533f;flex-direction:row}
-#nightBtn{min-width:0!important;padding:2px 5px!important} #nightBtn svg{width:32px;height:20px;display:block}
-/* the war horn (Skip day): a natural horn darkening to its tip, gold bands and rim, the dark bell facing the two sound waves */
-#nightBtn .horn .ho{stroke:#3d230c;stroke-width:.8;stroke-linejoin:round} #nightBtn .horn .hb{fill:url(#hornG)} #nightBtn .horn .hc{fill:#e8b543}
-#nightBtn .horn .hs{fill:none;stroke:rgba(255,248,225,.45);stroke-width:.7;stroke-linecap:round} #nightBtn .horn .hr{fill:#3a2410}
-#nightBtn .horn .hw{fill:none;stroke:#ffe9a8;stroke-width:1.5;stroke-linecap:round} #nightBtn .horn .w2{opacity:.65}
+#nightBtn{min-width:0!important;padding:2px 5px!important} #nightBtn svg{width:25px;height:18px;display:block}
+/* the war horn (Skip day): a plain line icon like the corner buttons' (Jack: the coloured, detailed one didn't match the other icons) */
+#nightBtn .horn,#nightBtn .horn *{fill:none;stroke:#f4e3b2;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .banner{position:absolute;top:34%;left:50%;transform:translate(-50%,-50%);font-family:var(--display);font-size:clamp(28px,6vw,52px);
   color:var(--gold);text-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none;text-align:center;transition:opacity .6s;opacity:0;width:calc(100% - 32px)}
 .banner.show{opacity:1} .banner.night{color:var(--night)}
@@ -588,7 +586,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
         <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" class="tickBg"/><circle cx="18" cy="18" r="15" class="tickFg" id="tickRing"/></svg>
         <span id="tickN">20</span>
       </div>
-      <button id="nightBtn" title="Skip day" aria-label="Skip day"><svg viewBox="1.4 4.3 25.6 15.8" class="horn"><defs><linearGradient id="hornG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6e4421"/><stop offset=".45" stop-color="#c79a5e"/><stop offset="1" stop-color="#f3e2b6"/></linearGradient></defs><path class="ho hb" d="M2.3 12.2 Q1.9 13.7 3.1 13.9 C7.4 19.4 14.2 19.4 18.6 15.3 L18.6 5.7 C14.6 12.4 7.7 14.4 3 12.1 Z"/><path class="hs" d="M5.2 14.1 Q11 15.9 16.6 11.4"/><path class="ho hc" d="M13.6 11.3 L15.4 10.1 L15.9 17.9 L14.1 18.3 Z"/><path class="ho hc" d="M2.3 12.2 L3.6 12.4 L3.9 14.2 L2.6 14.2 Z"/><ellipse class="ho hc" cx="18.6" cy="10.5" rx="1.9" ry="4.85"/><ellipse class="hr" cx="18.75" cy="10.5" rx="1.05" ry="3.7"/><path class="hw" d="M22.86 8.26 A3.4 3.4 0 0 1 22.86 12.74"/><path class="hw w2" d="M24.66 6.68 A5.8 5.8 0 0 1 24.66 14.32"/></svg></button>
+      <button id="nightBtn" title="Skip day" aria-label="Skip day"><svg viewBox="0 0 24 17" class="horn"><path d="M14.5 3.6 Q9.5 11.5 3 8.8 Q1.8 9.4 2.6 11 Q8.5 17.4 14.5 12.4 Z"/><ellipse cx="14.5" cy="8" rx="2.1" ry="4.4"/><path d="M19.57 6.09 A3.2 3.2 0 0 1 19.57 9.91"/><path d="M21.65 4.54 A5.8 5.8 0 0 1 21.65 11.46"/></svg></button>
     </div>
     <div class="res">
       <div class="chip" id="cGold" title="Gold"><span class="ico" data-ico="gold"></span><b>0</b></div>
