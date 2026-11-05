@@ -57,7 +57,8 @@ function banner(title, sub, night) {
 // is picked again at nightfall
 var nextPts = null;
 function nightPts() { if (!nextPts) nextPts = [edgePoint(0), edgePoint(1)]; return nextPts; }
-const RAID_ICO = '<svg viewBox="0 0 24 24"><path d="M5 4 L15 14 M4 4 L4 7 M4 4 L7 4 M13 16 L16 13 M14.5 14.5 L19 19"/><path d="M19 4 L9 14 M20 4 L20 7 M20 4 L17 4 M11 16 L8 13 M9.5 14.5 L5 19"/></svg><span class="arr"></span>';
+// two crossed falchions (Jack's sketch: a broad blade with a straight back and a curved edge sweeping up to the tip, a crossguard, a short grip)
+const RAID_ICO = '<svg viewBox="0 0 24 24" class="swords"><g transform="translate(12 12.4) rotate(44)"><g transform="translate(0 6.4)"><path class="bl" d="M-1.35 0 V-11.2 Q-1.35 -14.6 2.3 -15.2 Q2.7 -8 1.35 0 Z"/><path d="M-3.6 .15 L3.6 -.15"/><path d="M-.85 .25 V3.5 H.85 V.25"/><circle cx="0" cy="4.45" r=".8"/></g></g><g transform="translate(12 12.4) scale(-1 1) rotate(44)"><g transform="translate(0 6.4)"><path class="bl" d="M-1.35 0 V-11.2 Q-1.35 -14.6 2.3 -15.2 Q2.7 -8 1.35 0 Z"/><path d="M-3.6 .15 L3.6 -.15"/><path d="M-.85 .25 V3.5 H.85 V.25"/><circle cx="0" cy="4.45" r=".8"/></g></g></svg><span class="arr"></span>';
 const WAVE_ORDER = ['ram', 'ballista', 'catapult', 'spear', 'sword', 'archer', 'xbow', 'lancer', 'rider', 'chief', 'warlord'];
 function wavePopHTML() {
   const w = WAVES[PH.wave - 1] || {}, rows = [];
