@@ -231,6 +231,7 @@ function resumeGame() {
   PH = { kind: 'day', wave: S.wave, t: S.t }; nextPts = null; startRepairs(); assignJobs();
   const K = castleB(); if (K) { const c = center(K); target.set(c.x, 2, c.z); updateCam(); }
   $('#log').innerHTML = ''; log(`Survive <b>${NIGHTS} nights</b>`); log(`<b>Day ${S.wave}</b> · resumed`, 'good'); banner(`Day ${S.wave}`, 'Resumed');
+  goalsKey = ''; renderGoals();
 }
 function startDay() {
   const test = PH.testDay; PH.testDay = undefined; nextPts = null;   // the end of an admin test raid: back to the same day, the wave not used up
