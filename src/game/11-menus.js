@@ -615,7 +615,7 @@ function openStage(i) {
   $('#stName').textContent = `Stage ${i + 1} · ${c.name}`;
   $('#stSub').textContent = [c.sub, c.land].filter(Boolean).join(' · ');
   $('#stNew').innerHTML = c.adds.map(t => `<span>${TOOL_ICON[t] || ''}<b>${t === 'road' ? 'Path' : DEF[t].name}</b></span>`).join('');
-  $('#stStars').innerHTML = starsHTML(c.map ? STARS[c.map] || 0 : 0) + (c.map && CROWNS[c.map] ? `<span class="crown" title="Won on hard">${CROWN_ICO}</span>` : '');
+  $('#stStars').innerHTML = starsHTML(c.map ? STARS[c.map] || 0 : 0) + (c.map && CROWNS[c.map] ? `<span class="crown" title="Won on hard">${CROWN_ICO}</span>` : c.map && (STARS[c.map] || 0) >= 3 ? `<span class="crown empty" title="Win on hard">${CROWN_ICO}</span>` : '');
   // hard mode: open once the stage has 3 stars (raiders a tier up, 30% less gold and wood to start; a win earns the crown)
   // a Difficulty switch, Normal | Hard (Jack): Hard shows a padlock until the stage has 3 stars, and a tap on it then says so
   const canHard = !!c.map && (STARS[c.map] || 0) >= 3; if (!canHard) hardSel = false; $('#stDiff').hidden = !c.map; syncDiff(canHard);
@@ -637,7 +637,7 @@ function openStage(i) {
 }
 var hardSel = false;
 function syncDiff(can) {
-  const h = $('#dHard'); h.classList.toggle('locked', !can); h.innerHTML = (can ? '' : LOCK_ICO) + 'Hard';
+  const h = $('#dHard'); h.classList.toggle('locked', !can); h.innerHTML = can ? 'Hard' : LOCK_ICO;   // locked: only the padlock (Jack)
   h.classList.toggle('on', hardSel); $('#dNormal').classList.toggle('on', !hardSel);
 }
 const stageCanHard = () => { const c = CAMPAIGN[cSel]; return !!(c && c.map) && (STARS[c.map] || 0) >= 3; };
