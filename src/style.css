@@ -523,7 +523,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
   background:radial-gradient(circle at 50% 40%,#c53a2e,#6d1611)!important;border:2px solid #f0c95a!important;box-shadow:0 2px 8px rgba(0,0,0,.55);color:#fff3d8;display:flex;align-items:center;justify-content:center;
   animation:raidPulse 1.6s ease-in-out infinite;touch-action:manipulation}
 .raidMark svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.raidMark svg.swords{width:27px;height:27px;stroke-width:1.1} .raidMark svg.swords .bl{fill:currentColor;fill-opacity:.28} .raidMark svg.swords circle{fill:currentColor}
+.raidMark svg.swords{width:28px;height:28px;stroke-width:1} .raidMark svg.swords .bl{fill:#fff;stroke:#fff;stroke-width:.6} .raidMark svg.swords .hl{stroke:#fff3d8} .raidMark svg.swords circle{fill:#fff3d8}
 .raidMark .arr{position:absolute;left:50%;top:50%;width:0;height:0;margin:-6px 0 0 -6px;border:6px solid transparent;border-left:9px solid #f0c95a;transform:rotate(var(--a)) translateX(22px);transform-origin:6px 6px;display:none}
 .raidMark.edge .arr{display:block}
 /* a one-time tip the first time a mechanic matters (gold edge, above the dock, fades after a few seconds) */
