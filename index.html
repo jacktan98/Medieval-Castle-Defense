@@ -983,9 +983,9 @@ const upTo = (t, n) => buildings.some(B => B.type === t && !B.dead && B.tier >= 
 // boosted kills, measured in a simulated stage: 4 boosted crossbows about 49 kills by Riverbend's night 4, 2 about 35; 4 boosted catapults about 45 by Siegeford's night 3
 const GOAL_N = { felled: 100, mined: 120, folk: 40, xbowKills: 40, cataKills: 50 };
 const STAGE_GOALS = {
-  vale: [['Follow the tutorial', () => guideDone], ['No buildings lost', () => stats.lostB === 0, true]],
-  bridge: [['Build a barracks', () => made('barracks') >= 1], ['No buildings lost', () => stats.lostB === 0, true]],
-  cross: [['Build a market', () => made('market') >= 1], ['Upgrade 1 building to tier 2', () => stats.upgrades >= 1]],
+  vale: [['Follow the tutorial', () => guideDone], ['Build 1 quarry', () => made('quarry') >= 1]],
+  bridge: [['Build 1 barracks', () => made('barracks') >= 1], ['Build 2 gates', () => made('gate') >= 2]],
+  cross: [['Build 1 market', () => made('market') >= 1], ['Upgrade 1 building to tier 2', () => stats.upgrades >= 1]],
   watch: [['Build 2 ballistas', () => made('ballista') >= 2], ['Upgrade 1 ballista to tier 2', () => upTo('ballista', 2)]],
   dune: [['Build 2 foresters', () => made('forester') >= 2], [`Fell ${GOAL_N.felled} forester trees`, () => stats.felled >= GOAL_N.felled]],
   bend: [['Build 2 crossbows', () => made('crossbow') >= 2], [`Boosted crossbows slay ${GOAL_N.xbowKills} raiders`, () => (stats.boostKills.crossbow || 0) >= GOAL_N.xbowKills]],
