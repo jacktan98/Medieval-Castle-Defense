@@ -318,6 +318,12 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 /* the card's Upgrade is a dark bronze plate with a gold rim, gold chevrons and costs (Jack preferred it to the gold-filled button) */
 .card .row button.primary{background:linear-gradient(180deg,#3d3220 0%,#2a2216 100%);border:1px solid #c9a03e;color:var(--gold)}
 .pauseCard button:not(.primary),#summary button:not(.primary),.card .row button:not(.primary):not(.danger){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%);border:1px solid #c9a03e;color:#f4e3b2}
+.hardBtn{align-self:center;min-height:28px!important;padding:2px 16px!important;font-size:13px!important;border-radius:14px!important;letter-spacing:.05em}
+#stHard[aria-pressed="true"]{background:linear-gradient(180deg,#8a2a1e,#521510)!important;border-color:#ff9a80!important;color:#ffe2d8!important;box-shadow:0 0 10px rgba(255,110,80,.45)}
+.crown svg,.hardTag svg{width:20px;height:20px;fill:#f0c95a;stroke:#fff1c4;stroke-width:1;vertical-align:-3px;margin-left:6px;filter:drop-shadow(0 0 6px rgba(255,205,90,.6))} .hardTag{color:#f0c95a}
+.audioRow{display:flex;gap:8px;justify-content:center;margin-top:10px}
+.audioRow button{min-height:32px!important;padding:3px 14px!important;font-size:13px!important;border-radius:16px!important}
+.audioRow button[aria-pressed="false"]{opacity:.55;text-decoration:line-through}
 #summary .sheet{background:var(--panel)!important;max-height:calc(100% - 8px);overflow-y:auto}
 .sumTip{margin:0;font-size:13px;color:#f4e3b2;text-align:center} .sumTip b{color:#f0c95a}
 /* a phone held sideways: two columns (title, stars, play again | goals, numbers, tip) so it all fits without scrolling */
@@ -517,6 +523,16 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
 #app.gallery > :not(canvas):not(#galBar){display:none!important}
 .galBar{position:fixed;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;padding:6px 8px;border-radius:12px;background:rgba(24,26,20,.88);border:1px solid #4a4838;color:#efe6cf;z-index:20}
 .galBar b{padding:0 6px;font-family:inherit}
+#loading{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 45%,#1b1a12 0%,#0d0e0a 70%);transition:opacity .5s}
+#loading.done{opacity:0;pointer-events:none}
+.ldBox{display:flex;flex-direction:column;align-items:center;gap:14px}
+.ldTitle{font-family:var(--display);font-size:clamp(28px,8vw,46px);color:#e8c46a;text-align:center;line-height:1.05;max-width:12ch;text-shadow:0 2px 8px rgba(0,0,0,.7)}
+.ldBar{width:min(220px,60vw);height:6px;border-radius:4px;background:rgba(255,255,255,.08);border:1px solid rgba(212,168,78,.5);overflow:hidden}
+.ldBar i{display:block;height:100%;width:35%;border-radius:4px;background:linear-gradient(90deg,#a47422,#f2d27a);animation:ldSlide 1.2s ease-in-out infinite}
+#loading.fail .ldBar{display:none}
+@keyframes ldSlide{0%{transform:translateX(-100%)}100%{transform:translateX(290%)}}
+.ldMsg{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#bfae86}
+#ldRetry{padding:6px 20px;border-radius:8px;border:2px solid #c9a03e;background:#3a2e18;color:#f4e3b2;font-size:15px}
 /* where the coming night's raiders will come in: a pulsing red mark at each of the two spawn points, held to the screen's edge
    (with a pointer toward it) when the point is out of view; a tap lists the coming wave */
 .raidMark{position:absolute;left:0;top:0;z-index:4;width:34px;height:34px;margin:-17px 0 0 -17px;padding:0!important;min-height:0!important;border-radius:50%!important;
@@ -544,6 +560,8 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
 @media (max-width:370px){ .res{gap:2px} .chip{padding:2px 1px;gap:1px} .chip b{font-size:11.5px} }
 </style>
 
+<!-- shown from the first paint until the game is ready (three.js comes from a CDN; on a slow phone that takes a while) -->
+<div id="loading"><div class="ldBox"><div class="ldTitle">Medieval Town Defense</div><div class="ldBar"><i></i></div><div class="ldMsg" id="ldMsg">Loading</div><button id="ldRetry" hidden onclick="location.reload()">Retry</button></div></div>
 <div id="app">
   <canvas id="c"></canvas>
   <button class="raidMark" id="raidMark0" hidden aria-label="Next wave"></button><button class="raidMark" id="raidMark1" hidden aria-label="Next wave"></button>
@@ -597,7 +615,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
       <button class="iconBtn" id="adminBtn" aria-pressed="false" aria-label="Admin" title="Admin tools"><svg viewBox="0 0 24 24"><path d="M14.5 5.5 a4 4 0 0 0 4.9 5 l-8.6 8.6 a2.1 2.1 0 0 1-3-3 l8.6-8.6 a4 4 0 0 0-1.9-2z"/><path d="M5 5 L9 9"/></svg></button>
     </div>
   </div>
-  <div class="pausedTag" id="pausedTag" hidden><div class="pauseCard"><div class="pauseT">Paused</div><div class="pauseBtns"><button class="primary pIco" id="resumeBtn" title="Resume" aria-label="Resume"></button><button class="pIco" id="fsBtn" title="Full screen" aria-label="Full screen"></button><button class="danger pIco" id="reset" title="Restart" aria-label="Restart"></button></div></div></div>
+  <div class="pausedTag" id="pausedTag" hidden><div class="pauseCard"><div class="pauseT">Paused</div><div class="pauseBtns"><button class="primary pIco" id="resumeBtn" title="Resume" aria-label="Resume"></button><button class="pIco" id="fsBtn" title="Full screen" aria-label="Full screen"></button><button class="danger pIco" id="reset" title="Restart" aria-label="Restart"></button></div><div class="audioRow"><button id="musicTog" aria-pressed="true">Music</button><button id="sfxTog" aria-pressed="true">Sounds</button></div></div></div>
   <div class="dock">
     <div class="statTip" id="statTip" hidden></div>
     <div class="card" id="card" hidden>
@@ -661,6 +679,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
           <div class="stInfo" id="stInfo"></div>
           <div class="stNew" id="stNew"></div>
           <div id="stStars"></div>
+          <button class="hardBtn" id="stHard" hidden aria-pressed="false">Hard</button>
           <div class="stActs"><button id="campBack">Back</button><span id="stPlay"></span></div>
         </div></div>
       </div>
@@ -700,7 +719,12 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// the loading screen's failure states: three.js didn't arrive (offline, blocked), or the game hit an error while starting
+function ldFail(msg) { const L = document.getElementById('loading'); if (!L || L.classList.contains('done') || L.classList.contains('fail')) return; L.classList.add('fail'); document.getElementById('ldMsg').textContent = msg; document.getElementById('ldRetry').hidden = false; }
+addEventListener('error', () => ldFail('Something went wrong'));
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="ldFail('No connection')"></script>
 <script>
 (() => {
 const $ = s => document.querySelector(s);
@@ -6286,9 +6310,10 @@ const RAID_ICO = '<svg viewBox="0 0 24 24"><path d="M5 4 L15 14 M4 4 L4 7 M4 4 L
 const WAVE_ORDER = ['ram', 'ballista', 'catapult', 'spear', 'sword', 'archer', 'xbow', 'lancer', 'rider', 'chief', 'warlord'];
 function wavePopHTML() {
   const w = WAVES[PH.wave - 1] || {}, rows = [];
-  for (const k of WAVE_ORDER) (w[k] || []).forEach((c, t) => { if (!c) return; const nm = RAIDER_NAME[k], name = Array.isArray(nm) ? nm[t] : nm;
-    rows.push(`<div class="${ENEMY[k].boss ? 'boss' : ''}"><span>${name}${!Array.isArray(nm) && !ENEMY[k].boss && t ? `<i>${['', 'II', 'III'][t]}</i>` : ''}</span><b>${c}</b></div>`); });
-  return `<h4>Night ${PH.wave}</h4>${rows.join('')}`;
+  for (const k of WAVE_ORDER) { const by = [0, 0, 0]; (w[k] || []).forEach((c, t) => { by[Math.min(2, t + (hardOn && !ENEMY[k].boss ? 1 : 0))] += c; });   // hard mode: a tier up
+    by.forEach((c, t) => { if (!c) return; const nm = RAIDER_NAME[k], name = Array.isArray(nm) ? nm[t] : nm;
+    rows.push(`<div class="${ENEMY[k].boss ? 'boss' : ''}"><span>${name}${!Array.isArray(nm) && !ENEMY[k].boss && t ? `<i>${['', 'II', 'III'][t]}</i>` : ''}</span><b>${c}</b></div>`); }); }
+  return `<h4>Night ${PH.wave}${hardOn ? ' · Hard' : ''}</h4>${rows.join('')}`;
 }
 let markRect = null, markRectT = 0;
 // the band the edge marks may use: below the top panel, above the dock (measured every .5 s)
@@ -6386,7 +6411,8 @@ function startNight() {
   tipOnce('volley', '<b>Arrow volley</b> · tap it, then tap the raiders'); tipOnce('riders', '<b>Riders</b> · two for the night, from the castle');
   // siege engines at the head of the column (Jack: they are slow, so they set off first), then foot and horse mixed (spearmen first),
   // bosses last of all; each entry [kind, spawn point, tier]
-  const each = (k, f) => (w[k] || []).forEach((c, t) => { for (let n = 0; n < c; n++) f(t + 1, n); });
+  // hard mode: every raider a tier up (tier 3 stays 3)
+  const each = (k, f) => (w[k] || []).forEach((c, t) => { for (let n = 0; n < c; n++) f(Math.min(3, t + 1 + (hardOn && !ENEMY[k].boss ? 1 : 0)), n); });
   each('spear', (t, n) => spawnQueue.push(['spear', pts[n % 2], t]));
   for (const k of ['archer', 'sword', 'xbow', 'lancer', 'rider']) each(k, (t, n) => spawnQueue.splice(Math.floor(Math.random() * (spawnQueue.length + 1)), 0, [k, pts[n % 2], t]));
   const siege = []; for (const k of ['ram', 'ballista', 'catapult']) each(k, (t, n) => siege.push([k, pts[n % 2], t]));
@@ -6490,6 +6516,8 @@ function endGame(won) {
   const tip = won ? '' : defeatTip(); $('#sumTip').hidden = !tip; $('#sumTip').innerHTML = tip ? `<b>Tip</b> · ${tip}` : '';
   $('#sumGoals').innerHTML = [['Survive', won], ...goals].map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
   if (n > (STARS[MAP] || 0)) { STARS[MAP] = n; try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {} }
+  if (won && hardOn && !CROWNS[MAP]) { CROWNS[MAP] = 1; try { localStorage.setItem('mtd-crowns', JSON.stringify(CROWNS)); } catch (e) {} }
+  if (won && hardOn) $('#sumText').innerHTML = `All ${NIGHTS} waves held · <b class="hardTag">${CROWN_ICO} Hard</b>`;
   if (won && stats.playT && !(BEST[MAP] <= stats.playT)) { BEST[MAP] = Math.round(stats.playT); try { localStorage.setItem('mtd-best', JSON.stringify(BEST)); } catch (e) {} }
   // Jack: not straight to the summary; a pause on the field first, then the stars pop in one at a time (a sound per star: SND.star, once there is a file)
   sumTimers.push(setTimeout(() => {
@@ -6499,6 +6527,9 @@ function endGame(won) {
   }, won ? 2200 : 2600));
 }
 var sumTimers = [];
+// a crown per stage won on hard (localStorage 'mtd-crowns')
+var CROWNS = {}; try { CROWNS = JSON.parse(localStorage.getItem('mtd-crowns') || '{}') || {}; } catch (e) {}
+const CROWN_ICO = '<svg viewBox="0 0 24 24"><path d="M3 8 L7.5 12 L12 5 L16.5 12 L21 8 L19 18 H5 Z"/></svg>';
 // after a defeat, one short tip picked from how the town was set up
 function defeatTip() {
   const has = t => buildings.some(B => B.type === t), open = t => Object.values(CATS).some(l => l.includes(t));
@@ -7610,7 +7641,9 @@ function openStage(i) {
   $('#stName').textContent = `Stage ${i + 1} · ${c.name}`;
   $('#stSub').textContent = [c.sub, c.land].filter(Boolean).join(' · ');
   $('#stNew').innerHTML = c.adds.map(t => `<span>${TOOL_ICON[t] || ''}<b>${t === 'road' ? 'Path' : DEF[t].name}</b></span>`).join('');
-  $('#stStars').innerHTML = starsHTML(c.map ? STARS[c.map] || 0 : 0);
+  $('#stStars').innerHTML = starsHTML(c.map ? STARS[c.map] || 0 : 0) + (c.map && CROWNS[c.map] ? `<span class="crown" title="Won on hard">${CROWN_ICO}</span>` : '');
+  // hard mode: open once the stage has 3 stars (raiders a tier up, 30% less gold and wood to start; a win earns the crown)
+  const hb = $('#stHard'), canHard = c.map && (STARS[c.map] || 0) >= 3; hb.hidden = !canHard; if (!canHard) hardSel = false; hb.setAttribute('aria-pressed', String(hardSel));
   // how many waves, how long to prepare before the first, and the quickest win so far
   const R = c.map && MAP_RULES[c.map];
   $('#stInfo').innerHTML = R ? `<span>Day 1 <b>${Math.round(R.day[0] / 60)}</b> min${Math.round(R.day[0] / 60) === 1 ? '' : 's'}</span><span><b>${R.waves.length}</b> waves</span>${BEST[c.map] ? `<span>Best <b>${fmt(BEST[c.map])}</b></span>` : ''}` : '';
@@ -7622,11 +7655,13 @@ function openStage(i) {
   $('#stPlay').innerHTML = c.map ? '<button class="primary" id="campPlay">Play</button>' : '';
   if (c.map) $('#campPlay').addEventListener('click', () => {
     sfx('click');
-    MAP = c.map; $('#mapPick').hidden = true;
+    MAP = c.map; $('#mapPick').hidden = true; hardOn = hardSel && (STARS[c.map] || 0) >= 3;
     if (stagePicks(MAP)) { $('#campaign').hidden = true; showLoadPick(MAP); return; }   // more decor than fits: choose four first
     $('#campaign').hidden = true; paused = false; startGame();
   });
 }
+var hardSel = false;
+$('#stHard').addEventListener('click', () => { hardSel = !hardSel; $('#stHard').setAttribute('aria-pressed', String(hardSel)); });
 // turning the deck: drag (a tap without a drag on a side card brings it forward), arrows, keys, wheel, the markers
 { const deck = $('#campMap'); let x0 = null, moved = 0, wheelT = 0, wheelAcc = 0;
   deck.addEventListener('pointerdown', e => { if (e.target.closest('.cArrow')) return; x0 = e.clientX; moved = 0; deck.setPointerCapture(e.pointerId); });
@@ -7658,7 +7693,7 @@ $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); })
 $('#saveResume').addEventListener('click', () => { sfx('click'); resumeGame(); });
 $('#campBack').addEventListener('click', () => { sfx('click'); $('#campaign').hidden = true; $('#mapPick').hidden = false; });
 document.querySelectorAll('.mapBtn').forEach(b => b.addEventListener('click', () => {
-  sfx('click'); MAP = b.dataset.map; try { localStorage.setItem('mtd-map', MAP); } catch (e) {}
+  sfx('click'); MAP = b.dataset.map; hardOn = false; try { localStorage.setItem('mtd-map', MAP); } catch (e) {}
   $('#mapPick').hidden = true; showLoadPick();          // then the town's buildings, then the game
 }));
 addEventListener('keydown', e => {
@@ -7944,6 +7979,7 @@ function startGame() {
   try {
   genTerrain(); if (MAP === 'keep') rollKeepCamps(); genBridges(); genTrees(); genRocks(); genClutter(); syncTerrain(); buildBridges(); genShore(); hideGhost(); deselect();
   Object.assign(res, (MAP_RULES[MAP] || {}).res || { gold: 40, wood: 45, stone: 0, food: 20 });
+  if (hardOn) { res.gold = Math.round(res.gold * .7); res.wood = Math.round(res.wood * .7); }
   stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, lostB: 0, felled: 0, mined: 0, boostKills: {}, t0: performance.now() }; guideDone = false; goalsMet = {};
   clearSummary(); $('#log').innerHTML = '';
   const ev = MAP === 'isle' ? findValid('castle', 12, 12, { free: true }) : MAP === 'pass' ? findValid('castle', 12, 9, { free: true }) : MAP === 'vale' ? findValid('castle', 11, 15, { free: true }) : MAP === 'bridge' ? findValid('castle', 13, 17, { free: true }) : MAP === 'cross' ? findValid('castle', 7, 18, { free: true }) : MAP === 'watch' ? findValid('castle', 7, 13, { free: true }) : MAP === 'dune' ? findValid('castle', 6, 11, { free: true }) : MAP === 'bend' ? findValid('castle', 9, 12, { free: true }) : MAP === 'crag' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'ford' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'mere' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'plains' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'keep' ? findValid('castle', 19, 32, { free: true }) : MAP === 'hold' ? findValid('castle', 18, 31, { free: true }) : findValid('castle', 8, 12, { free: true });
@@ -7972,7 +8008,7 @@ function startGame() {
   if (CAMP_MAPS[MAP]) showNewCards((CAMP_MAPS[MAP].stop > 0 ? CAMPAIGN[CAMP_MAPS[MAP].stop].adds.concat(CAMP_MAPS[MAP].newTier ? ['tier' + CAMP_MAPS[MAP].newTier] : []) : []).concat(stageGoals(MAP).length ? ['goals'] : []));   // a later stage: its new buildings, one card each, before play
   updateCam();
   log('Drag · twist · pinch');
-  log(`Survive <b>${NIGHTS} nights</b>`);
+  log(`Survive <b>${NIGHTS} nights</b>`); if (hardOn) log('<b>Hard</b> · raiders a tier up', 'warn');
   log('<b>Day 1</b>', 'good');
   banner('Day 1', 'Build before dark');
   applyLoadout(); cat = 'eco'; renderTools(); setTool('select');
@@ -7982,6 +8018,8 @@ function startGame() {
 for (const t in DEF) if (t !== 'castle') makeGhost(t);   // here, once every model's materials exist (stables and siege use the soldiers' and horses')
 resize();
 if (!/[?&](gallery|debug|map=)/.test(location.search)) showMapPick(); else { startGame(); $('#mapPick').hidden = true; }   // shown from the first paint, so the game never flashes up behind it
+// the game is up: the loading screen fades once the first frames are drawn
+requestAnimationFrame(() => requestAnimationFrame(() => { const L = $('#loading'); if (!L) return; L.classList.add('done'); setTimeout(() => L.remove(), 600); }));
 const easeOut = t => 1 - Math.pow(1 - t, 3);
 // how high over a building its health bar floats; a type missing here (the newer buildings were) is measured from its model, per tier,
 // once it stands finished (it used to come out NaN, so their bars never showed)
@@ -8108,6 +8146,8 @@ var TARGET_LOUD = .09, LOUD_WINDOW = .3, GAIN_MIN = .1, GAIN_MAX = 6, MASTER = .
 var SFX_GAP = { ramHit: .3, hen: 2, pig: 1.5, cow: 4, neigh: 3, bolt: .1, qbolt: .06, rockFire: .15, rockHit: .15, path: .12, clash: .12, arrowHit: .08, grunt: 3, yawn: 3, nope: .3, rooster: 2, chop: .15, pick: .15, hoe: .2, hammer: .12, arrow: .08, attack: .1, coins: .3, click: .05 };   // min seconds between repeats
 var STROKE_SFX = { axe: 'chop', pick: 'pick', hoe: 'hoe', hammer: 'hammer' };
 var muted = false; try { muted = localStorage.getItem('mtd-muted') === '1'; } catch (e) {}
+// music and sounds can be turned off on their own (the pause card); the corner button still mutes everything
+var musicOff = false, sfxOff = false; try { musicOff = localStorage.getItem('mtd-music') === '0'; sfxOff = localStorage.getItem('mtd-sfx') === '0'; } catch (e) {}
 // var: sfx()/setMusic() can run during the startup reset, before this block executes
 var loopWanted = {}, loopNode = {}, ambK = { fire: 0, river: 0, gallop: 0 }, actx = null, master = null, audioUnlocked = false, musicWant = 'day', clips = {}, sfxLast = {}, lastPick = {}, loopEl = {}, stinger = null;
 try { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = MASTER; master.connect(actx.destination); } catch (e) { actx = null; }
@@ -8163,6 +8203,7 @@ for (const k in LOOPS) {
 // at: a world point; world sounds fade with distance from what the camera looks at, and when zoomed far out
 function sfx(name, at, vol = 1) {
   if (muted || !actx || actx.state !== 'running') return;
+  if (name === 'victory' || name === 'defeat' ? musicOff : sfxOff) return;
   if (!clips[name] || !clips[name].length) return SND[name] && SND[name].fallback ? sfx(SND[name].fallback, at, vol * .7) : undefined;
   const now = actx.currentTime; if (now - (sfxLast[name] || -9) < (SFX_GAP[name] || .05)) return;
   let v = vol;
@@ -8231,7 +8272,8 @@ function syncMusic() {
   if (!loopEl) return;
   const on = !muted && audioUnlocked && !document.hidden, end = musicWant === 'victory' || musicWant === 'defeat';
   const nightOn = on && musicWant === 'night' && loopEl.night;   // falls back to the day theme if the night track is missing
-  const want = { music: on && !end && !nightOn, night: !!nightOn, birds: on && musicWant === 'day', fire: on && !end && ambK.fire > .01, river: on && !end && ambK.river > .01, gallop: on && !end && ambK.gallop > .01 };
+  const mu = on && !musicOff, fx = on && !sfxOff;   // the pause card's Music and Sounds toggles
+  const want = { music: mu && !end && !nightOn, night: mu && !!nightOn, birds: fx && musicWant === 'day', fire: fx && !end && ambK.fire > .01, river: fx && !end && ambK.river > .01, gallop: fx && !end && ambK.gallop > .01 };
   loopWanted = want;
   for (const k in loopEl) { const el = loopEl[k]; if (want[k] && el.paused) el.play().catch(() => {}); else if (!want[k] && !el.paused) el.pause(); }
   if (on && end && !stinger) stinger = sfx(musicWant) || 1;
@@ -8258,6 +8300,10 @@ function setMuted(on) {
   syncMusic();
 }
 $('#muteBtn').addEventListener('click', () => setMuted(!muted));
+function syncAudioToggles() { $('#musicTog').setAttribute('aria-pressed', String(!musicOff)); $('#sfxTog').setAttribute('aria-pressed', String(!sfxOff)); }
+$('#musicTog').addEventListener('click', () => { musicOff = !musicOff; try { localStorage.setItem('mtd-music', musicOff ? '0' : '1'); } catch (e) {} syncAudioToggles(); syncMusic(); });
+$('#sfxTog').addEventListener('click', () => { sfxOff = !sfxOff; try { localStorage.setItem('mtd-sfx', sfxOff ? '0' : '1'); } catch (e) {} syncAudioToggles(); syncMusic(); });
+syncAudioToggles();
 addEventListener('keydown', e => { if ((e.key === 'm' || e.key === 'M') && !e.target.closest('input')) setMuted(!muted); });
 setMuted(muted);
 
