@@ -100,6 +100,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .util button{background:#24261f}
 .util button{min-height:28px;font-size:12px;padding:1px 7px}
 #nightBtn{min-height:28px;font-size:12px;padding:2px 9px;flex-shrink:0;background:#24261f;border-color:#57533f;flex-direction:row}
+#nightBtn svg{width:34px;height:20px;display:block} #nightBtn .ff{fill:#f0c95a} #nightBtn .moon{fill:#cfd8ff}
 .banner{position:absolute;top:34%;left:50%;transform:translate(-50%,-50%);font-family:var(--display);font-size:clamp(28px,6vw,52px);
   color:var(--gold);text-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none;text-align:center;transition:opacity .6s;opacity:0;width:calc(100% - 32px)}
 .banner.show{opacity:1} .banner.night{color:var(--night)}
@@ -305,9 +306,13 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .hardBtn{align-self:center;min-height:28px!important;padding:2px 16px!important;font-size:13px!important;border-radius:14px!important;letter-spacing:.05em}
 #stHard[aria-pressed="true"]{background:linear-gradient(180deg,#8a2a1e,#521510)!important;border-color:#ff9a80!important;color:#ffe2d8!important;box-shadow:0 0 10px rgba(255,110,80,.45)}
 .crown svg,.hardTag svg{width:20px;height:20px;fill:#f0c95a;stroke:#fff1c4;stroke-width:1;vertical-align:-3px;margin-left:6px;filter:drop-shadow(0 0 6px rgba(255,205,90,.6))} .hardTag{color:#f0c95a}
-.audioRow{display:flex;gap:8px;justify-content:center;margin-top:10px}
-.audioRow button{min-height:32px!important;padding:3px 14px!important;font-size:13px!important;border-radius:16px!important}
-.audioRow button[aria-pressed="false"]{opacity:.55;text-decoration:line-through}
+/* the pause card's loudness sliders: a long gold track, filled up to the handle */
+.audioRows{display:flex;flex-direction:column;gap:9px;margin-top:12px;width:min(240px,70vw)}
+.volRow{display:flex;align-items:center;gap:10px;font-size:13px;color:#f4e3b2}
+.volRow span{width:52px;flex-shrink:0}
+.volRow input{flex:1;-webkit-appearance:none;appearance:none;height:6px;border-radius:4px;margin:0;background:linear-gradient(90deg,#d9b04e 0,#d9b04e var(--p,100%),rgba(10,8,4,.6) var(--p,100%));border:1px solid rgba(212,168,78,.55);outline:none;touch-action:none}
+.volRow input::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffe9a8,#c9962f);border:2px solid #5a4422;box-shadow:0 1px 4px rgba(0,0,0,.6)}
+.volRow input::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffe9a8,#c9962f);border:2px solid #5a4422}
 #summary .sheet{background:var(--panel)!important;max-height:calc(100% - 8px);overflow-y:auto}
 .sumTip{margin:0;font-size:13px;color:#f4e3b2;text-align:center} .sumTip b{color:#f0c95a}
 /* a phone held sideways: two columns (title, stars, play again | goals, numbers, tip) so it all fits without scrolling */

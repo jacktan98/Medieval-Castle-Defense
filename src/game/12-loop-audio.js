@@ -236,11 +236,15 @@ var TARGET_LOUD = .09, LOUD_WINDOW = .3, GAIN_MIN = .1, GAIN_MAX = 6, MASTER = .
 var SFX_GAP = { ramHit: .3, hen: 2, pig: 1.5, cow: 4, neigh: 3, bolt: .1, qbolt: .06, rockFire: .15, rockHit: .15, path: .12, clash: .12, arrowHit: .08, grunt: 3, yawn: 3, nope: .3, rooster: 2, chop: .15, pick: .15, hoe: .2, hammer: .12, arrow: .08, attack: .1, coins: .3, click: .05 };   // min seconds between repeats
 var STROKE_SFX = { axe: 'chop', pick: 'pick', hoe: 'hoe', hammer: 'hammer' };
 var muted = false; try { muted = localStorage.getItem('mtd-muted') === '1'; } catch (e) {}
-// music and sounds can be turned off on their own (the pause card); the corner button still mutes everything
-var musicOff = false, sfxOff = false; try { musicOff = localStorage.getItem('mtd-music') === '0'; sfxOff = localStorage.getItem('mtd-sfx') === '0'; } catch (e) {}
+// music and sounds each have their own loudness (the pause card's two sliders, 0 to 1; all the way down is off); the corner
+// button still mutes everything. Stored as numbers ('mtd-music', 'mtd-sfx'; the old on/off toggles stored '1' and '0')
+var musicVol = 1, sfxVol = 1, musicOff = false, sfxOff = false, musicBus = null, sfxBus = null;
+try { const m = localStorage.getItem('mtd-music'), f = localStorage.getItem('mtd-sfx'); if (m !== null) musicVol = clamp(+m || 0, 0, 1); if (f !== null) sfxVol = clamp(+f || 0, 0, 1); } catch (e) {}
+musicOff = musicVol === 0; sfxOff = sfxVol === 0;
 // var: sfx()/setMusic() can run during the startup reset, before this block executes
 var loopWanted = {}, loopNode = {}, ambK = { fire: 0, river: 0, gallop: 0 }, actx = null, master = null, audioUnlocked = false, musicWant = 'day', clips = {}, sfxLast = {}, lastPick = {}, loopEl = {}, stinger = null;
-try { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = MASTER; master.connect(actx.destination); } catch (e) { actx = null; }
+try { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = MASTER; master.connect(actx.destination);
+  musicBus = actx.createGain(); musicBus.gain.value = musicVol; musicBus.connect(master); sfxBus = actx.createGain(); sfxBus.gain.value = sfxVol; sfxBus.connect(master); } catch (e) { actx = null; }
 // loudness = RMS of the loudest LOUD_WINDOW; the gain brings it to TARGET_LOUD x trim without the peak passing the ceiling
 function levelOf(b, from = 0, to = b.length) {
   const d = b.getChannelData(0), win = Math.max(1, Math.min(to - from, Math.round(LOUD_WINDOW * b.sampleRate))), hop = Math.round(.05 * b.sampleRate);
@@ -277,7 +281,7 @@ if (actx) for (const k in SND) {
 for (const k in LOOPS) {
   const el = new Audio('audio/' + LOOPS[k].file); el.loop = true; el.preload = k === 'music' ? 'auto' : 'none'; el.crossOrigin = 'anonymous';
   let node = null;
-  if (actx) try { node = actx.createGain(); node.gain.value = LOOPS[k].amb ? 0 : LOOPS[k].vol; actx.createMediaElementSource(el).connect(node); node.connect(master); } catch (e) { node = null; }
+  if (actx) try { node = actx.createGain(); node.gain.value = LOOPS[k].amb ? 0 : LOOPS[k].vol; actx.createMediaElementSource(el).connect(node); node.connect(k === 'music' || k === 'night' ? musicBus : sfxBus); } catch (e) { node = null; }
   if (!node) el.volume = LOOPS[k].amb ? 0 : Math.min(1, LOOPS[k].vol);
   loopNode[k] = node;                     // no Web Audio: plain element volume (ignored on iOS, but that path has no Web Audio anyway)
   // phones only start downloading after the first tap, so a compact AAC copy (.m4a, ~60% smaller) is tried first;
@@ -305,7 +309,7 @@ function sfx(name, at, vol = 1) {
   lastPick[name] = n;
   const c = list[n], src = actx.createBufferSource(), g = actx.createGain();
   src.buffer = c.buf; src.playbackRate.value = .95 + Math.random() * .1; g.gain.value = c.gain * v;
-  src.connect(g); g.connect(master); src.start(0, c.from, c.len);
+  src.connect(g); g.connect(name === 'victory' || name === 'defeat' ? musicBus : sfxBus); src.start(0, c.from, c.len);
   src.sndName = name; liveSfx.add(src); src.onended = () => liveSfx.delete(src);
   return src;
 }
@@ -390,9 +394,16 @@ function setMuted(on) {
   syncMusic();
 }
 $('#muteBtn').addEventListener('click', () => setMuted(!muted));
-function syncAudioToggles() { $('#musicTog').setAttribute('aria-pressed', String(!musicOff)); $('#sfxTog').setAttribute('aria-pressed', String(!sfxOff)); }
-$('#musicTog').addEventListener('click', () => { musicOff = !musicOff; try { localStorage.setItem('mtd-music', musicOff ? '0' : '1'); } catch (e) {} syncAudioToggles(); syncMusic(); });
-$('#sfxTog').addEventListener('click', () => { sfxOff = !sfxOff; try { localStorage.setItem('mtd-sfx', sfxOff ? '0' : '1'); } catch (e) {} syncAudioToggles(); syncMusic(); });
+function syncAudioToggles() { $('#musicVol').value = Math.round(musicVol * 100); $('#sfxVol').value = Math.round(sfxVol * 100); for (const id of ['musicVol', 'sfxVol']) { const el = $('#' + id); el.style.setProperty('--p', el.value + '%'); } }
+function setVol(kind, v) {
+  v = clamp(v, 0, 1);
+  if (kind === 'music') { musicVol = v; musicOff = v === 0; if (musicBus) musicBus.gain.value = v; } else { sfxVol = v; sfxOff = v === 0; if (sfxBus) sfxBus.gain.value = v; }
+  try { localStorage.setItem(kind === 'music' ? 'mtd-music' : 'mtd-sfx', String(v)); } catch (e) {}
+  syncAudioToggles(); syncMusic();
+}
+$('#musicVol').addEventListener('input', e => setVol('music', e.target.value / 100));
+$('#sfxVol').addEventListener('input', e => setVol('sfx', e.target.value / 100));
+$('#sfxVol').addEventListener('change', () => sfx('click'));
 syncAudioToggles();
 addEventListener('keydown', e => { if ((e.key === 'm' || e.key === 'M') && !e.target.closest('input')) setMuted(!muted); });
 setMuted(muted);
