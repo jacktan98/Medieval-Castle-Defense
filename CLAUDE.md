@@ -2,7 +2,15 @@
 
 A medieval village-builder + tower-defence browser game prototype (inspired by Kingdom Rush and Age of Empires). Owner: Jack. He tests mostly on his phone (portrait and landscape) and also on desktop.
 
-The whole game is currently one self-contained file: `index.html` (~165 KB, three.js r128 from cdnjs). It was built over ~37 iterations in a claude.ai chat and published as an artifact; this repo continues it in Claude Code.
+The whole game is one self-contained file: `index.html` (~680 KB, three.js r128 from cdnjs). It was built over ~37 iterations in a claude.ai chat and published as an artifact; this repo continues it in Claude Code (300+ commits since).
+
+## Start here (every new session)
+Jack works on this from two Claude accounts, switching when one runs out of usage, so a session never has the earlier chats: this file is the whole memory. Read it before changing anything, and keep it up to date.
+- **Where things stand**: all twelve campaign stages and the three free-play maps are built and playable; the work now is Jack's playtest feedback, usually small fixes and look changes (see the rest of this file for every past decision and why).
+- **Workflow for every change**: make it in `index.html` → `node tools/check.js` → check it in a real render (Playwright + Chromium; `tools/render/serve.js`, `?debug` and `G(...)`; cdnjs is blocked in the cloud, so use a local three r128 from `npm pack three@0.128.0`) → update this file (what changed and Jack's reason, in its section) → commit on `main` and `git push origin main` (that deploys GitHub Pages) → send Jack a screenshot → a short plain-language summary.
+- **One account at a time**: both push to `main`; a session that has been idle should `git pull origin main` before it edits. No pull requests, no other branches.
+- **Never** put model names or IDs in the repo (commits, code, this file).
+- Jack writes short requests, often with a phone screenshot and arrows or circles drawn on it; when something is unclear, ask a short question rather than guess big.
 
 ## How to run
 - Open `index.html` in a browser, or serve the folder: `npx serve .` / `python3 -m http.server`.
