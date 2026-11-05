@@ -500,12 +500,26 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
 #app.gallery > :not(canvas):not(#galBar){display:none!important}
 .galBar{position:fixed;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;padding:6px 8px;border-radius:12px;background:rgba(24,26,20,.88);border:1px solid #4a4838;color:#efe6cf;z-index:20}
 .galBar b{padding:0 6px;font-family:inherit}
+/* where the coming night's raiders will come in: a pulsing red mark at each of the two spawn points, held to the screen's edge
+   (with a pointer toward it) when the point is out of view; a tap lists the coming wave */
+.raidMark{position:absolute;left:0;top:0;z-index:4;width:34px;height:34px;margin:-17px 0 0 -17px;padding:0!important;min-height:0!important;border-radius:50%!important;
+  background:radial-gradient(circle at 50% 40%,#c53a2e,#6d1611)!important;border:2px solid #f0c95a!important;box-shadow:0 2px 8px rgba(0,0,0,.55);color:#fff3d8;display:flex;align-items:center;justify-content:center;
+  animation:raidPulse 1.6s ease-in-out infinite;touch-action:manipulation}
+.raidMark svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.raidMark .arr{position:absolute;left:50%;top:50%;width:0;height:0;margin:-6px 0 0 -6px;border:6px solid transparent;border-left:9px solid #f0c95a;transform:rotate(var(--a)) translateX(22px);transform-origin:6px 6px;display:none}
+.raidMark.edge .arr{display:block}
+@keyframes raidPulse{0%,100%{box-shadow:0 0 0 0 rgba(220,60,40,.6),0 2px 8px rgba(0,0,0,.55)}50%{box-shadow:0 0 0 9px rgba(220,60,40,0),0 2px 8px rgba(0,0,0,.55)}}
+.wavePop{position:absolute;z-index:6;min-width:150px;max-width:220px;padding:0 0 8px;border-radius:10px;background:var(--panel);border:2px solid rgba(212,168,78,.72);box-shadow:0 4px 16px rgba(0,0,0,.5);font-size:13px;color:#f4e3b2;overflow:hidden}
+.wavePop h4{margin:0 0 6px;padding:5px 10px;font-family:var(--display);font-weight:400;font-size:15px;color:#ffe2a0;background:linear-gradient(90deg,rgba(150,112,52,.5),rgba(190,145,70,.62) 50%,rgba(150,112,52,.5));border-bottom:1px solid rgba(212,168,78,.55)}
+.wavePop div{display:flex;justify-content:space-between;gap:12px;padding:1px 10px} .wavePop div b{color:#fff1c4;font-variant-numeric:tabular-nums} .wavePop div.boss{color:#ff8a70} .wavePop i{font-style:normal;color:#c9a65a;font-size:11px;margin-left:3px}
 .galBar button{min-height:32px;padding:2px 10px}
 @media (max-width:370px){ .res{gap:2px} .chip{padding:2px 1px;gap:1px} .chip b{font-size:11.5px} }
 </style>
 
 <div id="app">
   <canvas id="c"></canvas>
+  <button class="raidMark" id="raidMark0" hidden aria-label="Next wave"></button><button class="raidMark" id="raidMark1" hidden aria-label="Next wave"></button>
+  <div class="wavePop" id="wavePop" hidden></div>
   <div class="panel">
     <div class="phase">
       <span class="phIco" id="phIco"></span>
@@ -6221,10 +6235,55 @@ function banner(title, sub, night) {
   bannerEl.innerHTML = `${title}<small>${sub}</small>`; bannerEl.className = 'banner show' + (night ? ' night' : '');
   clearTimeout(bannerTimer); bannerTimer = setTimeout(() => bannerEl.classList.remove('show'), 3200);
 }
+// the coming night's two spawn points, picked at dawn (and at the start) so their marks can show all day; a point built over since
+// is picked again at nightfall
+var nextPts = null;
+function nightPts() { if (!nextPts) nextPts = [edgePoint(0), edgePoint(1)]; return nextPts; }
+const RAID_ICO = '<svg viewBox="0 0 24 24"><path d="M5 4 L15 14 M4 4 L4 7 M4 4 L7 4 M13 16 L16 13 M14.5 14.5 L19 19"/><path d="M19 4 L9 14 M20 4 L20 7 M20 4 L17 4 M11 16 L8 13 M9.5 14.5 L5 19"/></svg><span class="arr"></span>';
+const WAVE_ORDER = ['ram', 'ballista', 'catapult', 'spear', 'sword', 'archer', 'xbow', 'lancer', 'rider', 'chief', 'warlord'];
+function wavePopHTML() {
+  const w = WAVES[PH.wave - 1] || {}, rows = [];
+  for (const k of WAVE_ORDER) (w[k] || []).forEach((c, t) => { if (!c) return; const nm = RAIDER_NAME[k], name = Array.isArray(nm) ? nm[t] : nm;
+    rows.push(`<div class="${ENEMY[k].boss ? 'boss' : ''}"><span>${name}${!Array.isArray(nm) && !ENEMY[k].boss && t ? `<i>${['', 'II', 'III'][t]}</i>` : ''}</span><b>${c}</b></div>`); });
+  return `<h4>Night ${PH.wave}</h4>${rows.join('')}`;
+}
+let markRect = null, markRectT = 0;
+function updateRaidMarks(dt) {
+  const show = PH.kind === 'day' && !gameOver && !menuOn() && !galleryOn && !showcaseBuilt && !!castleB();
+  const m = [$('#raidMark0'), $('#raidMark1')];
+  if (!show) { m.forEach(e => e.hidden = true); $('#wavePop').hidden = true; return; }
+  const P = nightPts();
+  if ((markRectT -= dt) <= 0) {   // the band the marks may use: below the top panel, above the dock
+    markRectT = .5; const top = document.querySelector('.panel').getBoundingClientRect(), dock = document.querySelector('.dock').getBoundingClientRect();
+    markRect = { x0: 24, x1: innerWidth - 24, y0: (top.bottom < innerHeight / 2 && top.right > innerWidth / 2 ? top.bottom : 60) + 26, y1: Math.min(innerHeight, dock.top) - 26 };
+  }
+  const R = markRect, cx = innerWidth / 2, cy = (R.y0 + R.y1) / 2;
+  P.forEach((p, i) => {
+    const e = m[i]; if (!e.innerHTML) { e.innerHTML = RAID_ICO; e.addEventListener('click', () => { sfx('click'); const pop = $('#wavePop'); if (!pop.hidden && pop.dataset.i === String(i)) { pop.hidden = true; return; } pop.innerHTML = wavePopHTML(); pop.dataset.i = i; pop.hidden = false; placePop(e); }); }
+    if (i === 1 && Math.hypot(P[0].x - p.x, P[0].z - p.z) < 3) { e.hidden = true; return; }   // both at one spot: one mark
+    const v = new THREE.Vector3(p.x, walkY(p.x, p.z) + 1, p.z).project(camera);
+    let x = (v.x + 1) / 2 * innerWidth, y = (1 - v.y) / 2 * innerHeight; const behind = v.z > 1;
+    if (behind) { x = innerWidth - x; y = innerHeight - y; }
+    let edge = behind || x < R.x0 || x > R.x1 || y < R.y0 || y > R.y1;
+    if (edge) {   // out of view: along the line from the middle toward it, stopped at the band's edge
+      const dx = x - cx, dy = y - cy || .001, k = Math.min(Math.abs((dx > 0 ? R.x1 - cx : R.x0 - cx) / (dx || .001)), Math.abs((dy > 0 ? R.y1 - cy : R.y0 - cy) / dy));
+      x = cx + dx * Math.min(1, k); y = cy + dy * Math.min(1, k);
+      e.style.setProperty('--a', Math.atan2(dy, dx) + 'rad');
+    }
+    e.classList.toggle('edge', edge); e.hidden = false; e.style.transform = `translate(${x}px, ${y}px)`;
+  });
+  const pop = $('#wavePop'); if (!pop.hidden) placePop(m[+pop.dataset.i]);
+}
+function placePop(e) {
+  const pop = $('#wavePop'), r = e.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  pop.style.left = clamp(r.left + r.width / 2 - w / 2, 8, innerWidth - w - 8) + 'px';
+  pop.style.top = (r.top - h - 10 > 70 ? r.top - h - 10 : Math.min(r.bottom + 10, innerHeight - h - 8)) + 'px';
+}
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.raidMark,.wavePop')) $('#wavePop').hidden = true; }, true);
 function startNight() {
   const w = WAVES[PH.wave - 1];
   PH.kind = 'night'; spawnQueue = []; sfx('horn');
-  const pts = [edgePoint(0), edgePoint(1)];
+  const pts = nightPts().map((p, i) => cellPass(cellAt(p.x, p.z), 2) ? p : edgePoint(i)); nextPts = null;
   // siege engines at the head of the column (Jack: they are slow, so they set off first), then foot and horse mixed (spearmen first),
   // bosses last of all; each entry [kind, spawn point, tier]
   const each = (k, f) => (w[k] || []).forEach((c, t) => { for (let n = 0; n < c; n++) f(t + 1, n); });
@@ -6239,7 +6298,7 @@ function startNight() {
   log(`<b>Night ${PH.wave}</b> · ${spawnQueue.length} raiders · ${ps.posted} on guard`, 'warn');
 }
 function startDay() {
-  const test = PH.testDay; PH.testDay = undefined;   // the end of an admin test raid: back to the same day, the wave not used up
+  const test = PH.testDay; PH.testDay = undefined; nextPts = null;   // the end of an admin test raid: back to the same day, the wave not used up
   sfx('rooster'); if (test === undefined) PH.wave++; PH.kind = 'day'; PH.t = test !== undefined ? Math.max(test, DUSK + 5) : DAYLEN[PH.wave - 1];
   for (const v of villagers) if (v.climb && v.climb.up) { v.climb.up = false; v.post = null; v.posted = false; }   // dawn caught them on the way up: back down
   for (const v of villagers) if (v.post) {
@@ -7692,7 +7751,7 @@ function startGame() {
   for (const f of floats) scene.remove(f.sp); floats.length = 0;
   for (const p of puffs) scene.remove(p.sp); puffs.length = 0;
   mapRules();
-  PH = { kind: 'day', wave: 1, t: DAYLEN[0] }; econT = TICK; gameOver = false; light = 1; if (paused) setPaused(false); setMusic('day');
+  PH = { kind: 'day', wave: 1, t: DAYLEN[0] }; nextPts = null; econT = TICK; gameOver = false; light = 1; if (paused) setPaused(false); setMusic('day');
   if (MAP === 'isle') { KX = 27; KZ = 27; } else if (MAP === 'pass') { KX = 27; KZ = 21; } else if (MAP === 'vale') { KX = 25; KZ = 33; } else if (MAP === 'bridge') { KX = 29; KZ = 37; } else if (MAP === 'cross') { KX = 17; KZ = 39; } else if (MAP === 'watch') { KX = 17; KZ = 29; } else if (MAP === 'dune') { KX = 15; KZ = 26; } else if (MAP === 'bend') { KX = 21; KZ = 28; } else if (MAP === 'crag') { KX = 25; KZ = 33; } else if (MAP === 'ford') { KX = 29; KZ = 43; } else if (MAP === 'mere') { KX = 15; KZ = 43; } else if (MAP === 'plains') { KX = 28; KZ = 28; } else if (MAP === 'keep') { KX = 41; KZ = 67; } else if (MAP === 'hold') { KX = 39; KZ = 65; } else { KX = 19; KZ = 27; }
   // a medium map (Stages 7-10) is its 56 m layout scaled up: the castle's site too
   MK = MED[MAP] ? MAP_N[MAP] * CELL / 56 : 1; if (MED[MAP]) { KX *= MK; KZ *= MK; }
@@ -8205,7 +8264,7 @@ function frame(now) {
   }
   for (let n = floats.length - 1; n >= 0; n--) { const f = floats[n]; f.t += dt; f.sp.position.y += dt * .9; f.sp.material.opacity = 1 - f.t / 1.8; if (f.t > 1.8) { scene.remove(f.sp); f.sp.material.dispose(); floats.splice(n, 1); } }
   if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); guideTick(); goalTick(); }
-  updateDebris(dt);
+  updateDebris(dt); updateRaidMarks(dt);
   const sh = shakeOffset(dt); camera.position.add(sh);
   renderer.render(scene, camera);
   camera.position.sub(sh);
