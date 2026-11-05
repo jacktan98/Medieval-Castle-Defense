@@ -257,9 +257,9 @@ function completeSite(B) {
     B.built = true; B.group.scale.y = 1; soddenPop(B); stats.built++; stats.made[B.type] = (stats.made[B.type] || 0) + 1; if (B.type !== 'castle' || stats.built > 1) sfx('build', c);
     if (B.type !== 'wall') log(`<b>${T.tiers[0]}</b> built${T.residents ? ` · +${T.residents[0]}` : ''}`, 'good');
     // the first of a kind: a one-line tip for what it can do
-    if (T.soldiers) tipOnce('rally', 'Tap the barracks, then <b>Rally</b> to send soldiers to a spot');
-    else if (T.movable) tipOnce('move', 'Tap the catapult, then <b>Move</b> to roll it somewhere new');
-    else if (B.type === 'market') tipOnce('market', 'Tap the market to <b>trade</b>');
+    if (T.soldiers) tipOnce('rally', 'Tap the <b>Barracks</b>, then <b>Rally</b> to send soldiers to a spot');
+    else if (T.movable) tipOnce('move', 'Tap the <b>Catapult</b>, then <b>Move</b> to roll it somewhere new');
+    else if (B.type === 'market') tipOnce('market', 'Tap the <b>Market</b> to <b>Trade</b>');
     else if (DEF_FXT(B.type)) tipOnce('decor', '<b>Decor</b> helps what stands near it');
     if (stats.built >= 4 && B.type !== 'castle') tipOnce('skip', '<b>Skip day</b> early to earn gold for the time left');
   } else {

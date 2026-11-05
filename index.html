@@ -3979,9 +3979,9 @@ function completeSite(B) {
     B.built = true; B.group.scale.y = 1; soddenPop(B); stats.built++; stats.made[B.type] = (stats.made[B.type] || 0) + 1; if (B.type !== 'castle' || stats.built > 1) sfx('build', c);
     if (B.type !== 'wall') log(`<b>${T.tiers[0]}</b> built${T.residents ? ` · +${T.residents[0]}` : ''}`, 'good');
     // the first of a kind: a one-line tip for what it can do
-    if (T.soldiers) tipOnce('rally', 'Tap the barracks, then <b>Rally</b> to send soldiers to a spot');
-    else if (T.movable) tipOnce('move', 'Tap the catapult, then <b>Move</b> to roll it somewhere new');
-    else if (B.type === 'market') tipOnce('market', 'Tap the market to <b>trade</b>');
+    if (T.soldiers) tipOnce('rally', 'Tap the <b>Barracks</b>, then <b>Rally</b> to send soldiers to a spot');
+    else if (T.movable) tipOnce('move', 'Tap the <b>Catapult</b>, then <b>Move</b> to roll it somewhere new');
+    else if (B.type === 'market') tipOnce('market', 'Tap the <b>Market</b> to <b>Trade</b>');
     else if (DEF_FXT(B.type)) tipOnce('decor', '<b>Decor</b> helps what stands near it');
     if (stats.built >= 4 && B.type !== 'castle') tipOnce('skip', '<b>Skip day</b> early to earn gold for the time left');
   } else {
@@ -6443,7 +6443,7 @@ function updateRaidMarks(dt) {
     const q = edgeSpot(p.x, walkY(p.x, p.z) + 1, p.z, R);
     if (q.edge) e.style.setProperty('--a', q.a + 'rad');
     e.classList.toggle('edge', q.edge); e.hidden = false; e.style.transform = `translate(${q.x}px, ${q.y}px)`;
-    if (PH.wave > 1 || !guideOn) tipOnce('marks', 'Tap a <b>red mark</b> to see the raiders coming that night');
+    if (PH.wave > 1 || !guideOn) tipOnce('marks', 'Tap a <b>Red mark</b> to see the raiders coming that night');
   });
   const pop = $('#wavePop'); if (!pop.hidden) placePop(m[+pop.dataset.i]);
 }
@@ -6584,12 +6584,12 @@ const CROWN_ICO = '<svg viewBox="0 0 24 24"><path d="M3 8 L7.5 12 L12 5 L16.5 12
 function defeatTip() {
   const has = t => buildings.some(B => B.type === t), open = t => Object.values(CATS).some(l => l.includes(t));
   const shooters = buildings.filter(B => B.type !== 'castle' && (DEF[B.type].archers || DEF[B.type].crew)).length;
-  if (shooters < 2) return 'Build towers where raiders come in';
-  if (open('wall') && !has('wall')) return 'Walls hold raiders under your towers';
-  if (!stats.volleys) return 'Use the arrow volley at night';
-  if (open('barracks') && !has('barracks') && !has('stables')) return 'Soldiers hold raiders at the gate';
-  if (tierCap() > 1 && !buildings.some(B => B.tier > 1)) return 'Upgrade towers before the big nights';
-  return 'Build up on day 1, the longest day';
+  if (shooters < 2) return 'Build <b>towers</b> where raiders come in';
+  if (open('wall') && !has('wall')) return '<b>Walls</b> hold raiders under your <b>towers</b>';
+  if (!stats.volleys) return 'Use the <b>Arrow volley</b> at night';
+  if (open('barracks') && !has('barracks') && !has('stables')) return '<b>Soldiers</b> hold raiders at the <b>gate</b>';
+  if (tierCap() > 1 && !buildings.some(B => B.tier > 1)) return '<b>Upgrade</b> <b>towers</b> before the big nights';
+  return 'Build up on Day 1, the longest day';
 }
 // the quickest win per map, in seconds of play (localStorage 'mtd-best'), shown on the stage's details
 var BEST = {}; try { BEST = JSON.parse(localStorage.getItem('mtd-best') || '{}') || {}; } catch (e) {}
@@ -7128,9 +7128,9 @@ function applyLoadout() {
   GUIDE = [];
   if (CM && CM.guide) { GUIDE = CM.guide(); return; }
   // each step says what to build and why, in the tips' style (Jack: more detail; no "·" or full stop)
-  const STEP = { lodge: 'Build <b>Lumber</b> near trees for wood', forester: 'Build a <b>Forester</b> for wood',
-    farm: 'Build <b>Fields</b> for food', farmhouse: 'Build a <b>Farmhouse</b> for food',
-    tower: 'Build <b>Archers</b> to guard the town', crossbow: 'Build a <b>Crossbow</b> to guard the town' };
+  const STEP = { lodge: 'Build a <b>Lumber</b> near trees for wood', forester: 'Build a <b>Forester</b> for wood',
+    farm: 'Build a <b>Fields</b> for food', farmhouse: 'Build a <b>Farmhouse</b> for food',
+    tower: 'Build a <b>Archers</b> to guard the town', crossbow: 'Build a <b>Crossbow</b> to guard the town' };
   GUIDE.push({ text: 'Build a <b>House</b> for more villagers', tool: 'house', cat: 'eco', done: () => buildings.some(B => B.type === 'house') },
     { text: STEP[L.wood], tool: L.wood, cat: 'eco', done: () => buildings.some(B => B.type === L.wood) },
     { text: STEP[L.food], tool: L.food, cat: 'eco', done: () => buildings.some(B => B.type === L.food) },
@@ -8018,6 +8018,8 @@ function startGame() {
   $('#nightBtn').classList.remove('skipGlow');
   gameSeed = nextSeed != null ? nextSeed : (Math.random() * 2147483647) | 0; nextSeed = null;
   showcaseBuilt = false; campsJoined = false; canvas.style.opacity = '1';
+  // Stage 3 opens tier 2: the upgrade step Stage 1's guide drops comes as a one-time tip here (Jack)
+  if (MAP === 'cross') tipOnce('upgrade', 'Tap a building to <b>Upgrade</b> it');
   anims.length = 0; spawnQueue = [];
   for (const B of buildings) { scene.remove(B.group); scene.remove(B.bar.grp); scene.remove(B.pbar.grp); removeScaffold(B); hideDefenders(B); if (B.rallyFlag) setRally(B, null); } buildings.length = 0;
   for (const v of villagers) { scene.remove(v.g); if (v.sbar) scene.remove(v.sbar.grp); } villagers.length = 0;
@@ -8496,7 +8498,7 @@ function guideTick() {
   if (!guideOn) return;
   const next = GUIDE.findIndex(S => !S.done());
   // the last step done (Stage 1: the archers): point at Skip day (Jack), which glows until it's pressed or night falls
-  if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').innerHTML = 'When ready, <b>skip day</b> to face raiders'; guideEndT = performance.now() + 6000; guideFinish(); g.hidden = false; $('#nightBtn').classList.add('skipGlow'); return; }
+  if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').innerHTML = 'When ready, <b>Skip day</b> to face the raiders'; guideEndT = performance.now() + 6000; guideFinish(); g.hidden = false; $('#nightBtn').classList.add('skipGlow'); return; }
   if (next !== guideStep) { guideStep = next; guideMark(); }
 }
 $('#gSkip').addEventListener('click', () => { guideFinish(); $('#guide').hidden = true; });

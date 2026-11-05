@@ -157,7 +157,7 @@ function updateRaidMarks(dt) {
     const q = edgeSpot(p.x, walkY(p.x, p.z) + 1, p.z, R);
     if (q.edge) e.style.setProperty('--a', q.a + 'rad');
     e.classList.toggle('edge', q.edge); e.hidden = false; e.style.transform = `translate(${q.x}px, ${q.y}px)`;
-    if (PH.wave > 1 || !guideOn) tipOnce('marks', 'Tap a <b>red mark</b> to see the raiders coming that night');
+    if (PH.wave > 1 || !guideOn) tipOnce('marks', 'Tap a <b>Red mark</b> to see the raiders coming that night');
   });
   const pop = $('#wavePop'); if (!pop.hidden) placePop(m[+pop.dataset.i]);
 }
@@ -298,12 +298,12 @@ const CROWN_ICO = '<svg viewBox="0 0 24 24"><path d="M3 8 L7.5 12 L12 5 L16.5 12
 function defeatTip() {
   const has = t => buildings.some(B => B.type === t), open = t => Object.values(CATS).some(l => l.includes(t));
   const shooters = buildings.filter(B => B.type !== 'castle' && (DEF[B.type].archers || DEF[B.type].crew)).length;
-  if (shooters < 2) return 'Build towers where raiders come in';
-  if (open('wall') && !has('wall')) return 'Walls hold raiders under your towers';
-  if (!stats.volleys) return 'Use the arrow volley at night';
-  if (open('barracks') && !has('barracks') && !has('stables')) return 'Soldiers hold raiders at the gate';
-  if (tierCap() > 1 && !buildings.some(B => B.tier > 1)) return 'Upgrade towers before the big nights';
-  return 'Build up on day 1, the longest day';
+  if (shooters < 2) return 'Build <b>towers</b> where raiders come in';
+  if (open('wall') && !has('wall')) return '<b>Walls</b> hold raiders under your <b>towers</b>';
+  if (!stats.volleys) return 'Use the <b>Arrow volley</b> at night';
+  if (open('barracks') && !has('barracks') && !has('stables')) return '<b>Soldiers</b> hold raiders at the <b>gate</b>';
+  if (tierCap() > 1 && !buildings.some(B => B.tier > 1)) return '<b>Upgrade</b> <b>towers</b> before the big nights';
+  return 'Build up on Day 1, the longest day';
 }
 // the quickest win per map, in seconds of play (localStorage 'mtd-best'), shown on the stage's details
 var BEST = {}; try { BEST = JSON.parse(localStorage.getItem('mtd-best') || '{}') || {}; } catch (e) {}
