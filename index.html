@@ -525,6 +525,11 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
 .raidMark svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .raidMark .arr{position:absolute;left:50%;top:50%;width:0;height:0;margin:-6px 0 0 -6px;border:6px solid transparent;border-left:9px solid #f0c95a;transform:rotate(var(--a)) translateX(22px);transform-origin:6px 6px;display:none}
 .raidMark.edge .arr{display:block}
+/* a one-time tip the first time a mechanic matters (gold edge, above the dock, fades after a few seconds) */
+.tipPill{position:absolute;left:50%;transform:translateX(-50%);z-index:6;max-width:min(330px,86vw);padding:6px 14px;border-radius:10px;background:var(--panel);border:2px solid rgba(240,201,90,.85);
+  box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 12px rgba(240,201,90,.25);font-size:13.5px;color:#fff1c4;text-align:center;pointer-events:none;animation:tipIn .35s ease-out}
+.tipPill b{color:#f0c95a}
+@keyframes tipIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
 /* a building under attack out of view: a red pointer at the screen's edge toward it; a tap brings the camera there */
 .hitMark{position:absolute;left:0;top:0;z-index:4;width:30px;height:30px;margin:-15px 0 0 -15px;padding:0!important;min-height:0!important;border-radius:50%!important;background:rgba(150,24,16,.92)!important;border:2px solid #ffb39e!important;
   color:#fff;display:flex;align-items:center;justify-content:center;animation:hitPulse .9s ease-in-out infinite;touch-action:manipulation}
@@ -544,6 +549,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
   <button class="raidMark" id="raidMark0" hidden aria-label="Next wave"></button><button class="raidMark" id="raidMark1" hidden aria-label="Next wave"></button>
   <div class="wavePop" id="wavePop" hidden></div>
   <button class="hitMark" hidden aria-label="Under attack"></button><button class="hitMark" hidden aria-label="Under attack"></button><button class="hitMark" hidden aria-label="Under attack"></button>
+  <div class="tipPill" id="tipPill" hidden></div>
   <div class="powers" id="powers" hidden><button class="pw" id="pwVolley" aria-label="Arrow volley"></button><button class="pw" id="pwRiders" aria-label="Riders"></button></div>
   <div class="bossBar" id="bossBar" hidden><b id="bossName"></b><span><i id="bossFill"></i></span></div>
   <div class="panel">
@@ -3917,6 +3923,12 @@ function completeSite(B) {
   if (S.kind === 'new') {
     B.built = true; B.group.scale.y = 1; stats.built++; stats.made[B.type] = (stats.made[B.type] || 0) + 1; if (B.type !== 'castle' || stats.built > 1) sfx('build', c);
     if (B.type !== 'wall') log(`<b>${T.tiers[0]}</b> built${T.residents ? ` · +${T.residents[0]}` : ''}`, 'good');
+    // the first of a kind: a one-line tip for what it can do
+    if (T.soldiers) tipOnce('rally', 'Tap the barracks · <b>Rally</b> sends soldiers to a spot');
+    else if (T.movable) tipOnce('move', 'Tap the catapult · <b>Move</b> rolls it to a new spot');
+    else if (B.type === 'market') tipOnce('market', 'Tap the market to <b>trade</b>');
+    else if (DEF_FXT(B.type)) tipOnce('decor', '<b>Decor</b> helps what stands near it');
+    if (stats.built >= 4 && B.type !== 'castle' && MAP !== 'vale') tipOnce('skip', '<b>Skip day</b> early · gold for the time left');
   } else {
     B.tier++; stats.upgrades++; swapModel(B); settleBase(B); rebuildRoads(); B.group.scale.y = 1; B.max = T.hp[B.tier - 1]; B.hp = B.max;
     if (B.tier === 2) rebuildRoads();   // the new stone base: paths now stop at its edge
@@ -5351,6 +5363,7 @@ function engineWreck(e, y) {
 // by: the building whose shot it was (crossbow towers and catapults pass it): a kill while any decor boosts it (Jack: not only the
 // target range or siege stores: a torch or campfire's range counts too) goes toward Riverbend's and Siegeford's goals (stats.boostKills)
 const BOOST_KEY = { crossbow: 'rangeArch', catapult: 'siegeRate' };
+const DEF_FXT = t => !!DECOR_FX[t];
 function hurtEnemy(e, d, by) {
   if (e.dead) return; e.hp -= d; e.flashT = .14;
   if (e.hp <= 0) {
@@ -6310,6 +6323,40 @@ function updateHitMarks(dt, now) {
   hitEls.forEach((e, i) => { const q = spots[i]; e.hidden = !q; if (!q) return; e._at = { x: q.wx, z: q.wz };
     e.style.setProperty('--p', `translate(${q.x}px, ${q.y}px)`); e.style.setProperty('--a', q.a + 'rad'); e.style.transform = `translate(${q.x}px, ${q.y}px)`; });
 }
+// ---------- one-time tips: the first time a mechanic matters, one line above the dock for 6 s (seen ones kept in 'mtd-tips') ----------
+var TIPS_SEEN = {}; try { TIPS_SEEN = JSON.parse(localStorage.getItem('mtd-tips') || '{}') || {}; } catch (e) {}
+let tipQ = [], tipT = 0;
+function tipOnce(key, html) {
+  if (TIPS_SEEN[key] || showcaseBuilt || galleryOn || tipQ.some(q => q[0] === key)) return;
+  TIPS_SEEN[key] = 1; try { localStorage.setItem('mtd-tips', JSON.stringify(TIPS_SEEN)); } catch (e) {}
+  tipQ.push([key, html]);
+}
+function updateTips(dt) {
+  const el = $('#tipPill');
+  if (menuOn() || gameOver) { el.hidden = true; return; }
+  if (tipT > 0 && (tipT -= dt) > 0) { const d = document.querySelector('.dock').getBoundingClientRect(), pw = $('#powers'); el.style.bottom = (innerHeight - Math.min(d.top, pw.hidden ? 1e9 : pw.getBoundingClientRect().top) + 10) + 'px'; return; }
+  el.hidden = true; if (!tipQ.length || paused) return;
+  const [, html] = tipQ.shift(); el.innerHTML = html; el.hidden = false; tipT = 6; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+}
+// the tutorial's build steps: a glowing spot where that building would do well (near the castle; lumber by trees; archers toward the raiders)
+const guideDisc = makeDisc('#ffd76a'); let guideSpotFor = -1;
+function updateGuideSpot(now) {
+  const S = guideOn && !gameOver && guideStep >= 0 && GUIDE[guideStep], t = S && S.tool && DEF[S.tool] ? S.tool : null;
+  if (!t || menuOn() || PH.kind !== 'day') { guideDisc.visible = false; guideSpotFor = -1; return; }
+  if (guideSpotFor !== guideStep) {
+    guideSpotFor = guideStep; const K = castleB(); if (!K) return; const c = center(K); let tx = c.x, tz = c.z + 6;
+    if (t === 'lodge' || t === 'forester') { let best = null, bd = 1e9; for (const T of trees) if (!T.deco && !T.cut) { const d = Math.hypot(T.x - c.x, T.z - c.z); if (d > 8 && d < bd) { bd = d; best = T; } } if (best) { tx = lerp(c.x, best.x, .65); tz = lerp(c.z, best.z, .65); } }
+    else if (DEF[t].archers || DEF[t].crew) { const p = nightPts()[0]; const d = Math.hypot(p.x - c.x, p.z - c.z) || 1; tx = c.x + (p.x - c.x) / d * 7; tz = c.z + (p.z - c.z) / d * 7; }
+    else if (t === 'farm' || t === 'farmhouse') { tx = c.x - 6; tz = c.z + 3; }
+    else { tx = c.x + 4; tz = c.z + 3; }
+    const ev = findValid(t, Math.floor(tx / CELL), Math.floor(tz / CELL), { free: true });
+    if (!ev) { guideDisc.visible = false; return; }
+    guideDisc.userData.at = [(ev.x0 + ev.x1) / 2, (ev.z0 + ev.z1) / 2, Math.max(ev.x1 - ev.x0, ev.z1 - ev.z0) * .62];
+  }
+  const a = guideDisc.userData.at; if (!a) return;
+  if (!guideDisc.visible) drapeDisc(guideDisc, a[0], a[1], a[2]);
+  guideDisc.material.opacity = .5 + .22 * Math.sin(now / 260);
+}
 function updateRaidMarks(dt) {
   const show = PH.kind === 'day' && !gameOver && !menuOn() && !galleryOn && !showcaseBuilt && !!castleB();
   const m = [$('#raidMark0'), $('#raidMark1')];
@@ -6322,6 +6369,7 @@ function updateRaidMarks(dt) {
     const q = edgeSpot(p.x, walkY(p.x, p.z) + 1, p.z, R);
     if (q.edge) e.style.setProperty('--a', q.a + 'rad');
     e.classList.toggle('edge', q.edge); e.hidden = false; e.style.transform = `translate(${q.x}px, ${q.y}px)`;
+    if (PH.wave > 1 || !guideOn) tipOnce('marks', 'Raiders come in at the <b>red marks</b> · tap one for the wave');
   });
   const pop = $('#wavePop'); if (!pop.hidden) placePop(m[+pop.dataset.i]);
 }
@@ -6335,6 +6383,7 @@ function startNight() {
   const w = WAVES[PH.wave - 1];
   PH.kind = 'night'; spawnQueue = []; sfx('horn');
   const pts = nightPts().map((p, i) => cellPass(cellAt(p.x, p.z), 2) ? p : edgePoint(i)); nextPts = null;
+  tipOnce('volley', '<b>Arrow volley</b> · tap it, then tap the raiders'); tipOnce('riders', '<b>Riders</b> · two for the night, from the castle');
   // siege engines at the head of the column (Jack: they are slow, so they set off first), then foot and horse mixed (spearmen first),
   // bosses last of all; each entry [kind, spawn point, tier]
   const each = (k, f) => (w[k] || []).forEach((c, t) => { for (let n = 0; n < c; n++) f(t + 1, n); });
@@ -8405,7 +8454,7 @@ function frame(now) {
   }
   for (let n = floats.length - 1; n >= 0; n--) { const f = floats[n]; f.t += dt; f.sp.position.y += dt * .9; f.sp.material.opacity = 1 - f.t / 1.8; if (f.t > 1.8) { scene.remove(f.sp); f.sp.material.dispose(); floats.splice(n, 1); } }
   if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); guideTick(); goalTick(); updatePowers(); updateBossBar(); }
-  updateDebris(dt); updateRaidMarks(dt); updateHitMarks(dt, now);
+  updateDebris(dt); updateRaidMarks(dt); updateHitMarks(dt, now); updateTips(dt); updateGuideSpot(now);
   const sh = shakeOffset(dt); camera.position.add(sh);
   renderer.render(scene, camera);
   camera.position.sub(sh);
