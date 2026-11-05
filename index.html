@@ -150,6 +150,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #sumGoals li{display:flex;align-items:center;gap:8px;color:var(--muted)} #sumGoals li.ok{color:var(--parch)} #sumGoals li b{width:18px;text-align:center;color:#6b6656} #sumGoals li.ok b{color:#8cc46e}
 .mapBtn .stars{font-size:13px}
 #campBtn{margin-top:4px;padding:9px 22px;font-family:var(--display);font-size:17px;color:var(--gold)}
+#saveResume{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 22px;font-family:var(--display);font-size:17px} #saveResume small{font-family:var(--body,inherit);font-size:11px;font-weight:700;color:#3a2508!important;text-shadow:none}
 #campaign{background:#14150f}
 .campSheet{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(720px,100%);max-height:100%}
 #campMap{width:100%;flex:1 1 auto;min-height:0;display:flex;justify-content:center}
@@ -638,6 +639,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
         <button class="mapBtn" data-map="pass"><img src="maps/pass.jpg" alt=""><b>Mountain pass</b></button>
       </div>
       <button id="campBtn">Campaign</button>
+      <button class="primary" id="saveResume" hidden>Resume</button>
     </div>
   </div>
   <div class="modal tome" id="campaign" hidden>
@@ -6346,6 +6348,50 @@ function startNight() {
   banner(`Night ${PH.wave}`, `${spawnQueue.length} raiders`, true); setMusic('night');
   log(`<b>Night ${PH.wave}</b> · ${spawnQueue.length} raiders · ${ps.posted} on guard`, 'warn');
 }
+// ---------- a save at every dawn (one slot, localStorage 'mtd-save'): the town is rebuilt on the same seeded map by resumeGame ----------
+function saveGame() {
+  if (gameOver || showcaseBuilt || galleryOn || !castleB()) return;
+  const S = { v: 1, map: MAP, seed: gameSeed, hard: !!hardOn, wave: PH.wave, t: PH.t, res: { ...res }, stats: { ...stats, t0: 0 }, goalsMet, guideDone, guideOn,
+    cats: CATS, road: [...road.slice(0, N * N)].map((r, i) => r ? i : -1).filter(i => i >= 0), rocks: rocks.map(q => q.amount),
+    b: buildings.filter(B => !B.dead).map(B => ({ t: B.type, ci: B.ev.ci, cj: B.ev.cj, f: B.face || 0, r: B.rot || 0, rf: !!B.rotFixed, tier: B.tier, hp: Math.round(B.hp),
+      site: B.site && B.site.kind !== 'repair' ? { kind: B.site.kind, p: B.site.progress, time: B.site.time } : null, rally: B.rally || null })) };
+  try { localStorage.setItem('mtd-save', JSON.stringify(S)); } catch (e) {}
+}
+function loadSave() { try { const S = JSON.parse(localStorage.getItem('mtd-save') || 'null'); return S && S.v === 1 && S.b ? S : null; } catch (e) { return null; } }
+function clearSave() { try { localStorage.removeItem('mtd-save'); } catch (e) {} syncResumeBtn(); }
+const saveName = S => { const st = CAMPAIGN.findIndex(c => c.map === S.map); return (st >= 0 ? `Stage ${st + 1} · ${CAMPAIGN[st].name}` : { meadow: 'Meadow', isle: 'River isle', pass: 'Mountain pass' }[S.map] || S.map) + ` · Day ${S.wave}`; };
+function syncResumeBtn() { const S = loadSave(), b = $('#saveResume'); if (!b) return; b.hidden = !S; if (S) b.innerHTML = `Resume<small>${saveName(S)}</small>`; }
+function resumeGame() {
+  const S = loadSave(); if (!S) return;
+  ['#mapPick', '#campaign', '#loadPick'].forEach(q => $(q).hidden = true);
+  MAP = S.map; nextSeed = S.seed; hardOn = !!S.hard; paused = false; startGame();
+  $('#newCards').hidden = true; newCards = []; paused = false;
+  // what the start placed (the castle, a stage's old walls and houses) is kept where the save has it, and removed where it doesn't
+  const key = (t, ci, cj) => t + '@' + ci + ',' + cj, have = new Map(buildings.map(B => [key(B.type, B.ev.ci, B.ev.cj), B])), keep = new Set();
+  const pf = placeFace, pr = placeRot;
+  for (const E of S.b) {
+    let B = have.get(key(E.t, E.ci, E.cj));
+    if (!B) { placeFace = E.f; placeRot = E.r; B = place(E.t, E.ci, E.cj, { instant: !E.site || E.site.kind !== 'new', free: true, quiet: true, silent: true }); }
+    if (!B) continue; keep.add(B);
+    const T = DEF[E.t];
+    if (E.tier > 1) { B.tier = E.tier; B.max = T.hp[E.tier - 1]; swapModel(B); settleBase(B); }
+    B.hp = Math.min(B.max, E.hp); B.rot = E.r; B.rotFixed = E.rf;
+    if (E.site && E.site.kind === 'new' && B.site) B.site.progress = E.site.p;
+    if (E.site && E.site.kind === 'up') { B.site = { kind: 'up', progress: E.site.p, time: E.site.time }; addScaffold(B); }
+    if (E.rally && T.soldiers) setRally(B, E.rally);
+  }
+  placeFace = pf; placeRot = pr;
+  for (const B of buildings.slice()) if (!keep.has(B) && B.type !== 'castle') removeBuilding(B, false, true);
+  for (const B of buildings) if (B.built) syncResidents(B);
+  road.fill(0); for (const n of S.road) if (!occB[n] || occB[n].type === 'gate') road[n] = 1;
+  S.rocks.forEach((a, i) => { if (rocks[i]) rocks[i].amount = a; }); seatRocks();
+  refreshWalls(); rebuildRoads(); regionDirty = true;
+  Object.assign(res, S.res); stats = { ...S.stats, t0: performance.now() - (S.stats.playT || 0) * 1000 }; goalsMet = S.goalsMet || {}; guideDone = !!S.guideDone; guideOn = !!S.guideOn; guideMark();
+  if (S.cats) { Object.assign(CATS, S.cats); renderTools(); }
+  PH = { kind: 'day', wave: S.wave, t: S.t }; nextPts = null; startRepairs(); assignJobs();
+  const K = castleB(); if (K) { const c = center(K); target.set(c.x, 2, c.z); updateCam(); }
+  $('#log').innerHTML = ''; log(`Survive <b>${NIGHTS} nights</b>`); log(`<b>Day ${S.wave}</b> · resumed`, 'good'); banner(`Day ${S.wave}`, 'Resumed');
+}
 function startDay() {
   const test = PH.testDay; PH.testDay = undefined; nextPts = null;   // the end of an admin test raid: back to the same day, the wave not used up
   sfx('rooster'); if (test === undefined) PH.wave++; PH.kind = 'day'; PH.t = test !== undefined ? Math.max(test, DUSK + 5) : DAYLEN[PH.wave - 1];
@@ -6374,9 +6420,10 @@ function startDay() {
   banner(`Day ${PH.wave}`, hurt ? `${hurt} to repair` : 'Wave held'); setMusic('day');
   for (const v of villagers) v.cheerT = 2.6;   // the town cheers as everyone comes out
   log(`<b>Wave ${PH.wave - 1} held</b>${hurt ? ` · ${hurt} to repair` : ''}`, 'good');
+  if (test === undefined) { saveGame(); log('Saved'); }
 }
 function endGame(won) {
-  if (gameOver) return; gameOver = true; setMusic(won ? 'victory' : 'defeat');
+  if (gameOver) return; gameOver = true; clearSave(); setMusic(won ? 'victory' : 'defeat');
   const el = (performance.now() - stats.t0) / 1000;
   $('#sumTitle').textContent = won ? 'The town holds' : 'The castle has fallen';
   $('#sumTitle').className = won ? '' : 'lost';
@@ -7439,7 +7486,7 @@ function showMapPick() {
   if (paused && !$('#pausedTag').hidden) setPaused(false);
   clearSummary(); paused = true; hideGhost(); $('#mapPick').hidden = false;
   if (!showcaseBuilt) buildShowcase();
-  markMapStars();
+  markMapStars(); syncResumeBtn();
 }
 function markMapStars() { document.querySelectorAll('.mapBtn').forEach(b => { b.classList.toggle('last', b.dataset.map === MAP); const st = b.querySelector('.stars'); if (st) st.remove(); b.insertAdjacentHTML('beforeend', starsHTML(STARS[b.dataset.map] || 0)); }); }
 // ---------- campaign: an overview map with twelve stops, each bringing in a few new buildings (only Greenvale, stop 1, is playable so far)
@@ -7559,6 +7606,7 @@ function openCampaign(i) {
   cSel = i !== undefined ? i : cCur; cDrag = 0; layoutDeck(false); openStage(cSel);
 }
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
+$('#saveResume').addEventListener('click', () => { sfx('click'); resumeGame(); });
 $('#campBack').addEventListener('click', () => { sfx('click'); $('#campaign').hidden = true; $('#mapPick').hidden = false; });
 document.querySelectorAll('.mapBtn').forEach(b => b.addEventListener('click', () => {
   sfx('click'); MAP = b.dataset.map; try { localStorage.setItem('mtd-map', MAP); } catch (e) {}
@@ -7823,7 +7871,11 @@ function findValid(type, ci0, cj0, opts = {}) {
   }
   return null;
 }
+// the map's random parts (rocks, clutter, scenery) come from a seed, so a saved game can be rebuilt on the same ground
+var gameSeed = 0, nextSeed = null, hardOn = false;
+function seededRandom(a) { return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function startGame() {
+  gameSeed = nextSeed != null ? nextSeed : (Math.random() * 2147483647) | 0; nextSeed = null;
   showcaseBuilt = false; campsJoined = false; canvas.style.opacity = '1';
   anims.length = 0; spawnQueue = [];
   for (const B of buildings) { scene.remove(B.group); scene.remove(B.bar.grp); scene.remove(B.pbar.grp); removeScaffold(B); hideDefenders(B); if (B.rallyFlag) setRally(B, null); } buildings.length = 0;
@@ -7839,6 +7891,8 @@ function startGame() {
   // a medium map (Stages 7-10) is its 56 m layout scaled up: the castle's site too
   MK = MED[MAP] ? MAP_N[MAP] * CELL / 56 : 1; if (MED[MAP]) { KX *= MK; KZ *= MK; }
   setMapSize(MAP_N[MAP] || 28);
+  const rnd0 = Math.random; Math.random = seededRandom(gameSeed);
+  try {
   genTerrain(); if (MAP === 'keep') rollKeepCamps(); genBridges(); genTrees(); genRocks(); genClutter(); syncTerrain(); buildBridges(); genShore(); hideGhost(); deselect();
   Object.assign(res, (MAP_RULES[MAP] || {}).res || { gold: 40, wood: 45, stone: 0, food: 20 });
   stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, lostB: 0, felled: 0, mined: 0, boostKills: {}, t0: performance.now() }; guideDone = false; goalsMet = {};
@@ -7862,6 +7916,7 @@ function startGame() {
   }                   // from the south: the fords ahead                   // from the south: the north bridge at the top
   if (MAP === 'watch') { yaw = 0; target.x += 7; target.z -= 4; layRoads(WATCH_ROADS); rebuildRoads(); placeRuin(); }   // from the south: Watch hill ahead, the gully on the right   // from the south, the cross and the north road ahead
   BANK_WALL = MAP === 'bridge' ? BANK_WALL : [];
+  } finally { Math.random = rnd0; }
   if (MAP === 'vale') guideOn = true;               // the tutorial stage: the guided first day every time (Skip ends it)
   else if (CAMP_MAPS[MAP]) { guideOn = false; guideMark(); }
   // a campaign stage: its new buildings, one card each (from Stage 2), then its goals (Jack: the goals only on this card)
