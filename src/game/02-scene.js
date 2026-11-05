@@ -72,7 +72,7 @@ function syncWaterTex() {
   for (let j = 0; j < V; j++) for (let i = 0; i < V; i++) hData[(j * V_MAX + i) * 4] = clamp(Math.round((H[idx(i, j)] + 3) / 6 * 255), 0, 255);
   hTex.needsUpdate = true; waterU.uIsle.value = MAP === 'isle' ? 1 : MAP === 'bridge' || MAP === 'bend' || MAP === 'ford' || MAP === 'hold' ? 2 : 0; waterU.uC.value.set(KX, KZ);
   // Meadowmere's water is foul (Jack: show why fields do badly there): murky olive with a scum of algae, yellowish froth
-  const foul = MAP === 'mere'; waterU.uFoul.value = foul ? 1 : 0; edgeWater.material.color.set(foul ? '#4a4d24' : '#3d6e86');
+  const foul = MAP === 'mere'; waterU.uFoul.value = foul ? 1 : 0; edgeWater.material.color.set(foul ? '#3f6560' : '#3d6e86');
 }
 waterMat.onBeforeCompile = sh => {
   sh.uniforms.uTime = windU; sh.uniforms.uH = { value: hTex }; sh.uniforms.uIsle = waterU.uIsle; sh.uniforms.uC = waterU.uC; sh.uniforms.uFoul = waterU.uFoul;
@@ -93,13 +93,13 @@ waterMat.onBeforeCompile = sh => {
     vec2 q1 = flowAt(vWP.xz, 1.0), q2 = flowAt(vWP.xz, 1.6);
     float streak = smoothstep(.5, .85, wn(q1 * 1.1) * .55 + wn(q2 * 2.4) * .45), dark = smoothstep(.55, .2, wn(q2 * .7 + 3.1));
     diffuseColor.rgb *= .88 + .12 * dark;
-    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.7 + vec3(.05, .07, .08), streak * .6 * (1.0 - .7 * uFoul));
-    float scum = uFoul * smoothstep(.54, .78, wn(q2 * .8 + 5.0) * .6 + wn(vWP.xz * 3.1) * .4);
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.27, .22, .06), scum * .75);
-    diffuseColor.a = mix(diffuseColor.a, 1.0, scum * .6);
+    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.7 + vec3(.05, .07, .08), streak * .6 * (1.0 - .4 * uFoul));
+    float scum = uFoul * smoothstep(.66, .86, wn(q2 * .8 + 5.0) * .6 + wn(vWP.xz * 3.1) * .4);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.3, .29, .12), scum * .5);
+    diffuseColor.a = mix(diffuseColor.a, 1.0, scum * .35);
     float shore = 1.0 - smoothstep(.02, .3, depth);
     float froth = smoothstep(.45, .75, wn(q1 * 2.6 + vec2(0.0, uTime * .7)) * .6 + wn(vWP.xz * 5.0 - uTime * .9) * .4 + shore * .35);
-    diffuseColor.rgb = mix(diffuseColor.rgb, mix(vec3(.86, .9, .9), vec3(.48, .45, .22), uFoul), shore * froth * .85);
+    diffuseColor.rgb = mix(diffuseColor.rgb, mix(vec3(.86, .9, .9), vec3(.66, .66, .5), uFoul), shore * froth * .85);
     diffuseColor.a = mix(diffuseColor.a, 1.0, shore * froth * .6);`);
 };
 waterMat.customProgramCacheKey = () => 'flowing-water';

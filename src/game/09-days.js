@@ -58,7 +58,7 @@ function banner(title, sub, night) {
 var nextPts = null;
 function nightPts() { if (!nextPts) nextPts = [edgePoint(0), edgePoint(1)]; return nextPts; }
 // two crossed falchions (Jack's sketch: a broad blade with a straight back and a curved edge sweeping up to the tip, a crossguard, a short grip)
-const RAID_ICO = '<svg viewBox="0 0 24 24" class="swords"><g transform="translate(12 11.4) rotate(44)"><g transform="translate(0 7.6)"><path class="bl" d="M-.6 0 V-15 Q-.6 -17.8 1.15 -18.3 Q1.3 -9.5 .6 0 Z"/><path class="hl" d="M-3.4 .15 L3.4 -.15"/><path class="hl" d="M-.8 .25 V3.4 H.8 V.25"/><circle class="hl" cx="0" cy="4.3" r=".75"/></g></g><g transform="translate(12 11.4) scale(-1 1) rotate(44)"><g transform="translate(0 7.6)"><path class="bl" d="M-.6 0 V-15 Q-.6 -17.8 1.15 -18.3 Q1.3 -9.5 .6 0 Z"/><path class="hl" d="M-3.4 .15 L3.4 -.15"/><path class="hl" d="M-.8 .25 V3.4 H.8 V.25"/><circle class="hl" cx="0" cy="4.3" r=".75"/></g></g></svg><span class="arr"></span>';
+const RAID_ICO = '<svg viewBox="0 0 24 24" class="swords"><g transform="translate(12 11.6) scale(.76) rotate(44)"><g transform="translate(0 7.6)"><path class="bl" d="M-.6 0 V-15 Q-.6 -17.8 1.15 -18.3 Q1.3 -9.5 .6 0 Z"/><path class="hl" d="M-3.4 .15 L3.4 -.15"/><path class="hl" d="M-.8 .25 V3.4 H.8 V.25"/><circle class="hl" cx="0" cy="4.3" r=".75"/></g></g><g transform="translate(12 11.6) scale(-.76 .76) rotate(44)"><g transform="translate(0 7.6)"><path class="bl" d="M-.6 0 V-15 Q-.6 -17.8 1.15 -18.3 Q1.3 -9.5 .6 0 Z"/><path class="hl" d="M-3.4 .15 L3.4 -.15"/><path class="hl" d="M-.8 .25 V3.4 H.8 V.25"/><circle class="hl" cx="0" cy="4.3" r=".75"/></g></g></svg><span class="arr"></span>';
 const WAVE_ORDER = ['ram', 'ballista', 'catapult', 'spear', 'sword', 'archer', 'xbow', 'lancer', 'rider', 'chief', 'warlord'];
 function wavePopHTML() {
   const w = WAVES[PH.wave - 1] || {}, rows = [];
@@ -336,8 +336,8 @@ function updateLight(dt, now) {
   sun.intensity = lerp(.68, 1.05, light); sun.color.copy(SUN_NIGHT).lerp(SUN_DAY, light).lerp(SUN_DUSK, Math.min(dusk, .7));
   hemi.intensity = lerp(.52, .72, light); hemi.color.copy(HEMI_NIGHT).lerp(HEMI_DAY, light);
   M.glow.emissiveIntensity = lerp(1.3, .1, light);
-  // Meadowmere's foul water: murky olive instead of blue
-  if (waterU.uFoul.value) waterMat.color.setRGB(lerp(.12, .23, light), lerp(.13, .24, light), lerp(.07, .1, light)).convertSRGBToLinear();
+  // Meadowmere's foul water: a murky blue-green (Jack found olive too polluted)
+  if (waterU.uFoul.value) waterMat.color.setRGB(lerp(.15, .21, light), lerp(.22, .33, light), lerp(.26, .3, light)).convertSRGBToLinear();
   else waterMat.color.setRGB(lerp(.17, .24, light), lerp(.27, .43, light), lerp(.4, .48, light)).convertSRGBToLinear();
 }
 

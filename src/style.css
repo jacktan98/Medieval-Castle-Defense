@@ -100,8 +100,11 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .util button{background:#24261f}
 .util button{min-height:28px;font-size:12px;padding:1px 7px}
 #nightBtn{min-height:28px;font-size:12px;padding:2px 9px;flex-shrink:0;background:#24261f;border-color:#57533f;flex-direction:row}
-#nightBtn{min-width:0!important;padding:2px 5px!important} #nightBtn svg{width:26px;height:24px;display:block} #nightBtn .horn path,#nightBtn .horn ellipse{stroke:#4a2e12;stroke-width:.9;stroke-linejoin:round;stroke-linecap:round}
-#nightBtn .hb{fill:#ecd9a8} #nightBtn .hc{fill:#e0ad3c} #nightBtn .hl{fill:none} #nightBtn .hr{fill:#6b4a22} #nightBtn .horn .hw{stroke:#ffe9a8;stroke-width:1.4;fill:none} #nightBtn .horn .w2{opacity:.7}
+#nightBtn{min-width:0!important;padding:2px 5px!important} #nightBtn svg{width:32px;height:20px;display:block}
+/* the war horn (Skip day): a natural horn darkening to its tip, gold bands and rim, the dark bell facing the two sound waves */
+#nightBtn .horn .ho{stroke:#3d230c;stroke-width:.8;stroke-linejoin:round} #nightBtn .horn .hb{fill:url(#hornG)} #nightBtn .horn .hc{fill:#e8b543}
+#nightBtn .horn .hs{fill:none;stroke:rgba(255,248,225,.45);stroke-width:.7;stroke-linecap:round} #nightBtn .horn .hr{fill:#3a2410}
+#nightBtn .horn .hw{fill:none;stroke:#ffe9a8;stroke-width:1.5;stroke-linecap:round} #nightBtn .horn .w2{opacity:.65}
 .banner{position:absolute;top:34%;left:50%;transform:translate(-50%,-50%);font-family:var(--display);font-size:clamp(28px,6vw,52px);
   color:var(--gold);text-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none;text-align:center;transition:opacity .6s;opacity:0;width:calc(100% - 32px)}
 .banner.show{opacity:1} .banner.night{color:var(--night)}
