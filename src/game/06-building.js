@@ -41,8 +41,8 @@ function evaluate(type, ci, cj, free) {
   if (adapt && r.dh > T.maxdh) return { ...r, ok: false, reason: 'Too steep' };
   if (T.reach) {
     r.resCount = countRes(type, (x0 + x1) / 2, (z0 + z1) / 2);
-    if (type === 'lodge' && r.resCount < 3) return { ...r, ok: false, reason: 'No forest nearby' };
-    if (type === 'quarry' && r.resCount < 1) return { ...r, ok: false, reason: 'No rock nearby' };
+    if (type === 'lodge' && r.resCount < 3) return { ...r, ok: false, reason: 'No trees nearby' };
+    if (type === 'quarry' && r.resCount < 1) return { ...r, ok: false, reason: 'No rocks nearby' };
   }
   // smart rotate: keep the player's facing if its door tile is open, else the nearest turn whose door is
   r.face = FACING[type] ? placeFace : 0;
@@ -51,7 +51,7 @@ function evaluate(type, ci, cj, free) {
   // and nobody may end up sealed in: the first of those turns that keeps every door, site and tower joined to the castle
   let cut = '';
   for (const f of faces) { cut = cutsOff(r, type, f); if (!cut) { r.face = f; break; } }
-  if (cut) return { ...r, ok: false, reason: type === 'wall' && cut === 'Blocks the way' ? 'Blocks the way · use a gate' : cut };
+  if (cut) return { ...r, ok: false, reason: type === 'wall' && cut === 'Blocks the way' ? 'Blocks the way, use a gate' : cut };
   if (!free && !canAfford(T.cost)) return { ...r, ok: false, reason: `Need ${shortfall(T.cost)}` };
   if (adapt) snapToNeighbours(type, r);
   return r;

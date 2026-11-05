@@ -516,7 +516,7 @@ function guideMark() {
   const g = $('#guide'); if (!g) return;
   if (!guideOn || gameOver || guideStep < 0) { if (!guideEndT) g.hidden = true; return; }
   const S = GUIDE[guideStep]; g.hidden = false;
-  $('#gStep').textContent = `${guideStep + 1}/${GUIDE.length}`; $('#gText').textContent = S.text;
+  $('#gStep').textContent = `${guideStep + 1}/${GUIDE.length}`; $('#gText').innerHTML = S.text;
   if (tool !== S.tool) {
     if (S.cat && cat !== S.cat) { const tab = document.querySelector(`.tab[data-cat="${S.cat}"]`); if (tab) tab.classList.add('guidePulse'); }
     else { const b = document.querySelector(`.tool[data-tool="${S.tool}"]`); if (b) b.classList.add('guidePulse'); }

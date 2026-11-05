@@ -229,7 +229,7 @@ const STAGE_GOALS = {
   watch: [['Build 2 ballistas', () => made('ballista') >= 2], ['Upgrade 1 ballista to tier 2', () => upTo('ballista', 2)]],
   dune: [['Build 2 foresters', () => made('forester') >= 2], [`Fell ${GOAL_N.felled} forester trees`, () => stats.felled >= GOAL_N.felled]],
   bend: [['Build 2 crossbows', () => made('crossbow') >= 2], [`Boosted crossbows slay ${GOAL_N.xbowKills} raiders`, () => (stats.boostKills.crossbow || 0) >= GOAL_N.xbowKills]],
-  crag: [['Build 2 mines', () => made('mine') >= 2], [`Mine ${GOAL_N.mined} stones`, () => stats.mined >= GOAL_N.mined]],
+  crag: [['Build 2 mines', () => made('mine') >= 2], [`Mine ${GOAL_N.mined} stone`, () => stats.mined >= GOAL_N.mined]],
   ford: [['Build 2 catapults', () => made('catapult') >= 2], [`Boosted catapults slay ${GOAL_N.cataKills} raiders`, () => (stats.boostKills.catapult || 0) >= GOAL_N.cataKills]],
   mere: [['Build 2 farmhouses', () => made('farmhouse') >= 2], ['Upgrade 1 farmhouse to tier 3', () => upTo('farmhouse', 3)]],
   plains: [['Build 2 stables', () => made('stables') >= 2], ['Upgrade 1 stables to tier 3', () => upTo('stables', 3)]],

@@ -44,11 +44,15 @@ function applyLoadout() {
   // the first day's guide follows the picks (a stage may have its own)
   GUIDE = [];
   if (CM && CM.guide) { GUIDE = CM.guide(); return; }
-  GUIDE.push({ text: 'Build a house', tool: 'house', cat: 'eco', done: () => buildings.some(B => B.type === 'house') },
-    { text: `${DEF[L.wood].name} for wood`, tool: L.wood, cat: 'eco', done: () => buildings.some(B => B.type === L.wood) },
-    { text: `${DEF[L.food].name} for food`, tool: L.food, cat: 'eco', done: () => buildings.some(B => B.type === L.food) },
-    { text: DEF[L.ranged].name, tool: L.ranged, cat: 'def', done: () => buildings.some(B => B.type === L.ranged) },
-    { text: 'Upgrade a building', tool: 'select', done: () => buildings.some(B => B.tier > 1 || (B.site && B.site.kind === 'up')) });
+  // each step says what to build and why, in the tips' style (Jack: more detail; no "·" or full stop)
+  const STEP = { lodge: 'Build <b>Lumber</b> near the trees to gather wood', forester: 'Build a <b>Forester</b> to grow trees for wood',
+    farm: 'Build <b>Fields</b> to grow food for your villagers', farmhouse: 'Build a <b>Farmhouse</b> to raise animals for food',
+    tower: 'Build <b>Archers</b> where the raiders come in', crossbow: 'Build a <b>Crossbow</b> tower where the raiders come in' };
+  GUIDE.push({ text: 'Build a <b>House</b> so more villagers can move in', tool: 'house', cat: 'eco', done: () => buildings.some(B => B.type === 'house') },
+    { text: STEP[L.wood], tool: L.wood, cat: 'eco', done: () => buildings.some(B => B.type === L.wood) },
+    { text: STEP[L.food], tool: L.food, cat: 'eco', done: () => buildings.some(B => B.type === L.food) },
+    { text: STEP[L.ranged], tool: L.ranged, cat: 'def', done: () => buildings.some(B => B.type === L.ranged) },
+    { text: 'Tap a building, then <b>Upgrade</b> it', tool: 'select', done: () => buildings.some(B => B.tier > 1 || (B.site && B.site.kind === 'up')) });
   if (tierCap() < 2) GUIDE.pop();   // no upgrades on this stage
 }
 const LOCK_ICO = '<svg class="lockIco" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V8 a4 4 0 0 1 8 0 V11"/></svg>';
