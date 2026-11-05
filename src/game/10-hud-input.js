@@ -59,7 +59,7 @@ const PH_ICON = {
 let phIcoKind = '';
 function updateHud() {
   const pt = $('#phaseText'), sub = $('#phaseSub');
-  if (PH.kind === 'day') { pt.textContent = `Day ${PH.wave} of ${NIGHTS}`; pt.className = ''; sub.textContent = `Night in ${fmt(Math.max(0, PH.t))}`; $('#nightBtn').hidden = gameOver; }
+  if (PH.kind === 'day') { pt.textContent = `Day ${PH.wave} of ${NIGHTS}`; pt.className = ''; sub.textContent = `Night in ${fmt(Math.max(0, PH.t))}`; $('#nightBtn').hidden = gameOver || (MAP === 'vale' && guideOn); }
   else { const left = spawnQueue.length + enemies.filter(e => !e.dead && !e.dormant).length; pt.textContent = `Night ${PH.wave} of ${NIGHTS}`; pt.className = 'night'; sub.textContent = `${left} raider${left === 1 ? '' : 's'} left`; $('#nightBtn').hidden = true; }
   const kind = PH.kind === 'day' ? 'sun' : 'moon'; if (phIcoKind !== kind) { phIcoKind = kind; $('#phIco').innerHTML = PH_ICON[kind]; }
   $('#tickRing').style.strokeDashoffset = (94.25 * (1 - econT / TICK)).toFixed(1); $('#tickN').textContent = Math.ceil(econT);

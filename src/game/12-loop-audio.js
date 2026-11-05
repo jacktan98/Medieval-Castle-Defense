@@ -527,7 +527,7 @@ function guideTick() {
   if (guideEndT && performance.now() > guideEndT) { guideEndT = 0; g.hidden = true; }
   if (!guideOn) return;
   const next = GUIDE.findIndex(S => !S.done());
-  if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').textContent = 'Good luck, my lord'; guideEndT = performance.now() + 3500; guideFinish(); g.hidden = false; return; }
+  if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').textContent = 'Great job'; guideEndT = performance.now() + 3500; guideFinish(); g.hidden = false; return; }
   if (next !== guideStep) { guideStep = next; guideMark(); }
 }
 $('#gSkip').addEventListener('click', () => { guideFinish(); $('#guide').hidden = true; });
