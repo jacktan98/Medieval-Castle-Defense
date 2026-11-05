@@ -100,9 +100,9 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .util button{background:#24261f}
 .util button{min-height:28px;font-size:12px;padding:1px 7px}
 #nightBtn{min-height:28px;font-size:12px;padding:2px 9px;flex-shrink:0;background:#24261f;border-color:#57533f;flex-direction:row}
-#nightBtn{min-width:0!important;padding:2px 5px!important} #nightBtn svg{width:25px;height:18px;display:block}
-/* the war horn (Skip day): a plain line icon like the corner buttons' (Jack: the coloured, detailed one didn't match the other icons) */
-#nightBtn .horn,#nightBtn .horn *{fill:none;stroke:#f4e3b2;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#nightBtn{min-width:0!important;padding:2px 5px!important} #nightBtn svg{width:32px;height:17px;display:block}
+/* Skip day: a cream line skip sign (as the corner buttons' icons) and a villager in the raiders' red shirt (Jack; a war horn with sound waves was tried and dropped) */
+#nightBtn .sk path{fill:none;stroke:#f4e3b2;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .banner{position:absolute;top:34%;left:50%;transform:translate(-50%,-50%);font-family:var(--display);font-size:clamp(28px,6vw,52px);
   color:var(--gold);text-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none;text-align:center;transition:opacity .6s;opacity:0;width:calc(100% - 32px)}
 .banner.show{opacity:1} .banner.night{color:var(--night)}
