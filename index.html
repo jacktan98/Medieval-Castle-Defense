@@ -282,7 +282,7 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 #c{background:#0d0f0b}
 /* stage details: "New" clear above the chips; room for two rows of chips on every stage so the box keeps its height */
 .cDet .stNew:empty{display:none}
-.stGoals{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:2px 12px;font-size:12px;color:#e6d6ae} .stGoals li::before{content:'\25CE';margin-right:5px;color:#f0c95a} .stGoals:empty{display:none}
+.stInfo{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 14px;font-size:12px;color:#e6d6ae} .stInfo b{color:#ffe2a0;font-weight:600} .stInfo:empty{display:none}
 /* the details shrink to their content (one row of chips, or none on the boss stages), but their slot keeps the tallest height seen,
    so the progress bar above never moves (Jack); the box sits at the slot's top on a tall screen, centred beside the deck on a wide one */
 .cDetSlot{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;width:100%;flex:0 0 auto}
@@ -318,6 +318,8 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .card .row button.primary{background:linear-gradient(180deg,#3d3220 0%,#2a2216 100%);border:1px solid #c9a03e;color:var(--gold)}
 .pauseCard button:not(.primary),#summary button:not(.primary),.card .row button:not(.primary):not(.danger){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%);border:1px solid #c9a03e;color:#f4e3b2}
 #summary .sheet{background:var(--panel)!important}
+#summary .stars.big span{display:inline-block} #summary .stars.big .pop{animation:starPop .55s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes starPop{0%{transform:scale(0) rotate(-40deg);opacity:0}55%{transform:scale(1.5) rotate(8deg);opacity:1}100%{transform:scale(1) rotate(0)}}
 #summary .stars.big .on{color:#f0c95a;-webkit-text-stroke:1px #fff1c4;text-shadow:0 0 12px rgba(255,205,90,.6)} #summary .stars.big span{-webkit-text-stroke:1px rgba(240,201,90,.75)}
 /* new-building cards: a small bronze plaque (Jack): "New · 1/2" and the name on one gold title band, the building's icon in a
    gold-rimmed medallion, cost and stats centred (text, numbers and icons all one size), Next / Play centred at the foot */
@@ -333,6 +335,9 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 #newCards .ncCost .cost,#newCards .ncStats .stat{gap:4px}
 #newCards button{order:5;align-self:center!important;min-width:96px!important;min-height:32px!important;padding:4px 14px!important;font-size:14px!important;margin-top:1px!important}
 #newCards{z-index:63;background:rgba(8,10,9,.6)}
+#newCards .goalCard{width:min(250px,80vw)} #newCards .goalCard .ncIcon{color:#f0c95a} #newCards .goalCard .ncCost{display:none}
+.ncGoals{list-style:none;margin:0;padding:0 4px;display:flex;flex-direction:column;gap:5px;font-size:13px;color:#f4e3b2;text-align:left}
+.ncGoals li{display:flex;align-items:flex-start;gap:7px;line-height:1.25} .ncGoals b{color:#f0c95a;font-size:14px;line-height:1.1;text-shadow:0 0 6px rgba(255,205,90,.5)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
 
 .ncInfo{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left}
@@ -601,8 +606,8 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
         </div>
         <div class="cDetSlot" id="cDetSlot"><div class="stSide cDet">
           <h3 id="stName"></h3><div class="sub" id="stSub"></div>
+          <div class="stInfo" id="stInfo"></div>
           <div class="stNew" id="stNew"></div>
-          <ul class="stGoals" id="stGoals"></ul>
           <div id="stStars"></div>
           <div class="stActs"><button id="campBack">Back</button><span id="stPlay"></span></div>
         </div></div>
@@ -745,7 +750,7 @@ const DEF = {
   // the other economy picks (one of each pair before a game): a grove grown on its own plot, a mine dug down into its own ground,
   // a yard of animals; none of them needs forest or rock nearby
   forester: { size: 2, dz: 3, turnDims: true, name: 'Forester', maxdh: 1.6, plot: true, hp: [100, 140, 200], cost: { gold: 30, wood: 5 },
-            up: [{ gold: 55, stone: 10 }, { gold: 85, stone: 25 }], workers: [1, 2, 3], grove: [5, 7, 8], grow: [40, 34, 28], chop: [8, 7.2, 6.5],
+            up: [{ gold: 55, stone: 10 }, { gold: 85, stone: 25 }], workers: [1, 2, 3], grove: [5, 7, 8], grow: [32, 27, 22], chop: [5, 4.5, 4],
             tiers: ["Forester's hut", 'Coppice', 'Tree farm'] },
   mine:   { size: 2, name: 'Mine', maxdh: 2.6, hp: [160, 230, 320], cost: { gold: 30, wood: 20 },
             up: [{ gold: 55, wood: 25 }, { gold: 85, wood: 35, stone: 10 }], workers: [1, 2, 3], dig: [9, 8, 7],
@@ -861,24 +866,40 @@ const MAP_RULES = {
 // done() is read during play (a log line when met) and at the end. Built counts are ever finished (stats.made), not still standing
 var guideDone = false, goalsMet = {};
 const made = t => (stats.made && stats.made[t]) || 0;
+const upTo = (t, n) => buildings.some(B => B.type === t && !B.dead && B.tier >= n);
+// how many of a type stand finished with a decor boost on them (the target range for crossbows, siege stores for catapults)
+const boosted = (t, key) => buildings.filter(B => B.type === t && B.built && !B.dead && decorFx(center(B).x, center(B).z, key) > 0).length;
+// each campaign stage's two goals (Jack): a win is one star, each goal met one more. [text, check, end]: a goal marked end is
+// only judged when the game ends (no buildings lost); the others are met for good the moment they come true (goalTick)
+// measured: two tier-1 foresters fell about 12 trees a minute, two tier-1 mines dig about 11.5 stone (Dunewell has ~13 min of daylight, Ironwood ~15)
+const GOAL_N = { felled: 100, mined: 120, folk: 40 };
 const STAGE_GOALS = {
-  vale: [['Follow the tutorial', () => guideDone]],
-  bridge: [['Build a barracks', () => made('barracks') >= 1]],
+  vale: [['Follow the tutorial', () => guideDone], ['No buildings lost', () => stats.lostB === 0, true]],
+  bridge: [['Build a barracks', () => made('barracks') >= 1], ['No buildings lost · walls OK', () => stats.lostB === 0, true]],
   cross: [['Build a market', () => made('market') >= 1], ['Upgrade to tier 2', () => stats.upgrades >= 1]],
-  watch: [['Build 2 ballistas', () => made('ballista') >= 2]],
+  watch: [['Build 2 ballistas', () => made('ballista') >= 2], ['Ballista to tier 2', () => upTo('ballista', 2)]],
+  dune: [['Build 2 foresters', () => made('forester') >= 2], [`Fell ${GOAL_N.felled} forester trees`, () => stats.felled >= GOAL_N.felled]],
+  bend: [['Build 2 crossbows', () => made('crossbow') >= 2], ['Target range boosting 4 crossbows', () => boosted('crossbow', 'rangeArch') >= 4]],
+  crag: [['Build 2 mines', () => made('mine') >= 2], [`Mine ${GOAL_N.mined} stone`, () => stats.mined >= GOAL_N.mined]],
+  ford: [['Build 2 catapults', () => made('catapult') >= 2], ['Siege stores boosting 4 catapults', () => boosted('catapult', 'siegeRate') >= 4]],
+  mere: [['Build 2 farmhouses', () => made('farmhouse') >= 2], ['Farmhouse to tier 3', () => upTo('farmhouse', 3)]],
+  plains: [['Build 2 stables', () => made('stables') >= 2], ['Stables to tier 3', () => upTo('stables', 3)]],
+  keep: [['Upgrade to Castle', () => upTo('castle', 3)], [`Reach ${GOAL_N.folk} villagers`, () => townsfolk().length >= GOAL_N.folk]],
+  hold: [['Upgrade to Castle', () => upTo('castle', 3)], [`Reach ${GOAL_N.folk} villagers`, () => townsfolk().length >= GOAL_N.folk]],
 };
 const stageGoals = m => STAGE_GOALS[m] || [];
+const goalOk = ([t, ok]) => !!goalsMet[t] || !!ok();
 function goalTick() {
   if (gameOver) return;
-  for (const [t, ok] of stageGoals(MAP)) if (!goalsMet[t] && ok()) { goalsMet[t] = true; log(`<b>Goal</b> · ${t} ✓`, 'good'); }
+  for (const [t, ok, end] of stageGoals(MAP)) if (!end && !goalsMet[t] && ok()) { goalsMet[t] = true; log(`<b>Goal</b> · ${t} ✓`, 'good'); }
 }
 // campaign stops' own maps: the buildings each one has (the stop's and every earlier stop's), and where it sits on the overview
 const CAMP_MAPS = {
   vale: { stop: 0, maxTier: 1, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower'], decor: ['road', 'flowers', 'torch'] } },
   bridge: { stop: 1, maxTier: 1, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack'] } },
   cross: { stop: 2, maxTier: 2, newTier: 2, cats: { eco: ['house', 'farm', 'lodge', 'quarry', 'market'], def: ['tower', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue'] } },
-  dune: { stop: 4, maxTier: 2, cats: { eco: ['house', 'farm', 'lodge', 'forester', 'quarry', 'market'], def: ['tower', 'ballista', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well'] } },
-  bend: { stop: 5, maxTier: 2, cats: { eco: ['house', 'farm', 'lodge', 'forester', 'quarry', 'market'], def: ['tower', 'crossbow', 'ballista', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts'] } },
+  dune: { stop: 4, maxTier: 2, prefer: { wood: 'forester' }, cats: { eco: ['house', 'farm', 'lodge', 'forester', 'quarry', 'market'], def: ['tower', 'ballista', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well'] } },
+  bend: { stop: 5, maxTier: 2, prefer: { ranged: 'crossbow' }, cats: { eco: ['house', 'farm', 'lodge', 'forester', 'quarry', 'market'], def: ['tower', 'crossbow', 'ballista', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts'] } },
   crag: { stop: 6, maxTier: 3, newTier: 3, prefer: { stone: 'mine' }, cats: { eco: ['house', 'farm', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner'] } },
   ford: { stop: 7, maxTier: 3, prefer: { siege: 'catapult', stone: 'quarry' }, cats: { eco: ['house', 'farm', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'] } },
   mere: { stop: 8, maxTier: 3, prefer: { food: 'farmhouse' }, cats: { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'] } },
@@ -1284,7 +1305,7 @@ function bridgeRays() {
   if (MAP === 'hold') return [{ ox: 39, oz: holdRiverZ(39) - 9, dx: 0, dz: 1, stone: true, grand: true, w: 3.2 }, ...[16, 64].map(x => ({ ox: x, oz: holdRiverZ(x) - 9, dx: 0, dz: 1, stone: true }))];
   if (MAP === 'mere') return [{ ...MERE_BRIDGE, ox: MERE_BRIDGE.ox * MK, oz: MERE_BRIDGE.oz * MK }];
   if (MAP === 'ford') return [{ ox: FORD_BRIDGE_X * MK, oz: (fordRiverZ(FORD_BRIDGE_X) - 10) * MK, dx: 0, dz: 1, stone: true }];
-  if (MAP === 'bend') return BEND_BRIDGES.map(([ox, oz, dx, dz]) => ({ ox, oz, dx, dz }));
+  if (MAP === 'bend') return BEND_BRIDGES.map(([ox, oz, dx, dz]) => ({ ox, oz, dx, dz, w: 3 }));   // Jack: both bridges bigger (3 m decks)
   if (MAP === 'bridge') {                       // the stone bridge, square across the river north of the castle
     const e = .01, sl = (stoneRiverZ(BRIDGE_X + e) - stoneRiverZ(BRIDGE_X - e)) / (2 * e), m = Math.hypot(1, sl), dx = -sl / m, dz = 1 / m;
     return [{ ox: BRIDGE_X - dx * 10, oz: stoneRiverZ(BRIDGE_X) - dz * 10, dx, dz, stone: true }];
@@ -1312,7 +1333,8 @@ function genBridges() {
     b.h0 = hAt(b.x0, b.z0) + .05; b.h1 = hAt(b.x0 + b.dx * b.L, b.z0 + b.dz * b.L) + .05;
     b.mx = b.x0 + b.dx * b.L / 2; b.mz = b.z0 + b.dz * b.L / 2;
     bridges.push(b);
-    for (let u = 0; u <= b.L + 1e-6; u += .2) for (let w = -1.05; w <= 1.06; w += .35) {
+    const hw = b.w && !b.grand ? b.w / 2 - .1 : 1.05;   // a wide deck's cells (the grand bridge keeps its old marking)
+    for (let u = 0; u <= b.L + 1e-6; u += .2) for (let w = -hw; w <= hw + .01; w += .35) {
       const x = b.x0 + b.dx * u - b.dz * w, z = b.z0 + b.dz * u + b.dx * w; if (x < 0 || z < 0 || x >= SIZE || z >= SIZE) continue;
       const n = cellAt(x, z); bridgeCell[n] = bridges.length; if (u < 1.3 || u > b.L - 1.3) b.ends.add(n);
     }
@@ -2780,7 +2802,7 @@ function makeStatue() {
 // log railings, grey stone landings at both ends. Built along local z, then turned onto its axis.
 function makeBridge(b) {
   if (b.stone) return makeStoneBridge(b);
-  const g = new THREE.Group(), L = b.L, W = DECK_W;
+  const g = new THREE.Group(), L = b.L, W = b.w || DECK_W, k = W / DECK_W;   // a wider deck spreads its stringers and trestles
   const yAt = z => deckY(b, (z + L / 2) / L), wx = z => b.mx + b.dx * z, wz = z => b.mz + b.dz * z;
   for (const s of [-1, 1]) {                      // stone landings set into each bank
     const z = s * (L / 2 - .5), y = yAt(z);
@@ -2798,12 +2820,12 @@ function makeBridge(b) {
     c.rotation.x = Math.PI / 2 - Math.atan2(y1 - y0, z1 - z0); g.add(c);
   };
   const S = Math.max(4, Math.round(L / 1.2));
-  for (const x of [-.6, .6]) for (let i = 0; i < S; i++) seg(x, -L / 2 + i * L / S, -L / 2 + (i + 1) * L / S, -.12, .11, M.log);
+  for (const x of [-.6 * k, .6 * k]) for (let i = 0; i < S; i++) seg(x, -L / 2 + i * L / S, -L / 2 + (i + 1) * L / S, -.12, .11, M.log);
   // trestles wherever the deck crosses water, every ~2.4 m
   for (let z = -L / 2 + 1.6; z < L / 2 - 1.5; z += 2.4) {
     const gy = hAt(wx(z), wz(z)); if (gy > yAt(z) - 1) continue;
     const top = yAt(z) - .2, bot = gy - .3;
-    for (const x of [-.75, .75]) g.add(cyl(.12, .14, top - bot, 8, M.log, x, (top + bot) / 2, z));
+    for (const x of [-.75 * k, .75 * k]) g.add(cyl(.12, .14, top - bot, 8, M.log, x, (top + bot) / 2, z));
     g.add(box(W + .3, .16, .26, M.log, 0, top, z));
     for (const r of [.85, -.85]) { const br = box(.08, Math.min(1.9, (top - bot) * .9), .08, M.log, 0, top - .8, z); br.rotation.z = r; g.add(br); }
   }
@@ -3602,7 +3624,7 @@ function emitSmoke(dt) {
 let adapt = true, tool = 'select', cat = 'eco', cur = null, selected = null, gameOver = false;
 const anims = [], buildings = [], villagers = [], enemies = [], arrows = [];
 const res = { gold: 0, wood: 0, stone: 0, food: 0 };
-let stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, t0: 0 };
+let stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, lostB: 0, felled: 0, mined: 0, t0: 0 };
 let PH = { kind: 'day', wave: 1, t: DAYLEN[0] }, econT = TICK, spawnQueue = [], spawnT = 0, light = 1, nextId = 1;
 const canAfford = c => RES_KEYS.every(k => (res[k] || 0) >= (c[k] || 0));
 const shortfall = c => RES_KEYS.filter(k => (c[k] || 0) > res[k]).map(k => `${c[k] - Math.floor(res[k])} more ${k}`).join(', ');
@@ -3722,7 +3744,9 @@ function rangeOf(B) {
   return T.range[B.tier - 1] + Math.max(decorFx(c.x, c.z, 'range'), 0) + (RANGED[B.type] ? decorFx(c.x, c.z, 'rangeArch') : 0);
 }
 const siegeRate = B => DEF[B.type].rate[B.tier - 1] * (1 - decorFx(center(B).x, center(B).z, 'siegeRate'));
-const prodK = B => (1 + decorFx(center(B).x, center(B).z, 'prod')) * (MAP === 'mere' && B.type === 'farm' && marshW(center(B).x / MK, center(B).z / MK) > .5 ? .5 : 1);   // Meadowmere: fields in the marsh grow half
+// Meadowmere (Jack: a better reason for the farmhouse): its sodden ground grows fields at half anywhere, and in the marsh itself at .3;
+// the farmhouse's yard is not a field, so it keeps its full yield
+const prodK = B => (1 + decorFx(center(B).x, center(B).z, 'prod')) * (MAP === 'mere' && B.type === 'farm' ? (marshW(center(B).x / MK, center(B).z / MK) > .5 ? .3 : .5) : 1);
 const housesNear = (x, z) => buildings.filter(B => B.type === 'house' && Math.hypot(center(B).x - x, center(B).z - z) <= CHARM_R).length;
 function center(B) { return { x: (B.ev.x0 + B.ev.x1) / 2, z: (B.ev.z0 + B.ev.z1) / 2 }; }
 function doorPoint(B) { const d = B.door; if (!d) return { x: center(B).x, z: B.ev.z1 + .6 }; const [sx, sz] = doorShift(B); return { x: (d.a + .5) * CELL + sx, z: (d.b + .5) * CELL + sz }; }
@@ -3893,7 +3917,7 @@ function removeBuilding(B, raid, cancel) {
   regionDirty = true; hideDefenders(B); assignJobs(); villagers.forEach(v => v.path = null);
   const c = center(B), name = DEF[B.type].tiers[B.tier - 1].toLowerCase();
   if (!raid) sfx(cancel ? 'click' : 'sold', c);
-  if (raid) { stats.lost++; sfx('destroyed', c); shake(.3, c, 'lost', .6); debrisBurst(B, c); floatText('Destroyed', '#e2715b', c.x, B.group.position.y + 3, c.z); log(`<b>${DEF[B.type].tiers[B.tier - 1]}</b> lost`, 'warn'); }
+  if (raid) { stats.lost++; if (!WALLY[B.type]) stats.lostB++; sfx('destroyed', c); shake(.3, c, 'lost', .6); debrisBurst(B, c); floatText('Destroyed', '#e2715b', c.x, B.group.position.y + 3, c.z); log(`<b>${DEF[B.type].tiers[B.tier - 1]}</b> lost`, 'warn'); }
   else if (cancel) { RES_KEYS.forEach(k => res[k] += DEF[B.type].cost[k] || 0); log(`<b>${DEF[B.type].tiers[0]}</b> cancelled · +${costHTML(DEF[B.type].cost)}`); }
   else {
     const back = {}; RES_KEYS.forEach(k => { if (DEF[B.type].cost[k]) back[k] = Math.floor(DEF[B.type].cost[k] / 2); res[k] += back[k] || 0; });
@@ -4635,7 +4659,7 @@ function updateWorker(v, dt, now) {
     if ((v.digT -= dt) <= 0) {
       v.digT = DEF.mine.dig[W.tier - 1] * (.9 + Math.random() * .2) / prodK(W);
       if (PH.kind === 'day') {
-        const c = center(W); res.stone++; stats.stone++; floatRes('stone', 1, c.x, W.group.position.y + 2.2, c.z); W.cartT = 2.4; sfx('pick', c, .6);
+        const c = center(W); res.stone++; stats.stone++; stats.mined++; floatRes('stone', 1, c.x, W.group.position.y + 2.2, c.z); W.cartT = 2.4; sfx('pick', c, .6);
         if (!W.hauler && Math.random() < .4) mineHaul(v, W);          // now and then one comes up to tip the cart's stone onto the heap
       }
     }
@@ -4662,7 +4686,7 @@ function updateWorker(v, dt, now) {
       if ((v.wait -= dt) <= 0) {
         const t = v.target;
         if (!t) { v.state = 'find'; break; }
-        if (t.grove) { t.g = 0; t.cut = true; v.carryLog.visible = true; }          // a grove tree felled: a sapling again
+        if (t.grove) { t.g = 0; t.cut = true; v.carryLog.visible = true; stats.felled++; }          // a grove tree felled: a sapling again
         else if (lumber) { t.cut = true; t.fallStart = now; t.regrow = now + 45000; v.carryLog.visible = true; }
         else { t.amount--; seatRocks(); v.carryStone.visible = true; }
         release(v); v.state = 'home'; v.stuck = 0;
@@ -5019,7 +5043,7 @@ function distRect(B, x, z) { const e = B.ev; return Math.hypot(Math.max(e.x0 - x
 function nearestBuilding(x, z, maxD = 1e9, ok = null) { let best = null, bd = maxD; for (const B of buildings) { if (DEF[B.type].decor || (ok && !ok(B))) continue; const d = distRect(B, x, z); if (d < bd) { bd = d; best = B; } } return best; }
 // a spawn spot from a medium map's 56 m layout: the coordinate along the edge scaled, the edge itself kept
 const edgeK = ([x, z]) => [x === 1.2 || x === SIZE - 1.2 ? x : x * MK, z === 1.2 || z === SIZE - 1.2 ? z : z * MK];
-function edgePoint() {
+function edgePoint(side) {
   const C = castleB(), dp = C && doorPoint(C);   // a spawn must have a walkable route to the castle's door
   if (MAP === 'keep' || MAP === 'hold') {
     // Raider Keep: everyone out of the keep's gate; Warlord's Hold: out of the hold's gate, from night 3 the west pass, from night 4 the east
@@ -5063,7 +5087,9 @@ function edgePoint() {
   if (MAP === 'dune' || MAP === 'bend') {
     // Dunewell: over the dunes from the south edge; from night 3 some along the caravan road from the east edge
     // Riverbend: down to the north bridge from the north edge; from night 3 some up to the south bridge from the south edge
-    const late = PH.wave >= 3 && Math.random() < .4;
+    // (a night's column comes from two points, startNight's side 0 and 1: on Riverbend's last night one is always the north, the other
+    // the south (Jack: the last wave from both sides; by chance both could land on one side))
+    const late = MAP === 'bend' && PH.wave >= NIGHTS && side !== undefined ? side === 1 : PH.wave >= 3 && Math.random() < .4;
     const pick = MAP === 'dune' ? (late ? () => [SIZE - 1.2, 21 + Math.random() * 4] : () => [30 + Math.random() * 12, SIZE - 1.2])
       : (late ? () => [15 + Math.random() * 10, SIZE - 1.2] : () => [18 + Math.random() * 10, 1.2]);
     for (const needRoute of [true, false]) for (let n = 0; n < 60; n++) {
@@ -6187,7 +6213,7 @@ function banner(title, sub, night) {
 function startNight() {
   const w = WAVES[PH.wave - 1];
   PH.kind = 'night'; spawnQueue = []; sfx('horn');
-  const pts = [edgePoint(), edgePoint()];
+  const pts = [edgePoint(0), edgePoint(1)];
   // siege engines at the head of the column (Jack: they are slow, so they set off first), then foot and horse mixed (spearmen first),
   // bosses last of all; each entry [kind, spawn point, tier]
   const each = (k, f) => (w[k] || []).forEach((c, t) => { for (let n = 0; n < c; n++) f(t + 1, n); });
@@ -6241,13 +6267,25 @@ function endGame(won) {
     ['Stone quarried', stats.stone], ['Food harvested', stats.food], ['Time played', fmt(el)]];
   $('#sumStats').innerHTML = rows.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('');
   // stars: one for holding out, two with some of the goals, three with all of them (kept per map, the best one; to be spent later)
-  const C = castleB(), goals = [...stageGoals(MAP).map(([t, ok]) => [t, !!ok()]), ['No buildings lost', stats.lost === 0], ['No soldiers lost', stats.fallen === 0], ['Castle above half', !!C && C.hp >= C.max / 2]];
-  const got = goals.filter(g => g[1]).length, n = !won ? 0 : got === goals.length ? 3 : got ? 2 : 1;
-  $('#sumStars').innerHTML = starsHTML(n);
+  // a campaign stage: a win is one star and each of its two goals one more (Jack); free play keeps its three goals (all = 3, some = 2)
+  const C = castleB(), camp = stageGoals(MAP).length > 0;
+  const goals = camp ? stageGoals(MAP).map(g => [g[0], goalOk(g)]) : [['No buildings lost', stats.lost === 0], ['No soldiers lost', stats.fallen === 0], ['Castle above half', !!C && C.hp >= C.max / 2]];
+  const got = goals.filter(g => g[1]).length, n = !won ? 0 : camp ? 1 + got : got === goals.length ? 3 : got ? 2 : 1;
+  $('#sumStars').innerHTML = starsHTML(0);
   $('#sumGoals').innerHTML = [['Survive', won], ...goals].map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
   if (n > (STARS[MAP] || 0)) { STARS[MAP] = n; try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {} }
-  $('#summary').hidden = false;
+  if (won && stats.playT && !(BEST[MAP] <= stats.playT)) { BEST[MAP] = Math.round(stats.playT); try { localStorage.setItem('mtd-best', JSON.stringify(BEST)); } catch (e) {} }
+  // Jack: not straight to the summary; a pause on the field first, then the stars pop in one at a time (a sound per star: SND.star, once there is a file)
+  sumTimers.push(setTimeout(() => {
+    $('#summary').hidden = false;
+    const el = [...$('#sumStars').querySelectorAll('span span')];
+    for (let i = 0; i < n; i++) sumTimers.push(setTimeout(() => { el[i].classList.add('on', 'pop'); sfx('star'); }, 650 + i * 650));
+  }, won ? 2200 : 2600));
 }
+var sumTimers = [];
+// the quickest win per map, in seconds of play (localStorage 'mtd-best'), shown on the stage's details
+var BEST = {}; try { BEST = JSON.parse(localStorage.getItem('mtd-best') || '{}') || {}; } catch (e) {}
+function clearSummary() { (sumTimers || []).forEach(clearTimeout); sumTimers = []; $('#summary').hidden = true; }
 // best stars per map (localStorage 'mtd-stars'); the total is to be spent on upgrades later
 var STARS = {}; try { STARS = JSON.parse(localStorage.getItem('mtd-stars') || '{}') || {}; } catch (e) {}
 const starsHTML = n => '<span class="stars">' + [0, 1, 2].map(i => `<span class="${i < n ? 'on' : ''}">★</span>`).join('') + '</span>';
@@ -6858,7 +6896,18 @@ function fordWall() {
     const B = place('wall', ci, cj, { instant: true, free: true, quiet: true });
     if (B) { B.tier = 2; B.max = DEF.wall.hp[1]; B.hp = B.max; swapModel(B); }
   }
-  refreshWalls();
+  // the west side (Jack: so players see raiders may come that way): the same old wall running north to south across the gorge,
+  // on layout column 4 from below the bank's row to the south edge, open only on the gorge road's own cell (a gate's place);
+  // any rock on its line is cleared first, so the line has no other holes
+  const wci = Math.floor(4.5 * MK), x0 = wci * CELL - .5, x1 = (wci + 1) * CELL + .5;
+  for (let wj = cj + 1; wj < N; wj++) {
+    if (road[wj * N + wci]) continue;
+    for (const q of rocks) if (q.x > x0 && q.x < x1 && q.z > wj * CELL - .5 && q.z < (wj + 1) * CELL + .5) q.amount = 0;
+    if (!evaluate('wall', wci, wj).ok) continue;
+    const B = place('wall', wci, wj, { instant: true, free: true, quiet: true });
+    if (B) { B.rot = 1; B.tier = 2; B.max = DEF.wall.hp[1]; B.hp = B.max; swapModel(B); }
+  }
+  seatRocks(); refreshWalls();
 }
 // a stage's new buildings, one card at a time over the paused game: picture (tool icon), name, cost and tier-1 stats; Next, then Play
 var newCards = [], newCardI = 0;
@@ -6876,10 +6925,18 @@ function showNewCards(list) {
   newCards = list.slice(); newCardI = 0; if (!newCards.length) return;
   paused = true; hideGhost(); renderNewCard(); $('#newCards').hidden = false; sfx('alert');
 }
+const STAR_ICO = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2.8 L14.7 8.9 L21.3 9.5 L16.3 13.9 L17.8 20.4 L12 17 L6.2 20.4 L7.7 13.9 L2.7 9.5 L9.3 8.9 Z"/></svg>';
 const UP_ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 14 L12 7 L19 14"/><path d="M5 19 L12 12 L19 19"/></svg>';
 function renderNewCard() {
-  const t = newCards[newCardI], last = newCardI === newCards.length - 1;
-  $('#ncStep').textContent = `New · ${newCardI + 1}/${newCards.length}`; $('#ncNext').textContent = last ? 'Play' : 'Next';
+  const t = newCards[newCardI], last = newCardI === newCards.length - 1, nNew = newCards.filter(c => c !== 'goals').length;
+  $('#ncStep').textContent = `New · ${newCardI + 1}/${nNew}`; $('#ncNext').textContent = last ? 'Play' : 'Next';
+  $('#newCards .ncCard').classList.toggle('goalCard', t === 'goals');
+  if (t === 'goals') {        // the stage's two goals: each one met is a star on top of the win's
+    $('#ncStep').textContent = `Stage ${CAMP_MAPS[MAP].stop + 1}`; $('#ncName').textContent = 'Goals'; $('#ncIcon').innerHTML = STAR_ICO;
+    $('#ncCost').innerHTML = '';
+    $('#ncStats').innerHTML = `<ul class="ncGoals"><li><b>★</b>Win</li>${stageGoals(MAP).map(([g]) => `<li><b>★</b>${g}</li>`).join('')}</ul>`;
+    return;
+  }
   if (/^tier\d$/.test(t)) {   // a tier opening up: what an upgrade brings, house and archer tower as examples
     const k = +t[4] - 1, H = DEF.house, W = DEF.tower;
     $('#ncName').textContent = `Tier ${k + 1}`; $('#ncIcon').innerHTML = UP_ICO;
@@ -7240,7 +7297,7 @@ function showStart() { if (CAMP_MAPS[MAP]) { showMapPick(); $('#mapPick').hidden
 function showMapPick() {
   hushSfx();
   if (paused && !$('#pausedTag').hidden) setPaused(false);
-  $('#summary').hidden = true; paused = true; hideGhost(); $('#mapPick').hidden = false;
+  clearSummary(); paused = true; hideGhost(); $('#mapPick').hidden = false;
   if (!showcaseBuilt) buildShowcase();
   markMapStars();
 }
@@ -7255,7 +7312,7 @@ const CAMPAIGN = [
   { name: 'Riverbend', map: 'bend', at: [345, 600], land: 'Between two rivers', adds: ['crossbow', 'butts'] },
   { name: 'Ironwood', map: 'crag', at: [160, 500], land: 'Deep woods · no stone', adds: ['mine', 'banner'] },
   { name: 'Siegeford', map: 'ford', at: [320, 405], land: 'Highlands · little wood', adds: ['catapult', 'stores'] },
-  { name: 'Meadowmere', map: 'mere', at: [548, 470], land: 'Marsh · poor fields', adds: ['farmhouse'] },
+  { name: 'Meadowmere', map: 'mere', at: [548, 470], land: 'Sodden ground · poor fields', adds: ['farmhouse'] },
   { name: 'Horsefields', map: 'plains', at: [668, 340], land: 'Open plains', adds: ['stables'] },
   { name: 'Raider Keep', sub: 'Boss', map: 'keep', at: [475, 225], boss: true, adds: [] },
   { name: "Warlord's Hold", sub: 'Boss', map: 'hold', at: [290, 115], boss: true, adds: [] },
@@ -7318,7 +7375,9 @@ function openStage(i) {
   $('#stSub').textContent = [c.sub, c.land].filter(Boolean).join(' · ');
   $('#stNew').innerHTML = c.adds.map(t => `<span>${TOOL_ICON[t] || ''}<b>${t === 'road' ? 'Path' : DEF[t].name}</b></span>`).join('');
   $('#stStars').innerHTML = starsHTML(c.map ? STARS[c.map] || 0 : 0);
-  $('#stGoals').innerHTML = stageGoals(c.map).map(([t]) => `<li>${t}</li>`).join('');
+  // how many waves, how long to prepare before the first, and the quickest win so far
+  const R = c.map && MAP_RULES[c.map];
+  $('#stInfo').innerHTML = R ? `<span><b>${R.waves.length}</b> waves</span><span><b>${fmt(R.day[0])}</b> to prepare</span>${BEST[c.map] ? `<span>Best <b>${fmt(BEST[c.map])}</b></span>` : ''}` : '';
   requestAnimationFrame(() => { const slot = $('#cDetSlot'), det = slot.firstElementChild, chips = [...det.querySelectorAll('.stNew span')];
     const rows = new Set(chips.map(e => e.offsetTop)).size, ch = chips[0] ? chips[0].offsetHeight + 7 : 0;
     const full = det.offsetHeight + (rows === 1 ? ch : 0);
@@ -7614,8 +7673,8 @@ function startGame() {
   setMapSize(MAP_N[MAP] || 28);
   genTerrain(); if (MAP === 'keep') rollKeepCamps(); genBridges(); genTrees(); genRocks(); genClutter(); syncTerrain(); buildBridges(); genShore(); hideGhost(); deselect();
   Object.assign(res, (MAP_RULES[MAP] || {}).res || { gold: 40, wood: 45, stone: 0, food: 20 });
-  stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, t0: performance.now() }; guideDone = false; goalsMet = {};
-  $('#summary').hidden = true; $('#log').innerHTML = '';
+  stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, lostB: 0, felled: 0, mined: 0, t0: performance.now() }; guideDone = false; goalsMet = {};
+  clearSummary(); $('#log').innerHTML = '';
   const ev = MAP === 'isle' ? findValid('castle', 12, 12, { free: true }) : MAP === 'pass' ? findValid('castle', 12, 9, { free: true }) : MAP === 'vale' ? findValid('castle', 11, 15, { free: true }) : MAP === 'bridge' ? findValid('castle', 13, 17, { free: true }) : MAP === 'cross' ? findValid('castle', 7, 18, { free: true }) : MAP === 'watch' ? findValid('castle', 7, 13, { free: true }) : MAP === 'dune' ? findValid('castle', 6, 11, { free: true }) : MAP === 'bend' ? findValid('castle', 9, 12, { free: true }) : MAP === 'crag' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'ford' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'mere' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'plains' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'keep' ? findValid('castle', 19, 32, { free: true }) : MAP === 'hold' ? findValid('castle', 18, 31, { free: true }) : findValid('castle', 8, 12, { free: true });
   if (ev) { const B = place('castle', ev.ci, ev.cj, { instant: true, free: true, quiet: true }); const c = center(B); target.set(c.x, 2, c.z); }
   if (MAP === 'pass') { yaw = 0; target.z += 4.5; }   // looking up the pass at the castle
@@ -7637,11 +7696,11 @@ function startGame() {
   BANK_WALL = MAP === 'bridge' ? BANK_WALL : [];
   if (MAP === 'vale') guideOn = true;               // the tutorial stage: the guided first day every time (Skip ends it)
   else if (CAMP_MAPS[MAP]) { guideOn = false; guideMark(); }
-  if (CAMP_MAPS[MAP] && CAMP_MAPS[MAP].stop > 0) showNewCards(CAMPAIGN[CAMP_MAPS[MAP].stop].adds.concat(CAMP_MAPS[MAP].newTier ? ['tier' + CAMP_MAPS[MAP].newTier] : []));   // a later stage: its new buildings, one card each, before play
+  // a campaign stage: its new buildings, one card each (from Stage 2), then its goals (Jack: the goals only on this card)
+  if (CAMP_MAPS[MAP]) showNewCards((CAMP_MAPS[MAP].stop > 0 ? CAMPAIGN[CAMP_MAPS[MAP].stop].adds.concat(CAMP_MAPS[MAP].newTier ? ['tier' + CAMP_MAPS[MAP].newTier] : []) : []).concat(stageGoals(MAP).length ? ['goals'] : []));   // a later stage: its new buildings, one card each, before play
   updateCam();
   log('Drag · twist · pinch');
   log(`Survive <b>${NIGHTS} nights</b>`);
-  for (const [t] of stageGoals(MAP)) log(`<b>Goal</b> · ${t}`);
   log('<b>Day 1</b>', 'good');
   banner('Day 1', 'Build before dark');
   applyLoadout(); cat = 'eco'; renderTools(); setTool('select');
@@ -8094,6 +8153,7 @@ function frame(now) {
   let fresh = false; if (renderer.getPixelRatio() !== pr) { renderer.setPixelRatio(pr); resize(); fresh = true; }
   if (paused || menuOn()) { if (!lite || fresh || (liteN = (liteN + 1) % 2) === 0) renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not
+  if (!gameOver) stats.playT = (stats.playT || 0) + dt;   // time spent playing (never paused or under a menu): a stage's best win time
   if (!gameOver) { updatePhase(gdt); updateVillagers(gdt, now); updateEco(gdt); updateMoves(gdt); updateEnemies(gdt); updateDefense(gdt); separateUnits(gdt); updateDoors(gdt); updateFallen(gdt); updateChips(gdt); updateSplashes(gdt); }
   updateArrows(gdt); updateAmbience(dt); updateVolley(gdt); updateTrees(now); emitSmoke(gdt); updateBirds(gdt); if (holdRiders.length) { animHoldRiders(now / 1000, gdt); updateHoldTrebs(gdt); }
   if (anims.length) {
