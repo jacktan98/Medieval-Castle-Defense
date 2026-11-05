@@ -154,7 +154,8 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #sumGoals li{display:flex;align-items:center;gap:8px;color:var(--muted)} #sumGoals li.ok{color:var(--parch)} #sumGoals li b{width:18px;text-align:center;color:#6b6656} #sumGoals li.ok b{color:#8cc46e}
 .mapBtn .stars{font-size:13px}
 #campBtn{margin-top:4px;padding:9px 22px;font-family:var(--display);font-size:17px;color:var(--gold)}
-#saveResume{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 22px;font-family:var(--display);font-size:17px} #saveResume{color:var(--gold)} #saveResume small{font-family:var(--body,inherit);font-size:12px;font-weight:600;color:#f4e3b2!important;-webkit-text-fill-color:#f4e3b2;text-shadow:none!important;margin-top:2px;letter-spacing:.02em}
+#saveResume{padding:9px 30px;font-family:var(--display);font-size:17px}
+.saveInfo{margin-top:-9px;font-size:12px;font-weight:600;color:#f4e3b2;letter-spacing:.02em;text-shadow:0 1px 3px rgba(0,0,0,.85)}
 #campaign{background:#14150f}
 .campSheet{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(720px,100%);max-height:100%}
 #campMap{width:100%;flex:1 1 auto;min-height:0;display:flex;justify-content:center}
@@ -674,7 +675,8 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
         <button class="mapBtn" data-map="pass"><img src="maps/pass.jpg" alt=""><b>Mountain pass</b></button>
       </div>
       <button id="campBtn">Campaign</button>
-      <button id="saveResume" hidden>Resume</button>
+      <button id="saveResume" class="primary" hidden>Resume</button>
+      <div class="saveInfo" id="saveInfo" hidden></div>
     </div>
   </div>
   <div class="modal tome" id="campaign" hidden>
@@ -6487,7 +6489,8 @@ function saveGame() {
 function loadSave() { try { const S = JSON.parse(localStorage.getItem('mtd-save') || 'null'); return S && S.v === 1 && S.b ? S : null; } catch (e) { return null; } }
 function clearSave() { try { localStorage.removeItem('mtd-save'); } catch (e) {} syncResumeBtn(); }
 const saveName = S => { const st = CAMPAIGN.findIndex(c => c.map === S.map); return (st >= 0 ? `Stage ${st + 1} · ${CAMPAIGN[st].name}` : { meadow: 'Meadow', isle: 'River isle', pass: 'Mountain pass' }[S.map] || S.map) + ` · Day ${S.wave}`; };
-function syncResumeBtn() { const S = loadSave(), b = $('#saveResume'); if (!b) return; b.hidden = !S; if (S) b.innerHTML = `Resume<small>${saveName(S)}</small>`; }
+// a gold Resume button with the saved game's stage and day as a line under it, outside the button (Jack)
+function syncResumeBtn() { const S = loadSave(), b = $('#saveResume'), i = $('#saveInfo'); if (!b) return; b.hidden = i.hidden = !S; if (S) i.textContent = saveName(S); }
 function resumeGame() {
   const S = loadSave(); if (!S) return;
   ['#mapPick', '#campaign', '#loadPick'].forEach(q => $(q).hidden = true);

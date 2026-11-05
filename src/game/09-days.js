@@ -199,7 +199,8 @@ function saveGame() {
 function loadSave() { try { const S = JSON.parse(localStorage.getItem('mtd-save') || 'null'); return S && S.v === 1 && S.b ? S : null; } catch (e) { return null; } }
 function clearSave() { try { localStorage.removeItem('mtd-save'); } catch (e) {} syncResumeBtn(); }
 const saveName = S => { const st = CAMPAIGN.findIndex(c => c.map === S.map); return (st >= 0 ? `Stage ${st + 1} · ${CAMPAIGN[st].name}` : { meadow: 'Meadow', isle: 'River isle', pass: 'Mountain pass' }[S.map] || S.map) + ` · Day ${S.wave}`; };
-function syncResumeBtn() { const S = loadSave(), b = $('#saveResume'); if (!b) return; b.hidden = !S; if (S) b.innerHTML = `Resume<small>${saveName(S)}</small>`; }
+// a gold Resume button with the saved game's stage and day as a line under it, outside the button (Jack)
+function syncResumeBtn() { const S = loadSave(), b = $('#saveResume'), i = $('#saveInfo'); if (!b) return; b.hidden = i.hidden = !S; if (S) i.textContent = saveName(S); }
 function resumeGame() {
   const S = loadSave(); if (!S) return;
   ['#mapPick', '#campaign', '#loadPick'].forEach(q => $(q).hidden = true);
