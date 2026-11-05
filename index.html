@@ -8496,7 +8496,7 @@ function guideTick() {
   if (!guideOn) return;
   const next = GUIDE.findIndex(S => !S.done());
   // the last step done (Stage 1: the archers): point at Skip day (Jack), which glows until it's pressed or night falls
-  if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').innerHTML = 'Ready? <b>Skip day</b> to face the raiders'; guideEndT = performance.now() + 6000; guideFinish(); g.hidden = false; $('#nightBtn').classList.add('skipGlow'); return; }
+  if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').innerHTML = 'When ready, <b>skip day</b> to face raiders'; guideEndT = performance.now() + 6000; guideFinish(); g.hidden = false; $('#nightBtn').classList.add('skipGlow'); return; }
   if (next !== guideStep) { guideStep = next; guideMark(); }
 }
 $('#gSkip').addEventListener('click', () => { guideFinish(); $('#guide').hidden = true; });
