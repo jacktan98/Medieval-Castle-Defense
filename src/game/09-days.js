@@ -282,7 +282,7 @@ function endGame(won) {
   if (won && hardOn && !CROWNS[MAP]) { CROWNS[MAP] = 1; try { localStorage.setItem('mtd-crowns', JSON.stringify(CROWNS)); } catch (e) {} }
   if (won && hardOn) $('#sumText').innerHTML = `All ${NIGHTS} waves held · <b class="hardTag">${CROWN_ICO} Hard</b>`;
   if (won && stats.playT && !(BEST[MAP] <= stats.playT)) { BEST[MAP] = Math.round(stats.playT); try { localStorage.setItem('mtd-best', JSON.stringify(BEST)); } catch (e) {} }
-  // Jack: not straight to the summary; a pause on the field first, then the stars pop in one at a time (a sound per star: SND.star, once there is a file)
+  // Jack: not straight to the summary; a pause on the field first, then the stars pop in one at a time (a sound per star: SND.star, Star_sound.mp3)
   sumTimers.push(setTimeout(() => {
     $('#summary').hidden = false;
     const el = [...$('#sumStars').querySelectorAll('span span')];

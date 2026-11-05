@@ -193,6 +193,7 @@ var SND = {   // game event -> file in audio/sfx (or audio/music) and its trim a
   arrowHit:  { file: 'sfx/Arrow_hit.mp3',            trim: .6 },     // a raider falls while the grunt is resting
   grunt:     { files: ['sfx/Enemy_grunt_1.mp3', 'sfx/Enemy_grunt_2.mp3'], trim: 1, reach: 60, near: .7 },   // a raider falls (at most every 3 s; arrowHit otherwise); heard across the map
   trade:     { file: 'sfx/Market_trade.mp3',         trim: .7 },
+  star:      { file: 'sfx/Star_sound.mp3',           trim: .8 },   // each summary star as it pops in
   rooster:   { file: 'sfx/Morning_rooster.mp3',      trim: 1.1 },     // dawn: the night is won
   yawn:      { file: 'sfx/Villager_yawn.mp3',        trim: .6 },     // a hungry villager goes to sleep
   nope:      { file: 'sfx/Error_sound.mp3',          trim: .5 },     // a tap that can't be done (any red hint straight after a tap or key)
