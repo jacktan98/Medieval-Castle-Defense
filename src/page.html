@@ -74,7 +74,7 @@
       <button class="iconBtn" id="adminBtn" aria-pressed="false" aria-label="Admin" title="Admin tools"><svg viewBox="0 0 24 24"><path d="M14.5 5.5 a4 4 0 0 0 4.9 5 l-8.6 8.6 a2.1 2.1 0 0 1-3-3 l8.6-8.6 a4 4 0 0 0-1.9-2z"/><path d="M5 5 L9 9"/></svg></button>
     </div>
   </div>
-  <div class="pausedTag" id="pausedTag" hidden><div class="pauseCard"><div class="pauseT">Paused</div><div class="pauseBtns"><button class="primary pIco" id="resumeBtn" title="Resume" aria-label="Resume"></button><button class="pIco" id="fsBtn" title="Full screen" aria-label="Full screen"></button><button class="danger pIco" id="reset" title="Restart" aria-label="Restart"></button></div><div class="audioRows"><label class="volRow"><span>Music</span><input type="range" id="musicVol" min="0" max="100" step="1" aria-label="Music loudness"></label><label class="volRow"><span>Sounds</span><input type="range" id="sfxVol" min="0" max="100" step="1" aria-label="Sound loudness"></label></div></div></div>
+  <div class="pausedTag" id="pausedTag" hidden><div class="pauseCard"><div class="pauseT">Paused</div><div class="pauseBtns"><button class="primary pIco" id="resumeBtn" title="Resume" aria-label="Resume"></button><button class="pIco" id="fsBtn" title="Full screen" aria-label="Full screen"></button><button class="danger pIco" id="reset" title="Restart" aria-label="Restart"></button></div><div class="audioRows"><label class="volRow"><span>Music</span><input type="range" id="musicVol" min="0" max="100" step="1" aria-label="Music loudness"></label><label class="volRow"><span>Sounds</span><input type="range" id="sfxVol" min="0" max="100" step="1" aria-label="Sound loudness"></label></div><div class="pCols"><div class="colRow"><span>Your town</span><div class="colSw" data-side="town"></div></div><div class="colRow"><span>Raiders</span><div class="colSw" data-side="foe"></div></div></div></div></div>
   <div class="dock">
     <div class="statTip" id="statTip" hidden></div>
     <div class="card" id="card" hidden>
@@ -129,8 +129,8 @@
     <div class="colCard" id="colCard" hidden>
       <h3>Settings</h3>
       <div class="setSub">Colours</div>
-      <div class="colRow"><span>Your town</span><div class="colSw" id="colTown"></div></div>
-      <div class="colRow"><span>Raiders</span><div class="colSw" id="colFoe"></div></div>
+      <div class="colRow"><span>Your town</span><div class="colSw" id="colTown" data-side="town"></div></div>
+      <div class="colRow"><span>Raiders</span><div class="colSw" id="colFoe" data-side="foe"></div></div>
       <div class="setSub">Sound</div>
       <div class="setVols"><label class="volRow"><span>Music</span><input type="range" id="setMusic" min="0" max="100" step="1" aria-label="Music loudness"></label>
       <label class="volRow"><span>Sounds</span><input type="range" id="setSfx" min="0" max="100" step="1" aria-label="Sound loudness"></label></div>

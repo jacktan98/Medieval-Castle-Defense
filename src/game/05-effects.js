@@ -231,15 +231,15 @@ const WEATHER = {
   pass: { kind: 'snow', always: true },
 };
 const WX_KIND = {
-  rain: { lines: true, n: 1100, fall: 15, len: .9, wind: 1.6, col: '#c3d0dc', op: .6, dark: .38, fogK: .35, tint: '#8d96a0', tintK: .55 },
-  drizzle: { lines: true, n: 700, fall: 9, len: .55, wind: .8, col: '#c6d0d8', op: .45, dark: .2, fogK: .55, tint: '#a3aab0', tintK: .45 },
-  snow: { n: 1100, fall: 1.1, wind: .5, sway: .6, size: .55, col: '#ffffff', op: .9, dark: .12, fogK: .45, tint: '#cfd6de', tintK: .45 },
-  ash: { n: 900, fall: .55, wind: .4, sway: .4, size: .38, col: '#c4bcb4', ember: '#ff8a3a', op: .85, dark: .1, fogK: .35, tint: '#7a6a62', tintK: .35 },
-  sand: { n: 1100, fall: .35, wind: 9, sway: .3, size: .22, col: '#f4e6bf', op: .8, dark: .12, fogK: .75, tint: '#cfb688', tintK: .6 },
-  dust: { n: 600, fall: .3, wind: 5, sway: .3, size: .2, col: '#f2e6c8', op: .65, dark: .06, fogK: .45, tint: '#cdb990', tintK: .4 },
+  rain: { lines: true, n: 2400, fall: 15, len: .9, wind: 1.6, col: '#c3d0dc', op: .6, dark: .38, fogK: .35, tint: '#8d96a0', tintK: .55 },
+  drizzle: { lines: true, n: 1500, fall: 9, len: .55, wind: .8, col: '#c6d0d8', op: .45, dark: .2, fogK: .55, tint: '#a3aab0', tintK: .45 },
+  snow: { n: 2000, fall: 1.1, wind: .5, sway: .6, size: .55, col: '#ffffff', op: .9, dark: .12, fogK: .45, tint: '#cfd6de', tintK: .45 },
+  ash: { n: 1500, fall: .55, wind: .4, sway: .4, size: .38, col: '#c4bcb4', ember: '#ff8a3a', op: .85, dark: .1, fogK: .35, tint: '#7a6a62', tintK: .35 },
+  sand: { n: 2000, fall: .35, wind: 9, sway: .3, size: .22, col: '#f4e6bf', op: .8, dark: .12, fogK: .75, tint: '#cfb688', tintK: .6 },
+  dust: { n: 1100, fall: .3, wind: 5, sway: .3, size: .2, col: '#f2e6c8', op: .65, dark: .06, fogK: .45, tint: '#cdb990', tintK: .4 },
   mist: { n: 0, dark: .1, fogK: 1, tint: '#d4d8da', tintK: .75 },
 };
-const WX_MAX = 1100, wxPos = new Float32Array(WX_MAX * 3), wxVel = new Float32Array(WX_MAX * 2);
+const WX_MAX = 2400, wxPos = new Float32Array(WX_MAX * 3), wxVel = new Float32Array(WX_MAX * 2);
 const wxLineGeo = new THREE.BufferGeometry(); wxLineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(WX_MAX * 6), 3));
 const wxPtGeo = new THREE.BufferGeometry(); wxPtGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(WX_MAX * 3), 3)); wxPtGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(WX_MAX * 3), 3));
 const wxDot = (() => { const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d'), g = x.createRadialGradient(16, 16, 0, 16, 16, 16);
@@ -255,9 +255,9 @@ function weatherReset() {
   WX.goal = cfg && cfg.always ? 1 : 0; WX.timer = cfg && !cfg.always ? wxRnd(cfg.first) : 0;
   if (cfg && cfg.always) WX.w = 1;
   if (!WX.K) { wxLines.visible = wxPts.visible = false; return; }
-  const K = WX.K, B = 60, col = new THREE.Color(K.col), emb = K.ember && new THREE.Color(K.ember), ca = wxPtGeo.attributes.color.array;
+  const K = WX.K, col = new THREE.Color(K.col), emb = K.ember && new THREE.Color(K.ember), ca = wxPtGeo.attributes.color.array;
   for (let i = 0; i < WX_MAX; i++) {
-    wxPos[i * 3] = target.x + (Math.random() - .5) * B; wxPos[i * 3 + 1] = Math.random() * 24; wxPos[i * 3 + 2] = target.z + (Math.random() - .5) * B;
+    wxPos[i * 3] = Math.random() * SIZE; wxPos[i * 3 + 1] = Math.random() * 24; wxPos[i * 3 + 2] = Math.random() * SIZE;
     wxVel[i * 2] = .7 + Math.random() * .6; wxVel[i * 2 + 1] = Math.random() * 6.28;
     const c = emb && Math.random() < .2 ? emb : col; ca[i * 3] = c.r; ca[i * 3 + 1] = c.g; ca[i * 3 + 2] = c.b;
   }
@@ -279,14 +279,15 @@ function updateWeather(dt, live) {
   const n = Math.round((K.n || 0) * w);
   wxLines.visible = !!K.lines && n > 0; wxPts.visible = !K.lines && n > 0;
   if (!n) return;
-  const B = clamp(dist * .8, 20, 60), cx = target.x, cz = target.z, base = target.y - 2, top = 26, wrap = (v, c) => c + ((((v - c + B / 2) % B) + B) % B) - B / 2, t = performance.now() / 1000;
+  // spread over the whole map (Jack: a box round the camera showed as a box or a line from above), wrapped at its edges
+  const top = 26, wrap = v => ((v % SIZE) + SIZE) % SIZE, t = performance.now() / 1000;
   const sdt = live ? Math.min(dt, .05) : 0, night = .45 + .55 * light;
   if (K.lines) {
     const a = wxLineGeo.attributes.position.array, dx = K.wind / K.fall * K.len;
     for (let i = 0; i < n; i++) {
       let y = wxPos[i * 3 + 1] - K.fall * wxVel[i * 2] * sdt; if (y < 0) y += top; wxPos[i * 3 + 1] = y;
-      wxPos[i * 3] += K.wind * sdt; const x = wrap(wxPos[i * 3], cx), z = wrap(wxPos[i * 3 + 2], cz); wxPos[i * 3] = x; wxPos[i * 3 + 2] = z;
-      const yy = base + y, j = i * 6; a[j] = x; a[j + 1] = yy; a[j + 2] = z; a[j + 3] = x - dx; a[j + 4] = yy - K.len; a[j + 5] = z;
+      wxPos[i * 3] += K.wind * sdt; const x = wrap(wxPos[i * 3]), z = wrap(wxPos[i * 3 + 2]); wxPos[i * 3] = x; wxPos[i * 3 + 2] = z;
+      const yy = hAt(x, z) + y, j = i * 6; a[j] = x; a[j + 1] = yy; a[j + 2] = z; a[j + 3] = x - dx; a[j + 4] = yy - K.len; a[j + 5] = z;
     }
     wxLineGeo.attributes.position.needsUpdate = true; wxLineGeo.setDrawRange(0, n * 2); wxLines.material.opacity = K.op * night * Math.min(1, w * 1.5);
   } else {
@@ -295,9 +296,9 @@ function updateWeather(dt, live) {
       let y = wxPos[i * 3 + 1] - K.fall * wxVel[i * 2] * sdt; if (y < 0) y += top; wxPos[i * 3 + 1] = y;
       const ph = wxVel[i * 2 + 1];
       wxPos[i * 3] += (K.wind * wxVel[i * 2] + Math.sin(t * 1.3 + ph) * K.sway) * sdt; wxPos[i * 3 + 2] += Math.cos(t * 1.1 + ph) * K.sway * sdt;
-      const x = wrap(wxPos[i * 3], cx), z = wrap(wxPos[i * 3 + 2], cz); wxPos[i * 3] = x; wxPos[i * 3 + 2] = z;
+      const x = wrap(wxPos[i * 3]), z = wrap(wxPos[i * 3 + 2]); wxPos[i * 3] = x; wxPos[i * 3 + 2] = z;
       // blown sand and dust stay low over the ground; snow and ash fill the air
-      const yy = K.wind > 4 ? hAt(clamp(x, 0, SIZE - .01), clamp(z, 0, SIZE - .01)) + (y % 6) : base + y;
+      const yy = hAt(x, z) + (K.wind > 4 ? y % 6 : y);
       a[i * 3] = x; a[i * 3 + 1] = yy; a[i * 3 + 2] = z;
     }
     wxPtGeo.attributes.position.needsUpdate = true; wxPtGeo.setDrawRange(0, n); wxPts.material.opacity = K.op * night * Math.min(1, w * 1.5);

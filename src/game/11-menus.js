@@ -682,16 +682,17 @@ $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); })
 // has is greyed out for the other; a tap recolours at once (the title's town shows it) and is kept ('mtd-colours')
 const COL_NAME = { blue: 'Blue', red: 'Red', green: 'Green', purple: 'Purple', black: 'Black' };
 function renderColours() {
-  for (const [side, el] of [['town', '#colTown'], ['foe', '#colFoe']]) {
-    const other = side === 'town' ? TEAM.foe : TEAM.town;
-    $(el).innerHTML = TEAM_NAMES.map(n => `<button class="sw${TEAM[side] === n ? ' on' : ''}${other === n ? ' taken' : ''}" data-side="${side}" data-c="${n}" aria-label="${COL_NAME[n]}" style="--c:${TEAM_PAL[n]}"></button>`).join('');
+  for (const el of document.querySelectorAll('.colSw[data-side]')) {
+    const side = el.dataset.side, other = side === 'town' ? TEAM.foe : TEAM.town;
+    el.innerHTML = TEAM_NAMES.map(n => `<button class="sw${TEAM[side] === n ? ' on' : ''}${other === n ? ' taken' : ''}" data-side="${side}" data-c="${n}" aria-label="${COL_NAME[n]}" style="--c:${TEAM_PAL[n]}"></button>`).join('');
   }
 }
 // Settings (Jack picked a gear in the title's corner over a Colours button under Campaign): the colours and the two loudness sliders
 $('#setBtn').addEventListener('click', () => { sfx('click'); renderColours(); syncAudioToggles(); $('#colCard').hidden = false; });
 $('#colDone').addEventListener('click', () => { $('#colCard').hidden = true; });
-$('#colCard').addEventListener('click', e => {
-  const b = e.target.closest('.sw'); if (!b) return;
+// the same swatches in the Settings card and the pause card
+document.addEventListener('click', e => {
+  const b = e.target.closest('.colSw .sw'); if (!b) return;
   const side = b.dataset.side, c = b.dataset.c, other = side === 'town' ? 'foe' : 'town';
   if (TEAM[other] === c) { sfx('nope'); return; }
   sfx('click'); TEAM = { ...TEAM, [side]: c }; applyTeams(); renderColours();

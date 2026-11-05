@@ -142,8 +142,9 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #sumGoals li{display:flex;align-items:center;gap:8px;color:var(--muted)} #sumGoals li.ok{color:var(--parch)} #sumGoals li b{width:18px;text-align:center;color:#6b6656} #sumGoals li.ok b{color:#8cc46e}
 .mapBtn .stars{font-size:13px}
 #campBtn{margin-top:4px;padding:9px 22px;font-family:var(--display);font-size:17px;color:var(--gold)}
+.modal.tome .setBtn{background:none!important;border:0!important;box-shadow:none!important}
 .setBtn{position:absolute;top:calc(12px + env(safe-area-inset-top));right:12px;z-index:4;width:40px;height:40px;min-height:0!important;padding:0!important;display:flex;align-items:center;justify-content:center}
-.modal.tome .setBtn svg{width:22px;height:22px;fill:none;stroke:#f4e3b2;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.modal.tome .setBtn svg{width:26px;height:26px;fill:none;stroke:#f4e3b2;stroke-width:1.7;filter:drop-shadow(0 1px 3px rgba(0,0,0,.8));stroke-linecap:round;stroke-linejoin:round}
 .setSub{font-family:var(--display);font-size:15px;color:#f0c95a;text-align:center;margin-bottom:-4px}
 .setVols{display:flex;flex-direction:column;gap:10px;padding:0 18px}
 .colCard{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;width:min(300px,86vw);display:flex;flex-direction:column;gap:12px;align-items:stretch;padding:0 0 14px;border-radius:12px;background:linear-gradient(180deg,#3d3020,#241b10);border:2px solid rgba(212,168,78,.8);box-shadow:0 10px 30px rgba(0,0,0,.6);overflow:hidden}
@@ -154,6 +155,11 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .modal.tome .colSw .sw.on{border-color:#f0c95a!important;box-shadow:0 0 0 2px rgba(240,201,90,.35),0 0 10px rgba(240,201,90,.55),inset 0 2px 4px rgba(255,255,255,.18)!important}
 .colSw .sw.on::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;text-shadow:0 1px 2px #000}
 .colSw .sw.taken{opacity:.3} .colSw .sw.taken::after{content:"";position:absolute;left:50%;top:3px;bottom:3px;width:2px;background:#f4e3b2;transform:translateX(-50%) rotate(45deg)}
+.pCols{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.pCols .colRow>span{font-size:12px}
+.pCols .colSw{gap:8px} .colSw .sw{cursor:pointer}
+.pauseCard .colSw .sw{width:28px;height:28px;min-height:0!important;min-width:0!important;padding:0!important;border-radius:50%!important;background:var(--c)!important;border:2px solid rgba(255,240,200,.25)!important;box-shadow:inset 0 2px 4px rgba(255,255,255,.18),inset 0 -3px 5px rgba(0,0,0,.35)!important;position:relative}
+.pauseCard .colSw .sw.on{border-color:#f0c95a!important;box-shadow:0 0 0 2px rgba(240,201,90,.35),0 0 10px rgba(240,201,90,.55)!important}
 .colCard #colDone{align-self:center;min-width:110px}
 #adReset.armed{background:#8e2a20!important;border-color:#e0705a!important;color:#fff!important}
 #saveResume{padding:9px 30px;font-family:var(--display);font-size:17px;-webkit-text-stroke:.6px currentColor}
@@ -245,9 +251,9 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
    darken it, more than the title does, so the cards and text stay clear */
 body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 45%, rgba(8,9,6,.45) 0%, rgba(8,9,6,.62) 60%, rgba(5,6,4,.9) 100%)!important}
 /* buttons stand out on the dark: a bronze plate with a gold rim, light gold text and a soft glow; the main action stays solid gold */
-.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
+.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw):not(.setBtn),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
   box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 12px rgba(212,168,78,.18),inset 0 1px 0 rgba(255,230,160,.25)!important;font-weight:500}
-.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw):hover{filter:brightness(1.15)}
+.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw):not(.setBtn):hover{filter:brightness(1.15)}
 .cArrow{background:linear-gradient(180deg,#4a3c22,#2e2515)!important;border:2px solid #c9a03e!important;box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 14px rgba(212,168,78,.25)!important}
 .cArrow svg{stroke:#f4e3b2}
 /* the campaign's progress under the deck: one segment per stage, filled gold for each won, the stage you're at outlined and pulsing,
