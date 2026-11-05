@@ -311,7 +311,11 @@ function removeBuilding(B, raid, cancel) {
   refreshWalls(); rebuildRoads();
   if (B.type === 'castle') endGame(false);
 }
-function hurtBuilding(B, d) { if (B.dead || gameOver) return; B.hp -= d; B.hitT = performance.now(); shake(.05, center(B)); if (B.hp <= 0) removeBuilding(B, true); }
+// a hit stops any repair under way (its progress set the health every frame, so a building still mending when night fell
+// seemed to take no damage: Jack saw it on the castle); the repair starts again at the next dawn
+function hurtBuilding(B, d) { if (B.dead || gameOver) return;
+  if (B.site && B.site.kind === 'repair') { B.site = null; removeScaffold(B); B.pbar.grp.visible = false; if (selected === B) refreshCard(); }
+  B.hp -= d; B.hitT = performance.now(); shake(.05, center(B)); if (B.hp <= 0) removeBuilding(B, true); }
 function paintRoad(a, b) {
   const ev = evaluateRoad(a, b);
   if (!ev.ok) { if (!ev.soft) setHint(ev.reason, 'bad'); return false; }

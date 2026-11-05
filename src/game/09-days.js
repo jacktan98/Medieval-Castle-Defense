@@ -134,7 +134,8 @@ function updateGuideSpot(now) {
   guideDisc.material.opacity = .5 + .22 * Math.sin(now / 260);
 }
 function updateRaidMarks(dt) {
-  const show = PH.kind === 'day' && !gameOver && !menuOn() && !galleryOn && !showcaseBuilt && !!castleB();
+  // only from dusk (Jack): by day the coming night's points stay hidden
+  const show = PH.kind === 'day' && PH.t <= DUSK && !gameOver && !menuOn() && !galleryOn && !showcaseBuilt && !!castleB();
   const m = [$('#raidMark0'), $('#raidMark1')];
   if (!show) { m.forEach(e => e.hidden = true); $('#wavePop').hidden = true; return; }
   const P = nightPts();

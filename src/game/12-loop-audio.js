@@ -581,9 +581,6 @@ function frame(now) {
       if (p >= 1) completeSite(B);
     }
     if (B.pop) { const t = clamp((now - B.pop) / 450, 0, 1), k = 1 + .09 * Math.sin(t * Math.PI) * (1 - t); B.group.scale.x = B.group.scale.z = k; if (t >= 1) { B.group.scale.x = B.group.scale.z = 1; B.pop = 0; } }
-    // a building hit shudders for a moment (squeezed in and back), so a blow reads even zoomed out
-    else if (B.hitT && now - B.hitT < 220) { const t = (now - B.hitT) / 220, k = 1 - .045 * Math.sin(t * Math.PI); B.group.scale.x = B.group.scale.z = k; }
-    else if (B.hitT && B.group.scale.x !== 1 && !B.move) { B.group.scale.x = B.group.scale.z = 1; }
     if (B.rise) { const t = clamp((now - B.rise.t0) / 420, 0, 1); B.group.scale.y = Math.max(.001, lerp(B.rise.from, 1, easeOut(t))); if (t >= 1) B.rise = null; }
     const c = center(B);
     B.bar.grp.visible = B.hp < B.max; B.bar.set(B.hp / B.max); B.bar.grp.position.set(c.x, B.group.position.y + barTop(B), c.z);
