@@ -285,13 +285,14 @@ function endGame(won) {
   const C = castleB(), camp = stageGoals(MAP).length > 0;
   // a defeat meets no goals (a ✓ on "No buildings lost" read oddly with the castle fallen)
   const goals = !won ? (camp ? stageGoals(MAP).map(g => [g[0], false]) : [['No buildings lost', false], ['No soldiers lost', false], ['Castle above half', false]]) : camp ? stageGoals(MAP).map(g => [g[0], goalOk(g)]) : [['No buildings lost', stats.lost === 0], ['No soldiers lost', stats.fallen === 0], ['Castle above half', !!C && C.hp >= C.max / 2]];
-  const got = goals.filter(g => g[1]).length, n = !won ? 0 : camp ? 1 + got : got === goals.length ? 3 : got ? 2 : 1;
-  $('#sumStars').innerHTML = starsHTML(0);
+  const got = goals.filter(g => g[1]).length, n = !won ? 0 : hardOn ? 1 : camp ? 1 + got : got === goals.length ? 3 : got ? 2 : 1;
+  // hard mode: no stars, one crown that pops in on a win (Jack); hard has no goals, so only Survive is listed
+  $('#sumStars').innerHTML = hardOn ? `<span class="stars"><span class="sumCrown">${CROWN_ICO}</span></span>` : starsHTML(0);
   const tip = won ? '' : defeatTip(); $('#sumTip').hidden = !tip; $('#sumTip').innerHTML = tip ? `<b>Tip:</b> ${tip}` : '';
-  $('#sumGoals').innerHTML = [['Survive', won], ...goals].map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
-  if (n > (STARS[MAP] || 0)) { STARS[MAP] = n; try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {} }
+  $('#sumGoals').innerHTML = [['Survive', won], ...(hardOn ? [] : goals)].map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
+  if (!hardOn && n > (STARS[MAP] || 0)) { STARS[MAP] = n; try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {} }
   if (won && hardOn && !CROWNS[MAP]) { CROWNS[MAP] = 1; try { localStorage.setItem('mtd-crowns', JSON.stringify(CROWNS)); } catch (e) {} }
-  if (won && hardOn) $('#sumText').innerHTML = `All ${NIGHTS} waves held · <b class="hardTag">${CROWN_ICO} Hard</b>`;
+  if (won && hardOn) $('#sumText').innerHTML = `All ${NIGHTS} waves held · <b class="hardTag">Hard</b>`;
   if (won && stats.playT && !(BEST[MAP] <= stats.playT)) { BEST[MAP] = Math.round(stats.playT); try { localStorage.setItem('mtd-best', JSON.stringify(BEST)); } catch (e) {} }
   // Jack: not straight to the summary; a pause on the field first, then the stars pop in one at a time (a sound per star: SND.star, Star_sound.mp3)
   sumTimers.push(setTimeout(() => {

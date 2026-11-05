@@ -378,7 +378,8 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 @media (max-height:520px){ #summary .sheet{width:min(640px,100%);display:grid;grid-template-columns:1fr 1fr;grid-template-areas:'t g' 's g' 'x n' 'b p';column-gap:22px;row-gap:8px;padding:14px 18px;align-items:start}
   #summary #sumTitle{grid-area:t;font-size:26px} #summary #sumStars{grid-area:s;font-size:28px;text-align:left} #summary #sumText{grid-area:x;margin:0} #summary #sumGoals{grid-area:g}
   #summary #sumStats{grid-area:n;margin:0} #summary .sumTip{grid-area:p;text-align:left} #summary #again{grid-area:b;align-self:end} }
-#summary .stars.big span{display:inline-block} #summary .stars.big .pop{animation:starPop .55s cubic-bezier(.2,1.4,.4,1) both}
+#summary .stars.big span{display:inline-block}
+#summary .sumCrown svg{width:46px;height:46px;fill:rgba(20,16,8,.55);stroke:rgba(240,201,90,.75);stroke-width:1.2;stroke-linejoin:round;vertical-align:middle} #summary .sumCrown.on svg{fill:#f0c95a;stroke:#fff1c4;filter:drop-shadow(0 0 10px rgba(255,205,90,.6))} #summary .stars.big .pop{animation:starPop .55s cubic-bezier(.2,1.4,.4,1) both}
 @keyframes starPop{0%{transform:scale(0) rotate(-40deg);opacity:0}55%{transform:scale(1.5) rotate(8deg);opacity:1}100%{transform:scale(1) rotate(0)}}
 #summary .stars.big .on{color:#f0c95a;-webkit-text-stroke:1px #fff1c4;text-shadow:0 0 12px rgba(255,205,90,.6)} #summary .stars.big span{-webkit-text-stroke:1px rgba(240,201,90,.75)}
 /* new-building cards: a small bronze plaque (Jack): "New · 1/2" and the name on one gold title band, the building's icon in a
@@ -6772,13 +6773,14 @@ function endGame(won) {
   const C = castleB(), camp = stageGoals(MAP).length > 0;
   // a defeat meets no goals (a ✓ on "No buildings lost" read oddly with the castle fallen)
   const goals = !won ? (camp ? stageGoals(MAP).map(g => [g[0], false]) : [['No buildings lost', false], ['No soldiers lost', false], ['Castle above half', false]]) : camp ? stageGoals(MAP).map(g => [g[0], goalOk(g)]) : [['No buildings lost', stats.lost === 0], ['No soldiers lost', stats.fallen === 0], ['Castle above half', !!C && C.hp >= C.max / 2]];
-  const got = goals.filter(g => g[1]).length, n = !won ? 0 : camp ? 1 + got : got === goals.length ? 3 : got ? 2 : 1;
-  $('#sumStars').innerHTML = starsHTML(0);
+  const got = goals.filter(g => g[1]).length, n = !won ? 0 : hardOn ? 1 : camp ? 1 + got : got === goals.length ? 3 : got ? 2 : 1;
+  // hard mode: no stars, one crown that pops in on a win (Jack); hard has no goals, so only Survive is listed
+  $('#sumStars').innerHTML = hardOn ? `<span class="stars"><span class="sumCrown">${CROWN_ICO}</span></span>` : starsHTML(0);
   const tip = won ? '' : defeatTip(); $('#sumTip').hidden = !tip; $('#sumTip').innerHTML = tip ? `<b>Tip:</b> ${tip}` : '';
-  $('#sumGoals').innerHTML = [['Survive', won], ...goals].map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
-  if (n > (STARS[MAP] || 0)) { STARS[MAP] = n; try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {} }
+  $('#sumGoals').innerHTML = [['Survive', won], ...(hardOn ? [] : goals)].map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
+  if (!hardOn && n > (STARS[MAP] || 0)) { STARS[MAP] = n; try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {} }
   if (won && hardOn && !CROWNS[MAP]) { CROWNS[MAP] = 1; try { localStorage.setItem('mtd-crowns', JSON.stringify(CROWNS)); } catch (e) {} }
-  if (won && hardOn) $('#sumText').innerHTML = `All ${NIGHTS} waves held · <b class="hardTag">${CROWN_ICO} Hard</b>`;
+  if (won && hardOn) $('#sumText').innerHTML = `All ${NIGHTS} waves held · <b class="hardTag">Hard</b>`;
   if (won && stats.playT && !(BEST[MAP] <= stats.playT)) { BEST[MAP] = Math.round(stats.playT); try { localStorage.setItem('mtd-best', JSON.stringify(BEST)); } catch (e) {} }
   // Jack: not straight to the summary; a pause on the field first, then the stars pop in one at a time (a sound per star: SND.star, Star_sound.mp3)
   sumTimers.push(setTimeout(() => {
