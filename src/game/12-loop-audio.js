@@ -99,7 +99,8 @@ function startGame() {
   if (MAP === 'vale' && !hardOn) guideOn = true;
   else if (CAMP_MAPS[MAP]) { guideOn = false; guideMark(); }
   // a campaign stage: its new buildings, one card each (from Stage 2), then its goals (Jack: the goals only on this card)
-  if (CAMP_MAPS[MAP]) showNewCards((CAMP_MAPS[MAP].stop > 0 ? CAMPAIGN[CAMP_MAPS[MAP].stop].adds.concat(CAMP_MAPS[MAP].newTier ? ['tier' + CAMP_MAPS[MAP].newTier] : []) : []).concat(stageGoals(MAP).length ? ['goals'] : []));   // a later stage: its new buildings, one card each, before play
+  // none on hard mode: the stage has been won with 3 stars already (Jack)
+  if (CAMP_MAPS[MAP] && !hardOn) showNewCards((CAMP_MAPS[MAP].stop > 0 ? CAMPAIGN[CAMP_MAPS[MAP].stop].adds.concat(CAMP_MAPS[MAP].newTier ? ['tier' + CAMP_MAPS[MAP].newTier] : []) : []).concat(stageGoals(MAP).length ? ['goals'] : []));   // a later stage: its new buildings, one card each, before play
   updateCam();
   log('Drag · twist · pinch');
   log(`Survive <b>${NIGHTS} nights</b>`); if (hardOn) log('<b>Hard:</b> raiders a tier up', 'warn');
