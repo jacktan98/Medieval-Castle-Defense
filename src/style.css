@@ -535,8 +535,10 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
 .raidMark .arr{position:absolute;left:50%;top:50%;width:0;height:0;margin:-6px 0 0 -6px;border:6px solid transparent;border-left:9px solid #f0c95a;transform:rotate(var(--a)) translateX(22px);transform-origin:6px 6px;display:none}
 .raidMark.edge .arr{display:block}
 /* a one-time tip the first time a mechanic matters (gold edge, above the dock, fades after a few seconds) */
-.tipPill{position:absolute;left:50%;transform:translateX(-50%);z-index:6;max-width:min(330px,86vw);padding:6px 14px;border-radius:10px;background:var(--panel);border:2px solid rgba(240,201,90,.85);
-  box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 12px rgba(240,201,90,.25);font-size:13.5px;color:#fff1c4;text-align:center;pointer-events:none;animation:tipIn .35s ease-out}
+.tipPill{position:absolute;left:50%;transform:translateX(-50%);z-index:6;max-width:min(330px,86vw);padding:6px 14px;border-radius:10px;background:var(--panel);border:1px solid rgba(240,201,90,.8);
+  box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 8px rgba(240,201,90,.18);font-size:13.5px;color:#fff1c4;text-align:center;pointer-events:none;animation:tipIn .35s ease-out,tipGlow 2.6s ease-in-out .35s infinite}
+/* a thin gold edge whose glow swells and fades softly (Jack) */
+@keyframes tipGlow{0%,100%{box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 6px rgba(240,201,90,.14)}50%{box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 14px rgba(240,201,90,.42)}}
 .tipPill b{color:#f0c95a}
 @keyframes tipIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
 /* a building under attack out of view: a red pointer at the screen's edge toward it; a tap brings the camera there */
