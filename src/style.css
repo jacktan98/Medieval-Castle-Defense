@@ -142,9 +142,11 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #sumGoals li{display:flex;align-items:center;gap:8px;color:var(--muted)} #sumGoals li.ok{color:var(--parch)} #sumGoals li b{width:18px;text-align:center;color:#6b6656} #sumGoals li.ok b{color:#8cc46e}
 .mapBtn .stars{font-size:13px}
 #campBtn{margin-top:4px;padding:9px 22px;font-family:var(--display);font-size:17px;color:var(--gold)}
+.modal.tome .setBtn .gearBody{fill:url(#gearG);stroke:#2b2721;stroke-width:1.1;stroke-linejoin:round} .modal.tome .setBtn .gearHole{fill:#2b2721;stroke:#2b2721;stroke-width:1}
 .modal.tome .setBtn{background:none!important;border:0!important;box-shadow:none!important}
 .setBtn{position:absolute;top:calc(12px + env(safe-area-inset-top));right:12px;z-index:4;width:40px;height:40px;min-height:0!important;padding:0!important;display:flex;align-items:center;justify-content:center}
-.modal.tome .setBtn svg{width:26px;height:26px;fill:none;stroke:#f0c95a;stroke-width:1.8;filter:drop-shadow(0 1px 3px rgba(0,0,0,.85)) drop-shadow(0 0 5px rgba(240,201,90,.35));stroke-linecap:round;stroke-linejoin:round}
+/* a solid steel gear (Jack: filled, not just an outline): grey gradient body, thin dark edge, dark hole */
+.modal.tome .setBtn svg{width:28px;height:28px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.85));stroke-linecap:round;stroke-linejoin:round}
 .setSub{font-family:var(--display);font-size:15px;color:#f0c95a;text-align:center;margin-bottom:-4px}
 .setVols{display:flex;flex-direction:column;gap:10px;padding:0 18px}
 /* centred by inset + auto margins, not a transform: the menus' rise animation sets transform and threw it right, then it jumped */
