@@ -479,9 +479,9 @@ function hurtEnemy(e, d, by) {
   if (e.dead) return; e.hp -= d; e.flashT = .14;
   if (e.hp <= 0) {
     e.dead = true; e.bar.grp.visible = false; stats.slain++; const y = walkY(e.x, e.z);
-    // a bounty for every raider slain (Kingdom Rush style): its tier in gold, a rider one more, an engine 4, a boss 40
-    const bounty = ENEMY[e.kind].boss ? 40 : ENEMY[e.kind].engine ? 4 : (e.tier || 1) + (ENEMY[e.kind].mounted ? 1 : 0);
-    res.gold += bounty; stats.gold += bounty; floatRes('gold', bounty, e.x, y + 1.6, e.z);
+    // a bounty for every raider slain (Kingdom Rush style): its tier in gold, a rider one more, an engine 4; bosses none (Jack)
+    const bounty = ENEMY[e.kind].boss ? 0 : ENEMY[e.kind].engine ? 4 : (e.tier || 1) + (ENEMY[e.kind].mounted ? 1 : 0);
+    if (bounty) { res.gold += bounty; stats.gold += bounty; floatRes('gold', bounty, e.x, y + 1.6, e.z); }
     if (by && BOOST_KEY[by.type] && !by.dead && (decorFx(center(by).x, center(by).z, BOOST_KEY[by.type]) > 0 || decorFx(center(by).x, center(by).z, 'range') > 0)) stats.boostKills[by.type] = (stats.boostKills[by.type] || 0) + 1;
     if (e.engine) { engineWreck(e, y); return; }
     sfx('grunt', e) || sfx('arrowHit', e); for (let i = 0; i < 5; i++) dustAt(e.x, y, e.z);   // a puff of dust as they fall

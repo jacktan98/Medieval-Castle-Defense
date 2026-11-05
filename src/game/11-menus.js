@@ -615,7 +615,7 @@ function openStage(i) {
   const hb = $('#stHard'), canHard = c.map && (STARS[c.map] || 0) >= 3; hb.hidden = !canHard; if (!canHard) hardSel = false; hb.setAttribute('aria-pressed', String(hardSel));
   // how many waves, how long to prepare before the first, and the quickest win so far
   const R = c.map && MAP_RULES[c.map];
-  $('#stInfo').innerHTML = R ? `<span>Day 1 <b>${Math.round(R.day[0] / 60)}</b> min${Math.round(R.day[0] / 60) === 1 ? '' : 's'}</span><span><b>${R.waves.length}</b> waves</span>${BEST[c.map] ? `<span>Best <b>${fmt(BEST[c.map])}</b></span>` : ''}` : '';
+  $('#stInfo').innerHTML = R ? `<span>Day 1: <b>${Math.round(R.day[0] / 60)}</b> min${Math.round(R.day[0] / 60) === 1 ? '' : 's'}</span><span>Waves: <b>${R.waves.length}</b></span>${BEST[c.map] ? `<span>Best: <b>${fmt(BEST[c.map])}</b></span>` : ''}` : '';
   requestAnimationFrame(() => { const slot = $('#cDetSlot'), det = slot.firstElementChild, chips = [...det.querySelectorAll('.stNew span')];
     const rows = new Set(chips.map(e => e.offsetTop)).size, ch = chips[0] ? chips[0].offsetHeight + 7 : 0;
     const full = det.offsetHeight + (rows === 1 ? ch : 0);

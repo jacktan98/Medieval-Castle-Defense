@@ -145,7 +145,7 @@ function updateRaidMarks(dt) {
     const q = edgeSpot(p.x, walkY(p.x, p.z) + 1, p.z, R);
     if (q.edge) e.style.setProperty('--a', q.a + 'rad');
     e.classList.toggle('edge', q.edge); e.hidden = false; e.style.transform = `translate(${q.x}px, ${q.y}px)`;
-    if (PH.wave > 1 || !guideOn) tipOnce('marks', 'Raiders come in at the <b>red marks</b> · tap one for the wave');
+    if (PH.wave > 1 || !guideOn) tipOnce('marks', 'Tap a <b>red mark</b> to see the raiders coming that night');
   });
   const pop = $('#wavePop'); if (!pop.hidden) placePop(m[+pop.dataset.i]);
 }
@@ -159,7 +159,7 @@ function startNight() {
   const w = WAVES[PH.wave - 1];
   PH.kind = 'night'; spawnQueue = []; sfx('horn');
   const pts = nightPts().map((p, i) => cellPass(cellAt(p.x, p.z), 2) ? p : edgePoint(i)); nextPts = null;
-  tipOnce('volley', '<b>Arrow volley</b> · tap it, then tap the raiders'); tipOnce('riders', '<b>Riders</b> · two for the night, from the castle');
+  tipOnce('volley', 'Tap <b>Arrow volley</b>, then tap the raiders'); tipOnce('riders', 'Tap <b>Riders</b> to call two horsemen from the castle');
   // siege engines at the head of the column (Jack: they are slow, so they set off first), then foot and horse mixed (spearmen first),
   // bosses last of all; each entry [kind, spawn point, tier]
   // hard mode: every raider a tier up (tier 3 stays 3)
@@ -264,7 +264,7 @@ function endGame(won) {
   const goals = !won ? (camp ? stageGoals(MAP).map(g => [g[0], false]) : [['No buildings lost', false], ['No soldiers lost', false], ['Castle above half', false]]) : camp ? stageGoals(MAP).map(g => [g[0], goalOk(g)]) : [['No buildings lost', stats.lost === 0], ['No soldiers lost', stats.fallen === 0], ['Castle above half', !!C && C.hp >= C.max / 2]];
   const got = goals.filter(g => g[1]).length, n = !won ? 0 : camp ? 1 + got : got === goals.length ? 3 : got ? 2 : 1;
   $('#sumStars').innerHTML = starsHTML(0);
-  const tip = won ? '' : defeatTip(); $('#sumTip').hidden = !tip; $('#sumTip').innerHTML = tip ? `<b>Tip</b> · ${tip}` : '';
+  const tip = won ? '' : defeatTip(); $('#sumTip').hidden = !tip; $('#sumTip').innerHTML = tip ? `<b>Tip:</b> ${tip}` : '';
   $('#sumGoals').innerHTML = [['Survive', won], ...goals].map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
   if (n > (STARS[MAP] || 0)) { STARS[MAP] = n; try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {} }
   if (won && hardOn && !CROWNS[MAP]) { CROWNS[MAP] = 1; try { localStorage.setItem('mtd-crowns', JSON.stringify(CROWNS)); } catch (e) {} }
@@ -287,10 +287,10 @@ function defeatTip() {
   const shooters = buildings.filter(B => B.type !== 'castle' && (DEF[B.type].archers || DEF[B.type].crew)).length;
   if (shooters < 2) return 'Build towers where raiders come in';
   if (open('wall') && !has('wall')) return 'Walls hold raiders under your towers';
-  if (!stats.volleys) return 'Tap the castle at night · Arrow volley';
+  if (!stats.volleys) return 'Use the arrow volley at night';
   if (open('barracks') && !has('barracks') && !has('stables')) return 'Soldiers hold raiders at the gate';
   if (tierCap() > 1 && !buildings.some(B => B.tier > 1)) return 'Upgrade towers before the big nights';
-  return 'Build up on day 1 · it is the longest';
+  return 'Build up on day 1, the longest day';
 }
 // the quickest win per map, in seconds of play (localStorage 'mtd-best'), shown on the stage's details
 var BEST = {}; try { BEST = JSON.parse(localStorage.getItem('mtd-best') || '{}') || {}; } catch (e) {}

@@ -98,7 +98,7 @@ function startGame() {
   if (CAMP_MAPS[MAP]) showNewCards((CAMP_MAPS[MAP].stop > 0 ? CAMPAIGN[CAMP_MAPS[MAP].stop].adds.concat(CAMP_MAPS[MAP].newTier ? ['tier' + CAMP_MAPS[MAP].newTier] : []) : []).concat(stageGoals(MAP).length ? ['goals'] : []));   // a later stage: its new buildings, one card each, before play
   updateCam();
   log('Drag · twist · pinch');
-  log(`Survive <b>${NIGHTS} nights</b>`); if (hardOn) log('<b>Hard</b> · raiders a tier up', 'warn');
+  log(`Survive <b>${NIGHTS} nights</b>`); if (hardOn) log('<b>Hard:</b> raiders a tier up', 'warn');
   log('<b>Day 1</b>', 'good');
   banner('Day 1', 'Build before dark');
   applyLoadout(); cat = 'eco'; renderTools(); setTool('select');

@@ -249,11 +249,11 @@ function completeSite(B) {
     B.built = true; B.group.scale.y = 1; stats.built++; stats.made[B.type] = (stats.made[B.type] || 0) + 1; if (B.type !== 'castle' || stats.built > 1) sfx('build', c);
     if (B.type !== 'wall') log(`<b>${T.tiers[0]}</b> built${T.residents ? ` · +${T.residents[0]}` : ''}`, 'good');
     // the first of a kind: a one-line tip for what it can do
-    if (T.soldiers) tipOnce('rally', 'Tap the barracks · <b>Rally</b> sends soldiers to a spot');
-    else if (T.movable) tipOnce('move', 'Tap the catapult · <b>Move</b> rolls it to a new spot');
+    if (T.soldiers) tipOnce('rally', 'Tap the barracks, then <b>Rally</b> to send soldiers to a spot');
+    else if (T.movable) tipOnce('move', 'Tap the catapult, then <b>Move</b> to roll it somewhere new');
     else if (B.type === 'market') tipOnce('market', 'Tap the market to <b>trade</b>');
     else if (DEF_FXT(B.type)) tipOnce('decor', '<b>Decor</b> helps what stands near it');
-    if (stats.built >= 4 && B.type !== 'castle' && MAP !== 'vale') tipOnce('skip', '<b>Skip day</b> early · gold for the time left');
+    if (stats.built >= 4 && B.type !== 'castle' && MAP !== 'vale') tipOnce('skip', '<b>Skip day</b> early to earn gold for the time left');
   } else {
     B.tier++; stats.upgrades++; swapModel(B); settleBase(B); rebuildRoads(); B.group.scale.y = 1; B.max = T.hp[B.tier - 1]; B.hp = B.max;
     if (B.tier === 2) rebuildRoads();   // the new stone base: paths now stop at its edge
