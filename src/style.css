@@ -1,0 +1,544 @@
+/* Layout: full-bleed 3D field; town ledger top-left, tabbed build dock at the bottom, banners centred. Single dark look by choice. */
+:root{
+  --bg:#141a17; --panel:linear-gradient(180deg,rgba(44,34,18,.92) 0%,rgba(26,20,11,.93) 100%); --line:rgba(212,168,78,.4); --parch:#ece2c8; --muted:#a69e87;
+  --gold:#d4a84e; --ok:#8cc46e; --bad:#e2715b; --night:#a9bcf2;
+  --display:"IM Fell English SC", Georgia, "Times New Roman", serif;
+  --body:"Alegreya Sans", system-ui, -apple-system, sans-serif;
+  color-scheme:dark;
+}
+/* the page itself never scrolls: iOS Safari ignores overflow:hidden on the body and could leave the whole game shifted up
+   (after a rotation or the toolbar resizing), so html and body are pinned to the screen (Jack saw the top panel pushed under the status bar) */
+html{box-sizing:border-box;height:100%;position:fixed;inset:0;overflow:hidden;overscroll-behavior:none}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;height:100%;position:fixed;inset:0;overscroll-behavior:none;touch-action:manipulation;-webkit-user-select:none;user-select:none;background:var(--bg);color:var(--parch);font-family:var(--body);font-size:15px;line-height:1.45;overflow:hidden}
+[hidden]{display:none!important}
+.flyCoin{position:fixed;left:0;top:0;width:16px;height:16px;pointer-events:none;z-index:60}
+.chip.pulse{animation:chipPulse .35s ease-out}
+@keyframes chipPulse{40%{transform:scale(1.18);border-color:var(--gold)}}
+.guideCard{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--gold);border-radius:8px;padding:4px 6px 4px 12px;font-size:13.5px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.guideCard .gStep{color:var(--gold);font-variant-numeric:tabular-nums;font-size:12px}
+.guideCard b{font-weight:600}
+.guideCard button{min-height:26px;padding:1px 9px;font-size:12px;background:transparent;border-color:#4a4838;color:var(--muted);border-radius:6px}
+.guidePulse{animation:guidePulse 1.1s ease-in-out infinite;border-color:var(--gold)!important}
+@keyframes guidePulse{0%,100%{box-shadow:0 0 0 0 rgba(212,168,78,0)}50%{box-shadow:0 0 0 3px rgba(212,168,78,.9)}}
+input{-webkit-user-select:text;user-select:text}
+#app{position:relative;height:100%;overflow:hidden}
+#c{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.ico{display:inline-flex;width:15px;height:15px;vertical-align:-2px;flex-shrink:0}
+.ico svg{width:100%;height:100%}
+.cost{display:inline-flex;align-items:center;gap:3px;font-variant-numeric:tabular-nums}
+.cost + .cost{margin-left:6px}
+.panel{border-radius:8px!important;position:absolute;top:8px;left:max(8px,env(safe-area-inset-left,0px));width:min(330px,calc(100% - 16px));
+  max-height:calc(100% - 16px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px;
+  padding:6px 8px;display:flex;flex-direction:column;gap:5px}
+.title{font-family:var(--display);font-size:13px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.phase{display:flex;align-items:center;gap:8px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.phIco{width:26px;height:26px;flex-shrink:0;display:inline-flex}
+.phIco svg{width:100%;height:100%}
+.phMain{flex:1;min-width:0}
+#phaseText{font-family:var(--display);font-size:17px;line-height:1.1;color:var(--gold)}
+.tick{position:relative;width:30px;height:30px;flex-shrink:0}
+.tick svg{width:100%;height:100%;transform:rotate(-90deg)}
+.tickBg{fill:none;stroke:#2f3027;stroke-width:4}
+.tickFg{fill:none;stroke:var(--gold);stroke-width:4;stroke-linecap:round;stroke-dasharray:94.25;transition:stroke-dashoffset .2s linear}
+.tick span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--parch)}
+#phaseText.night{color:var(--night)}
+#phaseSub{font-size:12px;line-height:1.2;color:var(--muted);font-variant-numeric:tabular-nums}
+.res{display:flex;gap:3px}
+.res .chip{flex:1 1 auto}
+.chip .badge{font-style:normal;font-size:10px;font-weight:700;line-height:1;padding:2px 4px;border-radius:999px;background:#3c5a2c;color:#d8f0c4;margin-left:-1px}
+.chip{border:1px solid #4a4838;background:#24261f;border-radius:6px;padding:3px 3px;display:flex;align-items:center;justify-content:center;gap:3px;min-width:0;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.chip .ico{width:14px;height:14px}
+.chip b{font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap} .chip.short b{color:#ff6b5b} .chip.dim{opacity:.5}
+.chip.low{border-color:var(--bad)} .chip.low b{color:var(--bad)}
+details summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+details summary::-webkit-details-marker{display:none}
+details[open] summary::after{content:"Hide"} details:not([open]) summary::after{content:"Show"}
+#log{max-height:34vh;overflow:auto;margin:5px 0 0;padding-left:16px;display:flex;flex-direction:column;gap:2px;font-size:13px;line-height:1.35}
+#log li::marker{color:var(--gold)}
+#log .warn{color:var(--bad)} #log .good{color:var(--ok)}
+.dock{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;
+  width:max-content;max-width:calc(100% - 24px)}
+.pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 14px;font-size:14px;text-align:center;font-variant-numeric:tabular-nums}
+.pill.ok{border-color:var(--ok);color:var(--ok)} .pill.bad{border-color:var(--bad);color:var(--bad)}
+.card{background:var(--panel);border:1px solid var(--gold);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;width:min(400px,100%)}
+.card h4{margin:0;font-family:var(--display);font-weight:400;font-size:19px;color:var(--gold)}
+.card p{margin:0;font-size:14px;color:var(--parch);font-variant-numeric:tabular-nums}
+.card .row{display:flex;gap:8px;flex-wrap:wrap}
+.trades{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.trades button{min-height:28px;padding:0 6px;border-radius:7px;background:#24261f;font-size:12px;gap:3px;white-space:nowrap;justify-content:center}
+.trades button .cost .ico{width:13px;height:13px} .trades .to{opacity:.75;margin:0 3px;font-size:19px;line-height:1;font-weight:700;position:relative;top:-1px}
+.card button{flex-direction:row;gap:6px;min-height:38px}
+.hpbar{height:6px;border-radius:3px;background:#3a2622;overflow:hidden}
+.hpbar i{display:block;height:100%;background:var(--ok)}
+.bar{display:flex;flex-direction:column;gap:5px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 6px;max-width:100%}
+.barTop{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.tabs,.util,.tools{display:flex;gap:4px;flex-wrap:wrap}
+.tools{gap:5px}
+.tools button{min-height:36px;padding:3px 9px;background:#2a2c24;border-color:#57533f;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 2px rgba(0,0,0,.4)}
+.tools button:hover{background:#33352b}
+.tools button[aria-pressed="true"]{background:#3d3520;border-color:var(--gold)}
+.tools button b{font-size:14px}
+.tools button small{font-size:10.5px}
+.tools{justify-content:center}
+button{font:inherit;color:var(--parch);background:transparent;border:1px solid var(--line);border-radius:5px;padding:5px 10px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:44px}
+button:hover{border-color:var(--muted)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button:disabled{opacity:.45;cursor:not-allowed}
+button b{font-family:var(--display);font-weight:400;font-size:16px;line-height:1.1}
+button small{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:2px}
+button[aria-pressed="true"]{border-color:var(--gold);background:rgba(212,168,78,.14);color:var(--gold)}
+button.cant small{color:var(--bad)}
+button.primary{border-color:var(--gold);color:var(--gold)}
+button.danger{border-color:#6b3a33;color:var(--bad)}
+.tab{min-height:28px;font-family:var(--display);font-size:14px;padding:1px 9px;border-color:transparent}
+.tabs{background:rgba(0,0,0,.3);border-radius:6px;padding:2px;gap:2px}
+.tab{border-radius:4px}
+.tab[aria-pressed="true"]{border-color:var(--gold);background:rgba(212,168,78,.16)}
+.util{border-left:1px solid var(--line);padding-left:6px}
+.util button{background:#24261f}
+.util button{min-height:28px;font-size:12px;padding:1px 7px}
+#nightBtn{min-height:28px;font-size:12px;padding:2px 9px;flex-shrink:0;background:#24261f;border-color:#57533f;flex-direction:row}
+.banner{position:absolute;top:34%;left:50%;transform:translate(-50%,-50%);font-family:var(--display);font-size:clamp(28px,6vw,52px);
+  color:var(--gold);text-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none;text-align:center;transition:opacity .6s;opacity:0;width:calc(100% - 32px)}
+.banner.show{opacity:1} .banner.night{color:var(--night)}
+.banner small{display:block;font-family:var(--body);font-size:16px;color:var(--parch)}
+.modal{position:absolute;inset:0;background:rgba(8,10,9,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+.sheet{background:#1c1d18;border:1px solid var(--gold);border-radius:8px;padding:20px 22px;width:min(420px,100%);display:flex;flex-direction:column;gap:12px}
+.sheet h2{margin:0;font-family:var(--display);font-weight:400;font-size:34px;color:var(--gold);text-wrap:balance}
+.sheet h2.lost{color:var(--bad)}
+.mapSheet{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;width:min(560px,100%)}
+/* the title screen: dark over everything, the game isn't shown until a map is picked */
+/* before each game: one of each pair for the economy and the defences, any five decor */
+#loadPick{z-index:50;background:radial-gradient(ellipse at 50% 30%, #23271f 0%, #121410 70%, #0b0c09 100%);align-items:flex-start;overflow-y:auto}
+.loadSheet{display:flex;flex-direction:column;gap:10px;width:min(520px,100%);margin:auto 0;padding:6px 0 10px}
+.loadSheet section{display:flex;flex-direction:column;gap:6px}
+.loadSheet h3{margin:0;font-family:var(--display);font-weight:400;font-size:20px;color:var(--gold)} .loadSheet h3 span{font-family:var(--body);font-size:14px;color:var(--muted)} .loadSheet h3 span.short{color:var(--bad)}
+.ldRows{display:flex;flex-direction:column;gap:6px}
+.ldRow{display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;align-items:stretch}
+.ldCat{display:flex;align-items:center;justify-content:center} .ldCat .ico{width:22px;height:22px} .ldCat .tag{font-size:10px;line-height:1.05;color:var(--muted);text-align:center;letter-spacing:.02em}
+.ldOpt{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;padding:5px 8px;border-radius:9px;background:#24261f;border-color:#4a4838;text-align:left;min-height:0;height:auto}
+.ldOpt .tIco{width:24px;height:24px;flex:0 0 auto;display:inline-flex;color:#cfc4a6} .ldOpt .tIco svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round} .ldOpt[aria-pressed="true"] .tIco{color:var(--gold)} .ldOpt b{font-family:var(--display);font-weight:400;font-size:16px;color:var(--parch);line-height:1.05;display:block}
+.ldOpt small{display:block;font-size:11px;color:var(--muted)} .ldOpt small .cost .ico{width:11px;height:11px}
+.ldOpt[aria-pressed="true"]{border-color:var(--gold);background:#2e2b1e} .ldOpt[aria-pressed="true"] b{color:var(--gold)}
+.ldOpt.locked{opacity:.5;cursor:default;justify-content:center} .ldOpt.locked b{color:var(--muted)} .lockIco{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;vertical-align:-2px} .ldOpt .tIco .lockIco{width:100%;height:100%;stroke-width:1.7}
+.ldGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
+.ldGrid .ldOpt{flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:3px;padding:6px 4px} .ldGrid .ldOpt b{font-size:14px}
+.ldBtns{display:flex;justify-content:space-between;gap:8px;margin-top:4px} .ldBtns button{min-width:110px;min-height:42px;font-size:16px}
+@media (max-height:520px){ .loadSheet{gap:6px;width:min(780px,100%)} .ldRows{display:grid;grid-template-columns:1fr 1fr;gap:6px} .ldOpt{min-height:38px;padding:4px 6px} .loadSheet h3{font-size:17px} }
+#mapPick{z-index:50;background:radial-gradient(ellipse at 50% 35%, #23271f 0%, #121410 70%, #0b0c09 100%)}
+.gameTitle{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(34px,10vw,52px);line-height:1.05;color:var(--gold);text-shadow:0 2px 18px rgba(0,0,0,.6);text-wrap:balance}
+.stars{color:#5a5646;letter-spacing:.06em;white-space:nowrap} .stars .on{color:var(--gold)} .stars.big{font-size:34px;text-align:center;line-height:1}
+#sumGoals{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:14px}
+#sumGoals li{display:flex;align-items:center;gap:8px;color:var(--muted)} #sumGoals li.ok{color:var(--parch)} #sumGoals li b{width:18px;text-align:center;color:#6b6656} #sumGoals li.ok b{color:#8cc46e}
+.mapBtn .stars{font-size:13px}
+#campBtn{margin-top:4px;padding:9px 22px;font-family:var(--display);font-size:17px;color:var(--gold)}
+#saveResume{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 22px;font-family:var(--display);font-size:17px} #saveResume small{font-family:var(--body,inherit);font-size:11px;font-weight:700;color:#3a2508!important;text-shadow:none}
+#campaign{background:#14150f}
+.campSheet{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(720px,100%);max-height:100%}
+#campMap{width:100%;flex:1 1 auto;min-height:0;display:flex;justify-content:center}
+#campInfo{width:100%;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+/* the menus sit in the game's own world: the campaign landscape (maps/menu-bg.jpg: maps/overview.jpg shrunk to 240 px and blurred, so the
+   browser's upscale is soft and costs nothing) darkened toward the edges; the content on dark translucent panels edged in muted gold */
+.modal.tome{background-color:#10120e!important;background-image:radial-gradient(ellipse at 50% 40%, rgba(8,9,6,.25) 0%, rgba(8,9,6,.55) 55%, rgba(5,6,4,.9) 100%),
+  linear-gradient(rgba(14,16,11,.35), rgba(14,16,11,.35)), url("maps/menu-bg.jpg")!important;background-size:cover,cover,cover!important;background-position:center!important;background-repeat:no-repeat!important}
+.modal.tome .gameTitle{text-shadow:0 2px 0 rgba(0,0,0,.65),0 0 28px rgba(0,0,0,.85)}
+.modal.tome .mapSub{color:#cfc4a6;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+/* screen headings sit between two thin gold rules that fade out, each ending in a small diamond */
+.modal.tome .mapSub{display:flex;align-items:center;justify-content:center;gap:10px;width:min(320px,86%);align-self:center}
+.modal.tome .mapSub::before,.modal.tome .mapSub::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(212,168,78,0),rgba(212,168,78,.8))}
+.modal.tome .mapSub::after{background:linear-gradient(270deg,rgba(212,168,78,0),rgba(212,168,78,.8))}
+.modal.tome .mapBtn,.modal.tome .ldOpt{background:rgba(20,22,16,.78);border-color:rgba(201,160,62,.32)}
+.modal.tome .ldOpt[aria-pressed="true"]{background:rgba(52,44,22,.88);border-color:var(--gold)}
+.modal.tome .loadSheet,.modal.tome .stSide{background:rgba(14,16,11,.72);border:1px solid rgba(201,160,62,.28);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.modal.tome .loadSheet{padding:12px 12px 14px}
+.modal.tome .stSide{padding:12px 16px 14px}
+.modal.tome .stPic{border-color:rgba(201,160,62,.45);box-shadow:0 0 0 1px rgba(0,0,0,.6),0 10px 34px rgba(0,0,0,.7)}
+.modal.tome button:not(.mapBtn):not(.ldOpt){background:rgba(20,22,16,.72)}
+/* a plain gold frame (Jack: no corner pieces, a thicker edge): a 2 px gold border with a faint inner line */
+.modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide,.modal.tome .stPic{position:relative;border:2px solid rgba(212,168,78,.75)!important;box-shadow:inset 0 0 0 2px rgba(8,9,6,.55),inset 0 0 0 3px rgba(212,168,78,.18),0 8px 26px rgba(0,0,0,.55)!important}
+.modal.tome .stPic,.modal.tome .mapBtn img{border-radius:6px} .modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide{border-radius:10px}
+/* the three map cards line up: names get two lines' room, so Mountain pass's picture sits level with the others */
+.mapBtn{justify-content:flex-start;padding:13px 13px 12px;width:min(186px,29vw)} .mapBtn b{min-height:2.3em;display:flex;align-items:center;justify-content:center;line-height:1.1}
+/* campaign progress: stages won, a slim gold bar, stars (Jack) */
+.campProg{display:flex;align-items:center;justify-content:center;gap:10px;font-size:16px;color:#d9cfb3;letter-spacing:.03em;margin-top:-2px} .campProg b{color:var(--gold);font-weight:700} .campProg .sep{color:rgba(212,168,78,.6)}
+.campProg i{flex:1;height:5px;border-radius:3px;background:rgba(0,0,0,.45);box-shadow:inset 0 0 0 1px rgba(201,160,62,.35);overflow:hidden} .campProg i b{display:block;height:100%;background:linear-gradient(90deg,#9c7224,#f0c95a)}
+/* menus fade in (shown by clearing [hidden], which restarts the animation) */
+.modal.tome:not([hidden]) > *{animation:menuRise .3s ease-out}
+@keyframes menuIn{from{opacity:0}to{opacity:1}} @keyframes menuRise{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+/* buttons press in and brighten; the main action is gold with a slow shine passing over it */
+.modal.tome button,#newCards button{transition:transform .08s ease-out,filter .12s} .modal.tome button:active,#newCards button:active{transform:scale(.95);filter:brightness(1.25)}
+.modal.tome button.primary,#newCards button.primary{position:relative;overflow:hidden;background:linear-gradient(180deg,#e9c463 0%,#c7962f 55%,#a47422 100%)!important;color:#2a1a06!important;border-color:#f2d27a!important;font-weight:700;text-shadow:0 1px 0 rgba(255,236,170,.6);box-shadow:0 3px 10px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,245,200,.7)}
+.modal.tome button.primary:disabled,#newCards button.primary:disabled{filter:grayscale(.8) brightness(.7)}
+.modal.tome button.primary::after,#newCards button.primary::after{content:'';position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,250,225,.22),transparent);animation:shine 4.5s ease-in-out infinite;pointer-events:none}
+@keyframes shine{0%,55%{left:-60%}100%{left:130%}}
+/* the title screen shows the showcase town through it: only a vignette, darker behind the title and the cards; the game's own HUD hidden */
+#mapPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse 90% 65% at 50% 50%, rgba(6,7,5,.15) 0%, rgba(6,7,5,.35) 55%, rgba(4,5,3,.85) 100%),linear-gradient(180deg, rgba(6,7,5,.55) 0%, rgba(6,7,5,0) 30%, rgba(6,7,5,0) 70%, rgba(6,7,5,.6) 100%)!important;background-size:cover!important}
+body.showcase #app > :not(#c):not(.modal){visibility:hidden}
+/* the title on a big screen (a laptop): everything scales with the window instead of staying phone-sized in the middle */
+@media (min-width:900px) and (min-height:600px){
+  #mapPick .mapSheet{width:min(1100px,92vw);gap:min(26px,2.6vh)}
+  #mapPick .gameTitle{font-size:clamp(52px,5.2vw,92px)}
+  #mapPick .maps{gap:min(26px,1.8vw)}
+  #mapPick .mapBtn{width:clamp(200px,17vw,320px);padding:14px 14px 16px} #mapPick .mapBtn b{font-size:clamp(19px,1.5vw,26px)} #mapPick .mapBtn .stars{font-size:16px}
+  #mapPick .mapSub{font-size:15px;width:min(460px,50vw)}
+  #mapPick #campBtn{font-size:clamp(19px,1.5vw,25px);padding:12px 34px}
+}
+/* the campaign carousel */
+#campaign{padding:10px 12px;overflow:hidden}
+#campaign .campSheet{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:6px;width:min(1100px,100%);height:100%;max-height:100%}
+.cHead{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%}
+.cMain{flex:1 1 auto;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;gap:8px}
+.cLeft{flex:1 1 auto;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;gap:8px}
+/* the arrows sit outside the 3D deck, over it: inside it a side card's near edge, tipped toward the viewer, could cover the arrow and take the tap */
+.cDeckWrap{position:relative;flex:1 1 auto;min-height:0;width:100%}
+.cDeck{position:absolute;inset:0;perspective:1100px;overflow-x:clip;overflow-y:visible;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+/* the side cards fade out toward the screen's edges instead of being cut off by them (Jack); the front card stays clear of the fade */
+.cDeck{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16%,#000 84%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 16%,#000 84%,transparent 100%)}
+.cCards{position:absolute;inset:0;transform-style:preserve-3d;pointer-events:none}
+.cCard{position:absolute;left:50%;top:50%;width:var(--cw);margin-left:calc(var(--cw) / -2);margin-top:calc(var(--cw) / -2);padding:0;display:flex;flex-direction:column;
+  border:2px solid rgba(212,168,78,.75);border-radius:12px;background:#15170f;color:var(--parch);text-align:left;box-shadow:0 14px 34px rgba(0,0,0,.65);
+  transition:transform .38s cubic-bezier(.2,.8,.25,1),opacity .3s;will-change:transform;backface-visibility:hidden;cursor:pointer}
+.cCard::after{content:'';position:absolute;inset:0;border-radius:10px;background:#000;opacity:var(--dim, 0);pointer-events:none;transition:opacity .3s}
+.cCard .cPic{display:block;width:100%;aspect-ratio:1/1;background-size:cover;background-position:center;border-radius:10px}
+.cCard .cName{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:1px;padding:16px 12px 8px;justify-content:flex-end;border-radius:0 0 10px 10px;background:linear-gradient(180deg,rgba(10,11,8,0) 0%,rgba(10,11,8,.55) 45%,rgba(10,11,8,.72) 100%);text-shadow:0 1px 3px rgba(0,0,0,.9)} .cName small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)} .cName b{font-family:var(--display);font-weight:400;font-size:20px;color:var(--gold);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cCard.boss{border-color:rgba(226,113,91,.85)} .cCard.boss .cName small{color:#e2715b}
+.cCard.locked .cPic{filter:grayscale(.75) brightness(.7)}
+.cCard.cur.front{border-color:#f2d27a;animation:jGlow 1.8s ease-in-out infinite alternate}
+@keyframes jGlow{from{box-shadow:0 0 0 1px rgba(255,215,106,.4),0 0 16px rgba(255,200,80,.35),0 14px 34px rgba(0,0,0,.65)}to{box-shadow:0 0 0 2px rgba(255,215,106,.8),0 0 34px rgba(255,200,80,.7),0 14px 34px rgba(0,0,0,.65)}}
+.jLock{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;background:rgba(10,11,8,.8);display:flex;align-items:center;justify-content:center} .jLock svg{width:19px;height:19px;fill:none;stroke:#e6dcc0;stroke-width:2;stroke-linecap:round}
+.cArrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:42px;height:42px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(14,16,11,.75)!important;border:1px solid rgba(212,168,78,.6)!important}
+.cArrow svg{width:22px;height:22px;fill:none;stroke:var(--gold);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round} .cArrow.l{left:2px} .cArrow.r{right:2px}
+.cDet{width:min(520px,100%);flex:0 0 auto}
+.cDet .stActs{display:flex;gap:10px;justify-content:center} .cDet .stActs button{min-width:110px;min-height:42px}
+@media (min-width:900px) and (min-height:600px){ .cMain{flex-direction:row;align-items:stretch;gap:24px} .cLeft{flex:1 1 auto} .cDet{width:300px;align-self:center} .cCard .cName b{font-size:24px} }
+@media (max-height:520px){ #campaign .cHead{flex-direction:row;gap:14px} #campaign .cHead .mapSub{width:auto} .cMain{flex-direction:row;align-items:stretch;gap:12px} .cDet{width:250px;align-self:center;padding:8px 10px!important;gap:5px} .cDet h3{font-size:18px} }
+/* the banner and the rally flag: the overview's 3D sprite strips (maps/banner.png, maps/flag.png: 32 frames of 220 x 200), played with steps() */
+.jSpr{position:absolute;right:-30px;top:-62px;width:121px;height:110px;background-repeat:no-repeat;background-size:3872px 110px;animation:jWave 2.513s steps(32) infinite;pointer-events:none}
+.jBan{background-image:url(maps/banner.png)} .jFlag{background-image:url(maps/flag.png);filter:drop-shadow(0 0 1.5px #fbeab0) drop-shadow(0 0 1px #fbeab0)}
+@keyframes jWave{to{background-position:-3872px 0}}
+/* behind the campaign and the town picker the title's scene keeps running (Jack: it flashed up between them before); these screens only
+   darken it, more than the title does, so the cards and text stay clear */
+body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 45%, rgba(8,9,6,.45) 0%, rgba(8,9,6,.62) 60%, rgba(5,6,4,.9) 100%)!important}
+/* buttons stand out on the dark: a bronze plate with a gold rim, light gold text and a soft glow; the main action stays solid gold */
+.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
+  box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 12px rgba(212,168,78,.18),inset 0 1px 0 rgba(255,230,160,.25)!important;font-weight:500}
+.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):hover{filter:brightness(1.15)}
+.cArrow{background:linear-gradient(180deg,#4a3c22,#2e2515)!important;border:2px solid #c9a03e!important;box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 14px rgba(212,168,78,.25)!important}
+.cArrow svg{stroke:#f4e3b2}
+/* the campaign's progress under the deck: one segment per stage, filled gold for each won, the stage you're at outlined and pulsing,
+   the rest dark; bosses edged red; the one in front lifted with a light bar under it; tap one to turn the deck to it */
+.cDots{display:flex;align-items:center;gap:4px;width:min(380px,100%);padding:6px 0 4px}
+.cDot{flex:1 1 0;height:10px!important;min-height:0!important;min-width:0!important;padding:0!important;border-radius:3px;background:rgba(0,0,0,.5)!important;border:1px solid rgba(212,168,78,.4)!important;position:relative;transition:transform .2s}
+.cDot::before{content:'';position:absolute;inset:-9px 0}
+.cDot.won{background:linear-gradient(180deg,#f2d27a,#b8862a)!important;border-color:#f2d27a!important}
+.cDot.cur{border:2px solid #f2d27a!important;animation:segPulse 1.4s ease-in-out infinite alternate}
+@keyframes segPulse{from{box-shadow:0 0 0 rgba(255,210,100,0)}to{box-shadow:0 0 10px rgba(255,210,100,.8)}}
+.cDot.boss{border-color:#e2715b!important} .cDot.boss.won{background:linear-gradient(180deg,#f08a72,#a8402c)!important}
+.cDot.sel{transform:scaleY(1.5)} .cDot.sel::after{content:'';position:absolute;left:15%;right:15%;bottom:-8px;height:2px;border-radius:1px;background:#f4e3b2}
+/* the stage's details in the campaign and the town picker (Jack): a bronze plaque, its title on a lighter gold band and the body
+   below darker, so the text and buttons read; the new buildings as small gold-edged chips under a "New" label, bigger outlined stars */
+.modal.tome .cDet,.modal.tome .loadSheet{background:linear-gradient(180deg,rgba(40,31,16,.84) 0%,rgba(24,19,10,.88) 100%)!important}
+.modal.tome .cDet{width:min(380px,100%);padding:0 0 9px!important;gap:5px;overflow:hidden}
+.cDet h3,.modal.tome .loadSheet > .mapSub{background:linear-gradient(90deg,rgba(150,112,52,.5),rgba(190,145,70,.62) 50%,rgba(150,112,52,.5));border-bottom:1px solid rgba(212,168,78,.55)}
+.cDet h3{width:100%;padding:6px 10px 5px;font-size:17px!important;color:#ffe2a0!important;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.modal.tome .loadSheet > .mapSub{margin:-12px -12px 2px;padding:9px 0 8px;width:auto;align-self:stretch;color:#ffe2a0;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.modal.tome .loadSheet > .mapSub::before,.modal.tome .loadSheet > .mapSub::after{display:none}
+.modal.tome .loadSheet h3{color:#f0c95a}
+.cDet .sub{color:#e6d6ae!important}
+.cDet .stNew{padding-top:2px;gap:7px}
+.cDet .stNew span{gap:4px;padding:3px 8px 3px 5px;border:1px solid rgba(212,168,78,.7);border-radius:8px;background:rgba(70,54,26,.5);box-shadow:inset 0 1px 0 rgba(255,230,160,.15)}
+.cDet .stNew svg{width:18px;height:18px} .cDet .stNew b{font-weight:500;font-size:12px;color:#f4e3b2}
+.cDet #stStars .stars{font-size:20px;letter-spacing:.12em;line-height:1} .cDet #stStars .stars span{color:rgba(20,16,8,.55);-webkit-text-stroke:1px rgba(240,201,90,.75);text-shadow:none}
+.cDet #stStars .stars .on{color:#f0c95a;-webkit-text-stroke:1px #fff1c4;text-shadow:0 0 10px rgba(255,205,90,.6)}
+.cDet .stActs button{min-height:34px!important;min-width:92px!important;padding:4px 12px!important}
+/* the town picker's options like the chips: gold-edged bronze, the picked ones brighter */
+.modal.tome .ldOpt{background:rgba(70,54,26,.42)!important;border:1px solid rgba(212,168,78,.45)!important;box-shadow:inset 0 1px 0 rgba(255,230,160,.1)}
+.modal.tome .ldOpt[aria-pressed="true"]{background:linear-gradient(180deg,rgba(150,112,52,.55),rgba(100,74,34,.55))!important;border-color:#f0c95a!important;box-shadow:inset 0 1px 0 rgba(255,236,170,.3),0 0 8px rgba(240,200,90,.25)}
+.modal.tome .ldOpt.locked{background:rgba(20,16,8,.45)!important}
+.modal.tome .ldOpt[aria-pressed="true"] b{color:#fff1c4!important;text-shadow:0 1px 2px rgba(0,0,0,.6)} .modal.tome .ldOpt[aria-pressed="true"] .tIco{color:#ffe2a0}
+/* the card's "Stage N" line reads clearly over the picture */
+.cName small{font-size:13px!important;letter-spacing:.1em!important;color:#f0e2bc!important;font-weight:600}
+.cArrow,.cDot,.cCard,.cDet button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+/* the progress bar sits a little higher, clear of the details' title */
+.cDots{margin:-6px 0 6px}
+/* the canvas itself is dark, so nothing light ever shows through before the first frame is drawn */
+#c{background:#0d0f0b}
+/* stage details: "New" clear above the chips; room for two rows of chips on every stage so the box keeps its height */
+.cDet .stNew:empty{display:none}
+.stInfo{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 14px;font-size:12px;color:#e6d6ae} .stInfo b{color:#ffe2a0;font-weight:600} .stInfo:empty{display:none}
+/* the details shrink to their content (one row of chips, or none on the boss stages), but their slot keeps the tallest height seen,
+   so the progress bar above never moves (Jack); the box sits at the slot's top on a tall screen, centred beside the deck on a wide one */
+.cDetSlot{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;width:100%;flex:0 0 auto}
+/* beside the deck (laptop, phone sideways) the slot has a fixed width and the deck takes the rest, so neither changes size from stage to stage */
+@media (min-width:900px) and (min-height:600px){ .cDetSlot{width:370px;justify-content:center;align-self:stretch;min-height:0!important} .modal.tome .cDet{width:100%!important} .cLeft{flex:1 1 0;min-width:0} }
+@media (max-height:520px){ .cDetSlot{width:250px;justify-content:center;align-self:stretch;min-height:0!important} .modal.tome .cDet{width:100%!important} .cLeft{flex:1 1 0;min-width:0} }
+/* on a tall screen the progress bar and the details sit a little higher, into the spare room under the card (Jack: a small shift only) */
+@media (max-aspect-ratio:3/4){ .cDots{margin:-28px 0 6px} }
+/* the title's map cards in the bronze plaque look (Jack): bronze body, gold rim, the name on a lighter gold band, bigger outlined stars */
+.modal.tome .mapBtn{background:linear-gradient(180deg,rgba(40,31,16,.88),rgba(24,19,10,.9))!important;border:2px solid rgba(212,168,78,.8)!important;padding:8px 8px 10px!important;gap:8px}
+.modal.tome .mapBtn b{margin:0 -8px;padding:5px 4px;background:linear-gradient(90deg,rgba(150,112,52,.5),rgba(190,145,70,.62) 50%,rgba(150,112,52,.5));border-top:1px solid rgba(212,168,78,.55);border-bottom:1px solid rgba(212,168,78,.55);color:#ffe2a0!important;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.modal.tome .mapBtn.last{border-color:#f2d27a!important;box-shadow:0 0 16px rgba(255,205,90,.35),0 8px 26px rgba(0,0,0,.55)!important}
+.modal.tome .mapBtn .stars{font-size:22px!important;letter-spacing:.1em;line-height:1} .modal.tome .mapBtn .stars span{color:rgba(20,16,8,.55);-webkit-text-stroke:1px rgba(240,201,90,.75)}
+.modal.tome .mapBtn .stars .on{color:#f0c95a;-webkit-text-stroke:1px #fff1c4;text-shadow:0 0 10px rgba(255,205,90,.6)}
+@media (min-width:900px) and (min-height:600px){ .modal.tome .mapBtn .stars{font-size:28px!important} }
+/* the title's map cards: every name strip two lines tall, so the stars line up whether the name takes one line or two */
+.modal.tome .mapBtn b{min-height:calc(2.3em + 12px)!important;box-sizing:border-box}
+/* the game's own UI in the menus' bronze plaque look (Jack): bronze panels (--panel) with a gold rim and a soft shadow; title bands
+   and headers on a lighter gold band; secondary buttons as bronze plates; the main action gold */
+/* top panel, dock and corner buttons: no gold rim (Jack: cleaner, less gold); the pop-up cards keep theirs */
+.panel,.bar,.pill,.guideCard{border:1px solid rgba(212,168,78,.16)!important;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+.card,.ncCard,.pauseCard,.admin,#summary .sheet{border:2px solid rgba(212,168,78,.72)!important;box-shadow:0 4px 16px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,230,160,.12)}
+.phase,.barTop,.adminHead{border-bottom-color:rgba(212,168,78,.45)!important}
+#pauseBtn,.cornerBtns .iconBtn{background:var(--panel)!important;border:1px solid rgba(212,168,78,.16)!important;box-shadow:0 2px 10px rgba(0,0,0,.5)!important}
+#pauseBtn svg,.cornerBtns .iconBtn svg{stroke:#f4e3b2} .cornerBtns .iconBtn .spd{color:#f4e3b2}
+.tabs{background:rgba(10,8,4,.45)!important;border:1px solid rgba(212,168,78,.3)}
+.tab[aria-pressed="true"]{background:linear-gradient(180deg,rgba(150,112,52,.55),rgba(100,74,34,.55))!important;border-color:#f0c95a!important;color:#ffe2a0!important}
+.bar .tools button{background:rgba(10,8,4,.45)!important;border-color:rgba(212,168,78,.3)!important}
+.tools button[aria-pressed="true"]{background:linear-gradient(180deg,rgba(150,112,52,.6),rgba(100,74,34,.6))!important;border-color:#f0c95a!important;box-shadow:0 0 8px rgba(240,200,90,.3)}
+.ncCard h3,.card h3,.cardName{color:#ffe2a0}
+.ncCard button.primary,.pauseCard button.primary,#summary button.primary{background:linear-gradient(180deg,#e9c463 0%,#c7962f 55%,#a47422 100%)!important;color:#2a1a06!important;border-color:#f2d27a!important;font-weight:700}
+/* the card's Upgrade is a dark bronze plate with a gold rim, gold chevrons and costs (Jack preferred it to the gold-filled button) */
+.card .row button.primary{background:linear-gradient(180deg,#3d3220 0%,#2a2216 100%);border:1px solid #c9a03e;color:var(--gold)}
+.pauseCard button:not(.primary),#summary button:not(.primary),.card .row button:not(.primary):not(.danger){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%);border:1px solid #c9a03e;color:#f4e3b2}
+.hardBtn{align-self:center;min-height:28px!important;padding:2px 16px!important;font-size:13px!important;border-radius:14px!important;letter-spacing:.05em}
+#stHard[aria-pressed="true"]{background:linear-gradient(180deg,#8a2a1e,#521510)!important;border-color:#ff9a80!important;color:#ffe2d8!important;box-shadow:0 0 10px rgba(255,110,80,.45)}
+.crown svg,.hardTag svg{width:20px;height:20px;fill:#f0c95a;stroke:#fff1c4;stroke-width:1;vertical-align:-3px;margin-left:6px;filter:drop-shadow(0 0 6px rgba(255,205,90,.6))} .hardTag{color:#f0c95a}
+.audioRow{display:flex;gap:8px;justify-content:center;margin-top:10px}
+.audioRow button{min-height:32px!important;padding:3px 14px!important;font-size:13px!important;border-radius:16px!important}
+.audioRow button[aria-pressed="false"]{opacity:.55;text-decoration:line-through}
+#summary .sheet{background:var(--panel)!important;max-height:calc(100% - 8px);overflow-y:auto}
+.sumTip{margin:0;font-size:13px;color:#f4e3b2;text-align:center} .sumTip b{color:#f0c95a}
+/* a phone held sideways: two columns (title, stars, play again | goals, numbers, tip) so it all fits without scrolling */
+@media (max-height:520px){ #summary .sheet{width:min(640px,100%);display:grid;grid-template-columns:1fr 1fr;grid-template-areas:'t g' 's g' 'x n' 'b p';column-gap:22px;row-gap:8px;padding:14px 18px;align-items:start}
+  #summary #sumTitle{grid-area:t;font-size:26px} #summary #sumStars{grid-area:s;font-size:28px;text-align:left} #summary #sumText{grid-area:x;margin:0} #summary #sumGoals{grid-area:g}
+  #summary #sumStats{grid-area:n;margin:0} #summary .sumTip{grid-area:p;text-align:left} #summary #again{grid-area:b;align-self:end} }
+#summary .stars.big span{display:inline-block} #summary .stars.big .pop{animation:starPop .55s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes starPop{0%{transform:scale(0) rotate(-40deg);opacity:0}55%{transform:scale(1.5) rotate(8deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+#summary .stars.big .on{color:#f0c95a;-webkit-text-stroke:1px #fff1c4;text-shadow:0 0 12px rgba(255,205,90,.6)} #summary .stars.big span{-webkit-text-stroke:1px rgba(240,201,90,.75)}
+/* new-building cards: a small bronze plaque (Jack): "New · 1/2" and the name on one gold title band, the building's icon in a
+   gold-rimmed medallion, cost and stats centred (text, numbers and icons all one size), Next / Play centred at the foot */
+#newCards .ncCard{flex-direction:column!important;align-items:center;width:min(200px,72vw);min-width:0;padding:0 0 10px!important;gap:7px;overflow:hidden}
+#newCards .ncInfo{display:contents}
+#newCards .ncStep{order:0;width:100%;text-align:center;padding:6px 0 0;margin:0 0 -7px;font-size:10px!important;color:#e6d6ae;border:0!important;background:linear-gradient(90deg,rgba(150,112,52,.5),rgba(190,145,70,.62) 50%,rgba(150,112,52,.5))}
+#newCards h3{order:1;width:100%;margin:0!important;text-align:center;font-size:17px!important;padding:1px 8px 6px;border-top:0!important;color:#ffe2a0!important;text-shadow:0 1px 2px rgba(0,0,0,.7);background:linear-gradient(90deg,rgba(150,112,52,.5),rgba(190,145,70,.62) 50%,rgba(150,112,52,.5));border-bottom:1px solid rgba(212,168,78,.55)}
+#newCards .ncIcon{order:2;align-self:center;width:48px;height:48px;border-radius:50%;justify-content:center;align-items:center;border:2px solid rgba(212,168,78,.75);background:radial-gradient(circle at 50% 35%,rgba(110,84,40,.6),rgba(30,23,12,.8));box-shadow:inset 0 1px 0 rgba(255,230,160,.2),0 2px 8px rgba(0,0,0,.5)}
+#newCards .ncIcon svg{width:30px!important;height:30px!important}
+#newCards .ncCost,#newCards .ncStats{font-size:13px!important;justify-content:center;gap:4px 10px;padding:0 8px}
+#newCards .ncCost{order:3} #newCards .ncStats{order:4} #newCards .ncStats:empty{display:none}
+#newCards .ncCost .ico,#newCards .ncCost .ico svg,#newCards .ncStats .ico,#newCards .ncStats .ico svg{width:13px!important;height:13px!important}
+#newCards .ncCost .cost,#newCards .ncStats .stat{gap:4px}
+#newCards button{order:5;align-self:center!important;min-width:96px!important;min-height:32px!important;padding:4px 14px!important;font-size:14px!important;margin-top:1px!important}
+#newCards{z-index:63;background:rgba(8,10,9,.6)}
+#newCards .goalCard{width:min(250px,80vw)} #newCards .goalCard .ncIcon{color:#f0c95a} #newCards .goalCard .ncCost{display:none}
+.ncGoals{list-style:none;margin:0;padding:0 4px;display:flex;flex-direction:column;gap:5px;font-size:13px;color:#f4e3b2;text-align:left}
+.ncGoals li{display:flex;align-items:flex-start;gap:7px;line-height:1.25} .ncGoals b{color:#f0c95a;font-size:14px;line-height:1.1;text-shadow:0 0 6px rgba(255,205,90,.5)}
+.ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
+
+.ncInfo{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left}
+.ncStep{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ncIcon{flex:0 0 auto;align-self:center;display:flex} .ncIcon svg{width:44px;height:44px;stroke:var(--gold);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.ncCard h3{margin:0;font-family:var(--display);font-weight:400;font-size:16px;line-height:1.1;color:var(--gold)}
+.ncCost{display:flex;gap:9px;justify-content:flex-start;font-size:12.5px;color:var(--parch)} .ncCost .cost,.ncStats .stat{display:inline-flex;align-items:center;gap:3px} .ncCost .ico svg,.ncStats .ico svg{width:13px;height:13px}
+.ncStats{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:5px 11px;font-size:12.5px;color:var(--parch)}
+#ncStats .stat{font-size:12.5px;gap:3px} #ncStats .stat .ico,#ncCost .ico{width:13px;height:13px}
+.ncCard button{min-width:72px;min-height:0;padding:6px 12px;font-size:13px;margin-top:4px;align-self:flex-end}
+.stageSheet{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(520px,100%);max-height:100%;overflow:auto}
+.stPic{width:100%;max-width:min(520px,62dvh);aspect-ratio:1/1;border-radius:10px;border:1px solid #4a4838;overflow:hidden;background:#2a2b22;display:flex;align-items:center;justify-content:center;position:relative;flex:0 0 auto}
+.stPic img{width:100%;height:100%;object-fit:cover;display:block} .stPic .tag{position:absolute;left:8px;top:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--parch);background:rgba(20,21,15,.75);padding:2px 7px;border-radius:5px} .stPic .soon{color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-size:13px}
+.stSide{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
+.stSide h3{margin:0;font-family:var(--display);font-weight:400;font-size:21px;color:var(--gold)} .stSide .sub{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.stNew{display:flex;flex-wrap:wrap;justify-content:center;gap:7px 12px;font-size:13px;color:var(--parch)} .stNew span{display:flex;align-items:center;gap:5px} .stNew svg{width:20px;height:20px;stroke:var(--gold);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.stActs{display:flex;gap:10px;margin-top:4px} .stActs button{min-width:92px}
+@media (max-height:520px){ .stageSheet{flex-direction:row;width:min(780px,100%);justify-content:center} .stPic{width:auto;height:calc(100dvh - 40px);max-width:none} .stSide{width:240px} }
+#campInfo h3{margin:0;font-family:var(--display);font-weight:400;font-size:19px;color:var(--gold)} #campInfo .sub{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+#campInfo .unl{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 10px;font-size:12px;color:var(--parch)}
+#campInfo .unl span{display:flex;align-items:center;gap:4px} #campInfo .unl svg{width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.mapSub{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.maps{display:flex;gap:min(12px,2vw);justify-content:center;flex-wrap:wrap}
+.mapBtn{display:flex;flex-direction:column;align-items:stretch;gap:7px;padding:6px 6px 8px;border-radius:12px;background:#24261f;border-color:#4a4838;width:min(170px,25vw)}
+.mapBtn img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;display:block;background:#2e3a2c}
+.mapBtn b{font-family:var(--display);font-weight:400;font-size:17px;color:var(--parch)} .mapBtn.last{border-color:var(--gold)} .mapBtn.last b{color:var(--gold)}
+.sheet p{margin:0;color:var(--muted)}
+.sheet dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:4px 16px;font-variant-numeric:tabular-nums}
+.sheet dt{color:var(--muted)} .sheet dd{margin:0;text-align:right;font-weight:700}
+@media (max-width:640px){
+  .panel{max-height:44%}
+  #phaseText{font-size:16px}
+  .chip{padding:2px 2px;gap:2px} .chip b{font-size:12px;letter-spacing:-.2px} .chip .ico{width:12px;height:12px}
+  .tools button{min-height:34px;padding:2px 6px}
+  .panel{width:calc(100% - 104px)}
+}
+#pauseBtn{position:absolute;top:8px;right:max(8px,env(safe-area-inset-right,0px));min-height:36px;padding:4px 12px;background:var(--panel);font-size:14px;flex-direction:row;gap:6px}
+#pauseBtn svg{width:14px;height:14px}
+.pausedTag{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:var(--display);font-size:clamp(30px,7vw,56px);color:var(--parch);
+  text-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none}
+/* bottom dock, card and pause: same tiles and tokens as the top panel */
+.dock{gap:6px}
+.pill{border-radius:8px;padding:4px 12px;font-size:13px;border-color:#4a4838;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.pill.ok{border-color:#4a4838} .pill.bad{border-color:rgba(224,120,100,.45);background:rgba(58,24,20,.92)}
+.pill .cost{vertical-align:middle;margin-top:-2px} .pill .ico{vertical-align:middle}
+.pill b{font-weight:600;color:var(--parch)} .pill .sep{font-style:normal;opacity:.4;margin:0 7px} .pill .gap{display:inline-block;width:10px} .pill .short{color:var(--bad)}
+.bar{border-radius:10px;padding:6px;gap:6px;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+.barTop{padding-bottom:6px;border-bottom:1px solid var(--line)}
+.util{border-left:0;padding-left:0;gap:4px}
+.iconBtn{width:32px;min-width:32px;height:32px;min-height:32px;padding:0;border-radius:7px;background:#24261f;border-color:#4a4838;display:inline-flex;align-items:center;justify-content:center}
+.iconBtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.iconBtn:hover{background:#2f3128}
+.iconBtn svg .solid{fill:currentColor}
+.iconBtn[aria-pressed="true"]{background:#3d3520;border-color:var(--gold);color:var(--gold)}
+.tools{gap:5px}
+.tools button{min-width:66px;min-height:56px;padding:4px 7px 3px;border-radius:7px;gap:1px;background:#24261f;border-color:#4a4838}
+.tools button .tIco{width:22px;height:22px;display:inline-flex;color:#cfc4a6}
+.tools button .tIco svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tools button[aria-pressed="true"] .tIco{color:var(--gold)}
+.tools button b{font-family:var(--body);font-weight:700;font-size:12px;line-height:1.15}
+.tools button small{font-size:10.5px;line-height:1.1}
+.tools button small .cost .ico{width:11px;height:11px}
+.card{border-radius:10px;border-color:#6b5a2e;padding:7px 8px;gap:5px;box-shadow:0 2px 10px rgba(0,0,0,.35);width:fit-content;max-width:min(400px,100%);align-self:flex-end}   /* as narrow as its content (a path's is tiny), on the right */
+.cardHead{display:flex;align-items:center;gap:6px}
+.cardHead .iconBtn{width:30px;min-width:30px;height:30px;min-height:30px}
+#volleyBtn,#summonBtn{position:relative}
+/* the castle's night powers, also as two big round buttons in a corner at night (Kingdom Rush style): no need to find the castle's card */
+.powers{position:absolute;left:12px;z-index:5;display:flex;gap:10px}
+.powers.col{flex-direction:column-reverse}
+.pw{position:relative;width:54px;height:54px;min-height:0!important;padding:0!important;border-radius:50%!important;background:radial-gradient(circle at 50% 35%,#5a4626,#241b0d)!important;border:2px solid #d9b04e!important;color:#ffe2a0;
+  box-shadow:0 3px 10px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,230,160,.25);display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+.pw svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round} .pw svg .solid{fill:currentColor}
+.pw .cd{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font:700 16px/1 system-ui,sans-serif;color:#fff1c4;text-shadow:0 1px 3px #000}
+.pw.cool svg{opacity:.25} .pw.cool .cd{display:flex} .pw.cool{border-color:#7a6638!important}
+.pw[aria-pressed="true"]{border-color:#fff1c4!important;box-shadow:0 0 0 3px rgba(240,201,90,.5),0 3px 10px rgba(0,0,0,.55)}
+.pw:not(.cool):not([aria-pressed="true"]){animation:pwGlow 2.4s ease-in-out infinite}
+@keyframes pwGlow{0%,100%{box-shadow:0 3px 10px rgba(0,0,0,.55),0 0 0 0 rgba(240,201,90,.0)}50%{box-shadow:0 3px 10px rgba(0,0,0,.55),0 0 12px 2px rgba(240,201,90,.45)}}
+/* a boss's health across the top while one is out */
+.bossBar{position:absolute;left:50%;transform:translateX(-50%);z-index:5;width:min(300px,70vw);display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none}
+.bossBar b{font-family:var(--display);font-weight:400;font-size:16px;color:#ff9a80;text-shadow:0 1px 3px #000}
+.bossBar span{display:block;width:100%;height:10px;border-radius:6px;background:rgba(20,8,6,.8);border:1px solid #c9a03e;overflow:hidden}
+.bossBar i{display:block;height:100%;width:100%;background:linear-gradient(180deg,#e0533e,#8f1d14);transition:width .2s}
+#volleyBtn .cd,#summonBtn .cd{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font:700 11px/1 system-ui,sans-serif;color:#e8e2cc}
+#volleyBtn.cool svg,#summonBtn.cool svg{opacity:.25}
+#volleyBtn.off svg,#summonBtn.off svg{opacity:.4}
+#volleyBtn.cool .cd,#summonBtn.cool .cd{display:flex}
+.cardIco{width:30px;height:30px;border-radius:7px;background:#24261f;border:1px solid #4a4838;display:inline-flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0}
+.cardIco svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.cardName{flex:1;min-width:0}
+.card h4{font-size:15px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cardSub{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px;line-height:1.2}
+.pips{display:inline-flex;gap:3px} .pips i{width:6px;height:6px;border-radius:50%;background:#3a3a30;border:1px solid #6b5a2e} .pips i.on{background:var(--gold);border-color:var(--gold)}
+.hpbar{height:4px}
+.stats{display:flex;flex-wrap:wrap;gap:2px 11px}
+.stat{display:inline-flex;align-items:center;gap:3px;font-size:12px;color:var(--parch);font-variant-numeric:tabular-nums}
+.stat .ico{width:12px;height:12px} .stat{cursor:pointer}
+.statTip{position:fixed;z-index:200;transform:translate(-50%,-100%);margin-top:-6px;padding:3px 8px;border-radius:6px;background:#1c1d18;border:1px solid #6b5a2e;color:var(--parch);font-size:12px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.4)} .statTip.below{transform:translate(-50%,0);margin-top:6px}
+.stat.good{color:var(--ok)} .stat.warn{color:#e6c46a} .stat.bad{color:var(--bad)}
+.card .row{gap:5px;flex-wrap:nowrap;justify-content:flex-end} .card .row .cost + .cost{margin-left:4px} .card .row .cost .ico{width:13px;height:13px}
+.card .row button{flex:1 1 0;min-width:0;min-height:30px;font-size:12.5px;border-radius:7px;background:#24261f;flex-direction:row;gap:5px;flex-wrap:nowrap;white-space:nowrap;padding:0 8px}
+.card .row button.primary{background:#3d3520;flex:1 0 auto}
+.card .row button.danger,.card .row button.ib{flex:0 0 auto} button.danger.armed{background:#8f3326;border-color:var(--bad);color:#fff} .card .row button.danger.armed{justify-content:center}
+button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.mini{display:inline-block;width:38px;height:5px;border-radius:3px;background:#3a3a30;overflow:hidden;margin-right:2px} .mini i{display:block;height:100%;background:#e6c46a} .card .row button.ib{width:34px;padding:0}
+.card .row .bIco{width:15px;height:15px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#pauseBtn{position:absolute;top:8px;right:max(8px,env(safe-area-inset-right,0px));width:38px;height:38px;min-height:38px;background:var(--panel);border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.pausedTag{position:absolute;inset:0;transform:none;top:0;left:0;display:flex;align-items:flex-start;justify-content:center;padding-top:18vh;background:rgba(10,12,10,.35);pointer-events:none;font-family:inherit;font-size:inherit;text-shadow:none}
+.pauseCard{pointer-events:auto;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:14px 22px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.pauseT{font-family:var(--display);font-size:30px;color:var(--parch);line-height:1}
+.pauseS{font-size:12px;color:var(--muted)}
+.pauseBtns{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;justify-content:center}
+.pauseBtns .pIco{width:56px;min-width:56px;height:46px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.pIco svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round} .pIco svg .solid{fill:currentColor}
+.pauseCard button{min-height:34px;padding:4px 16px;border-radius:7px;background:#24261f;flex-direction:row}
+.pauseCard button.primary{background:#3d3520}
+@media (max-width:640px){ .tools button{min-width:60px;min-height:52px;padding:3px 5px 2px} }
+/* a phone's dock always holds its five tools in one row: the tiles share the width rather than wrap */
+@media (max-width:440px){ .tools{flex-wrap:nowrap!important;gap:4px} .tools button{flex:0 1 auto;min-width:58px!important;padding:3px 6px 2px!important} .tools button b{white-space:nowrap} .tools button small{white-space:nowrap} }
+/* admin + speed, bottom-right */
+.corner{position:absolute;right:max(8px,env(safe-area-inset-right,0px));bottom:8px;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.cornerBtns{display:flex;gap:6px}
+.cornerBtns .iconBtn{width:38px;height:38px;min-height:38px;background:var(--panel);border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.cornerBtns .iconBtn[aria-pressed="true"]{background:#3d3520}
+.spd{font-weight:700;font-size:13px}
+.admin{background:var(--panel);border:1px solid #6b5a2e;border-radius:10px;padding:8px 10px;width:250px;display:flex;flex-direction:column;gap:7px;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+.adminHead{display:flex;align-items:baseline;justify-content:space-between;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.adminHead b{font-family:var(--display);font-weight:400;font-size:17px;color:var(--gold)}
+.adminHead span{font-size:11px;color:var(--muted)}
+.adminRes{display:flex;flex-direction:column;gap:4px}
+.adRow{display:flex;align-items:center;gap:5px}
+.adRow .ico{width:16px;height:16px}
+.adRow input{width:72px;min-width:0;flex:1;font:inherit;font-size:13px;font-variant-numeric:tabular-nums;color:var(--parch);background:#1a1c17;border:1px solid #4a4838;border-radius:6px;padding:3px 6px}
+.adRow input:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.adRow button,.adminRow button{min-height:28px;font-size:12px;padding:2px 7px;border-radius:6px;background:#24261f;border-color:#4a4838;flex-direction:row}
+.adminRow{display:flex;gap:5px}
+.adminRow button{flex:1}
+.adminHead .iconBtn{width:28px;height:28px;min-height:28px;padding:4px}
+.rdCount{display:flex;gap:5px;align-items:center;font-size:12px;color:var(--muted)}
+.rdCount button,.rdList button{min-height:28px;font-size:12px;padding:2px 7px;border-radius:6px;background:#24261f;border-color:#4a4838;flex-direction:row}
+.rdCount button{flex:1}#raidDash{flex-shrink:0}.rdCount button.on{border-color:var(--gold);color:var(--gold)}
+.rdList{display:grid;grid-template-columns:1fr repeat(3,40px);gap:4px 5px;align-items:center;font-size:12.5px;color:#ff9a8a}
+.rdList small{position:relative;top:-5px;font-size:9px;color:var(--muted);margin-left:2px}
+.adminTog{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--parch);cursor:pointer}
+.adminTog input{accent-color:#d4a84e;width:15px;height:15px}
+@media (max-width:640px){
+  .corner{bottom:auto;top:52px}
+  .corner{flex-direction:column-reverse}
+  .cornerBtns{flex-direction:column}
+}
+/* short landscape screens (phones turned sideways) */
+@media (max-height:520px){
+  .panel{width:min(326px,calc(45% - 16px))}
+  .dock{gap:4px;bottom:6px}
+  .bar{padding:4px 5px;gap:4px}
+  .barTop{padding-bottom:4px}
+  .tools button{min-height:38px;min-width:58px;padding:2px 6px}
+  .tools button .tIco{display:none}
+  .tab{min-height:26px}
+  .iconBtn{width:28px;min-width:28px;height:28px;min-height:28px}
+  .dock{flex-direction:row;align-items:flex-end}
+  .card{width:min(300px,calc(100vw - 340px));max-height:calc(100vh - 135px);overflow:auto}
+  .pill{display:none}
+  .corner{bottom:auto;top:52px;flex-direction:column-reverse}
+  .cornerBtns{flex-direction:column}
+  .admin{max-height:calc(100vh - 110px);overflow:auto}
+  #raidDash{width:440px;max-height:calc(100vh - 16px);position:fixed;top:8px;right:50px;z-index:30} .rdList{grid-template-columns:1fr repeat(3,32px) 1fr repeat(3,32px);gap:3px 5px} .rdList button,.rdCount button{min-height:24px}
+  .pausedTag{padding-top:0;align-items:center}
+}
+@media (prefers-reduced-motion:reduce){.banner{transition:none}}
+/* design gallery: everything but the canvas and its own bar is hidden */
+#app.gallery > :not(canvas):not(#galBar){display:none!important}
+.galBar{position:fixed;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;padding:6px 8px;border-radius:12px;background:rgba(24,26,20,.88);border:1px solid #4a4838;color:#efe6cf;z-index:20}
+.galBar b{padding:0 6px;font-family:inherit}
+#loading{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 45%,#1b1a12 0%,#0d0e0a 70%);transition:opacity .5s}
+#loading.done{opacity:0;pointer-events:none}
+.ldBox{display:flex;flex-direction:column;align-items:center;gap:14px}
+.ldTitle{font-family:var(--display);font-size:clamp(28px,8vw,46px);color:#e8c46a;text-align:center;line-height:1.05;max-width:12ch;text-shadow:0 2px 8px rgba(0,0,0,.7)}
+.ldBar{width:min(220px,60vw);height:6px;border-radius:4px;background:rgba(255,255,255,.08);border:1px solid rgba(212,168,78,.5);overflow:hidden}
+.ldBar i{display:block;height:100%;width:35%;border-radius:4px;background:linear-gradient(90deg,#a47422,#f2d27a);animation:ldSlide 1.2s ease-in-out infinite}
+#loading.fail .ldBar{display:none}
+@keyframes ldSlide{0%{transform:translateX(-100%)}100%{transform:translateX(290%)}}
+.ldMsg{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#bfae86}
+#ldRetry{padding:6px 20px;border-radius:8px;border:2px solid #c9a03e;background:#3a2e18;color:#f4e3b2;font-size:15px}
+/* where the coming night's raiders will come in: a pulsing red mark at each of the two spawn points, held to the screen's edge
+   (with a pointer toward it) when the point is out of view; a tap lists the coming wave */
+.raidMark{position:absolute;left:0;top:0;z-index:4;width:34px;height:34px;margin:-17px 0 0 -17px;padding:0!important;min-height:0!important;border-radius:50%!important;
+  background:radial-gradient(circle at 50% 40%,#c53a2e,#6d1611)!important;border:2px solid #f0c95a!important;box-shadow:0 2px 8px rgba(0,0,0,.55);color:#fff3d8;display:flex;align-items:center;justify-content:center;
+  animation:raidPulse 1.6s ease-in-out infinite;touch-action:manipulation}
+.raidMark svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.raidMark .arr{position:absolute;left:50%;top:50%;width:0;height:0;margin:-6px 0 0 -6px;border:6px solid transparent;border-left:9px solid #f0c95a;transform:rotate(var(--a)) translateX(22px);transform-origin:6px 6px;display:none}
+.raidMark.edge .arr{display:block}
+/* a one-time tip the first time a mechanic matters (gold edge, above the dock, fades after a few seconds) */
+.tipPill{position:absolute;left:50%;transform:translateX(-50%);z-index:6;max-width:min(330px,86vw);padding:6px 14px;border-radius:10px;background:var(--panel);border:2px solid rgba(240,201,90,.85);
+  box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 12px rgba(240,201,90,.25);font-size:13.5px;color:#fff1c4;text-align:center;pointer-events:none;animation:tipIn .35s ease-out}
+.tipPill b{color:#f0c95a}
+@keyframes tipIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+/* a building under attack out of view: a red pointer at the screen's edge toward it; a tap brings the camera there */
+.hitMark{position:absolute;left:0;top:0;z-index:4;width:30px;height:30px;margin:-15px 0 0 -15px;padding:0!important;min-height:0!important;border-radius:50%!important;background:rgba(150,24,16,.92)!important;border:2px solid #ffb39e!important;
+  color:#fff;display:flex;align-items:center;justify-content:center;animation:hitPulse .9s ease-in-out infinite;touch-action:manipulation}
+.hitMark::before{content:'!';font:800 16px/1 system-ui,sans-serif}
+.hitMark::after{content:'';position:absolute;left:50%;top:50%;margin:-6px 0 0 -6px;border:6px solid transparent;border-left:9px solid #ffb39e;transform:rotate(var(--a)) translateX(20px);transform-origin:6px 6px}
+@keyframes hitPulse{0%,100%{transform:var(--p) scale(1)}50%{transform:var(--p) scale(1.15)}}
+@keyframes raidPulse{0%,100%{box-shadow:0 0 0 0 rgba(220,60,40,.6),0 2px 8px rgba(0,0,0,.55)}50%{box-shadow:0 0 0 9px rgba(220,60,40,0),0 2px 8px rgba(0,0,0,.55)}}
+.wavePop{position:absolute;z-index:6;min-width:150px;max-width:220px;padding:0 0 8px;border-radius:10px;background:var(--panel);border:2px solid rgba(212,168,78,.72);box-shadow:0 4px 16px rgba(0,0,0,.5);font-size:13px;color:#f4e3b2;overflow:hidden}
+.wavePop h4{margin:0 0 6px;padding:5px 10px;font-family:var(--display);font-weight:400;font-size:15px;color:#ffe2a0;background:linear-gradient(90deg,rgba(150,112,52,.5),rgba(190,145,70,.62) 50%,rgba(150,112,52,.5));border-bottom:1px solid rgba(212,168,78,.55)}
+.wavePop div{display:flex;justify-content:space-between;gap:12px;padding:1px 10px} .wavePop div b{color:#fff1c4;font-variant-numeric:tabular-nums} .wavePop div.boss{color:#ff8a70} .wavePop i{font-style:normal;color:#c9a65a;font-size:11px;margin-left:3px}
+.galBar button{min-height:32px;padding:2px 10px}
+@media (max-width:370px){ .res{gap:2px} .chip{padding:2px 1px;gap:1px} .chip b{font-size:11.5px} }

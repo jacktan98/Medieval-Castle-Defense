@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#141a17">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Town Defense">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<title>Medieval Town Defense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+<!--@style-->
+</style>
+
+<!-- shown from the first paint until the game is ready (three.js comes from a CDN; on a slow phone that takes a while) -->
+<div id="loading"><div class="ldBox"><div class="ldTitle">Medieval Town Defense</div><div class="ldBar"><i></i></div><div class="ldMsg" id="ldMsg">Loading</div><button id="ldRetry" hidden onclick="location.reload()">Retry</button></div></div>
+<div id="app">
+  <canvas id="c"></canvas>
+  <button class="raidMark" id="raidMark0" hidden aria-label="Next wave"></button><button class="raidMark" id="raidMark1" hidden aria-label="Next wave"></button>
+  <div class="wavePop" id="wavePop" hidden></div>
+  <button class="hitMark" hidden aria-label="Under attack"></button><button class="hitMark" hidden aria-label="Under attack"></button><button class="hitMark" hidden aria-label="Under attack"></button>
+  <div class="tipPill" id="tipPill" hidden></div>
+  <div class="powers" id="powers" hidden><button class="pw" id="pwVolley" aria-label="Arrow volley"></button><button class="pw" id="pwRiders" aria-label="Riders"></button></div>
+  <div class="bossBar" id="bossBar" hidden><b id="bossName"></b><span><i id="bossFill"></i></span></div>
+  <div class="panel">
+    <div class="phase">
+      <span class="phIco" id="phIco"></span>
+      <div class="phMain"><div id="phaseText">Day 1 of 5</div><div id="phaseSub">Night in 5:00</div></div>
+      <div class="tick" id="tick" title="Next payout from buildings">
+        <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" class="tickBg"/><circle cx="18" cy="18" r="15" class="tickFg" id="tickRing"/></svg>
+        <span id="tickN">20</span>
+      </div>
+      <button id="nightBtn" title="Start the night now">Skip day</button>
+    </div>
+    <div class="res">
+      <div class="chip" id="cGold" title="Gold"><span class="ico" data-ico="gold"></span><b>0</b></div>
+      <div class="chip" id="cWood" title="Wood"><span class="ico" data-ico="wood"></span><b>0</b></div>
+      <div class="chip" id="cStone" title="Stone"><span class="ico" data-ico="stone"></span><b>0</b></div>
+      <div class="chip" id="cFood" title="Food"><span class="ico" data-ico="food"></span><b>0</b></div>
+      <div class="chip" id="cHouse" title="Housing"><span class="ico" data-ico="home"></span><b>0</b></div>
+      <div class="chip" id="cPop" title="Idle"><span class="ico" data-ico="pop"></span><b>0</b></div>
+    </div>
+    <details id="ledger">
+      <summary>Town log</summary>
+      <ol id="log"></ol>
+    </details>
+  </div>
+  <div class="banner" id="banner"></div>
+  <button class="iconBtn" id="pauseBtn" aria-pressed="false" aria-label="Pause" title="Pause (P)"></button>
+  <div class="corner">
+    <div class="admin" id="admin" hidden>
+      <div class="adminHead"><b>Admin</b><span>testing tools</span></div>
+      <div class="adminRes" id="adminRes"></div>
+      <div class="adminRow"><button id="adFill">Fill all to 9,999</button><button id="adFinish">Finish all building</button></div>
+      <label class="adminTog"><input type="checkbox" id="adInstant"> Instant build and upgrades</label>
+      <div class="adminRow"><button id="adPop">+5 villagers</button><button id="adDay">Skip to night</button></div>
+      <div class="adminRow"><button id="adRaid">Raiders</button><button id="adGallery">Gallery</button></div>
+    </div>
+    <div class="admin" id="raidDash" hidden>
+      <div class="adminHead"><b>Raiders</b><button class="iconBtn" id="rdClose" aria-label="Close" title="Close"><svg viewBox="0 0 24 24"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button></div>
+      <div class="rdCount" id="rdCount"></div>
+      <div class="rdList" id="rdList"></div>
+    </div>
+    <div class="cornerBtns">
+      <button class="iconBtn" id="muteBtn" aria-pressed="false" aria-label="Mute sound" title="Sound on (M to mute)"></button>
+      <button class="iconBtn" id="speedBtn" aria-pressed="false" aria-label="Game speed 1×" title="Game speed"><span class="spd">1×</span></button>
+      <button class="iconBtn" id="adminBtn" aria-pressed="false" aria-label="Admin" title="Admin tools"><svg viewBox="0 0 24 24"><path d="M14.5 5.5 a4 4 0 0 0 4.9 5 l-8.6 8.6 a2.1 2.1 0 0 1-3-3 l8.6-8.6 a4 4 0 0 0-1.9-2z"/><path d="M5 5 L9 9"/></svg></button>
+    </div>
+  </div>
+  <div class="pausedTag" id="pausedTag" hidden><div class="pauseCard"><div class="pauseT">Paused</div><div class="pauseBtns"><button class="primary pIco" id="resumeBtn" title="Resume" aria-label="Resume"></button><button class="pIco" id="fsBtn" title="Full screen" aria-label="Full screen"></button><button class="danger pIco" id="reset" title="Restart" aria-label="Restart"></button></div><div class="audioRow"><button id="musicTog" aria-pressed="true">Music</button><button id="sfxTog" aria-pressed="true">Sounds</button></div></div></div>
+  <div class="dock">
+    <div class="statTip" id="statTip" hidden></div>
+    <div class="card" id="card" hidden>
+      <div class="cardHead">
+        <span class="cardIco" id="cardIco"></span>
+        <div class="cardName"><h4 id="cardTitle"></h4><div class="cardSub"><span id="cardSub"></span><span class="pips" id="cardPips"></span></div></div>
+        <button class="iconBtn" id="rallyBtn" title="Rally: tap, then a spot" aria-label="Rally"><svg viewBox="0 0 24 24"><path d="M6 21 V3.5"/><path d="M6 4 H17.5 L15 8 L17.5 12 H6"/></svg></button><button class="iconBtn" id="recallBtn" title="Recall to the barracks" aria-label="Recall"><svg viewBox="0 0 24 24"><path d="M9 14 L4 9 L9 4"/><path d="M4 9 H14 A5.5 5.5 0 0 1 14 20 H9"/></svg></button>
+        <button class="iconBtn" id="moveBtn" hidden title="Move: tap, then a tile" aria-label="Move"><svg viewBox="0 0 24 24"><path d="M12 3 V21 M3 12 H21"/><path d="M9 6 L12 3 L15 6 M9 18 L12 21 L15 18 M6 9 L3 12 L6 15 M18 9 L21 12 L18 15"/></svg></button>
+        <button class="iconBtn" id="volleyBtn" hidden title="Arrow volley: tap, then a spot" aria-label="Arrow volley"><svg viewBox="0 0 24 24"><path d="M4 4 L13 13 M9 2.5 L18 11.5 M2.5 9 L11.5 18"/><path class="solid" d="M15 15 L11.2 14.2 L14.2 11.2 Z M20 13.5 L16.2 12.7 L19.2 9.7 Z M13.5 20 L12.7 16.2 L9.7 19.2 Z"/></svg><b class="cd"></b></button>
+        <button class="iconBtn" id="summonBtn" hidden title="Riders: two for the night" aria-label="Summon riders"><svg viewBox="0 0 24 24"></svg><b class="cd"></b></button>
+        <button class="iconBtn" id="cardRotBtn" hidden aria-label="Rotate" title="Rotate"><svg viewBox="0 0 24 24"><path d="M19 12 a7 7 0 1 1-2.05-4.95"/><path d="M19.2 3.8 V7.5 H15.5"/></svg></button>
+        <button class="iconBtn" id="closeCard" aria-label="Close" title="Close"><svg viewBox="0 0 24 24"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+      </div>
+      <div class="hpbar"><i id="cardHp"></i></div>
+      <div class="stats" id="cardStats"></div>
+      <div class="trades" id="cardTrade" hidden></div>
+      <div class="row" id="cardActs"><button class="primary" id="upBtn"></button><button class="danger" id="demBtn" title="Demolish"></button><button class="ib" id="cancelBtn" title="Cancel" aria-label="Cancel" hidden><svg class="bIco" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M6 6 L18 18"/></svg></button></div>
+    </div>
+    <div class="guideCard" id="guide" hidden><span class="gStep" id="gStep"></span><b id="gText"></b><button id="gSkip">Skip</button></div>
+    <div class="pill" id="hint">Pick a building</div>
+    <div class="bar">
+      <div class="barTop">
+        <div class="tabs">
+          <button class="tab" data-cat="eco" aria-pressed="true">Economy</button>
+          <button class="tab" data-cat="def" aria-pressed="false">Defences</button>
+          <button class="tab" data-cat="decor" aria-pressed="false">Decor</button>
+        </div>
+        <div class="util">
+          <button class="tool iconBtn" data-tool="select" aria-pressed="false" aria-label="Select a building" title="Select a building to upgrade or demolish"><svg viewBox="0 0 24 24"><path d="M6 4 L6 18 L10 14.5 L12.8 20 L15 19 L12.3 13.5 L17.5 13.5 Z"/></svg></button>
+          <button class="iconBtn" id="rotBtn" hidden aria-label="Rotate" title="Rotate (R)"><svg viewBox="0 0 24 24"><path d="M19 12 a7 7 0 1 1-2.05-4.95"/><path d="M19.2 3.8 V7.5 H15.5"/></svg></button>
+          <button class="iconBtn" id="gridBtn" aria-pressed="false" aria-label="Show grid" title="Show the tile grid"><svg viewBox="0 0 24 24"><path d="M4 4 H20 V20 H4 Z M4 9.3 H20 M4 14.6 H20 M9.3 4 V20 M14.6 4 V20"/></svg></button>
+        </div>
+      </div>
+      <div class="tools" id="tools"></div>
+    </div>
+  </div>
+  <div class="galBar" id="galBar" hidden><b>Gallery</b><button id="galTurn">Turn</button><button id="galDoors">Doors</button><button id="galWalk">Walk</button><button class="primary" id="galBack">Back</button></div>
+  <div class="modal tome" id="mapPick">
+    <div class="mapSheet">
+      <h1 class="gameTitle">Medieval Town Defense</h1>
+      <div class="mapSub">Choose map</div>
+      <div class="maps">
+        <button class="mapBtn" data-map="meadow"><img src="maps/meadow.jpg" alt=""><b>Meadow</b></button>
+        <button class="mapBtn" data-map="isle"><img src="maps/isle.jpg" alt=""><b>River isle</b></button>
+        <button class="mapBtn" data-map="pass"><img src="maps/pass.jpg" alt=""><b>Mountain pass</b></button>
+      </div>
+      <button id="campBtn">Campaign</button>
+      <button class="primary" id="saveResume" hidden>Resume</button>
+    </div>
+  </div>
+  <div class="modal tome" id="campaign" hidden>
+    <div class="campSheet">
+      <div class="cHead"><div class="mapSub">Campaign</div><div class="campProg" id="campStars"></div></div>
+      <div class="cMain">
+        <div class="cLeft">
+          <div class="cDeckWrap"><div class="cDeck" id="campMap"><div class="cCards" id="cCards"></div></div><button class="cArrow l" id="cPrev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M15 5 L8 12 L15 19"/></svg></button><button class="cArrow r" id="cNext" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M9 5 L16 12 L9 19"/></svg></button></div>
+          <div class="cDots" id="cDots"></div>
+        </div>
+        <div class="cDetSlot" id="cDetSlot"><div class="stSide cDet">
+          <h3 id="stName"></h3><div class="sub" id="stSub"></div>
+          <div class="stInfo" id="stInfo"></div>
+          <div class="stNew" id="stNew"></div>
+          <div id="stStars"></div>
+          <button class="hardBtn" id="stHard" hidden aria-pressed="false">Hard</button>
+          <div class="stActs"><button id="campBack">Back</button><span id="stPlay"></span></div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+  <div class="modal" id="newCards" hidden>
+    <div class="ncCard">
+      <div class="ncIcon" id="ncIcon"></div>
+      <div class="ncInfo">
+        <div class="ncStep" id="ncStep"></div>
+        <h3 id="ncName"></h3>
+        <div class="ncCost" id="ncCost"></div>
+        <div class="ncStats" id="ncStats"></div>
+        <button class="primary" id="ncNext">Next</button>
+      </div>
+    </div>
+  </div>
+  <div class="modal tome" id="loadPick" hidden>
+    <div class="loadSheet">
+      <div class="mapSub">Choose your town</div>
+      <section><h3>Economy</h3><div class="ldRows" id="ldEco"></div></section>
+      <section><h3>Defences</h3><div class="ldRows" id="ldDef"></div></section>
+      <section><h3>Decor <span id="ldDecN"></span></h3><div class="ldGrid" id="ldDecor"></div></section>
+      <div class="ldBtns"><button id="ldBack">Maps</button><button class="primary" id="ldStart">Start</button></div>
+    </div>
+  </div>
+  <div class="modal" id="summary" hidden>
+    <div class="sheet">
+      <h2 id="sumTitle"></h2>
+      <div class="stars big" id="sumStars"></div>
+      <p id="sumText"></p>
+      <ul id="sumGoals"></ul>
+      <dl id="sumStats"></dl>
+      <p class="sumTip" id="sumTip" hidden></p>
+      <button class="primary" id="again">Play again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// the loading screen's failure states: three.js didn't arrive (offline, blocked), or the game hit an error while starting
+function ldFail(msg) { const L = document.getElementById('loading'); if (!L || L.classList.contains('done') || L.classList.contains('fail')) return; L.classList.add('fail'); document.getElementById('ldMsg').textContent = msg; document.getElementById('ldRetry').hidden = false; }
+addEventListener('error', () => ldFail('Something went wrong'));
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="ldFail('No connection')"></script>
+<script>
+<!--@game-->
+</script>

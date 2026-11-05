@@ -2,15 +2,34 @@
 
 A medieval village-builder + tower-defence browser game prototype (inspired by Kingdom Rush and Age of Empires). Owner: Jack. He tests mostly on his phone (portrait and landscape) and also on desktop.
 
-The whole game is one self-contained file: `index.html` (~680 KB, three.js r128 from cdnjs). It was built over ~37 iterations in a claude.ai chat and published as an artifact; this repo continues it in Claude Code (300+ commits since).
+The game ships as one self-contained file, `index.html` (~710 KB, three.js r128 from cdnjs), **built from `src/`** (see Source layout): edit `src/`, never `index.html` by hand. It was built over ~37 iterations in a claude.ai chat and published as an artifact; this repo continues it in Claude Code (300+ commits since).
 
 ## Start here (every new session)
 Jack works on this from two Claude accounts, switching when one runs out of usage, so a session never has the earlier chats: this file is the whole memory. Read it before changing anything, and keep it up to date.
 - **Where things stand**: all twelve campaign stages and the three free-play maps are built and playable; the work now is Jack's playtest feedback, usually small fixes and look changes (see the rest of this file for every past decision and why).
-- **Workflow for every change**: make it in `index.html` → `node tools/check.js` → check it in a real render (Playwright + Chromium; `tools/render/serve.js`, `?debug` and `G(...)`; cdnjs is blocked in the cloud, so use a local three r128 from `npm pack three@0.128.0`) → update this file (what changed and Jack's reason, in its section) → commit on `main` and `git push origin main` (that deploys GitHub Pages) → send Jack a screenshot → a short plain-language summary.
+- **Workflow for every change**: make it in `src/` (the part that holds that code; see Source layout) → `node tools/build.js` (writes `index.html`) → `node tools/check.js` (fails if `index.html` isn't what `src/` builds, then syntax) → check it in a real render (Playwright + Chromium; `tools/render/serve.js`, `?debug` and `G(...)`; cdnjs is blocked in the cloud, so use a local three r128 from `npm pack three@0.128.0`) → update this file (what changed and Jack's reason, in its section) → commit on `main` and `git push origin main` (that deploys GitHub Pages) → send Jack a screenshot → a short plain-language summary.
 - **One account at a time**: both push to `main`; a session that has been idle should `git pull origin main` before it edits. No pull requests, no other branches.
 - **Never** put model names or IDs in the repo (commits, code, this file).
 - Jack writes short requests, often with a phone screenshot and arrows or circles drawn on it; when something is unclear, ask a short question rather than guess big.
+
+## Source layout
+`index.html` is generated: `node tools/build.js` writes it from `src/page.html` (the HTML: top panel, dock, cards, menus, modals, the loading screen), with its `<!--@style-->` line replaced by `src/style.css` and its `<!--@game-->` line by every `src/game/*.js` joined in name order. The game parts share one scope (they are one `(() => { … })()`: `00-core.js` opens it, `12-loop-audio.js` closes it), so a name defined in one part is visible in all; keep each function in the part where it lives and grep `src/` to find it. The split was checked byte-for-byte against the old single file.
+
+| Part | Holds (the old file's `// ----------` sections) |
+|---|---|
+| `00-core.js` | the script's start, `$`, icons (`ICON`), game definitions (`DEF`, `DOOR`, `MAP_RULES`, `CAMP_MAPS`, stage goals, `ENEMY`) |
+| `01-terrain.js` | noise, heightmap and cell data, every map's shape (`genHeight` and its helpers), bridges |
+| `02-scene.js` | three.js setup (renderer, camera, lights, sky, water), the map's sides, materials and primitives (`box`, `cyl`, `M`, `addGrit`) |
+| `03-nature.js` | trees, rocks, ground clutter, roads and paths |
+| `04-models.js` | every building model and its tiers (`makeModel` and the other picks' models) |
+| `05-effects.js` | ghosts and outlines, sprites (bars, floating text), night lights, birds, chimney smoke |
+| `06-building.js` | game state, placement (`evaluate`, `place`), decor effects, construction, upgrades, removal |
+| `07-villagers.js` | villagers, jobs, housing, pathfinding, connectivity |
+| `08-combat.js` | raiders and combat, siege engines, the volley and riders, night watch, defenders, soldiers |
+| `09-days.js` | economy payouts, day and night phases (`startNight`, `startDay`, `endGame`), raider marks and attack pointers, tips, the guide spot, save and resume |
+| `10-hud-input.js` | the HUD and building card, the ghost, camera and input (`tap`) |
+| `11-menus.js` | town picker and loadouts, new-building cards, stage scenery, map picker, campaign carousel, design gallery |
+| `12-loop-audio.js` | game setup (`startGame`), the title showcase, the frame loop, audio, juice, the guided first day; closes the script |
 
 ## How to run
 - Open `index.html` in a browser, or serve the folder: `npx serve .` / `python3 -m http.server`.
@@ -24,7 +43,7 @@ Jack works on this from two Claude accounts, switching when one runs out of usag
 
 ## Suggested next steps (not yet done)
 1. ~~Verify rendering in a real browser~~ (done).
-2. Split `index.html` into modules (e.g. `render/`, `models/`, `people/`, `sim/`, `ui/`) with a simple bundler (Vite), keeping a single-file build for easy sharing.
+2. ~~Split `index.html` into modules~~ (done: `src/` parts joined by `tools/build.js`; a real module system with imports is still possible later, but the parts share one scope today).
 3. Replace the mock-based tests with real Playwright runs against the actual game.
 4. Later: real art (model packs). Audio is wired up (see Audio below); it needs real files in `audio/music` and `audio/sfx`.
 5. **Campaign** (Jack's plan, only sketched so far): twelve maps on the overview (`CAMPAIGN`), each bringing in a few buildings so players learn them slowly and a story can build up: 1 Greenvale (tutorial: house, fields, lumber, quarry, archers, path, flowers, torch), 2 Stonebridge (barracks, wall, gate, weapon rack), 3 Market Cross (market, statue), 4 Watchhill (ballista, campfire), 5 Dunewell (forester, well; was Oakhollow, renamed for its desert), 6 Riverbend (crossbow, target range), 7 Ironcrag (mine, banner), 8 Siegeford (catapult line, siege stores), 9 Meadowmere (farmhouse), 10 Horsefields (stables), 11 Raider Keep and 12 Warlord's Hold (bosses). All twelve stages (Greenvale, Stonebridge, Market Cross, Watchhill, Dunewell, Riverbend, Ironwood, Siegeford, Meadowmere, Horsefields, Raider Keep, Warlord's Hold) are built and playable (see Maps; sketches in `design/stages/`); Jack sketches each stage first (a 2D plan, e.g. `design/stages/stage3-market-cross.svg/.png`) and only then has it built in 3D; the others aren't designed yet: don't start them until Jack says. Stars (see Summary) are to be spent later on upgrades to weaponry or buildings; not built yet either.
