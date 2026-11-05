@@ -142,6 +142,17 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #sumGoals li{display:flex;align-items:center;gap:8px;color:var(--muted)} #sumGoals li.ok{color:var(--parch)} #sumGoals li b{width:18px;text-align:center;color:#6b6656} #sumGoals li.ok b{color:#8cc46e}
 .mapBtn .stars{font-size:13px}
 #campBtn{margin-top:4px;padding:9px 22px;font-family:var(--display);font-size:17px;color:var(--gold)}
+#colBtn{display:inline-flex;align-items:center;gap:7px;padding:5px 14px!important;min-height:0!important;font-size:13px!important;color:#e6d6ae!important}
+.colDots{display:inline-flex;gap:3px} .colDots i{width:10px;height:10px;border-radius:50%;border:1px solid rgba(255,240,200,.6)}
+.colCard{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;width:min(300px,86vw);display:flex;flex-direction:column;gap:12px;align-items:stretch;padding:0 0 14px;border-radius:12px;background:linear-gradient(180deg,#3d3020,#241b10);border:2px solid rgba(212,168,78,.8);box-shadow:0 10px 30px rgba(0,0,0,.6);overflow:hidden}
+.colCard h3{margin:0;padding:7px 10px;text-align:center;font-family:var(--display);font-weight:400;font-size:18px;color:#ffe2a0;background:linear-gradient(90deg,rgba(150,112,52,.5),rgba(190,145,70,.62) 50%,rgba(150,112,52,.5))}
+.colRow{display:flex;flex-direction:column;align-items:center;gap:7px;padding:0 12px} .colRow>span{font-size:13px;color:#e6d6ae;letter-spacing:.04em}
+.colSw{display:flex;gap:10px}
+.modal.tome .colSw .sw{width:34px;height:34px;min-height:0!important;padding:0!important;border-radius:50%!important;background:var(--c)!important;border:2px solid rgba(255,240,200,.25)!important;box-shadow:inset 0 2px 4px rgba(255,255,255,.18),inset 0 -3px 5px rgba(0,0,0,.35)!important;position:relative}
+.modal.tome .colSw .sw.on{border-color:#f0c95a!important;box-shadow:0 0 0 2px rgba(240,201,90,.35),0 0 10px rgba(240,201,90,.55),inset 0 2px 4px rgba(255,255,255,.18)!important}
+.colSw .sw.on::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;text-shadow:0 1px 2px #000}
+.colSw .sw.taken{opacity:.3} .colSw .sw.taken::after{content:"";position:absolute;left:50%;top:3px;bottom:3px;width:2px;background:#f4e3b2;transform:translateX(-50%) rotate(45deg)}
+.colCard #colDone{align-self:center;min-width:110px}
 #adReset.armed{background:#8e2a20!important;border-color:#e0705a!important;color:#fff!important}
 #saveResume{padding:9px 30px;font-family:var(--display);font-size:17px;-webkit-text-stroke:.6px currentColor}
 .saveInfo{margin-top:-9px;font-size:12px;font-weight:600;color:#f4e3b2;letter-spacing:.02em;text-shadow:0 1px 3px rgba(0,0,0,.85)}
@@ -232,9 +243,9 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
    darken it, more than the title does, so the cards and text stay clear */
 body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 45%, rgba(8,9,6,.45) 0%, rgba(8,9,6,.62) 60%, rgba(5,6,4,.9) 100%)!important}
 /* buttons stand out on the dark: a bronze plate with a gold rim, light gold text and a soft glow; the main action stays solid gold */
-.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
+.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
   box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 12px rgba(212,168,78,.18),inset 0 1px 0 rgba(255,230,160,.25)!important;font-weight:500}
-.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):hover{filter:brightness(1.15)}
+.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw):hover{filter:brightness(1.15)}
 .cArrow{background:linear-gradient(180deg,#4a3c22,#2e2515)!important;border:2px solid #c9a03e!important;box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 14px rgba(212,168,78,.25)!important}
 .cArrow svg{stroke:#f4e3b2}
 /* the campaign's progress under the deck: one segment per stage, filled gold for each won, the stage you're at outlined and pulsing,

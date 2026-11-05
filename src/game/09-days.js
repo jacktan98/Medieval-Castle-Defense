@@ -333,7 +333,7 @@ function updateLight(dt, now) {
   const target = PH.kind === 'day' ? (PH.t < DUSK ? .25 + .75 * sstep(0, DUSK, PH.t) : 1) : 0;
   light += (target - light) * Math.min(1, dt * 1.2);
   const dusk = PH.kind === 'day' ? clamp(sstep(DUSK, 0, PH.t) * (1 - Math.abs(light - .55) * 1.1), 0, 1) : 0;
-  skyHorizon.copy(SKY_NIGHT).lerp(SKY_DAY, light).lerp(SKY_DUSK, Math.min(dusk, .6)); scene.fog.color.copy(skyHorizon);
+  skyHorizon.copy(SKY_NIGHT).lerp(SKY_DAY, light).lerp(SKY_DUSK, Math.min(dusk, .6)); weatherSky(skyHorizon); scene.fog.color.copy(skyHorizon);
   if ((skyT -= dt) <= 0) { skyT = .15; paintSky(); } sky.position.copy(camera.position);
   windU.value = now / 1000;
   sun.intensity = lerp(.68, 1.05, light); sun.color.copy(SUN_NIGHT).lerp(SUN_DAY, light).lerp(SUN_DUSK, Math.min(dusk, .7));

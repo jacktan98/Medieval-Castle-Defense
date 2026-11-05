@@ -107,7 +107,7 @@ function startGame() {
   applyLoadout(); cat = 'eco'; renderTools(); setTool('select');
   // the Goals panel shows this game's goals at once (it only redrew on the HUD tick, which waits behind the new-building cards,
   // so an open panel kept the last stage's goals: Jack)
-  goalsKey = ''; renderGoals();
+  goalsKey = ''; renderGoals(); weatherReset();
 }
 
 // ---------- loop ----------
@@ -553,12 +553,12 @@ function adaptResolution(raw) {
 const MENUS = ['#mapPick', '#loadPick', '#campaign', '#newCards'].map(q => $(q));
 const menuOn = () => MENUS.some(m => !m.hidden);
 const mapPickEl = $('#mapPick'), campEl = $('#campaign'), loadEl = $('#loadPick'); let liteN = 0;
-mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
+mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button') && !e.target.closest('#colCard')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
 function frame(now) {
   adaptResolution((now - last) / 1000);
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   keyCamera(dt);
-  if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now);
+  if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now); updateWeather(dt, !paused && !menuOn() && !gameOver);
   const sc = showcaseBuilt && (!mapPickEl.hidden || !campEl.hidden || !loadEl.hidden); if (sc !== document.body.classList.contains('showcase')) document.body.classList.toggle('showcase', sc);
   // the title's showcase town: the camera circles slowly. It looks a little beyond the town, so the town sits low on the screen,
   // under the cards (an off-centre lens did that before and skewed the picture: Jack found it squeezed); on a wide screen the view

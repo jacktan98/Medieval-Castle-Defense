@@ -259,7 +259,10 @@ function darkFort(g) {
     let m = darkMats.get(o.material);
     if (!m) {
       m = o.material.clone(); m.onBeforeCompile = o.material.onBeforeCompile; if (o.material.customProgramCacheKey) m.customProgramCacheKey = o.material.customProgramCacheKey;
-      const c = m.color; if (c) { if (c.b > c.r * 1.3 && c.b > c.g) c.set('#6a1612'); else c.multiplyScalar(.26); }   // linear colour: .26 is about half as bright on screen
+      const c = m.color, T = o.material.userData.team;
+      // the town's colour turns the raiders' (dark), the raiders' own is darkened; both stay registered so a recolour reaches them
+      if (T) teamMat(m, 'foe', T.side === 'town' ? '#6a1612' : srgbHex(new THREE.Color(T.def).multiplyScalar(.26)));
+      else if (c) { if (c.b > c.r * 1.3 && c.b > c.g) teamMat(m, 'foe', '#6a1612'); else c.multiplyScalar(.26); }   // linear colour: .26 is about half as bright on screen
       darkMats.set(o.material, m);
     }
     o.material = m; o.castShadow = o.receiveShadow = true;
@@ -675,6 +678,26 @@ function openCampaign(i) {
   cSel = i !== undefined ? i : cCur; cDrag = 0; layoutDeck(false); openStage(cSel);
 }
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
+// ---------- Colours (Jack): the town's and the raiders' colours, five each, under Campaign on the title screen; a colour one side
+// has is greyed out for the other; a tap recolours at once (the title's town shows it) and is kept ('mtd-colours')
+const COL_NAME = { blue: 'Blue', red: 'Red', green: 'Green', purple: 'Purple', black: 'Black' };
+function renderColours() {
+  for (const [side, el] of [['town', '#colTown'], ['foe', '#colFoe']]) {
+    const other = side === 'town' ? TEAM.foe : TEAM.town;
+    $(el).innerHTML = TEAM_NAMES.map(n => `<button class="sw${TEAM[side] === n ? ' on' : ''}${other === n ? ' taken' : ''}" data-side="${side}" data-c="${n}" aria-label="${COL_NAME[n]}" style="--c:${TEAM_PAL[n]}"></button>`).join('');
+  }
+  $('#colDots').innerHTML = `<i style="background:${TEAM_PAL[TEAM.town]}"></i><i style="background:${TEAM_PAL[TEAM.foe]}"></i>`;
+}
+$('#colBtn').addEventListener('click', () => { sfx('click'); renderColours(); $('#colCard').hidden = false; });
+$('#colDone').addEventListener('click', () => { $('#colCard').hidden = true; });
+$('#colCard').addEventListener('click', e => {
+  const b = e.target.closest('.sw'); if (!b) return;
+  const side = b.dataset.side, c = b.dataset.c, other = side === 'town' ? 'foe' : 'town';
+  if (TEAM[other] === c) { sfx('nope'); return; }
+  sfx('click'); TEAM = { ...TEAM, [side]: c }; applyTeams(); renderColours();
+  try { localStorage.setItem('mtd-colours', JSON.stringify(TEAM)); } catch (e) {}
+});
+renderColours();
 $('#saveResume').addEventListener('click', () => { sfx('click'); resumeGame(); });
 $('#campBack').addEventListener('click', () => { sfx('click'); $('#campaign').hidden = true; $('#mapPick').hidden = false; });
 document.querySelectorAll('.mapBtn').forEach(b => b.addEventListener('click', () => {

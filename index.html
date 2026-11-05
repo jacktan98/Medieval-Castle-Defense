@@ -158,6 +158,17 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #sumGoals li{display:flex;align-items:center;gap:8px;color:var(--muted)} #sumGoals li.ok{color:var(--parch)} #sumGoals li b{width:18px;text-align:center;color:#6b6656} #sumGoals li.ok b{color:#8cc46e}
 .mapBtn .stars{font-size:13px}
 #campBtn{margin-top:4px;padding:9px 22px;font-family:var(--display);font-size:17px;color:var(--gold)}
+#colBtn{display:inline-flex;align-items:center;gap:7px;padding:5px 14px!important;min-height:0!important;font-size:13px!important;color:#e6d6ae!important}
+.colDots{display:inline-flex;gap:3px} .colDots i{width:10px;height:10px;border-radius:50%;border:1px solid rgba(255,240,200,.6)}
+.colCard{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;width:min(300px,86vw);display:flex;flex-direction:column;gap:12px;align-items:stretch;padding:0 0 14px;border-radius:12px;background:linear-gradient(180deg,#3d3020,#241b10);border:2px solid rgba(212,168,78,.8);box-shadow:0 10px 30px rgba(0,0,0,.6);overflow:hidden}
+.colCard h3{margin:0;padding:7px 10px;text-align:center;font-family:var(--display);font-weight:400;font-size:18px;color:#ffe2a0;background:linear-gradient(90deg,rgba(150,112,52,.5),rgba(190,145,70,.62) 50%,rgba(150,112,52,.5))}
+.colRow{display:flex;flex-direction:column;align-items:center;gap:7px;padding:0 12px} .colRow>span{font-size:13px;color:#e6d6ae;letter-spacing:.04em}
+.colSw{display:flex;gap:10px}
+.modal.tome .colSw .sw{width:34px;height:34px;min-height:0!important;padding:0!important;border-radius:50%!important;background:var(--c)!important;border:2px solid rgba(255,240,200,.25)!important;box-shadow:inset 0 2px 4px rgba(255,255,255,.18),inset 0 -3px 5px rgba(0,0,0,.35)!important;position:relative}
+.modal.tome .colSw .sw.on{border-color:#f0c95a!important;box-shadow:0 0 0 2px rgba(240,201,90,.35),0 0 10px rgba(240,201,90,.55),inset 0 2px 4px rgba(255,255,255,.18)!important}
+.colSw .sw.on::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;text-shadow:0 1px 2px #000}
+.colSw .sw.taken{opacity:.3} .colSw .sw.taken::after{content:"";position:absolute;left:50%;top:3px;bottom:3px;width:2px;background:#f4e3b2;transform:translateX(-50%) rotate(45deg)}
+.colCard #colDone{align-self:center;min-width:110px}
 #adReset.armed{background:#8e2a20!important;border-color:#e0705a!important;color:#fff!important}
 #saveResume{padding:9px 30px;font-family:var(--display);font-size:17px;-webkit-text-stroke:.6px currentColor}
 .saveInfo{margin-top:-9px;font-size:12px;font-weight:600;color:#f4e3b2;letter-spacing:.02em;text-shadow:0 1px 3px rgba(0,0,0,.85)}
@@ -248,9 +259,9 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
    darken it, more than the title does, so the cards and text stay clear */
 body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 45%, rgba(8,9,6,.45) 0%, rgba(8,9,6,.62) 60%, rgba(5,6,4,.9) 100%)!important}
 /* buttons stand out on the dark: a bronze plate with a gold rim, light gold text and a soft glow; the main action stays solid gold */
-.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
+.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
   box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 12px rgba(212,168,78,.18),inset 0 1px 0 rgba(255,230,160,.25)!important;font-weight:500}
-.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):hover{filter:brightness(1.15)}
+.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw):hover{filter:brightness(1.15)}
 .cArrow{background:linear-gradient(180deg,#4a3c22,#2e2515)!important;border:2px solid #c9a03e!important;box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 14px rgba(212,168,78,.25)!important}
 .cArrow svg{stroke:#f4e3b2}
 /* the campaign's progress under the deck: one segment per stage, filled gold for each won, the stage you're at outlined and pulsing,
@@ -696,6 +707,13 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
       <button id="campBtn">Campaign</button>
       <button id="saveResume" class="primary" hidden>Resume</button>
       <div class="saveInfo" id="saveInfo" hidden></div>
+      <button id="colBtn" class="colBtn"><span class="colDots" id="colDots"></span>Colours</button>
+    </div>
+    <div class="colCard" id="colCard" hidden>
+      <h3>Colours</h3>
+      <div class="colRow"><span>Your town</span><div class="colSw" id="colTown"></div></div>
+      <div class="colRow"><span>Raiders</span><div class="colSw" id="colFoe"></div></div>
+      <button class="primary" id="colDone">Done</button>
     </div>
   </div>
   <div class="modal tome" id="campaign" hidden>
@@ -1680,6 +1698,37 @@ grid.visible = false; scene.add(grid);
 
 // ---------- materials + primitives ----------
 const mat = c => new THREE.MeshStandardMaterial({ color: c, roughness: .9, flatShading: true });
+// ---------- team colours (Jack): the town's colour and the raiders' are the player's pick on the title screen (Colours), five to
+// choose from, blue and red by default. Every material that carries a side's colour is registered with its side and the colour it
+// has by default (`teamMat`); `teamColor` maps that default onto the picked colour, keeping its offset in hue, saturation and
+// lightness from the side's default (so a darker drape stays darker than the flag); tinted copies (`tinted`) and the boss forts'
+// darkened copies (`darkFort`) register themselves too; the quilted gambesons get a newly drawn texture (`quiltTex`)
+const TEAM_PAL = { blue: '#3466b0', red: '#a32a22', green: '#2f8a3e', purple: '#6b3fa0', black: '#34343b' };
+const TEAM_DEF = { town: '#3466b0', foe: '#a32a22' }, TEAM_NAMES = ['blue', 'red', 'green', 'purple', 'black'];
+var TEAM = { town: 'blue', foe: 'red' };
+try { const t = JSON.parse(localStorage.getItem('mtd-colours') || 'null'); if (t && TEAM_PAL[t.town] && TEAM_PAL[t.foe] && t.town !== t.foe) TEAM = t; } catch (e) {}
+const teamMats = [];
+const hexHSL = h => { const n = parseInt(h.slice(1), 16), r = (n >> 16 & 255) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+  if (!d) return { h: 0, s: 0, l }; const s = d / (1 - Math.abs(2 * l - 1)); let hh = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return { h: (hh * 60 + 360) % 360, s, l }; };
+const hslHex = (h, s, l) => { const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, k = Math.floor(h / 60) % 6;
+  const [r, g, b] = [[c, x, 0], [x, c, 0], [0, c, x], [0, x, c], [x, 0, c], [c, 0, x]][k]; return '#' + [r, g, b].map(v => Math.round(clamp(v + m, 0, 1) * 255).toString(16).padStart(2, '0')).join(''); };
+function teamColor(def, side) {
+  const c0 = hexHSL(TEAM_DEF[side]), cd = hexHSL(def), cp = hexHSL(TEAM_PAL[TEAM[side]]);
+  let dh = cd.h - c0.h; if (dh > 180) dh -= 360; if (dh < -180) dh += 360;
+  return hslHex((cp.h + dh + 360) % 360, clamp(cp.s * (c0.s ? cd.s / c0.s : 1), 0, 1), clamp(cp.l + (cd.l - c0.l), .05, .9));
+}
+const srgbHex = c => '#' + c.clone().convertLinearToSRGB().getHexString();
+function teamMat(m, side, def, quilt) {
+  m.userData.team = { side, def }; teamMats.push({ m, side, def, quilt });
+  if (quilt) m.map = quiltTex(teamColor(quilt[0], side), teamColor(quilt[1], side)); else m.color.set(teamColor(def, side));
+  return m;
+}
+function applyTeams() {
+  for (const t of teamMats) {
+    if (t.quilt) { const old = t.m.map; t.m.map = quiltTex(teamColor(t.quilt[0], t.side), teamColor(t.quilt[1], t.side)); if (old) old.dispose(); }
+    else t.m.color.set(teamColor(t.def, t.side));
+  }
+}
 const M = { plaster: mat('#dccba2'), timber: mat('#6e4c30'), roof: mat('#8d4a2c'), stone: mat('#8a857a'),
   wood: mat('#957049'), rough: mat('#8a6a48'), dark: mat('#2a2018'), flag: mat('#3466b0'), stone2: mat('#a39d8f'), court: mat('#7d6a4f'),
   log: mat('#6e4b2c'), logEnd: mat('#c9a271'), thatch: mat('#7d5a38'), thatchOld: mat('#a88d55'), tile: mat('#9b4a2e'), mud: mat('#8a7350'),
@@ -1804,6 +1853,7 @@ M.plainStone = mat('#8f8a80'); addGrit(M.plainStone, 'rock');   // tier 2 bases:
 const DOOR_M = [null, mat('#4a301c'), mat('#6b4527'), mat('#7b5639')]; DOOR_M.slice(1).forEach(m => addGrit(m, 'wood'));
 M.drape = mat('#2f4f8a');
 M.awning = mat('#3466b0');   // market awning stripes: the town's blue (no flag wave)
+teamMat(M.flag, 'town', '#3466b0'); teamMat(M.banner, 'town', '#2f4f8a'); teamMat(M.roofBlue, 'town', '#3f5f96'); teamMat(M.drape, 'town', '#2f4f8a'); teamMat(M.awning, 'town', '#3466b0');
 M.drape.onBeforeCompile = sh => {
   sh.uniforms.uTime = windU;
   sh.vertexShader = 'uniform float uTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
@@ -3012,7 +3062,7 @@ function makeStoneBridge(b) {
   return g;
 }
 // the raiders' red flag, waving like the town's (M.flag's shader); the grand bridge's flags fly the same way as the hold's
-let _rfm = null; const raiderFlagM = () => { if (!_rfm) { _rfm = M.flag.clone(); _rfm.onBeforeCompile = M.flag.onBeforeCompile; _rfm.color.set('#8e1d16'); } return _rfm; };
+let _rfm = null; const raiderFlagM = () => { if (!_rfm) { _rfm = M.flag.clone(); _rfm.onBeforeCompile = M.flag.onBeforeCompile; teamMat(_rfm, 'foe', '#8e1d16'); } return _rfm; };
 function buildBridges() { for (const b of bridges) { b.g = makeBridge(b); scene.add(b.g); } }
 
 // ---------- the other economy picks: forester, mine, farmhouse ----------
@@ -3488,14 +3538,19 @@ const aoTex = (() => { const c = document.createElement('canvas'); c.width = c.h
 const aoMat = new THREE.MeshBasicMaterial({ color: '#000000', map: aoTex, transparent: true, opacity: .42, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
 const NO_AO = { butts: 1, stores: 1, farm: 1, forester: 1, farmhouse: 1, flowers: 1, torch: 1, wall: 1 };
 const tintCache = new Map(), NO_TINT = new Set([M.glow, M.flame, M.flameMid, M.flameCore, M.water, aoMat, M.flag, M.banner, M.drape]);
+function tintColor(col, tier, n) {
+  const grime = tier === 1 ? .8 : tier === 2 ? .9 : .97, hsl = {};
+  col.multiplyScalar(grime * (.88 + .2 * hash(n + 1, tier * 3.3))); col.convertLinearToSRGB(); col.getHSL(hsl);
+  col.setHSL(hsl.h + (hash(n, 7) - .5) * .02, hsl.s * (tier === 1 ? .72 : .86), hsl.l);
+}
 function tinted(m, tier, n) {
   const key = m.uuid + ':' + tier + ':' + n; let t = tintCache.get(key);
   if (!t) {
     t = m.clone(); if (m.onBeforeCompile && m.onBeforeCompile !== THREE.Material.prototype.onBeforeCompile) t.onBeforeCompile = m.onBeforeCompile;
     if (Object.prototype.hasOwnProperty.call(m, 'customProgramCacheKey')) t.customProgramCacheKey = m.customProgramCacheKey;
-    const grime = tier === 1 ? .8 : tier === 2 ? .9 : .97, hsl = {};
-    t.color.multiplyScalar(grime * (.88 + .2 * hash(n + 1, tier * 3.3))); t.color.convertLinearToSRGB(); t.color.getHSL(hsl);
-    t.color.setHSL(hsl.h + (hash(n, 7) - .5) * .02, hsl.s * (tier === 1 ? .72 : .86), hsl.l);
+    tintColor(t.color, tier, n);
+    // a team colour's copy: its own default (the base's default, tinted the same way) is registered, so a recolour reaches it
+    const T = m.userData.team; if (T) { const c = new THREE.Color(T.def); tintColor(c, tier, n); teamMat(t, T.side, srgbHex(c)); }
     tintCache.set(key, t);
   }
   return t;
@@ -3757,6 +3812,98 @@ function emitSmoke(dt) {
   }
 }
 
+
+// ---------- weather by stage (Jack): rain, drizzle, snow, falling ash, blowing sand and dust, mist; only the look changes, never
+// the game. It comes and goes on a timer (`on`/`off` seconds, ranges), or stays all game (`always`); `w` eases to its target.
+// Particles live in a box that follows the camera's focus (wrapped round it, so panning never drags them along) and only `n × w`
+// are drawn; the light dims (`dark`), the sky and fog turn toward a tint and the fog closes in (`fogK`). Off on the title's
+// showcase and in the gallery.
+const WEATHER = {
+  meadow: { kind: 'rain', on: [45, 80], off: [90, 160], first: [60, 140] },
+  bridge: { kind: 'rain', on: [50, 90], off: [60, 110], first: [25, 60] },
+  bend: { kind: 'rain', on: [50, 90], off: [60, 110], first: [25, 60] },
+  watch: { kind: 'dust', on: [40, 70], off: [50, 90], first: [20, 50] },
+  dune: { kind: 'sand', on: [45, 80], off: [50, 90], first: [20, 50] },
+  crag: { kind: 'mist', on: [70, 120], off: [50, 90], first: [0, 0] },
+  ford: { kind: 'drizzle', on: [50, 90], off: [50, 100], first: [20, 60] },
+  mere: { kind: 'drizzle', on: [60, 110], off: [40, 80], first: [0, 20] },
+  keep: { kind: 'ash', always: true },
+  hold: { kind: 'snow', always: true },
+  pass: { kind: 'snow', always: true },
+};
+const WX_KIND = {
+  rain: { lines: true, n: 1100, fall: 15, len: .9, wind: 1.6, col: '#c3d0dc', op: .6, dark: .38, fogK: .35, tint: '#8d96a0', tintK: .55 },
+  drizzle: { lines: true, n: 700, fall: 9, len: .55, wind: .8, col: '#c6d0d8', op: .45, dark: .2, fogK: .55, tint: '#a3aab0', tintK: .45 },
+  snow: { n: 1100, fall: 1.1, wind: .5, sway: .6, size: .55, col: '#ffffff', op: .9, dark: .12, fogK: .45, tint: '#cfd6de', tintK: .45 },
+  ash: { n: 900, fall: .55, wind: .4, sway: .4, size: .38, col: '#c4bcb4', ember: '#ff8a3a', op: .85, dark: .1, fogK: .35, tint: '#7a6a62', tintK: .35 },
+  sand: { n: 1100, fall: .35, wind: 9, sway: .3, size: .22, col: '#f4e6bf', op: .8, dark: .12, fogK: .75, tint: '#cfb688', tintK: .6 },
+  dust: { n: 600, fall: .3, wind: 5, sway: .3, size: .2, col: '#f2e6c8', op: .65, dark: .06, fogK: .45, tint: '#cdb990', tintK: .4 },
+  mist: { n: 0, dark: .1, fogK: 1, tint: '#d4d8da', tintK: .75 },
+};
+const WX_MAX = 1100, wxPos = new Float32Array(WX_MAX * 3), wxVel = new Float32Array(WX_MAX * 2);
+const wxLineGeo = new THREE.BufferGeometry(); wxLineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(WX_MAX * 6), 3));
+const wxPtGeo = new THREE.BufferGeometry(); wxPtGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(WX_MAX * 3), 3)); wxPtGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(WX_MAX * 3), 3));
+const wxDot = (() => { const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d'), g = x.createRadialGradient(16, 16, 0, 16, 16, 16);
+  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.5, 'rgba(255,255,255,.7)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 32, 32); return new THREE.CanvasTexture(c); })();
+const wxLines = new THREE.LineSegments(wxLineGeo, new THREE.LineBasicMaterial({ color: '#aebccb', transparent: true, opacity: .4, depthWrite: false }));
+const wxPts = new THREE.Points(wxPtGeo, new THREE.PointsMaterial({ size: .12, map: wxDot, vertexColors: true, transparent: true, depthWrite: false, sizeAttenuation: true }));
+wxLines.frustumCulled = wxPts.frustumCulled = false; wxLines.visible = wxPts.visible = false; wxLines.renderOrder = wxPts.renderOrder = 5;
+scene.add(wxLines, wxPts);
+const WX = { cfg: null, K: null, w: 0, goal: 0, timer: 0 };
+const wxTint = new THREE.Color(), wxRnd = ([a, b]) => a + Math.random() * (b - a);
+function weatherReset() {
+  const cfg = WEATHER[MAP] || null; WX.cfg = cfg; WX.K = cfg && WX_KIND[cfg.kind]; WX.w = 0;
+  WX.goal = cfg && cfg.always ? 1 : 0; WX.timer = cfg && !cfg.always ? wxRnd(cfg.first) : 0;
+  if (cfg && cfg.always) WX.w = 1;
+  if (!WX.K) { wxLines.visible = wxPts.visible = false; return; }
+  const K = WX.K, B = 60, col = new THREE.Color(K.col), emb = K.ember && new THREE.Color(K.ember), ca = wxPtGeo.attributes.color.array;
+  for (let i = 0; i < WX_MAX; i++) {
+    wxPos[i * 3] = target.x + (Math.random() - .5) * B; wxPos[i * 3 + 1] = Math.random() * 24; wxPos[i * 3 + 2] = target.z + (Math.random() - .5) * B;
+    wxVel[i * 2] = .7 + Math.random() * .6; wxVel[i * 2 + 1] = Math.random() * 6.28;
+    const c = emb && Math.random() < .2 ? emb : col; ca[i * 3] = c.r; ca[i * 3 + 1] = c.g; ca[i * 3 + 2] = c.b;
+  }
+  wxPtGeo.attributes.color.needsUpdate = true;
+  wxLines.material.color.set(K.col || '#ffffff'); wxPts.material.size = K.size || .1;
+}
+// the sky and fog colour lean toward the weather's tint (called from updateLight before the fog copies the sky)
+function weatherSky(c) { if (WX.K && WX.w > 0) c.lerp(wxTint.set(WX.K.tint).multiplyScalar(.35 + .65 * light), WX.K.tintK * WX.w); }
+function updateWeather(dt, live) {
+  const K = WX.K, off = showcaseBuilt || !K;
+  if (off) { wxLines.visible = wxPts.visible = false; return; }
+  if (live && !WX.cfg.always && (WX.timer -= dt) <= 0) { WX.goal = WX.goal ? 0 : 1; WX.timer = wxRnd(WX.goal ? WX.cfg.on : WX.cfg.off); }
+  if (live) WX.w += (WX.goal - WX.w) * Math.min(1, dt * .12);
+  const w = WX.w;
+  // light and fog: on top of updateLight's (which sets them fresh every frame) and updateCam's fog distances
+  sun.intensity *= 1 - K.dark * w; hemi.intensity *= 1 - K.dark * .5 * w;
+  // the fog closes in toward the camera: with fogK 1 (mist) it starts about half way to the focus and is thick a little past it
+  const fk = K.fogK * w; scene.fog.near = lerp(dist + 100, dist * .55, fk); scene.fog.far = lerp(dist + 240, dist + 60, fk);
+  const n = Math.round((K.n || 0) * w);
+  wxLines.visible = !!K.lines && n > 0; wxPts.visible = !K.lines && n > 0;
+  if (!n) return;
+  const B = clamp(dist * .8, 20, 60), cx = target.x, cz = target.z, base = target.y - 2, top = 26, wrap = (v, c) => c + ((((v - c + B / 2) % B) + B) % B) - B / 2, t = performance.now() / 1000;
+  const sdt = live ? Math.min(dt, .05) : 0, night = .45 + .55 * light;
+  if (K.lines) {
+    const a = wxLineGeo.attributes.position.array, dx = K.wind / K.fall * K.len;
+    for (let i = 0; i < n; i++) {
+      let y = wxPos[i * 3 + 1] - K.fall * wxVel[i * 2] * sdt; if (y < 0) y += top; wxPos[i * 3 + 1] = y;
+      wxPos[i * 3] += K.wind * sdt; const x = wrap(wxPos[i * 3], cx), z = wrap(wxPos[i * 3 + 2], cz); wxPos[i * 3] = x; wxPos[i * 3 + 2] = z;
+      const yy = base + y, j = i * 6; a[j] = x; a[j + 1] = yy; a[j + 2] = z; a[j + 3] = x - dx; a[j + 4] = yy - K.len; a[j + 5] = z;
+    }
+    wxLineGeo.attributes.position.needsUpdate = true; wxLineGeo.setDrawRange(0, n * 2); wxLines.material.opacity = K.op * night * Math.min(1, w * 1.5);
+  } else {
+    const a = wxPtGeo.attributes.position.array;
+    for (let i = 0; i < n; i++) {
+      let y = wxPos[i * 3 + 1] - K.fall * wxVel[i * 2] * sdt; if (y < 0) y += top; wxPos[i * 3 + 1] = y;
+      const ph = wxVel[i * 2 + 1];
+      wxPos[i * 3] += (K.wind * wxVel[i * 2] + Math.sin(t * 1.3 + ph) * K.sway) * sdt; wxPos[i * 3 + 2] += Math.cos(t * 1.1 + ph) * K.sway * sdt;
+      const x = wrap(wxPos[i * 3], cx), z = wrap(wxPos[i * 3 + 2], cz); wxPos[i * 3] = x; wxPos[i * 3 + 2] = z;
+      // blown sand and dust stay low over the ground; snow and ash fill the air
+      const yy = K.wind > 4 ? hAt(clamp(x, 0, SIZE - .01), clamp(z, 0, SIZE - .01)) + (y % 6) : base + y;
+      a[i * 3] = x; a[i * 3 + 1] = yy; a[i * 3 + 2] = z;
+    }
+    wxPtGeo.attributes.position.needsUpdate = true; wxPtGeo.setDrawRange(0, n); wxPts.material.opacity = K.op * night * Math.min(1, w * 1.5);
+  }
+}
 // ---------- state ----------
 let adapt = true, tool = 'select', cat = 'eco', cur = null, selected = null, gameOver = false;
 const anims = [], buildings = [], villagers = [], enemies = [], arrows = [];
@@ -4180,18 +4327,19 @@ function makeHair(m) {
   return h;
 }
 // headgear for soldiers and raiders, rounded rather than pointed
-const steelM = mat('#a3aab2'), soldierBandM = mat('#2d4f86'), ironM = mat('#5b6067'), bandM = mat('#3b3129'), darkIronM = mat('#3e4248');
-const mailM = mat('#8d939a'), kiteM = mat('#3466b0');   // soldiers' mail; their blue shields and surcoat (plain: M.flag waves)
+const steelM = mat('#a3aab2'), soldierBandM = teamMat(mat('#2d4f86'), 'town', '#2d4f86'), ironM = mat('#5b6067'), bandM = mat('#3b3129'), darkIronM = mat('#3e4248');
+const mailM = mat('#8d939a'), kiteM = teamMat(mat('#3466b0'), 'town', '#3466b0');   // soldiers' mail; their blue shields and surcoat (plain: M.flag waves)
 // tier-2 defenders' gambeson: blue-grey padded cloth quilted in rows (canvas texture)
-function quiltMat(base, line) {
+function quiltTex(base, line) {
   const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d');
   x.fillStyle = base; x.fillRect(0, 0, 32, 32); x.fillStyle = line;
   for (let y = 3; y < 32; y += 8) x.fillRect(0, y, 32, 2);
   x.globalAlpha = .45; for (let k = 6; k < 32; k += 10) x.fillRect(k, 0, 1, 32);
   const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2, 2); t.magFilter = THREE.NearestFilter;
-  return new THREE.MeshStandardMaterial({ map: t, roughness: .95, flatShading: true });
+  return t;
 }
-const gambesonM = quiltMat('#62789a', '#465a7a');
+function quiltMat(base, line) { return new THREE.MeshStandardMaterial({ map: quiltTex(base, line), roughness: .95, flatShading: true }); }
+const gambesonM = teamMat(quiltMat('#62789a', '#465a7a'), 'town', '#62789a', ['#62789a', '#465a7a']);
 function makeHelm(kind) {
   const h = new THREE.Group(), add = o => { o.castShadow = true; h.add(o); return o; };
   if (kind === 'skullcap') {                 // tier 2 soldier: a plain steel skullcap riveted to a leather rim, ear flaps of the padded coif
@@ -4986,10 +5134,10 @@ function updateTrees(now) {
 }
 
 // ---------- enemies + combat ----------
-const raiderRed = mat('#a32a22');   // every raider wears the same red
+const raiderRed = teamMat(mat('#a32a22'), 'foe', '#a32a22');   // every raider wears the same red
 const shieldM = mat('#5a2a1e');
 // mounted raiders (and the stables' riders) ride: a horse under the rider, who sits astride with legs to either side
-const horseM = mat('#5a3a22'), maneM = mat('#2a1d14'), saddleM = mat('#3a2418'), blanketM = mat('#8a221c'), hoofM = mat('#1f1a16');
+const horseM = mat('#5a3a22'), maneM = mat('#2a1d14'), saddleM = mat('#3a2418'), blanketM = teamMat(mat('#8a221c'), 'foe', '#8a221c'), hoofM = mat('#1f1a16');
 const SADDLE = .72;   // lifts the rider's body so the hips sit on the saddle
 function mountHorse(p, cloth = blanketM) {
   const h = new THREE.Group(); p.g.add(h);
@@ -5065,7 +5213,7 @@ function swordPose(p, at, sw) {
 // raiders dress by tier, the same for every kind (only the weapon differs): 1 a plain red shirt and a rope belt, bare-headed;
 // 2 a red quilted gambeson with a short skirt, a leather belt and an iron helm with nose and cheek guards; 3 mail under a red
 // surcoat, a closed iron great helm and iron shoulder plates
-const raiderQuiltM = quiltMat('#9c3328', '#6c1d17'), ropeBeltM = mat('#8a7650');
+const raiderQuiltM = teamMat(quiltMat('#9c3328', '#6c1d17'), 'foe', '#9c3328', ['#9c3328', '#6c1d17']), ropeBeltM = mat('#8a7650');
 function raiderArmour(p, tier) {
   const put = o => { o.castShadow = true; p.body.add(o); return o; };
   const tun = tier === 3 ? mailM : tier === 2 ? raiderQuiltM : raiderRed;
@@ -5077,9 +5225,9 @@ function raiderArmour(p, tier) {
     for (const sx of [-1, 1]) { const pl = put(new THREE.Mesh(new THREE.SphereGeometry(.09, 8, 5, 0, Math.PI * 2, 0, Math.PI * .5), darkIronM)); pl.position.set(sx * .19, .86, 0); pl.scale.set(1, .8, 1.15); }
   }
 }
-const raiderShieldM = mat('#7a2019');
+const raiderShieldM = teamMat(mat('#7a2019'), 'foe', '#7a2019');
 const RAIDER_TOOL = { spear: 'spear', lancer: 'spear', sword: 'sword', rider: 'sword', archer: 'bow', xbow: 'crossbow', chief: 'sword', warlord: 'sword' };
-const cloakM = mat('#6e1611'), bossGoldM = mat('#c9a24a'), bossHornM = mat('#e3d6b8'), bardM = mat('#2a2522');
+const cloakM = teamMat(mat('#6e1611'), 'foe', '#6e1611'), bossGoldM = mat('#c9a24a'), bossHornM = mat('#e3d6b8'), bardM = mat('#2a2522');
 function makeRaider(kind, tier = 1) {
   if (ENEMY[kind].engine) return makeEngine(kind, tier);
   const p = makePerson({ tunic: raiderRed, tool: RAIDER_TOOL[kind] });
@@ -5880,7 +6028,7 @@ function armour(p, tier) {
 const SOLDIER = { hp: [70, 100, 140], dmg: [7, 10, 14], rate: .9, names: ['Militia', 'Guard', 'Man-at-arms'] };
 // the stables' riders: tougher and harder hitting, and they ride at RIDER.speed times a soldier's pace
 const RIDER = { hp: [170, 240, 330], dmg: [9, 13, 18], rate: .8, speed: 2.1, names: ['Rider', 'Lancer', 'Knight'] };
-const ridingM = mat('#2f4f86');   // the town's blue saddle cloth
+const ridingM = teamMat(mat('#2f4f86'), 'town', '#2f4f86');   // the town's blue saddle cloth
 const SQUAD = [[0, 0], [-.8, -.5], [.8, -.5]];      // where the three stand round their spot
 var respawns = [], fallen = [];                     // fallen soldiers come back as villagers after 60 s of daylight
 // the tier's armour (armour()); tier 1 militia: spear; tier 2 guard: spear and a round wooden shield; tier 3 man-at-arms: sword and a blue kite shield
@@ -6656,7 +6804,7 @@ function updateLight(dt, now) {
   const target = PH.kind === 'day' ? (PH.t < DUSK ? .25 + .75 * sstep(0, DUSK, PH.t) : 1) : 0;
   light += (target - light) * Math.min(1, dt * 1.2);
   const dusk = PH.kind === 'day' ? clamp(sstep(DUSK, 0, PH.t) * (1 - Math.abs(light - .55) * 1.1), 0, 1) : 0;
-  skyHorizon.copy(SKY_NIGHT).lerp(SKY_DAY, light).lerp(SKY_DUSK, Math.min(dusk, .6)); scene.fog.color.copy(skyHorizon);
+  skyHorizon.copy(SKY_NIGHT).lerp(SKY_DAY, light).lerp(SKY_DUSK, Math.min(dusk, .6)); weatherSky(skyHorizon); scene.fog.color.copy(skyHorizon);
   if ((skyT -= dt) <= 0) { skyT = .15; paintSky(); } sky.position.copy(camera.position);
   windU.value = now / 1000;
   sun.intensity = lerp(.68, 1.05, light); sun.color.copy(SUN_NIGHT).lerp(SUN_DAY, light).lerp(SUN_DUSK, Math.min(dusk, .7));
@@ -7381,7 +7529,10 @@ function darkFort(g) {
     let m = darkMats.get(o.material);
     if (!m) {
       m = o.material.clone(); m.onBeforeCompile = o.material.onBeforeCompile; if (o.material.customProgramCacheKey) m.customProgramCacheKey = o.material.customProgramCacheKey;
-      const c = m.color; if (c) { if (c.b > c.r * 1.3 && c.b > c.g) c.set('#6a1612'); else c.multiplyScalar(.26); }   // linear colour: .26 is about half as bright on screen
+      const c = m.color, T = o.material.userData.team;
+      // the town's colour turns the raiders' (dark), the raiders' own is darkened; both stay registered so a recolour reaches them
+      if (T) teamMat(m, 'foe', T.side === 'town' ? '#6a1612' : srgbHex(new THREE.Color(T.def).multiplyScalar(.26)));
+      else if (c) { if (c.b > c.r * 1.3 && c.b > c.g) teamMat(m, 'foe', '#6a1612'); else c.multiplyScalar(.26); }   // linear colour: .26 is about half as bright on screen
       darkMats.set(o.material, m);
     }
     o.material = m; o.castShadow = o.receiveShadow = true;
@@ -7797,6 +7948,26 @@ function openCampaign(i) {
   cSel = i !== undefined ? i : cCur; cDrag = 0; layoutDeck(false); openStage(cSel);
 }
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
+// ---------- Colours (Jack): the town's and the raiders' colours, five each, under Campaign on the title screen; a colour one side
+// has is greyed out for the other; a tap recolours at once (the title's town shows it) and is kept ('mtd-colours')
+const COL_NAME = { blue: 'Blue', red: 'Red', green: 'Green', purple: 'Purple', black: 'Black' };
+function renderColours() {
+  for (const [side, el] of [['town', '#colTown'], ['foe', '#colFoe']]) {
+    const other = side === 'town' ? TEAM.foe : TEAM.town;
+    $(el).innerHTML = TEAM_NAMES.map(n => `<button class="sw${TEAM[side] === n ? ' on' : ''}${other === n ? ' taken' : ''}" data-side="${side}" data-c="${n}" aria-label="${COL_NAME[n]}" style="--c:${TEAM_PAL[n]}"></button>`).join('');
+  }
+  $('#colDots').innerHTML = `<i style="background:${TEAM_PAL[TEAM.town]}"></i><i style="background:${TEAM_PAL[TEAM.foe]}"></i>`;
+}
+$('#colBtn').addEventListener('click', () => { sfx('click'); renderColours(); $('#colCard').hidden = false; });
+$('#colDone').addEventListener('click', () => { $('#colCard').hidden = true; });
+$('#colCard').addEventListener('click', e => {
+  const b = e.target.closest('.sw'); if (!b) return;
+  const side = b.dataset.side, c = b.dataset.c, other = side === 'town' ? 'foe' : 'town';
+  if (TEAM[other] === c) { sfx('nope'); return; }
+  sfx('click'); TEAM = { ...TEAM, [side]: c }; applyTeams(); renderColours();
+  try { localStorage.setItem('mtd-colours', JSON.stringify(TEAM)); } catch (e) {}
+});
+renderColours();
 $('#saveResume').addEventListener('click', () => { sfx('click'); resumeGame(); });
 $('#campBack').addEventListener('click', () => { sfx('click'); $('#campaign').hidden = true; $('#mapPick').hidden = false; });
 document.querySelectorAll('.mapBtn').forEach(b => b.addEventListener('click', () => {
@@ -8133,7 +8304,7 @@ function startGame() {
   applyLoadout(); cat = 'eco'; renderTools(); setTool('select');
   // the Goals panel shows this game's goals at once (it only redrew on the HUD tick, which waits behind the new-building cards,
   // so an open panel kept the last stage's goals: Jack)
-  goalsKey = ''; renderGoals();
+  goalsKey = ''; renderGoals(); weatherReset();
 }
 
 // ---------- loop ----------
@@ -8579,12 +8750,12 @@ function adaptResolution(raw) {
 const MENUS = ['#mapPick', '#loadPick', '#campaign', '#newCards'].map(q => $(q));
 const menuOn = () => MENUS.some(m => !m.hidden);
 const mapPickEl = $('#mapPick'), campEl = $('#campaign'), loadEl = $('#loadPick'); let liteN = 0;
-mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
+mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button') && !e.target.closest('#colCard')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
 function frame(now) {
   adaptResolution((now - last) / 1000);
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   keyCamera(dt);
-  if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now);
+  if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now); updateWeather(dt, !paused && !menuOn() && !gameOver);
   const sc = showcaseBuilt && (!mapPickEl.hidden || !campEl.hidden || !loadEl.hidden); if (sc !== document.body.classList.contains('showcase')) document.body.classList.toggle('showcase', sc);
   // the title's showcase town: the camera circles slowly. It looks a little beyond the town, so the town sits low on the screen,
   // under the cards (an off-centre lens did that before and skewed the picture: Jack found it squeezed); on a wide screen the view

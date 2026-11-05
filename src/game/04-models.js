@@ -601,7 +601,7 @@ function makeStoneBridge(b) {
   return g;
 }
 // the raiders' red flag, waving like the town's (M.flag's shader); the grand bridge's flags fly the same way as the hold's
-let _rfm = null; const raiderFlagM = () => { if (!_rfm) { _rfm = M.flag.clone(); _rfm.onBeforeCompile = M.flag.onBeforeCompile; _rfm.color.set('#8e1d16'); } return _rfm; };
+let _rfm = null; const raiderFlagM = () => { if (!_rfm) { _rfm = M.flag.clone(); _rfm.onBeforeCompile = M.flag.onBeforeCompile; teamMat(_rfm, 'foe', '#8e1d16'); } return _rfm; };
 function buildBridges() { for (const b of bridges) { b.g = makeBridge(b); scene.add(b.g); } }
 
 // ---------- the other economy picks: forester, mine, farmhouse ----------
@@ -1077,14 +1077,19 @@ const aoTex = (() => { const c = document.createElement('canvas'); c.width = c.h
 const aoMat = new THREE.MeshBasicMaterial({ color: '#000000', map: aoTex, transparent: true, opacity: .42, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
 const NO_AO = { butts: 1, stores: 1, farm: 1, forester: 1, farmhouse: 1, flowers: 1, torch: 1, wall: 1 };
 const tintCache = new Map(), NO_TINT = new Set([M.glow, M.flame, M.flameMid, M.flameCore, M.water, aoMat, M.flag, M.banner, M.drape]);
+function tintColor(col, tier, n) {
+  const grime = tier === 1 ? .8 : tier === 2 ? .9 : .97, hsl = {};
+  col.multiplyScalar(grime * (.88 + .2 * hash(n + 1, tier * 3.3))); col.convertLinearToSRGB(); col.getHSL(hsl);
+  col.setHSL(hsl.h + (hash(n, 7) - .5) * .02, hsl.s * (tier === 1 ? .72 : .86), hsl.l);
+}
 function tinted(m, tier, n) {
   const key = m.uuid + ':' + tier + ':' + n; let t = tintCache.get(key);
   if (!t) {
     t = m.clone(); if (m.onBeforeCompile && m.onBeforeCompile !== THREE.Material.prototype.onBeforeCompile) t.onBeforeCompile = m.onBeforeCompile;
     if (Object.prototype.hasOwnProperty.call(m, 'customProgramCacheKey')) t.customProgramCacheKey = m.customProgramCacheKey;
-    const grime = tier === 1 ? .8 : tier === 2 ? .9 : .97, hsl = {};
-    t.color.multiplyScalar(grime * (.88 + .2 * hash(n + 1, tier * 3.3))); t.color.convertLinearToSRGB(); t.color.getHSL(hsl);
-    t.color.setHSL(hsl.h + (hash(n, 7) - .5) * .02, hsl.s * (tier === 1 ? .72 : .86), hsl.l);
+    tintColor(t.color, tier, n);
+    // a team colour's copy: its own default (the base's default, tinted the same way) is registered, so a recolour reaches it
+    const T = m.userData.team; if (T) { const c = new THREE.Color(T.def); tintColor(c, tier, n); teamMat(t, T.side, srgbHex(c)); }
     tintCache.set(key, t);
   }
   return t;

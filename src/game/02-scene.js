@@ -182,6 +182,37 @@ grid.visible = false; scene.add(grid);
 
 // ---------- materials + primitives ----------
 const mat = c => new THREE.MeshStandardMaterial({ color: c, roughness: .9, flatShading: true });
+// ---------- team colours (Jack): the town's colour and the raiders' are the player's pick on the title screen (Colours), five to
+// choose from, blue and red by default. Every material that carries a side's colour is registered with its side and the colour it
+// has by default (`teamMat`); `teamColor` maps that default onto the picked colour, keeping its offset in hue, saturation and
+// lightness from the side's default (so a darker drape stays darker than the flag); tinted copies (`tinted`) and the boss forts'
+// darkened copies (`darkFort`) register themselves too; the quilted gambesons get a newly drawn texture (`quiltTex`)
+const TEAM_PAL = { blue: '#3466b0', red: '#a32a22', green: '#2f8a3e', purple: '#6b3fa0', black: '#34343b' };
+const TEAM_DEF = { town: '#3466b0', foe: '#a32a22' }, TEAM_NAMES = ['blue', 'red', 'green', 'purple', 'black'];
+var TEAM = { town: 'blue', foe: 'red' };
+try { const t = JSON.parse(localStorage.getItem('mtd-colours') || 'null'); if (t && TEAM_PAL[t.town] && TEAM_PAL[t.foe] && t.town !== t.foe) TEAM = t; } catch (e) {}
+const teamMats = [];
+const hexHSL = h => { const n = parseInt(h.slice(1), 16), r = (n >> 16 & 255) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+  if (!d) return { h: 0, s: 0, l }; const s = d / (1 - Math.abs(2 * l - 1)); let hh = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return { h: (hh * 60 + 360) % 360, s, l }; };
+const hslHex = (h, s, l) => { const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, k = Math.floor(h / 60) % 6;
+  const [r, g, b] = [[c, x, 0], [x, c, 0], [0, c, x], [0, x, c], [x, 0, c], [c, 0, x]][k]; return '#' + [r, g, b].map(v => Math.round(clamp(v + m, 0, 1) * 255).toString(16).padStart(2, '0')).join(''); };
+function teamColor(def, side) {
+  const c0 = hexHSL(TEAM_DEF[side]), cd = hexHSL(def), cp = hexHSL(TEAM_PAL[TEAM[side]]);
+  let dh = cd.h - c0.h; if (dh > 180) dh -= 360; if (dh < -180) dh += 360;
+  return hslHex((cp.h + dh + 360) % 360, clamp(cp.s * (c0.s ? cd.s / c0.s : 1), 0, 1), clamp(cp.l + (cd.l - c0.l), .05, .9));
+}
+const srgbHex = c => '#' + c.clone().convertLinearToSRGB().getHexString();
+function teamMat(m, side, def, quilt) {
+  m.userData.team = { side, def }; teamMats.push({ m, side, def, quilt });
+  if (quilt) m.map = quiltTex(teamColor(quilt[0], side), teamColor(quilt[1], side)); else m.color.set(teamColor(def, side));
+  return m;
+}
+function applyTeams() {
+  for (const t of teamMats) {
+    if (t.quilt) { const old = t.m.map; t.m.map = quiltTex(teamColor(t.quilt[0], t.side), teamColor(t.quilt[1], t.side)); if (old) old.dispose(); }
+    else t.m.color.set(teamColor(t.def, t.side));
+  }
+}
 const M = { plaster: mat('#dccba2'), timber: mat('#6e4c30'), roof: mat('#8d4a2c'), stone: mat('#8a857a'),
   wood: mat('#957049'), rough: mat('#8a6a48'), dark: mat('#2a2018'), flag: mat('#3466b0'), stone2: mat('#a39d8f'), court: mat('#7d6a4f'),
   log: mat('#6e4b2c'), logEnd: mat('#c9a271'), thatch: mat('#7d5a38'), thatchOld: mat('#a88d55'), tile: mat('#9b4a2e'), mud: mat('#8a7350'),
@@ -306,6 +337,7 @@ M.plainStone = mat('#8f8a80'); addGrit(M.plainStone, 'rock');   // tier 2 bases:
 const DOOR_M = [null, mat('#4a301c'), mat('#6b4527'), mat('#7b5639')]; DOOR_M.slice(1).forEach(m => addGrit(m, 'wood'));
 M.drape = mat('#2f4f8a');
 M.awning = mat('#3466b0');   // market awning stripes: the town's blue (no flag wave)
+teamMat(M.flag, 'town', '#3466b0'); teamMat(M.banner, 'town', '#2f4f8a'); teamMat(M.roofBlue, 'town', '#3f5f96'); teamMat(M.drape, 'town', '#2f4f8a'); teamMat(M.awning, 'town', '#3466b0');
 M.drape.onBeforeCompile = sh => {
   sh.uniforms.uTime = windU;
   sh.vertexShader = 'uniform float uTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>

@@ -79,18 +79,19 @@ function makeHair(m) {
   return h;
 }
 // headgear for soldiers and raiders, rounded rather than pointed
-const steelM = mat('#a3aab2'), soldierBandM = mat('#2d4f86'), ironM = mat('#5b6067'), bandM = mat('#3b3129'), darkIronM = mat('#3e4248');
-const mailM = mat('#8d939a'), kiteM = mat('#3466b0');   // soldiers' mail; their blue shields and surcoat (plain: M.flag waves)
+const steelM = mat('#a3aab2'), soldierBandM = teamMat(mat('#2d4f86'), 'town', '#2d4f86'), ironM = mat('#5b6067'), bandM = mat('#3b3129'), darkIronM = mat('#3e4248');
+const mailM = mat('#8d939a'), kiteM = teamMat(mat('#3466b0'), 'town', '#3466b0');   // soldiers' mail; their blue shields and surcoat (plain: M.flag waves)
 // tier-2 defenders' gambeson: blue-grey padded cloth quilted in rows (canvas texture)
-function quiltMat(base, line) {
+function quiltTex(base, line) {
   const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d');
   x.fillStyle = base; x.fillRect(0, 0, 32, 32); x.fillStyle = line;
   for (let y = 3; y < 32; y += 8) x.fillRect(0, y, 32, 2);
   x.globalAlpha = .45; for (let k = 6; k < 32; k += 10) x.fillRect(k, 0, 1, 32);
   const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2, 2); t.magFilter = THREE.NearestFilter;
-  return new THREE.MeshStandardMaterial({ map: t, roughness: .95, flatShading: true });
+  return t;
 }
-const gambesonM = quiltMat('#62789a', '#465a7a');
+function quiltMat(base, line) { return new THREE.MeshStandardMaterial({ map: quiltTex(base, line), roughness: .95, flatShading: true }); }
+const gambesonM = teamMat(quiltMat('#62789a', '#465a7a'), 'town', '#62789a', ['#62789a', '#465a7a']);
 function makeHelm(kind) {
   const h = new THREE.Group(), add = o => { o.castShadow = true; h.add(o); return o; };
   if (kind === 'skullcap') {                 // tier 2 soldier: a plain steel skullcap riveted to a leather rim, ear flaps of the padded coif

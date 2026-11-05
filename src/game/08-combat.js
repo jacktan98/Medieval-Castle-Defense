@@ -1,8 +1,8 @@
 // ---------- enemies + combat ----------
-const raiderRed = mat('#a32a22');   // every raider wears the same red
+const raiderRed = teamMat(mat('#a32a22'), 'foe', '#a32a22');   // every raider wears the same red
 const shieldM = mat('#5a2a1e');
 // mounted raiders (and the stables' riders) ride: a horse under the rider, who sits astride with legs to either side
-const horseM = mat('#5a3a22'), maneM = mat('#2a1d14'), saddleM = mat('#3a2418'), blanketM = mat('#8a221c'), hoofM = mat('#1f1a16');
+const horseM = mat('#5a3a22'), maneM = mat('#2a1d14'), saddleM = mat('#3a2418'), blanketM = teamMat(mat('#8a221c'), 'foe', '#8a221c'), hoofM = mat('#1f1a16');
 const SADDLE = .72;   // lifts the rider's body so the hips sit on the saddle
 function mountHorse(p, cloth = blanketM) {
   const h = new THREE.Group(); p.g.add(h);
@@ -78,7 +78,7 @@ function swordPose(p, at, sw) {
 // raiders dress by tier, the same for every kind (only the weapon differs): 1 a plain red shirt and a rope belt, bare-headed;
 // 2 a red quilted gambeson with a short skirt, a leather belt and an iron helm with nose and cheek guards; 3 mail under a red
 // surcoat, a closed iron great helm and iron shoulder plates
-const raiderQuiltM = quiltMat('#9c3328', '#6c1d17'), ropeBeltM = mat('#8a7650');
+const raiderQuiltM = teamMat(quiltMat('#9c3328', '#6c1d17'), 'foe', '#9c3328', ['#9c3328', '#6c1d17']), ropeBeltM = mat('#8a7650');
 function raiderArmour(p, tier) {
   const put = o => { o.castShadow = true; p.body.add(o); return o; };
   const tun = tier === 3 ? mailM : tier === 2 ? raiderQuiltM : raiderRed;
@@ -90,9 +90,9 @@ function raiderArmour(p, tier) {
     for (const sx of [-1, 1]) { const pl = put(new THREE.Mesh(new THREE.SphereGeometry(.09, 8, 5, 0, Math.PI * 2, 0, Math.PI * .5), darkIronM)); pl.position.set(sx * .19, .86, 0); pl.scale.set(1, .8, 1.15); }
   }
 }
-const raiderShieldM = mat('#7a2019');
+const raiderShieldM = teamMat(mat('#7a2019'), 'foe', '#7a2019');
 const RAIDER_TOOL = { spear: 'spear', lancer: 'spear', sword: 'sword', rider: 'sword', archer: 'bow', xbow: 'crossbow', chief: 'sword', warlord: 'sword' };
-const cloakM = mat('#6e1611'), bossGoldM = mat('#c9a24a'), bossHornM = mat('#e3d6b8'), bardM = mat('#2a2522');
+const cloakM = teamMat(mat('#6e1611'), 'foe', '#6e1611'), bossGoldM = mat('#c9a24a'), bossHornM = mat('#e3d6b8'), bardM = mat('#2a2522');
 function makeRaider(kind, tier = 1) {
   if (ENEMY[kind].engine) return makeEngine(kind, tier);
   const p = makePerson({ tunic: raiderRed, tool: RAIDER_TOOL[kind] });
@@ -893,7 +893,7 @@ function armour(p, tier) {
 const SOLDIER = { hp: [70, 100, 140], dmg: [7, 10, 14], rate: .9, names: ['Militia', 'Guard', 'Man-at-arms'] };
 // the stables' riders: tougher and harder hitting, and they ride at RIDER.speed times a soldier's pace
 const RIDER = { hp: [170, 240, 330], dmg: [9, 13, 18], rate: .8, speed: 2.1, names: ['Rider', 'Lancer', 'Knight'] };
-const ridingM = mat('#2f4f86');   // the town's blue saddle cloth
+const ridingM = teamMat(mat('#2f4f86'), 'town', '#2f4f86');   // the town's blue saddle cloth
 const SQUAD = [[0, 0], [-.8, -.5], [.8, -.5]];      // where the three stand round their spot
 var respawns = [], fallen = [];                     // fallen soldiers come back as villagers after 60 s of daylight
 // the tier's armour (armour()); tier 1 militia: spear; tier 2 guard: spear and a round wooden shield; tier 3 man-at-arms: sword and a blue kite shield
