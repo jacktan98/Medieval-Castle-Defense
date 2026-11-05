@@ -868,20 +868,20 @@ var guideDone = false, goalsMet = {};
 const made = t => (stats.made && stats.made[t]) || 0;
 const upTo = (t, n) => buildings.some(B => B.type === t && !B.dead && B.tier >= n);
 // how many of a type stand finished with a decor boost on them (the target range for crossbows, siege stores for catapults)
-const boosted = (t, key) => buildings.filter(B => B.type === t && B.built && !B.dead && decorFx(center(B).x, center(B).z, key) > 0).length;
 // each campaign stage's two goals (Jack): a win is one star, each goal met one more. [text, check, end]: a goal marked end is
 // only judged when the game ends (no buildings lost); the others are met for good the moment they come true (goalTick)
 // measured: two tier-1 foresters fell about 12 trees a minute, two tier-1 mines dig about 11.5 stone (Dunewell has ~13 min of daylight, Ironwood ~15)
-const GOAL_N = { felled: 100, mined: 120, folk: 40 };
+// boosted kills, measured in a simulated stage: 4 boosted crossbows about 49 kills by Riverbend's night 4, 2 about 35; 4 boosted catapults about 45 by Siegeford's night 3
+const GOAL_N = { felled: 100, mined: 120, folk: 40, xbowKills: 40, cataKills: 50 };
 const STAGE_GOALS = {
   vale: [['Follow the tutorial', () => guideDone], ['No buildings lost', () => stats.lostB === 0, true]],
   bridge: [['Build a barracks', () => made('barracks') >= 1], ['No buildings lost · walls OK', () => stats.lostB === 0, true]],
   cross: [['Build a market', () => made('market') >= 1], ['Upgrade to tier 2', () => stats.upgrades >= 1]],
   watch: [['Build 2 ballistas', () => made('ballista') >= 2], ['Ballista to tier 2', () => upTo('ballista', 2)]],
   dune: [['Build 2 foresters', () => made('forester') >= 2], [`Fell ${GOAL_N.felled} forester trees`, () => stats.felled >= GOAL_N.felled]],
-  bend: [['Build 2 crossbows', () => made('crossbow') >= 2], ['Target range boosting 4 crossbows', () => boosted('crossbow', 'rangeArch') >= 4]],
+  bend: [['Build 2 crossbows', () => made('crossbow') >= 2], [`Boosted crossbows slay ${GOAL_N.xbowKills} raiders`, () => (stats.boostKills.crossbow || 0) >= GOAL_N.xbowKills]],
   crag: [['Build 2 mines', () => made('mine') >= 2], [`Mine ${GOAL_N.mined} stone`, () => stats.mined >= GOAL_N.mined]],
-  ford: [['Build 2 catapults', () => made('catapult') >= 2], ['Siege stores boosting 4 catapults', () => boosted('catapult', 'siegeRate') >= 4]],
+  ford: [['Build 2 catapults', () => made('catapult') >= 2], [`Boosted catapults slay ${GOAL_N.cataKills} raiders`, () => (stats.boostKills.catapult || 0) >= GOAL_N.cataKills]],
   mere: [['Build 2 farmhouses', () => made('farmhouse') >= 2], ['Farmhouse to tier 3', () => upTo('farmhouse', 3)]],
   plains: [['Build 2 stables', () => made('stables') >= 2], ['Stables to tier 3', () => upTo('stables', 3)]],
   keep: [['Upgrade to Castle', () => upTo('castle', 3)], [`Reach ${GOAL_N.folk} villagers`, () => townsfolk().length >= GOAL_N.folk]],
@@ -3624,7 +3624,7 @@ function emitSmoke(dt) {
 let adapt = true, tool = 'select', cat = 'eco', cur = null, selected = null, gameOver = false;
 const anims = [], buildings = [], villagers = [], enemies = [], arrows = [];
 const res = { gold: 0, wood: 0, stone: 0, food: 0 };
-let stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, lostB: 0, felled: 0, mined: 0, t0: 0 };
+let stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, lostB: 0, felled: 0, mined: 0, boostKills: {}, t0: 0 };
 let PH = { kind: 'day', wave: 1, t: DAYLEN[0] }, econT = TICK, spawnQueue = [], spawnT = 0, light = 1, nextId = 1;
 const canAfford = c => RES_KEYS.every(k => (res[k] || 0) >= (c[k] || 0));
 const shortfall = c => RES_KEYS.filter(k => (c[k] || 0) > res[k]).map(k => `${c[k] - Math.floor(res[k])} more ${k}`).join(', ');
@@ -5300,10 +5300,14 @@ function engineWreck(e, y) {
   }
   for (let i = 0; i < 8; i++) dustAt(e.x + (Math.random() - .5) * 1.6, y, e.z + (Math.random() - .5) * 1.6);
 }
-function hurtEnemy(e, d) {
+// by: the building whose shot it was (crossbow towers and catapults pass it): a kill while a target range or siege stores boosts it
+// counts toward Riverbend's and Siegeford's goals (stats.boostKills)
+const BOOST_KEY = { crossbow: 'rangeArch', catapult: 'siegeRate' };
+function hurtEnemy(e, d, by) {
   if (e.dead) return; e.hp -= d; e.flashT = .14;
   if (e.hp <= 0) {
     e.dead = true; e.bar.grp.visible = false; stats.slain++; const y = walkY(e.x, e.z);
+    if (by && BOOST_KEY[by.type] && !by.dead && decorFx(center(by).x, center(by).z, BOOST_KEY[by.type]) > 0) stats.boostKills[by.type] = (stats.boostKills[by.type] || 0) + 1;
     if (e.engine) { engineWreck(e, y); return; }
     sfx('grunt', e) || sfx('arrowHit', e); for (let i = 0; i < 5; i++) dustAt(e.x, y, e.z);   // a puff of dust as they fall
   }
@@ -5922,7 +5926,7 @@ function updateDefense(dt) {
       const from = f ? (T.weapon === 'crossbow' ? xbowPoint(f) : bowPoint(f)) : new THREE.Vector3(c.x, B.group.position.y + T.shootY[k], c.z);
       const lead = best.walking ? .5 : 0, to = new THREE.Vector3(best.x + Math.sin(best.g.rotation.y) * lead, best.g.position.y + .7, best.z + Math.cos(best.g.rotation.y) * lead);
       const tgt = best, dmg = T.dmg[k];
-      fireArrow(from, to, () => hurtEnemy(tgt, dmg), T.weapon === 'crossbow' ? .3 : 0, T.weapon === 'crossbow' ? 'qbolt' : null);
+      fireArrow(from, to, () => hurtEnemy(tgt, dmg, B), T.weapon === 'crossbow' ? .3 : 0, T.weapon === 'crossbow' ? 'qbolt' : null);
     }
   }
 }
@@ -6095,7 +6099,7 @@ function updateSiege(B, T, dt) {
     B.arm.updateMatrixWorld(true); const from = B.arm.localToWorld(new THREE.Vector3(0, B.tier === 3 ? 1.9 : 1.3, 0)); siegeLaunchFx(B, from, dir);
     const lead = best.walking ? 1.2 : 0, tx = best.x + Math.sin(best.g.rotation.y) * lead, tz = best.z + Math.cos(best.g.rotation.y) * lead, to = new THREE.Vector3(tx, walkY(tx, tz) + .1, tz), rad = T.splash[k];
     fireArrow(from, to, () => {
-      for (const e of enemies) if (!e.dead) { const d = Math.hypot(e.x - tx, e.z - tz); if (d < rad) hurtEnemy(e, dmg * (1 - .5 * d / rad)); }
+      for (const e of enemies) if (!e.dead) { const d = Math.hypot(e.x - tx, e.z - tz); if (d < rad) hurtEnemy(e, dmg * (1 - .5 * d / rad), B); }
       blastFx(tx, tz, B.tier, rad); shake(.05 + .03 * B.tier, { x: tx, z: tz }, 'stone', .4);
     }, Math.max(3, bd * .45), 'stone').scale.setScalar(CATA_SHOT[k]);
   }
@@ -6894,17 +6898,17 @@ const fordWallRow = () => Math.floor((FORD_WALL_ROW + .5) * MK);
 function fordWall() {
   // laid on the layout's columns (a medium map's cell ci stands over layout column d)
   const cj = fordWallRow(), bci = Math.floor(FORD_BRIDGE_X / CELL), fci = Math.floor(FORD_XS[0] / CELL);
-  const gap = c => { const ci = Math.floor((c + .5) / MK); return Math.abs(ci - bci) <= 1 || Math.abs(ci - fci) <= 2 || ci === 22 || ci === 23 || ci === 3 || ci === 4; };
+  const gap = c => { const ci = Math.floor((c + .5) / MK); return Math.abs(ci - bci) <= 1 || Math.abs(ci - fci) <= 2 || ci === 22 || ci === 23 || ci <= 4; };   // (Jack: none west of the old gap at columns 3-4)
   for (let ci = 0; ci < N; ci++) if (!gap(ci) && evaluate('wall', ci, cj).ok) {
     const B = place('wall', ci, cj, { instant: true, free: true, quiet: true });
     if (B) { B.tier = 2; B.max = DEF.wall.hp[1]; B.hp = B.max; swapModel(B); }
   }
   // the west side (Jack: so players see raiders may come that way): the same old wall running north to south across the gorge,
-  // on layout column 4 from below the bank's row to the south edge, open only on the gorge road's own cell (a gate's place);
-  // any rock on its line is cleared first, so the line has no other holes
+  // on layout column 4 from below the bank's row down to the gorge road, left open there (a gate's place); Jack had the stretch south
+  // of the road dropped. Any rock on its line is cleared first, so the line has no other holes
   const wci = Math.floor(4.5 * MK), x0 = wci * CELL - .5, x1 = (wci + 1) * CELL + .5;
   for (let wj = cj + 1; wj < N; wj++) {
-    if (road[wj * N + wci]) continue;
+    if (road[wj * N + wci]) break;
     for (const q of rocks) if (q.x > x0 && q.x < x1 && q.z > wj * CELL - .5 && q.z < (wj + 1) * CELL + .5) q.amount = 0;
     if (!evaluate('wall', wci, wj).ok) continue;
     const B = place('wall', wci, wj, { instant: true, free: true, quiet: true });
@@ -7380,7 +7384,7 @@ function openStage(i) {
   $('#stStars').innerHTML = starsHTML(c.map ? STARS[c.map] || 0 : 0);
   // how many waves, how long to prepare before the first, and the quickest win so far
   const R = c.map && MAP_RULES[c.map];
-  $('#stInfo').innerHTML = R ? `<span><b>${R.waves.length}</b> waves</span><span><b>${fmt(R.day[0])}</b> to prepare</span>${BEST[c.map] ? `<span>Best <b>${fmt(BEST[c.map])}</b></span>` : ''}` : '';
+  $('#stInfo').innerHTML = R ? `<span>Day 1 <b>${fmt(R.day[0])}</b></span><span><b>${R.waves.length}</b> waves</span>${BEST[c.map] ? `<span>Best <b>${fmt(BEST[c.map])}</b></span>` : ''}` : '';
   requestAnimationFrame(() => { const slot = $('#cDetSlot'), det = slot.firstElementChild, chips = [...det.querySelectorAll('.stNew span')];
     const rows = new Set(chips.map(e => e.offsetTop)).size, ch = chips[0] ? chips[0].offsetHeight + 7 : 0;
     const full = det.offsetHeight + (rows === 1 ? ch : 0);
@@ -7676,7 +7680,7 @@ function startGame() {
   setMapSize(MAP_N[MAP] || 28);
   genTerrain(); if (MAP === 'keep') rollKeepCamps(); genBridges(); genTrees(); genRocks(); genClutter(); syncTerrain(); buildBridges(); genShore(); hideGhost(); deselect();
   Object.assign(res, (MAP_RULES[MAP] || {}).res || { gold: 40, wood: 45, stone: 0, food: 20 });
-  stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, lostB: 0, felled: 0, mined: 0, t0: performance.now() }; guideDone = false; goalsMet = {};
+  stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, lostB: 0, felled: 0, mined: 0, boostKills: {}, t0: performance.now() }; guideDone = false; goalsMet = {};
   clearSummary(); $('#log').innerHTML = '';
   const ev = MAP === 'isle' ? findValid('castle', 12, 12, { free: true }) : MAP === 'pass' ? findValid('castle', 12, 9, { free: true }) : MAP === 'vale' ? findValid('castle', 11, 15, { free: true }) : MAP === 'bridge' ? findValid('castle', 13, 17, { free: true }) : MAP === 'cross' ? findValid('castle', 7, 18, { free: true }) : MAP === 'watch' ? findValid('castle', 7, 13, { free: true }) : MAP === 'dune' ? findValid('castle', 6, 11, { free: true }) : MAP === 'bend' ? findValid('castle', 9, 12, { free: true }) : MAP === 'crag' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'ford' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'mere' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'plains' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'keep' ? findValid('castle', 19, 32, { free: true }) : MAP === 'hold' ? findValid('castle', 18, 31, { free: true }) : findValid('castle', 8, 12, { free: true });
   if (ev) { const B = place('castle', ev.ci, ev.cj, { instant: true, free: true, quiet: true }); const c = center(B); target.set(c.x, 2, c.z); }
