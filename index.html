@@ -116,7 +116,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .util button{background:#24261f}
 .util button{min-height:28px;font-size:12px;padding:1px 7px}
 #nightBtn{min-height:28px;font-size:12px;padding:2px 9px;flex-shrink:0;background:#24261f;border-color:#57533f;flex-direction:row}
-#nightBtn svg{width:34px;height:20px;display:block} #nightBtn .ff{fill:#f0c95a} #nightBtn .sun{fill:#ffd36a} #nightBtn .rays{stroke:#ffd36a;stroke-width:1.6;stroke-linecap:round;fill:none}
+#nightBtn svg{width:34px;height:22px;display:block} #nightBtn .hb{fill:#f0c95a;stroke:#7a5420;stroke-width:.8;stroke-linejoin:round} #nightBtn .hm{stroke:#9a6a24;stroke-width:1;fill:none} #nightBtn .hw{stroke:#ffe9a8;stroke-width:1.3;fill:none;stroke-linecap:round} #nightBtn .w2{opacity:.7}
 .banner{position:absolute;top:34%;left:50%;transform:translate(-50%,-50%);font-family:var(--display);font-size:clamp(28px,6vw,52px);
   color:var(--gold);text-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none;text-align:center;transition:opacity .6s;opacity:0;width:calc(100% - 32px)}
 .banner.show{opacity:1} .banner.night{color:var(--night)}
@@ -584,7 +584,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
         <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" class="tickBg"/><circle cx="18" cy="18" r="15" class="tickFg" id="tickRing"/></svg>
         <span id="tickN">20</span>
       </div>
-      <button id="nightBtn" title="Skip day" aria-label="Skip day"><svg viewBox="0 0 34 20"><path class="ff" d="M2 4 L9 10 L2 16 Z M9 4 L16 10 L9 16 Z"/><circle class="sun" cx="26" cy="10" r="3.6"/><path class="rays" d="M26 2.2 V4.1 M26 15.9 V17.8 M18.2 10 H20.1 M31.9 10 H33.8 M20.5 4.5 L21.8 5.8 M30.2 14.2 L31.5 15.5 M20.5 15.5 L21.8 14.2 M30.2 5.8 L31.5 4.5"/></svg></button>
+      <button id="nightBtn" title="Skip day" aria-label="Skip day"><svg viewBox="0 0 30 20" class="horn"><path class="hb" d="M4 13.5 C9 13 15 10 19.5 5.2 L21.2 4.4 L23.6 14.6 L21.8 14.4 C17 12.6 10.5 13.6 5.4 16.8 Z"/><path class="hm" d="M5.2 13.6 L5.2 16.6 M8.6 12.6 L8.6 15.3 M12.6 11.3 L12.6 14"/><path class="hw" d="M25 6.5 Q27.5 9.5 25 12.5"/><path class="hw w2" d="M27.3 4.4 Q31 9.5 27.3 14.6"/></svg></button>
     </div>
     <div class="res">
       <div class="chip" id="cGold" title="Gold"><span class="ico" data-ico="gold"></span><b>0</b></div>
@@ -3958,7 +3958,7 @@ function completeSite(B) {
     else if (T.movable) tipOnce('move', 'Tap the catapult, then <b>Move</b> to roll it somewhere new');
     else if (B.type === 'market') tipOnce('market', 'Tap the market to <b>trade</b>');
     else if (DEF_FXT(B.type)) tipOnce('decor', '<b>Decor</b> helps what stands near it');
-    if (stats.built >= 4 && B.type !== 'castle' && MAP !== 'vale') tipOnce('skip', '<b>Skip day</b> early to earn gold for the time left');
+    if (stats.built >= 4 && B.type !== 'castle') tipOnce('skip', '<b>Skip day</b> early to earn gold for the time left');
   } else {
     B.tier++; stats.upgrades++; swapModel(B); settleBase(B); rebuildRoads(); B.group.scale.y = 1; B.max = T.hp[B.tier - 1]; B.hp = B.max;
     if (B.tier === 2) rebuildRoads();   // the new stone base: paths now stop at its edge
@@ -6374,24 +6374,34 @@ function updateTips(dt) {
   el.hidden = true; if (!tipQ.length || paused) return;
   const [, html] = tipQ.shift(); el.innerHTML = html; el.hidden = false; tipT = 6; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
 }
-// the tutorial's build steps: a glowing spot where that building would do well (near the castle; lumber by trees; archers toward the raiders)
-const guideDisc = makeDisc('#ffd76a'); let guideSpotFor = -1;
+// the tutorial's build steps: where that building would do well (near the castle; lumber by trees; archers toward the raiders),
+// shown as soft gold tiles over the cells it would take, a small gap between them like the grid (Jack: a grid, not a circle,
+// and not too bright); rebuilt whenever the step changes, so a spot never lingers where something now stands
+const guideTiles = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: '#e9c76a', transparent: true, opacity: .25, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }));
+guideTiles.renderOrder = 2; guideTiles.frustumCulled = false; guideTiles.visible = false; scene.add(guideTiles);
+let guideSpotFor = -1;
+function tileSpot(ev) {
+  const pos = [], K = 4, inset = .12;
+  for (let cz = ev.z0; cz < ev.z1 - .01; cz += CELL) for (let cx = ev.x0; cx < ev.x1 - .01; cx += CELL) {
+    const x0 = cx + inset, z0 = cz + inset, w = CELL - 2 * inset, P = (i, j) => { const x = x0 + w * i / K, z = z0 + w * j / K; return [x, Math.max(hAt(x, z), 0) + .07, z]; };
+    for (let j = 0; j < K; j++) for (let i = 0; i < K; i++) pos.push(...P(i, j), ...P(i + 1, j), ...P(i, j + 1), ...P(i + 1, j), ...P(i + 1, j + 1), ...P(i, j + 1));
+  }
+  guideTiles.geometry.dispose(); guideTiles.geometry = new THREE.BufferGeometry(); guideTiles.geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+}
 function updateGuideSpot(now) {
   const S = guideOn && !gameOver && guideStep >= 0 && GUIDE[guideStep], t = S && S.tool && DEF[S.tool] ? S.tool : null;
-  if (!t || menuOn() || PH.kind !== 'day') { guideDisc.visible = false; guideSpotFor = -1; return; }
+  if (!t || menuOn() || PH.kind !== 'day') { guideTiles.visible = false; guideSpotFor = -1; return; }
   if (guideSpotFor !== guideStep) {
-    guideSpotFor = guideStep; const K = castleB(); if (!K) return; const c = center(K); let tx = c.x, tz = c.z + 6;
+    guideSpotFor = guideStep; guideTiles.visible = false; const K = castleB(); if (!K) return; const c = center(K); let tx = c.x, tz = c.z + 6;
     if (t === 'lodge' || t === 'forester') { let best = null, bd = 1e9; for (const T of trees) if (!T.deco && !T.cut) { const d = Math.hypot(T.x - c.x, T.z - c.z); if (d > 8 && d < bd) { bd = d; best = T; } } if (best) { tx = lerp(c.x, best.x, .65); tz = lerp(c.z, best.z, .65); } }
     else if (DEF[t].archers || DEF[t].crew) { const p = nightPts()[0]; const d = Math.hypot(p.x - c.x, p.z - c.z) || 1; tx = c.x + (p.x - c.x) / d * 7; tz = c.z + (p.z - c.z) / d * 7; }
     else if (t === 'farm' || t === 'farmhouse') { tx = c.x - 6; tz = c.z + 3; }
     else { tx = c.x + 4; tz = c.z + 3; }
     const ev = findValid(t, Math.floor(tx / CELL), Math.floor(tz / CELL), { free: true });
-    if (!ev) { guideDisc.visible = false; return; }
-    guideDisc.userData.at = [(ev.x0 + ev.x1) / 2, (ev.z0 + ev.z1) / 2, Math.max(ev.x1 - ev.x0, ev.z1 - ev.z0) * .62];
+    if (!ev) return;
+    tileSpot(ev); guideTiles.visible = true;
   }
-  const a = guideDisc.userData.at; if (!a) return;
-  if (!guideDisc.visible) drapeDisc(guideDisc, a[0], a[1], a[2]);
-  guideDisc.material.opacity = .5 + .22 * Math.sin(now / 260);
+  if (guideTiles.visible) guideTiles.material.opacity = .2 + .1 * Math.sin(now / 320);
 }
 function updateRaidMarks(dt) {
   // only from dusk (Jack): by day the coming night's points stay hidden
@@ -6649,7 +6659,7 @@ const PH_ICON = {
 let phIcoKind = '';
 function updateHud() {
   const pt = $('#phaseText'), sub = $('#phaseSub');
-  if (PH.kind === 'day') { pt.textContent = `Day ${PH.wave} of ${NIGHTS}`; pt.className = ''; sub.textContent = `Night in ${fmt(Math.max(0, PH.t))}`; $('#nightBtn').hidden = gameOver || MAP === 'vale'; }
+  if (PH.kind === 'day') { pt.textContent = `Day ${PH.wave} of ${NIGHTS}`; pt.className = ''; sub.textContent = `Night in ${fmt(Math.max(0, PH.t))}`; $('#nightBtn').hidden = gameOver; }
   else { const left = spawnQueue.length + enemies.filter(e => !e.dead && !e.dormant).length; pt.textContent = `Night ${PH.wave} of ${NIGHTS}`; pt.className = 'night'; sub.textContent = `${left} raider${left === 1 ? '' : 's'} left`; $('#nightBtn').hidden = true; }
   const kind = PH.kind === 'day' ? 'sun' : 'moon'; if (phIcoKind !== kind) { phIcoKind = kind; $('#phIco').innerHTML = PH_ICON[kind]; }
   $('#tickRing').style.strokeDashoffset = (94.25 * (1 - econT / TICK)).toFixed(1); $('#tickN').textContent = Math.ceil(econT);
@@ -6826,7 +6836,7 @@ $('#cancelBtn').addEventListener('click', () => {
 $('#closeCard').addEventListener('click', deselect);
 // calling the night early pays for the time left (Kingdom Rush style): a gold for every 4 s, at most 60
 $('#nightBtn').addEventListener('click', () => {
-  if (PH.kind !== 'day' || gameOver || MAP === 'vale') return;
+  if (PH.kind !== 'day' || gameOver) return;
   const g = Math.min(60, Math.round(PH.t / 4)), K = castleB();
   if (g > 0) { res.gold += g; stats.gold += g; log(`<b>Early</b> · +${g} gold`, 'good'); if (K) { const c = center(K), y = K.group.position.y + 4; floatRes('gold', g, c.x, y, c.z); coinFly(c.x, y, c.z, 3); } }
   PH.t = 0;
@@ -8449,7 +8459,7 @@ function guideTick() {
   if (guideEndT && performance.now() > guideEndT) { guideEndT = 0; g.hidden = true; }
   if (!guideOn) return;
   const next = GUIDE.findIndex(S => !S.done());
-  if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').textContent = 'Ready for night'; guideEndT = performance.now() + 3500; guideFinish(); g.hidden = false; return; }
+  if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').textContent = 'Good luck, my lord'; guideEndT = performance.now() + 3500; guideFinish(); g.hidden = false; return; }
   if (next !== guideStep) { guideStep = next; guideMark(); }
 }
 $('#gSkip').addEventListener('click', () => { guideFinish(); $('#guide').hidden = true; });

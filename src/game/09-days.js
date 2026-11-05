@@ -115,24 +115,34 @@ function updateTips(dt) {
   el.hidden = true; if (!tipQ.length || paused) return;
   const [, html] = tipQ.shift(); el.innerHTML = html; el.hidden = false; tipT = 6; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
 }
-// the tutorial's build steps: a glowing spot where that building would do well (near the castle; lumber by trees; archers toward the raiders)
-const guideDisc = makeDisc('#ffd76a'); let guideSpotFor = -1;
+// the tutorial's build steps: where that building would do well (near the castle; lumber by trees; archers toward the raiders),
+// shown as soft gold tiles over the cells it would take, a small gap between them like the grid (Jack: a grid, not a circle,
+// and not too bright); rebuilt whenever the step changes, so a spot never lingers where something now stands
+const guideTiles = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: '#e9c76a', transparent: true, opacity: .25, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }));
+guideTiles.renderOrder = 2; guideTiles.frustumCulled = false; guideTiles.visible = false; scene.add(guideTiles);
+let guideSpotFor = -1;
+function tileSpot(ev) {
+  const pos = [], K = 4, inset = .12;
+  for (let cz = ev.z0; cz < ev.z1 - .01; cz += CELL) for (let cx = ev.x0; cx < ev.x1 - .01; cx += CELL) {
+    const x0 = cx + inset, z0 = cz + inset, w = CELL - 2 * inset, P = (i, j) => { const x = x0 + w * i / K, z = z0 + w * j / K; return [x, Math.max(hAt(x, z), 0) + .07, z]; };
+    for (let j = 0; j < K; j++) for (let i = 0; i < K; i++) pos.push(...P(i, j), ...P(i + 1, j), ...P(i, j + 1), ...P(i + 1, j), ...P(i + 1, j + 1), ...P(i, j + 1));
+  }
+  guideTiles.geometry.dispose(); guideTiles.geometry = new THREE.BufferGeometry(); guideTiles.geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+}
 function updateGuideSpot(now) {
   const S = guideOn && !gameOver && guideStep >= 0 && GUIDE[guideStep], t = S && S.tool && DEF[S.tool] ? S.tool : null;
-  if (!t || menuOn() || PH.kind !== 'day') { guideDisc.visible = false; guideSpotFor = -1; return; }
+  if (!t || menuOn() || PH.kind !== 'day') { guideTiles.visible = false; guideSpotFor = -1; return; }
   if (guideSpotFor !== guideStep) {
-    guideSpotFor = guideStep; const K = castleB(); if (!K) return; const c = center(K); let tx = c.x, tz = c.z + 6;
+    guideSpotFor = guideStep; guideTiles.visible = false; const K = castleB(); if (!K) return; const c = center(K); let tx = c.x, tz = c.z + 6;
     if (t === 'lodge' || t === 'forester') { let best = null, bd = 1e9; for (const T of trees) if (!T.deco && !T.cut) { const d = Math.hypot(T.x - c.x, T.z - c.z); if (d > 8 && d < bd) { bd = d; best = T; } } if (best) { tx = lerp(c.x, best.x, .65); tz = lerp(c.z, best.z, .65); } }
     else if (DEF[t].archers || DEF[t].crew) { const p = nightPts()[0]; const d = Math.hypot(p.x - c.x, p.z - c.z) || 1; tx = c.x + (p.x - c.x) / d * 7; tz = c.z + (p.z - c.z) / d * 7; }
     else if (t === 'farm' || t === 'farmhouse') { tx = c.x - 6; tz = c.z + 3; }
     else { tx = c.x + 4; tz = c.z + 3; }
     const ev = findValid(t, Math.floor(tx / CELL), Math.floor(tz / CELL), { free: true });
-    if (!ev) { guideDisc.visible = false; return; }
-    guideDisc.userData.at = [(ev.x0 + ev.x1) / 2, (ev.z0 + ev.z1) / 2, Math.max(ev.x1 - ev.x0, ev.z1 - ev.z0) * .62];
+    if (!ev) return;
+    tileSpot(ev); guideTiles.visible = true;
   }
-  const a = guideDisc.userData.at; if (!a) return;
-  if (!guideDisc.visible) drapeDisc(guideDisc, a[0], a[1], a[2]);
-  guideDisc.material.opacity = .5 + .22 * Math.sin(now / 260);
+  if (guideTiles.visible) guideTiles.material.opacity = .2 + .1 * Math.sin(now / 320);
 }
 function updateRaidMarks(dt) {
   // only from dusk (Jack): by day the coming night's points stay hidden

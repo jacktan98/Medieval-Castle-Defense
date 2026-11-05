@@ -253,7 +253,7 @@ function completeSite(B) {
     else if (T.movable) tipOnce('move', 'Tap the catapult, then <b>Move</b> to roll it somewhere new');
     else if (B.type === 'market') tipOnce('market', 'Tap the market to <b>trade</b>');
     else if (DEF_FXT(B.type)) tipOnce('decor', '<b>Decor</b> helps what stands near it');
-    if (stats.built >= 4 && B.type !== 'castle' && MAP !== 'vale') tipOnce('skip', '<b>Skip day</b> early to earn gold for the time left');
+    if (stats.built >= 4 && B.type !== 'castle') tipOnce('skip', '<b>Skip day</b> early to earn gold for the time left');
   } else {
     B.tier++; stats.upgrades++; swapModel(B); settleBase(B); rebuildRoads(); B.group.scale.y = 1; B.max = T.hp[B.tier - 1]; B.hp = B.max;
     if (B.tier === 2) rebuildRoads();   // the new stone base: paths now stop at its edge
