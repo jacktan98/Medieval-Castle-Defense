@@ -827,6 +827,15 @@ function updateGallery(dt, now) {
   for (const p of gPeople) galPose(p, t, dt);
 }
 $('#adGallery').addEventListener('click', openGallery);
+// Reset campaign (Jack): tap twice within 3 s; clears stars, best times, crowns, the save, the tutorial and tips seen and the
+// stages' town picks (sound settings, the free-play loadout and the last map stay), then reloads
+let campResetT = 0;
+$('#adReset').addEventListener('click', () => {
+  const b = $('#adReset');
+  if (performance.now() > campResetT) { campResetT = performance.now() + 3000; b.classList.add('armed'); b.textContent = 'Tap again to reset'; setTimeout(() => { if (performance.now() > campResetT) { b.classList.remove('armed'); b.textContent = 'Reset campaign'; } }, 3100); return; }
+  try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor']) localStorage.removeItem('mtd-' + k); } catch (e) {}
+  location.reload();
+});
 $('#moveBtn').addEventListener('click', () => { if (paused) return setHint('Paused', 'bad'); if (!selected) return; moveFor = moveFor === selected ? null : selected; setHint(moveFor ? 'Tap a tile' : 'Select a building'); refreshCard(); });
 $('#rallyBtn').addEventListener('click', () => { if (!selected) return; rallyFor = rallyFor === selected ? null : selected; setHint(rallyFor ? 'Tap a spot' : 'Select a building'); refreshCard(); });
 $('#cardTrade').addEventListener('click', e => {

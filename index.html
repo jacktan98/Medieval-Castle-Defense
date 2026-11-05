@@ -154,6 +154,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #sumGoals li{display:flex;align-items:center;gap:8px;color:var(--muted)} #sumGoals li.ok{color:var(--parch)} #sumGoals li b{width:18px;text-align:center;color:#6b6656} #sumGoals li.ok b{color:#8cc46e}
 .mapBtn .stars{font-size:13px}
 #campBtn{margin-top:4px;padding:9px 22px;font-family:var(--display);font-size:17px;color:var(--gold)}
+#adReset.armed{background:#8e2a20!important;border-color:#e0705a!important;color:#fff!important}
 #saveResume{padding:9px 30px;font-family:var(--display);font-size:17px}
 .saveInfo{margin-top:-9px;font-size:12px;font-weight:600;color:#f4e3b2;letter-spacing:.02em;text-shadow:0 1px 3px rgba(0,0,0,.85)}
 #campaign{background:#14150f}
@@ -615,6 +616,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
       <label class="adminTog"><input type="checkbox" id="adInstant"> Instant build and upgrades</label>
       <div class="adminRow"><button id="adPop">+5 villagers</button><button id="adDay">Skip to night</button></div>
       <div class="adminRow"><button id="adRaid">Raiders</button><button id="adGallery">Gallery</button></div>
+      <div class="adminRow"><button id="adReset">Reset campaign</button></div>
     </div>
     <div class="admin" id="raidDash" hidden>
       <div class="adminHead"><b>Raiders</b><button class="iconBtn" id="rdClose" aria-label="Close" title="Close"><svg viewBox="0 0 24 24"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button></div>
@@ -7915,6 +7917,15 @@ function updateGallery(dt, now) {
   for (const p of gPeople) galPose(p, t, dt);
 }
 $('#adGallery').addEventListener('click', openGallery);
+// Reset campaign (Jack): tap twice within 3 s; clears stars, best times, crowns, the save, the tutorial and tips seen and the
+// stages' town picks (sound settings, the free-play loadout and the last map stay), then reloads
+let campResetT = 0;
+$('#adReset').addEventListener('click', () => {
+  const b = $('#adReset');
+  if (performance.now() > campResetT) { campResetT = performance.now() + 3000; b.classList.add('armed'); b.textContent = 'Tap again to reset'; setTimeout(() => { if (performance.now() > campResetT) { b.classList.remove('armed'); b.textContent = 'Reset campaign'; } }, 3100); return; }
+  try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor']) localStorage.removeItem('mtd-' + k); } catch (e) {}
+  location.reload();
+});
 $('#moveBtn').addEventListener('click', () => { if (paused) return setHint('Paused', 'bad'); if (!selected) return; moveFor = moveFor === selected ? null : selected; setHint(moveFor ? 'Tap a tile' : 'Select a building'); refreshCard(); });
 $('#rallyBtn').addEventListener('click', () => { if (!selected) return; rallyFor = rallyFor === selected ? null : selected; setHint(rallyFor ? 'Tap a spot' : 'Select a building'); refreshCard(); });
 $('#cardTrade').addEventListener('click', e => {

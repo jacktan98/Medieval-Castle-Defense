@@ -138,6 +138,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #sumGoals li{display:flex;align-items:center;gap:8px;color:var(--muted)} #sumGoals li.ok{color:var(--parch)} #sumGoals li b{width:18px;text-align:center;color:#6b6656} #sumGoals li.ok b{color:#8cc46e}
 .mapBtn .stars{font-size:13px}
 #campBtn{margin-top:4px;padding:9px 22px;font-family:var(--display);font-size:17px;color:var(--gold)}
+#adReset.armed{background:#8e2a20!important;border-color:#e0705a!important;color:#fff!important}
 #saveResume{padding:9px 30px;font-family:var(--display);font-size:17px}
 .saveInfo{margin-top:-9px;font-size:12px;font-weight:600;color:#f4e3b2;letter-spacing:.02em;text-shadow:0 1px 3px rgba(0,0,0,.85)}
 #campaign{background:#14150f}
