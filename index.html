@@ -524,6 +524,12 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
 .raidMark svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .raidMark .arr{position:absolute;left:50%;top:50%;width:0;height:0;margin:-6px 0 0 -6px;border:6px solid transparent;border-left:9px solid #f0c95a;transform:rotate(var(--a)) translateX(22px);transform-origin:6px 6px;display:none}
 .raidMark.edge .arr{display:block}
+/* a building under attack out of view: a red pointer at the screen's edge toward it; a tap brings the camera there */
+.hitMark{position:absolute;left:0;top:0;z-index:4;width:30px;height:30px;margin:-15px 0 0 -15px;padding:0!important;min-height:0!important;border-radius:50%!important;background:rgba(150,24,16,.92)!important;border:2px solid #ffb39e!important;
+  color:#fff;display:flex;align-items:center;justify-content:center;animation:hitPulse .9s ease-in-out infinite;touch-action:manipulation}
+.hitMark::before{content:'!';font:800 16px/1 system-ui,sans-serif}
+.hitMark::after{content:'';position:absolute;left:50%;top:50%;margin:-6px 0 0 -6px;border:6px solid transparent;border-left:9px solid #ffb39e;transform:rotate(var(--a)) translateX(20px);transform-origin:6px 6px}
+@keyframes hitPulse{0%,100%{transform:var(--p) scale(1)}50%{transform:var(--p) scale(1.15)}}
 @keyframes raidPulse{0%,100%{box-shadow:0 0 0 0 rgba(220,60,40,.6),0 2px 8px rgba(0,0,0,.55)}50%{box-shadow:0 0 0 9px rgba(220,60,40,0),0 2px 8px rgba(0,0,0,.55)}}
 .wavePop{position:absolute;z-index:6;min-width:150px;max-width:220px;padding:0 0 8px;border-radius:10px;background:var(--panel);border:2px solid rgba(212,168,78,.72);box-shadow:0 4px 16px rgba(0,0,0,.5);font-size:13px;color:#f4e3b2;overflow:hidden}
 .wavePop h4{margin:0 0 6px;padding:5px 10px;font-family:var(--display);font-weight:400;font-size:15px;color:#ffe2a0;background:linear-gradient(90deg,rgba(150,112,52,.5),rgba(190,145,70,.62) 50%,rgba(150,112,52,.5));border-bottom:1px solid rgba(212,168,78,.55)}
@@ -536,6 +542,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
   <canvas id="c"></canvas>
   <button class="raidMark" id="raidMark0" hidden aria-label="Next wave"></button><button class="raidMark" id="raidMark1" hidden aria-label="Next wave"></button>
   <div class="wavePop" id="wavePop" hidden></div>
+  <button class="hitMark" hidden aria-label="Under attack"></button><button class="hitMark" hidden aria-label="Under attack"></button><button class="hitMark" hidden aria-label="Under attack"></button>
   <div class="powers" id="powers" hidden><button class="pw" id="pwVolley" aria-label="Arrow volley"></button><button class="pw" id="pwRiders" aria-label="Riders"></button></div>
   <div class="bossBar" id="bossBar" hidden><b id="bossName"></b><span><i id="bossFill"></i></span></div>
   <div class="panel">
@@ -3965,7 +3972,7 @@ function removeBuilding(B, raid, cancel) {
   refreshWalls(); rebuildRoads();
   if (B.type === 'castle') endGame(false);
 }
-function hurtBuilding(B, d) { if (B.dead || gameOver) return; B.hp -= d; shake(.05, center(B)); if (B.hp <= 0) removeBuilding(B, true); }
+function hurtBuilding(B, d) { if (B.dead || gameOver) return; B.hp -= d; B.hitT = performance.now(); shake(.05, center(B)); if (B.hp <= 0) removeBuilding(B, true); }
 function paintRoad(a, b) {
   const ev = evaluateRoad(a, b);
   if (!ev.ok) { if (!ev.soft) setHint(ev.reason, 'bad'); return false; }
@@ -6269,29 +6276,50 @@ function wavePopHTML() {
   return `<h4>Night ${PH.wave}</h4>${rows.join('')}`;
 }
 let markRect = null, markRectT = 0;
+// the band the edge marks may use: below the top panel, above the dock (measured every .5 s)
+function markBand(dt) {
+  if ((markRectT -= dt) <= 0 || !markRect) {
+    markRectT = .5; const top = document.querySelector('.panel').getBoundingClientRect(), dock = document.querySelector('.dock').getBoundingClientRect();
+    markRect = { x0: 24, x1: innerWidth - 24, y0: (top.bottom < innerHeight / 2 && top.right > innerWidth / 2 ? top.bottom : 60) + 26, y1: Math.min(innerHeight, dock.top) - 26 };
+  }
+  return markRect;
+}
+// a world point on screen, or held to the band's edge along the line from the middle toward it (edge: true, a: the angle toward it)
+function edgeSpot(x, y, z, R) {
+  const v = new THREE.Vector3(x, y, z).project(camera), cx = innerWidth / 2, cy = (R.y0 + R.y1) / 2;
+  let sx = (v.x + 1) / 2 * innerWidth, sy = (1 - v.y) / 2 * innerHeight; const behind = v.z > 1;
+  if (behind) { sx = innerWidth - sx; sy = innerHeight - sy; }
+  const edge = behind || sx < R.x0 || sx > R.x1 || sy < R.y0 || sy > R.y1, dx = sx - cx, dy = sy - cy || .001;
+  if (edge) { const k = Math.min(Math.abs((dx > 0 ? R.x1 - cx : R.x0 - cx) / (dx || .001)), Math.abs((dy > 0 ? R.y1 - cy : R.y0 - cy) / dy)); sx = cx + dx * Math.min(1, k); sy = cy + dy * Math.min(1, k); }
+  return { x: sx, y: sy, edge, a: Math.atan2(dy, dx) };
+}
+// buildings hit in the last 2.5 s that are out of view: up to three red pointers at the edge (near ones grouped); a tap looks there
+const hitEls = [...document.querySelectorAll('.hitMark')];
+hitEls.forEach(e => e.addEventListener('click', () => { const t = e._at; if (t) { target.x = t.x; target.z = t.z; updateCam(); sfx('click'); } }));
+function updateHitMarks(dt, now) {
+  const on = PH.kind === 'night' && !gameOver && !menuOn() && !galleryOn && !showcaseBuilt;
+  const spots = [];
+  if (on) { const R = markBand(dt);
+    for (const B of buildings) if (B.hitT && now - B.hitT < 2500 && !B.dead) {
+      const c = center(B); if (spots.some(q => Math.hypot(q.wx - c.x, q.wz - c.z) < 10)) continue;
+      const sp = edgeSpot(c.x, B.group.position.y + 1, c.z, R); if (sp.edge) spots.push({ ...sp, wx: c.x, wz: c.z });
+      if (spots.length >= 3) break;
+    } }
+  hitEls.forEach((e, i) => { const q = spots[i]; e.hidden = !q; if (!q) return; e._at = { x: q.wx, z: q.wz };
+    e.style.setProperty('--p', `translate(${q.x}px, ${q.y}px)`); e.style.setProperty('--a', q.a + 'rad'); e.style.transform = `translate(${q.x}px, ${q.y}px)`; });
+}
 function updateRaidMarks(dt) {
   const show = PH.kind === 'day' && !gameOver && !menuOn() && !galleryOn && !showcaseBuilt && !!castleB();
   const m = [$('#raidMark0'), $('#raidMark1')];
   if (!show) { m.forEach(e => e.hidden = true); $('#wavePop').hidden = true; return; }
   const P = nightPts();
-  if ((markRectT -= dt) <= 0) {   // the band the marks may use: below the top panel, above the dock
-    markRectT = .5; const top = document.querySelector('.panel').getBoundingClientRect(), dock = document.querySelector('.dock').getBoundingClientRect();
-    markRect = { x0: 24, x1: innerWidth - 24, y0: (top.bottom < innerHeight / 2 && top.right > innerWidth / 2 ? top.bottom : 60) + 26, y1: Math.min(innerHeight, dock.top) - 26 };
-  }
-  const R = markRect, cx = innerWidth / 2, cy = (R.y0 + R.y1) / 2;
+  const R = markBand(dt);
   P.forEach((p, i) => {
     const e = m[i]; if (!e.innerHTML) { e.innerHTML = RAID_ICO; e.addEventListener('click', () => { sfx('click'); const pop = $('#wavePop'); if (!pop.hidden && pop.dataset.i === String(i)) { pop.hidden = true; return; } pop.innerHTML = wavePopHTML(); pop.dataset.i = i; pop.hidden = false; placePop(e); }); }
     if (i === 1 && Math.hypot(P[0].x - p.x, P[0].z - p.z) < 3) { e.hidden = true; return; }   // both at one spot: one mark
-    const v = new THREE.Vector3(p.x, walkY(p.x, p.z) + 1, p.z).project(camera);
-    let x = (v.x + 1) / 2 * innerWidth, y = (1 - v.y) / 2 * innerHeight; const behind = v.z > 1;
-    if (behind) { x = innerWidth - x; y = innerHeight - y; }
-    let edge = behind || x < R.x0 || x > R.x1 || y < R.y0 || y > R.y1;
-    if (edge) {   // out of view: along the line from the middle toward it, stopped at the band's edge
-      const dx = x - cx, dy = y - cy || .001, k = Math.min(Math.abs((dx > 0 ? R.x1 - cx : R.x0 - cx) / (dx || .001)), Math.abs((dy > 0 ? R.y1 - cy : R.y0 - cy) / dy));
-      x = cx + dx * Math.min(1, k); y = cy + dy * Math.min(1, k);
-      e.style.setProperty('--a', Math.atan2(dy, dx) + 'rad');
-    }
-    e.classList.toggle('edge', edge); e.hidden = false; e.style.transform = `translate(${x}px, ${y}px)`;
+    const q = edgeSpot(p.x, walkY(p.x, p.z) + 1, p.z, R);
+    if (q.edge) e.style.setProperty('--a', q.a + 'rad');
+    e.classList.toggle('edge', q.edge); e.hidden = false; e.style.transform = `translate(${q.x}px, ${q.y}px)`;
   });
   const pop = $('#wavePop'); if (!pop.hidden) placePop(m[+pop.dataset.i]);
 }
@@ -8313,13 +8341,16 @@ function frame(now) {
       if (p >= 1) completeSite(B);
     }
     if (B.pop) { const t = clamp((now - B.pop) / 450, 0, 1), k = 1 + .09 * Math.sin(t * Math.PI) * (1 - t); B.group.scale.x = B.group.scale.z = k; if (t >= 1) { B.group.scale.x = B.group.scale.z = 1; B.pop = 0; } }
+    // a building hit shudders for a moment (squeezed in and back), so a blow reads even zoomed out
+    else if (B.hitT && now - B.hitT < 220) { const t = (now - B.hitT) / 220, k = 1 - .045 * Math.sin(t * Math.PI); B.group.scale.x = B.group.scale.z = k; }
+    else if (B.hitT && B.group.scale.x !== 1 && !B.move) { B.group.scale.x = B.group.scale.z = 1; }
     if (B.rise) { const t = clamp((now - B.rise.t0) / 420, 0, 1); B.group.scale.y = Math.max(.001, lerp(B.rise.from, 1, easeOut(t))); if (t >= 1) B.rise = null; }
     const c = center(B);
     B.bar.grp.visible = B.hp < B.max; B.bar.set(B.hp / B.max); B.bar.grp.position.set(c.x, B.group.position.y + barTop(B), c.z);
   }
   for (let n = floats.length - 1; n >= 0; n--) { const f = floats[n]; f.t += dt; f.sp.position.y += dt * .9; f.sp.material.opacity = 1 - f.t / 1.8; if (f.t > 1.8) { scene.remove(f.sp); f.sp.material.dispose(); floats.splice(n, 1); } }
   if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); guideTick(); goalTick(); updatePowers(); updateBossBar(); }
-  updateDebris(dt); updateRaidMarks(dt);
+  updateDebris(dt); updateRaidMarks(dt); updateHitMarks(dt, now);
   const sh = shakeOffset(dt); camera.position.add(sh);
   renderer.render(scene, camera);
   camera.position.sub(sh);
