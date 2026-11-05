@@ -158,8 +158,10 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #sumGoals li{display:flex;align-items:center;gap:8px;color:var(--muted)} #sumGoals li.ok{color:var(--parch)} #sumGoals li b{width:18px;text-align:center;color:#6b6656} #sumGoals li.ok b{color:#8cc46e}
 .mapBtn .stars{font-size:13px}
 #campBtn{margin-top:4px;padding:9px 22px;font-family:var(--display);font-size:17px;color:var(--gold)}
-#colBtn{display:inline-flex;align-items:center;gap:7px;padding:5px 14px!important;min-height:0!important;font-size:13px!important;color:#e6d6ae!important}
-.colDots{display:inline-flex;gap:3px} .colDots i{width:10px;height:10px;border-radius:50%;border:1px solid rgba(255,240,200,.6)}
+.setBtn{position:absolute;top:calc(12px + env(safe-area-inset-top));right:12px;z-index:4;width:40px;height:40px;min-height:0!important;padding:0!important;display:flex;align-items:center;justify-content:center}
+.modal.tome .setBtn svg{width:22px;height:22px;fill:none;stroke:#f4e3b2;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.setSub{font-family:var(--display);font-size:15px;color:#f0c95a;text-align:center;margin-bottom:-4px}
+.setVols{display:flex;flex-direction:column;gap:10px;padding:0 18px}
 .colCard{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;width:min(300px,86vw);display:flex;flex-direction:column;gap:12px;align-items:stretch;padding:0 0 14px;border-radius:12px;background:linear-gradient(180deg,#3d3020,#241b10);border:2px solid rgba(212,168,78,.8);box-shadow:0 10px 30px rgba(0,0,0,.6);overflow:hidden}
 .colCard h3{margin:0;padding:7px 10px;text-align:center;font-family:var(--display);font-weight:400;font-size:18px;color:#ffe2a0;background:linear-gradient(90deg,rgba(150,112,52,.5),rgba(190,145,70,.62) 50%,rgba(150,112,52,.5))}
 .colRow{display:flex;flex-direction:column;align-items:center;gap:7px;padding:0 12px} .colRow>span{font-size:13px;color:#e6d6ae;letter-spacing:.04em}
@@ -707,12 +709,16 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
       <button id="campBtn">Campaign</button>
       <button id="saveResume" class="primary" hidden>Resume</button>
       <div class="saveInfo" id="saveInfo" hidden></div>
-      <button id="colBtn" class="colBtn"><span class="colDots" id="colDots"></span>Colours</button>
     </div>
+    <button class="iconBtn setBtn" id="setBtn" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     <div class="colCard" id="colCard" hidden>
-      <h3>Colours</h3>
+      <h3>Settings</h3>
+      <div class="setSub">Colours</div>
       <div class="colRow"><span>Your town</span><div class="colSw" id="colTown"></div></div>
       <div class="colRow"><span>Raiders</span><div class="colSw" id="colFoe"></div></div>
+      <div class="setSub">Sound</div>
+      <div class="setVols"><label class="volRow"><span>Music</span><input type="range" id="setMusic" min="0" max="100" step="1" aria-label="Music loudness"></label>
+      <label class="volRow"><span>Sounds</span><input type="range" id="setSfx" min="0" max="100" step="1" aria-label="Sound loudness"></label></div>
       <button class="primary" id="colDone">Done</button>
     </div>
   </div>
@@ -7948,7 +7954,7 @@ function openCampaign(i) {
   cSel = i !== undefined ? i : cCur; cDrag = 0; layoutDeck(false); openStage(cSel);
 }
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
-// ---------- Colours (Jack): the town's and the raiders' colours, five each, under Campaign on the title screen; a colour one side
+// ---------- Colours (Jack): the town's and the raiders' colours, five each, in the title's Settings (gear); a colour one side
 // has is greyed out for the other; a tap recolours at once (the title's town shows it) and is kept ('mtd-colours')
 const COL_NAME = { blue: 'Blue', red: 'Red', green: 'Green', purple: 'Purple', black: 'Black' };
 function renderColours() {
@@ -7956,9 +7962,9 @@ function renderColours() {
     const other = side === 'town' ? TEAM.foe : TEAM.town;
     $(el).innerHTML = TEAM_NAMES.map(n => `<button class="sw${TEAM[side] === n ? ' on' : ''}${other === n ? ' taken' : ''}" data-side="${side}" data-c="${n}" aria-label="${COL_NAME[n]}" style="--c:${TEAM_PAL[n]}"></button>`).join('');
   }
-  $('#colDots').innerHTML = `<i style="background:${TEAM_PAL[TEAM.town]}"></i><i style="background:${TEAM_PAL[TEAM.foe]}"></i>`;
 }
-$('#colBtn').addEventListener('click', () => { sfx('click'); renderColours(); $('#colCard').hidden = false; });
+// Settings (Jack picked a gear in the title's corner over a Colours button under Campaign): the colours and the two loudness sliders
+$('#setBtn').addEventListener('click', () => { sfx('click'); renderColours(); syncAudioToggles(); $('#colCard').hidden = false; });
 $('#colDone').addEventListener('click', () => { $('#colCard').hidden = true; });
 $('#colCard').addEventListener('click', e => {
   const b = e.target.closest('.sw'); if (!b) return;
@@ -8598,7 +8604,7 @@ function setMuted(on) {
   syncMusic();
 }
 $('#muteBtn').addEventListener('click', () => setMuted(!muted));
-function syncAudioToggles() { $('#musicVol').value = Math.round(musicVol * 100); $('#sfxVol').value = Math.round(sfxVol * 100); for (const id of ['musicVol', 'sfxVol']) { const el = $('#' + id); el.style.setProperty('--p', el.value + '%'); } }
+function syncAudioToggles() { for (const [id, v] of [['musicVol', musicVol], ['sfxVol', sfxVol], ['setMusic', musicVol], ['setSfx', sfxVol]]) { const el = $('#' + id); if (!el) continue; el.value = Math.round(v * 100); el.style.setProperty('--p', el.value + '%'); } }
 function setVol(kind, v) {
   v = clamp(v, 0, 1);
   if (kind === 'music') { musicVol = v; musicOff = v === 0; if (musicBus) musicBus.gain.value = v; } else { sfxVol = v; sfxOff = v === 0; if (sfxBus) sfxBus.gain.value = v; }
@@ -8608,6 +8614,9 @@ function setVol(kind, v) {
 $('#musicVol').addEventListener('input', e => setVol('music', e.target.value / 100));
 $('#sfxVol').addEventListener('input', e => setVol('sfx', e.target.value / 100));
 $('#sfxVol').addEventListener('change', () => sfx('click'));
+$('#setMusic').addEventListener('input', e => setVol('music', e.target.value / 100));
+$('#setSfx').addEventListener('input', e => setVol('sfx', e.target.value / 100));
+$('#setSfx').addEventListener('change', () => sfx('click'));
 syncAudioToggles();
 addEventListener('keydown', e => { if ((e.key === 'm' || e.key === 'M') && !e.target.closest('input')) setMuted(!muted); });
 setMuted(muted);

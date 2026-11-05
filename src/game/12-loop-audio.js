@@ -401,7 +401,7 @@ function setMuted(on) {
   syncMusic();
 }
 $('#muteBtn').addEventListener('click', () => setMuted(!muted));
-function syncAudioToggles() { $('#musicVol').value = Math.round(musicVol * 100); $('#sfxVol').value = Math.round(sfxVol * 100); for (const id of ['musicVol', 'sfxVol']) { const el = $('#' + id); el.style.setProperty('--p', el.value + '%'); } }
+function syncAudioToggles() { for (const [id, v] of [['musicVol', musicVol], ['sfxVol', sfxVol], ['setMusic', musicVol], ['setSfx', sfxVol]]) { const el = $('#' + id); if (!el) continue; el.value = Math.round(v * 100); el.style.setProperty('--p', el.value + '%'); } }
 function setVol(kind, v) {
   v = clamp(v, 0, 1);
   if (kind === 'music') { musicVol = v; musicOff = v === 0; if (musicBus) musicBus.gain.value = v; } else { sfxVol = v; sfxOff = v === 0; if (sfxBus) sfxBus.gain.value = v; }
@@ -411,6 +411,9 @@ function setVol(kind, v) {
 $('#musicVol').addEventListener('input', e => setVol('music', e.target.value / 100));
 $('#sfxVol').addEventListener('input', e => setVol('sfx', e.target.value / 100));
 $('#sfxVol').addEventListener('change', () => sfx('click'));
+$('#setMusic').addEventListener('input', e => setVol('music', e.target.value / 100));
+$('#setSfx').addEventListener('input', e => setVol('sfx', e.target.value / 100));
+$('#setSfx').addEventListener('change', () => sfx('click'));
 syncAudioToggles();
 addEventListener('keydown', e => { if ((e.key === 'm' || e.key === 'M') && !e.target.closest('input')) setMuted(!muted); });
 setMuted(muted);

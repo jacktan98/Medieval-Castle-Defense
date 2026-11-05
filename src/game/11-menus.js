@@ -678,7 +678,7 @@ function openCampaign(i) {
   cSel = i !== undefined ? i : cCur; cDrag = 0; layoutDeck(false); openStage(cSel);
 }
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
-// ---------- Colours (Jack): the town's and the raiders' colours, five each, under Campaign on the title screen; a colour one side
+// ---------- Colours (Jack): the town's and the raiders' colours, five each, in the title's Settings (gear); a colour one side
 // has is greyed out for the other; a tap recolours at once (the title's town shows it) and is kept ('mtd-colours')
 const COL_NAME = { blue: 'Blue', red: 'Red', green: 'Green', purple: 'Purple', black: 'Black' };
 function renderColours() {
@@ -686,9 +686,9 @@ function renderColours() {
     const other = side === 'town' ? TEAM.foe : TEAM.town;
     $(el).innerHTML = TEAM_NAMES.map(n => `<button class="sw${TEAM[side] === n ? ' on' : ''}${other === n ? ' taken' : ''}" data-side="${side}" data-c="${n}" aria-label="${COL_NAME[n]}" style="--c:${TEAM_PAL[n]}"></button>`).join('');
   }
-  $('#colDots').innerHTML = `<i style="background:${TEAM_PAL[TEAM.town]}"></i><i style="background:${TEAM_PAL[TEAM.foe]}"></i>`;
 }
-$('#colBtn').addEventListener('click', () => { sfx('click'); renderColours(); $('#colCard').hidden = false; });
+// Settings (Jack picked a gear in the title's corner over a Colours button under Campaign): the colours and the two loudness sliders
+$('#setBtn').addEventListener('click', () => { sfx('click'); renderColours(); syncAudioToggles(); $('#colCard').hidden = false; });
 $('#colDone').addEventListener('click', () => { $('#colCard').hidden = true; });
 $('#colCard').addEventListener('click', e => {
   const b = e.target.closest('.sw'); if (!b) return;
