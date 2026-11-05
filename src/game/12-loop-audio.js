@@ -95,7 +95,8 @@ function startGame() {
   if (MAP === 'watch') { yaw = 0; target.x += 7; target.z -= 4; layRoads(WATCH_ROADS); rebuildRoads(); placeRuin(); }   // from the south: Watch hill ahead, the gully on the right   // from the south, the cross and the north road ahead
   BANK_WALL = MAP === 'bridge' ? BANK_WALL : [];
   } finally { Math.random = rnd0; }
-  if (MAP === 'vale') guideOn = true;               // the tutorial stage: the guided first day every time (Skip ends it)
+  // the tutorial stage: the guided first day every time (Skip ends it), except on hard mode (Jack: no tutorial there)
+  if (MAP === 'vale' && !hardOn) guideOn = true;
   else if (CAMP_MAPS[MAP]) { guideOn = false; guideMark(); }
   // a campaign stage: its new buildings, one card each (from Stage 2), then its goals (Jack: the goals only on this card)
   if (CAMP_MAPS[MAP]) showNewCards((CAMP_MAPS[MAP].stop > 0 ? CAMPAIGN[CAMP_MAPS[MAP].stop].adds.concat(CAMP_MAPS[MAP].newTier ? ['tier' + CAMP_MAPS[MAP].newTier] : []) : []).concat(stageGoals(MAP).length ? ['goals'] : []));   // a later stage: its new buildings, one card each, before play
