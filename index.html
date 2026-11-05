@@ -282,6 +282,7 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 #c{background:#0d0f0b}
 /* stage details: "New" clear above the chips; room for two rows of chips on every stage so the box keeps its height */
 .cDet .stNew:empty{display:none}
+.stGoals{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:2px 12px;font-size:12px;color:#e6d6ae} .stGoals li::before{content:'\25CE';margin-right:5px;color:#f0c95a} .stGoals:empty{display:none}
 /* the details shrink to their content (one row of chips, or none on the boss stages), but their slot keeps the tallest height seen,
    so the progress bar above never moves (Jack); the box sits at the slot's top on a tall screen, centred beside the deck on a wide one */
 .cDetSlot{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;width:100%;flex:0 0 auto}
@@ -601,6 +602,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
         <div class="cDetSlot" id="cDetSlot"><div class="stSide cDet">
           <h3 id="stName"></h3><div class="sub" id="stSub"></div>
           <div class="stNew" id="stNew"></div>
+          <ul class="stGoals" id="stGoals"></ul>
           <div id="stStars"></div>
           <div class="stActs"><button id="campBack">Back</button><span id="stPlay"></span></div>
         </div></div>
@@ -855,6 +857,21 @@ const MAP_RULES = {
                   { spear: [2, 8, 10], sword: [2, 6, 7], archer: [2, 5, 5], xbow: [2, 3, 4], lancer: [2, 4, 4], rider: [2, 3, 8], catapult: [0, 1, 2], ram: [0, 1, 1], ballista: [0, 1, 1], warlord: [0, 0, 1] }],
           day: [600, 120, 120, 120, 120, 120, 120], spawnGap: .75, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
 };
+// a stage's own goals (Jack), listed on its details and the summary and counted with the usual three for the stars;
+// done() is read during play (a log line when met) and at the end. Built counts are ever finished (stats.made), not still standing
+var guideDone = false, goalsMet = {};
+const made = t => (stats.made && stats.made[t]) || 0;
+const STAGE_GOALS = {
+  vale: [['Follow the tutorial', () => guideDone]],
+  bridge: [['Build a barracks', () => made('barracks') >= 1]],
+  cross: [['Build a market', () => made('market') >= 1], ['Upgrade to tier 2', () => stats.upgrades >= 1]],
+  watch: [['Build 2 ballistas', () => made('ballista') >= 2]],
+};
+const stageGoals = m => STAGE_GOALS[m] || [];
+function goalTick() {
+  if (gameOver) return;
+  for (const [t, ok] of stageGoals(MAP)) if (!goalsMet[t] && ok()) { goalsMet[t] = true; log(`<b>Goal</b> · ${t} ✓`, 'good'); }
+}
 // campaign stops' own maps: the buildings each one has (the stop's and every earlier stop's), and where it sits on the overview
 const CAMP_MAPS = {
   vale: { stop: 0, maxTier: 1, cats: { eco: ['house', 'farm', 'lodge', 'quarry'], def: ['tower'], decor: ['road', 'flowers', 'torch'] } },
@@ -3585,7 +3602,7 @@ function emitSmoke(dt) {
 let adapt = true, tool = 'select', cat = 'eco', cur = null, selected = null, gameOver = false;
 const anims = [], buildings = [], villagers = [], enemies = [], arrows = [];
 const res = { gold: 0, wood: 0, stone: 0, food: 0 };
-let stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, t0: 0 };
+let stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, t0: 0 };
 let PH = { kind: 'day', wave: 1, t: DAYLEN[0] }, econT = TICK, spawnQueue = [], spawnT = 0, light = 1, nextId = 1;
 const canAfford = c => RES_KEYS.every(k => (res[k] || 0) >= (c[k] || 0));
 const shortfall = c => RES_KEYS.filter(k => (c[k] || 0) > res[k]).map(k => `${c[k] - Math.floor(res[k])} more ${k}`).join(', ');
@@ -3827,7 +3844,7 @@ function completeSite(B) {
   }
   if (S.kind !== 'repair') { B.pop = performance.now(); for (let n = 0; n < 6; n++) { const a = n / 6 * 6.283, r = B.ev.s * CELL * .55; dustAt(c.x + Math.cos(a) * r, B.group.position.y, c.z + Math.sin(a) * r); } }
   if (S.kind === 'new') {
-    B.built = true; B.group.scale.y = 1; stats.built++; if (B.type !== 'castle' || stats.built > 1) sfx('build', c);
+    B.built = true; B.group.scale.y = 1; stats.built++; stats.made[B.type] = (stats.made[B.type] || 0) + 1; if (B.type !== 'castle' || stats.built > 1) sfx('build', c);
     if (B.type !== 'wall') log(`<b>${T.tiers[0]}</b> built${T.residents ? ` · +${T.residents[0]}` : ''}`, 'good');
   } else {
     B.tier++; stats.upgrades++; swapModel(B); settleBase(B); rebuildRoads(); B.group.scale.y = 1; B.max = T.hp[B.tier - 1]; B.hp = B.max;
@@ -6221,7 +6238,7 @@ function endGame(won) {
     ['Stone quarried', stats.stone], ['Food harvested', stats.food], ['Time played', fmt(el)]];
   $('#sumStats').innerHTML = rows.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('');
   // stars: one for holding out, two with some of the goals, three with all of them (kept per map, the best one; to be spent later)
-  const C = castleB(), goals = [['No buildings lost', stats.lost === 0], ['No soldiers lost', stats.fallen === 0], ['Castle above half', !!C && C.hp >= C.max / 2]];
+  const C = castleB(), goals = [...stageGoals(MAP).map(([t, ok]) => [t, !!ok()]), ['No buildings lost', stats.lost === 0], ['No soldiers lost', stats.fallen === 0], ['Castle above half', !!C && C.hp >= C.max / 2]];
   const got = goals.filter(g => g[1]).length, n = !won ? 0 : got === goals.length ? 3 : got ? 2 : 1;
   $('#sumStars').innerHTML = starsHTML(n);
   $('#sumGoals').innerHTML = [['Survive', won], ...goals].map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
@@ -6321,7 +6338,7 @@ const PH_ICON = {
 let phIcoKind = '';
 function updateHud() {
   const pt = $('#phaseText'), sub = $('#phaseSub');
-  if (PH.kind === 'day') { pt.textContent = `Day ${PH.wave} of ${NIGHTS}`; pt.className = ''; sub.textContent = `Night in ${fmt(Math.max(0, PH.t))}`; $('#nightBtn').hidden = gameOver; }
+  if (PH.kind === 'day') { pt.textContent = `Day ${PH.wave} of ${NIGHTS}`; pt.className = ''; sub.textContent = `Night in ${fmt(Math.max(0, PH.t))}`; $('#nightBtn').hidden = gameOver || MAP === 'vale'; }
   else { const left = spawnQueue.length + enemies.filter(e => !e.dead && !e.dormant).length; pt.textContent = `Night ${PH.wave} of ${NIGHTS}`; pt.className = 'night'; sub.textContent = `${left} raider${left === 1 ? '' : 's'} left`; $('#nightBtn').hidden = true; }
   const kind = PH.kind === 'day' ? 'sun' : 'moon'; if (phIcoKind !== kind) { phIcoKind = kind; $('#phIco').innerHTML = PH_ICON[kind]; }
   $('#tickRing').style.strokeDashoffset = (94.25 * (1 - econT / TICK)).toFixed(1); $('#tickN').textContent = Math.ceil(econT);
@@ -6496,7 +6513,7 @@ $('#cancelBtn').addEventListener('click', () => {
   removeBuilding(B, false, true);
 });
 $('#closeCard').addEventListener('click', deselect);
-$('#nightBtn').addEventListener('click', () => { if (PH.kind === 'day' && !gameOver) PH.t = 0; });
+$('#nightBtn').addEventListener('click', () => { if (PH.kind === 'day' && !gameOver && MAP !== 'vale') PH.t = 0; });
 
 // ---------- ghost ----------
 const isTouch = matchMedia('(pointer: coarse)').matches;
@@ -7298,6 +7315,7 @@ function openStage(i) {
   $('#stSub').textContent = [c.sub, c.land].filter(Boolean).join(' · ');
   $('#stNew').innerHTML = c.adds.map(t => `<span>${TOOL_ICON[t] || ''}<b>${t === 'road' ? 'Path' : DEF[t].name}</b></span>`).join('');
   $('#stStars').innerHTML = starsHTML(c.map ? STARS[c.map] || 0 : 0);
+  $('#stGoals').innerHTML = stageGoals(c.map).map(([t]) => `<li>${t}</li>`).join('');
   requestAnimationFrame(() => { const slot = $('#cDetSlot'), det = slot.firstElementChild, chips = [...det.querySelectorAll('.stNew span')];
     const rows = new Set(chips.map(e => e.offsetTop)).size, ch = chips[0] ? chips[0].offsetHeight + 7 : 0;
     const full = det.offsetHeight + (rows === 1 ? ch : 0);
@@ -7593,7 +7611,7 @@ function startGame() {
   setMapSize(MAP_N[MAP] || 28);
   genTerrain(); if (MAP === 'keep') rollKeepCamps(); genBridges(); genTrees(); genRocks(); genClutter(); syncTerrain(); buildBridges(); genShore(); hideGhost(); deselect();
   Object.assign(res, (MAP_RULES[MAP] || {}).res || { gold: 40, wood: 45, stone: 0, food: 20 });
-  stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, t0: performance.now() };
+  stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, t0: performance.now() }; guideDone = false; goalsMet = {};
   $('#summary').hidden = true; $('#log').innerHTML = '';
   const ev = MAP === 'isle' ? findValid('castle', 12, 12, { free: true }) : MAP === 'pass' ? findValid('castle', 12, 9, { free: true }) : MAP === 'vale' ? findValid('castle', 11, 15, { free: true }) : MAP === 'bridge' ? findValid('castle', 13, 17, { free: true }) : MAP === 'cross' ? findValid('castle', 7, 18, { free: true }) : MAP === 'watch' ? findValid('castle', 7, 13, { free: true }) : MAP === 'dune' ? findValid('castle', 6, 11, { free: true }) : MAP === 'bend' ? findValid('castle', 9, 12, { free: true }) : MAP === 'crag' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'ford' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'mere' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'plains' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'keep' ? findValid('castle', 19, 32, { free: true }) : MAP === 'hold' ? findValid('castle', 18, 31, { free: true }) : findValid('castle', 8, 12, { free: true });
   if (ev) { const B = place('castle', ev.ci, ev.cj, { instant: true, free: true, quiet: true }); const c = center(B); target.set(c.x, 2, c.z); }
@@ -7620,6 +7638,7 @@ function startGame() {
   updateCam();
   log('Drag · twist · pinch');
   log(`Survive <b>${NIGHTS} nights</b>`);
+  for (const [t] of stageGoals(MAP)) log(`<b>Goal</b> · ${t}`);
   log('<b>Day 1</b>', 'good');
   banner('Day 1', 'Build before dark');
   applyLoadout(); cat = 'eco'; renderTools(); setTool('select');
@@ -8027,7 +8046,7 @@ function guideTick() {
   if (guideEndT && performance.now() > guideEndT) { guideEndT = 0; g.hidden = true; }
   if (!guideOn) return;
   const next = GUIDE.findIndex(S => !S.done());
-  if (next < 0) { $('#gStep').textContent = '✓'; $('#gText').textContent = 'Ready for night'; guideEndT = performance.now() + 3500; guideFinish(); g.hidden = false; return; }
+  if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').textContent = 'Ready for night'; guideEndT = performance.now() + 3500; guideFinish(); g.hidden = false; return; }
   if (next !== guideStep) { guideStep = next; guideMark(); }
 }
 $('#gSkip').addEventListener('click', () => { guideFinish(); $('#guide').hidden = true; });
@@ -8096,7 +8115,7 @@ function frame(now) {
     B.bar.grp.visible = B.hp < B.max; B.bar.set(B.hp / B.max); B.bar.grp.position.set(c.x, B.group.position.y + barTop(B), c.z);
   }
   for (let n = floats.length - 1; n >= 0; n--) { const f = floats[n]; f.t += dt; f.sp.position.y += dt * .9; f.sp.material.opacity = 1 - f.t / 1.8; if (f.t > 1.8) { scene.remove(f.sp); f.sp.material.dispose(); floats.splice(n, 1); } }
-  if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); guideTick(); }
+  if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); guideTick(); goalTick(); }
   updateDebris(dt);
   const sh = shakeOffset(dt); camera.position.add(sh);
   renderer.render(scene, camera);
