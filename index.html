@@ -317,7 +317,12 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 /* the card's Upgrade is a dark bronze plate with a gold rim, gold chevrons and costs (Jack preferred it to the gold-filled button) */
 .card .row button.primary{background:linear-gradient(180deg,#3d3220 0%,#2a2216 100%);border:1px solid #c9a03e;color:var(--gold)}
 .pauseCard button:not(.primary),#summary button:not(.primary),.card .row button:not(.primary):not(.danger){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%);border:1px solid #c9a03e;color:#f4e3b2}
-#summary .sheet{background:var(--panel)!important}
+#summary .sheet{background:var(--panel)!important;max-height:calc(100% - 8px);overflow-y:auto}
+.sumTip{margin:0;font-size:13px;color:#f4e3b2;text-align:center} .sumTip b{color:#f0c95a}
+/* a phone held sideways: two columns (title, stars, play again | goals, numbers, tip) so it all fits without scrolling */
+@media (max-height:520px){ #summary .sheet{width:min(640px,100%);display:grid;grid-template-columns:1fr 1fr;grid-template-areas:'t g' 's g' 'x n' 'b p';column-gap:22px;row-gap:8px;padding:14px 18px;align-items:start}
+  #summary #sumTitle{grid-area:t;font-size:26px} #summary #sumStars{grid-area:s;font-size:28px;text-align:left} #summary #sumText{grid-area:x;margin:0} #summary #sumGoals{grid-area:g}
+  #summary #sumStats{grid-area:n;margin:0} #summary .sumTip{grid-area:p;text-align:left} #summary #again{grid-area:b;align-self:end} }
 #summary .stars.big span{display:inline-block} #summary .stars.big .pop{animation:starPop .55s cubic-bezier(.2,1.4,.4,1) both}
 @keyframes starPop{0%{transform:scale(0) rotate(-40deg);opacity:0}55%{transform:scale(1.5) rotate(8deg);opacity:1}100%{transform:scale(1) rotate(0)}}
 #summary .stars.big .on{color:#f0c95a;-webkit-text-stroke:1px #fff1c4;text-shadow:0 0 12px rgba(255,205,90,.6)} #summary .stars.big span{-webkit-text-stroke:1px rgba(240,201,90,.75)}
@@ -642,6 +647,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
       <p id="sumText"></p>
       <ul id="sumGoals"></ul>
       <dl id="sumStats"></dl>
+      <p class="sumTip" id="sumTip" hidden></p>
       <button class="primary" id="again">Play again</button>
     </div>
   </div>
@@ -5213,6 +5219,7 @@ const volleyLine = makeLine('#8fc1db', 1);
 // with nobody on the posts it comes from the castle top
 const volleyFigs = C => (C.figs || []).filter((f, a) => f && C.manned && C.manned[a]);
 function castVolley(pt) {
+  stats.volleys = (stats.volleys || 0) + 1;
   const C = castleB(); if (!C) return;
   const k = C.tier - 1, n = VOLLEY.n[k], R = VOLLEY.r[k], per = VOLLEY.dmg[k] / n, m = Math.max(1, volleyFigs(C).length), each = Math.ceil(n / m), gap = VOLLEY.spread / each;
   for (let i = 0; i < n; i++) volleyQ.push({ t: .35 + Math.floor(i / m) * gap + (i % m) * .05 + Math.random() * .05, fig: i % m, x: pt.x, z: pt.z, per, R });
@@ -6266,16 +6273,17 @@ function endGame(won) {
   $('#sumTitle').textContent = won ? 'The town holds' : 'The castle has fallen';
   $('#sumTitle').className = won ? '' : 'lost';
   $('#sumText').textContent = won ? `All ${NIGHTS} waves held.` : `Fell on night ${PH.wave}.`;
-  const rows = [['Waves defended', `${won ? NIGHTS : PH.wave - 1} of ${NIGHTS}`], ['Raiders slain', stats.slain], ['Buildings built', stats.built], ['Upgrades', stats.upgrades],
-    ['Buildings lost', stats.lost], ['Soldiers lost', stats.fallen], ['Buildings standing', buildings.length], ['Gold earned', stats.gold], ['Wood gathered', stats.wood],
-    ['Stone quarried', stats.stone], ['Food harvested', stats.food], ['Time played', fmt(el)]];
+  // only the numbers that tell the story (it listed twelve: built, standing, wood, stone, food... were noise)
+  const rows = [['Raiders slain', stats.slain], ['Buildings lost', stats.lost], ['Soldiers lost', stats.fallen], ['Gold earned', stats.gold], ['Time', fmt(stats.playT || el)]];
   $('#sumStats').innerHTML = rows.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('');
   // stars: one for holding out, two with some of the goals, three with all of them (kept per map, the best one; to be spent later)
   // a campaign stage: a win is one star and each of its two goals one more (Jack); free play keeps its three goals (all = 3, some = 2)
   const C = castleB(), camp = stageGoals(MAP).length > 0;
-  const goals = camp ? stageGoals(MAP).map(g => [g[0], goalOk(g)]) : [['No buildings lost', stats.lost === 0], ['No soldiers lost', stats.fallen === 0], ['Castle above half', !!C && C.hp >= C.max / 2]];
+  // a defeat meets no goals (a ✓ on "No buildings lost" read oddly with the castle fallen)
+  const goals = !won ? (camp ? stageGoals(MAP).map(g => [g[0], false]) : [['No buildings lost', false], ['No soldiers lost', false], ['Castle above half', false]]) : camp ? stageGoals(MAP).map(g => [g[0], goalOk(g)]) : [['No buildings lost', stats.lost === 0], ['No soldiers lost', stats.fallen === 0], ['Castle above half', !!C && C.hp >= C.max / 2]];
   const got = goals.filter(g => g[1]).length, n = !won ? 0 : camp ? 1 + got : got === goals.length ? 3 : got ? 2 : 1;
   $('#sumStars').innerHTML = starsHTML(0);
+  const tip = won ? '' : defeatTip(); $('#sumTip').hidden = !tip; $('#sumTip').innerHTML = tip ? `<b>Tip</b> · ${tip}` : '';
   $('#sumGoals').innerHTML = [['Survive', won], ...goals].map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
   if (n > (STARS[MAP] || 0)) { STARS[MAP] = n; try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {} }
   if (won && stats.playT && !(BEST[MAP] <= stats.playT)) { BEST[MAP] = Math.round(stats.playT); try { localStorage.setItem('mtd-best', JSON.stringify(BEST)); } catch (e) {} }
@@ -6287,6 +6295,17 @@ function endGame(won) {
   }, won ? 2200 : 2600));
 }
 var sumTimers = [];
+// after a defeat, one short tip picked from how the town was set up
+function defeatTip() {
+  const has = t => buildings.some(B => B.type === t), open = t => Object.values(CATS).some(l => l.includes(t));
+  const shooters = buildings.filter(B => B.type !== 'castle' && (DEF[B.type].archers || DEF[B.type].crew)).length;
+  if (shooters < 2) return 'Build towers where raiders come in';
+  if (open('wall') && !has('wall')) return 'Walls hold raiders under your towers';
+  if (!stats.volleys) return 'Tap the castle at night · Arrow volley';
+  if (open('barracks') && !has('barracks') && !has('stables')) return 'Soldiers hold raiders at the gate';
+  if (tierCap() > 1 && !buildings.some(B => B.tier > 1)) return 'Upgrade towers before the big nights';
+  return 'Build up on day 1 · it is the longest';
+}
 // the quickest win per map, in seconds of play (localStorage 'mtd-best'), shown on the stage's details
 var BEST = {}; try { BEST = JSON.parse(localStorage.getItem('mtd-best') || '{}') || {}; } catch (e) {}
 function clearSummary() { (sumTimers || []).forEach(clearTimeout); sumTimers = []; $('#summary').hidden = true; }
