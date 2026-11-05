@@ -46,9 +46,10 @@
       <div class="chip" id="cPop" title="Idle"><span class="ico" data-ico="pop"></span><b>0</b></div>
     </div>
     <details id="ledger">
-      <summary>Town log</summary>
-      <ol id="log"></ol>
+      <summary><span class="glHead"><span id="goalHead">Goals</span><span class="glTicks" id="goalTicks"></span></span></summary>
+      <ol id="goalList"></ol>
     </details>
+    <ol id="log" hidden></ol>
   </div>
   <div class="banner" id="banner"></div>
   <button class="iconBtn" id="pauseBtn" aria-pressed="false" aria-label="Pause" title="Pause (P)"></button>
@@ -138,7 +139,7 @@
           <div class="stInfo" id="stInfo"></div>
           <div class="stNew" id="stNew"></div>
           <div id="stStars"></div>
-          <button class="hardBtn" id="stHard" hidden aria-pressed="false">Hard</button>
+          <div class="diff" id="stDiff"><span class="diffL">Difficulty</span><span class="diffSeg"><button id="dNormal" class="seg on">Normal</button><button id="dHard" class="seg">Hard</button></span><span class="diffLock" id="diffLock" hidden>Win 3 stars to unlock</span></div>
           <div class="stActs"><button id="campBack">Back</button><span id="stPlay"></span></div>
         </div></div>
       </div>

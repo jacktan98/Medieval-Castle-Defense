@@ -535,6 +535,7 @@ function makeMarketCross() {
 // back to where this game was chosen: the campaign for a campaign map, else the map picker
 function showStart() { if (CAMP_MAPS[MAP]) { showMapPick(); $('#mapPick').hidden = true; openCampaign(CAMP_MAPS[MAP].stop); } else showMapPick(); }
 function showMapPick() {
+  $('#tipPill').hidden = true; tipT = 0;   // a tip still up when the game was left stayed over the menus
   hushSfx();
   if (paused && !$('#pausedTag').hidden) setPaused(false);
   clearSummary(); paused = true; hideGhost(); $('#mapPick').hidden = false;
@@ -587,7 +588,7 @@ function buildDeck() {
   $('#cCards').innerHTML = CAMPAIGN.map((c, i) => { const st = won[i] ? 'won' : i === cur ? 'cur' : i > cur ? 'locked' : '';
     const mark = i > cur ? `<i class="jLock">${LOCK_SVG}</i>` : '';
     return `<button class="cCard ${st}${c.boss ? ' boss' : ''}" data-i="${i}" tabindex="-1"><span class="cPic" style="background-image:url(maps/thumb/${c.map}.jpg)"></span>
-      <span class="cName"><small>${c.boss ? 'Boss · ' : ''}Stage ${i + 1}${won[i] ? ' ' + starsHTML(STARS[c.map] || 0) : ''}</small><b>${c.name}</b></span>${mark}</button>`; }).join('');
+      <span class="cName"><small>${c.boss ? 'Boss · ' : ''}Stage ${i + 1}${won[i] ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}</button>`; }).join('');
   $('#cDots').innerHTML = CAMPAIGN.map((c, i) => `<button class="cDot${c.boss ? ' boss' : ''}${won[i] ? ' won' : i === cur ? ' cur' : ''}" data-i="${i}" aria-label="Stage ${i + 1}"></button>`).join('');
 }
 // place every card for the front index cSel plus the live drag (in cards); the card's size follows the room the deck has
@@ -616,7 +617,8 @@ function openStage(i) {
   $('#stNew').innerHTML = c.adds.map(t => `<span>${TOOL_ICON[t] || ''}<b>${t === 'road' ? 'Path' : DEF[t].name}</b></span>`).join('');
   $('#stStars').innerHTML = starsHTML(c.map ? STARS[c.map] || 0 : 0) + (c.map && CROWNS[c.map] ? `<span class="crown" title="Won on hard">${CROWN_ICO}</span>` : '');
   // hard mode: open once the stage has 3 stars (raiders a tier up, 30% less gold and wood to start; a win earns the crown)
-  const hb = $('#stHard'), canHard = c.map && (STARS[c.map] || 0) >= 3; hb.hidden = !canHard; if (!canHard) hardSel = false; hb.setAttribute('aria-pressed', String(hardSel));
+  // a Difficulty switch, Normal | Hard (Jack): Hard shows a padlock until the stage has 3 stars, and a tap on it then says so
+  const canHard = !!c.map && (STARS[c.map] || 0) >= 3; if (!canHard) hardSel = false; $('#stDiff').hidden = !c.map; syncDiff(canHard);
   // how many waves, how long to prepare before the first, and the quickest win so far
   const R = c.map && MAP_RULES[c.map];
   $('#stInfo').innerHTML = R ? `<span>Day 1: <b>${Math.round(R.day[0] / 60)}</b> min${Math.round(R.day[0] / 60) === 1 ? '' : 's'}</span><span>Waves: <b>${R.waves.length}</b></span>${BEST[c.map] ? `<span>Best: <b>${fmt(BEST[c.map])}</b></span>` : ''}` : '';
@@ -634,7 +636,16 @@ function openStage(i) {
   });
 }
 var hardSel = false;
-$('#stHard').addEventListener('click', () => { hardSel = !hardSel; $('#stHard').setAttribute('aria-pressed', String(hardSel)); });
+function syncDiff(can) {
+  const h = $('#dHard'); h.classList.toggle('locked', !can); h.innerHTML = (can ? '' : LOCK_ICO) + 'Hard';
+  h.classList.toggle('on', hardSel); $('#dNormal').classList.toggle('on', !hardSel);
+}
+const stageCanHard = () => { const c = CAMPAIGN[cSel]; return !!(c && c.map) && (STARS[c.map] || 0) >= 3; };
+$('#dNormal').addEventListener('click', () => { hardSel = false; syncDiff(stageCanHard()); });
+$('#dHard').addEventListener('click', () => {
+  if (!stageCanHard()) { sfx('nope'); const p = $('#diffLock'); p.hidden = true; void p.offsetWidth; p.hidden = false; clearTimeout(p._t); p._t = setTimeout(() => p.hidden = true, 1800); return; }
+  hardSel = true; syncDiff(true);
+});
 // turning the deck: drag (a tap without a drag on a side card brings it forward), arrows, keys, wheel, the markers
 { const deck = $('#campMap'); let x0 = null, moved = 0, wheelT = 0, wheelAcc = 0;
   deck.addEventListener('pointerdown', e => { if (e.target.closest('.cArrow')) return; x0 = e.clientX; moved = 0; deck.setPointerCapture(e.pointerId); });
@@ -655,6 +666,7 @@ $('#stHard').addEventListener('click', () => { hardSel = !hardSel; $('#stHard').
 const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' }, 2: { src: 'maps/cross.jpg' }, 3: { src: 'maps/watch.jpg' }, 4: { src: 'maps/dune.jpg' }, 5: { src: 'maps/bend.jpg' }, 6: { src: 'maps/crag.jpg' }, 7: { src: 'maps/ford.jpg' }, 8: { src: 'maps/mere.jpg' }, 9: { src: 'maps/plains.jpg' }, 10: { src: 'maps/keep.jpg' }, 11: { src: 'maps/hold.jpg' } };
 markMapStars();
 function openCampaign(i) {
+  $('#tipPill').hidden = true; tipT = 0;
   hushSfx();
   buildDeck(); $('#mapPick').hidden = true; $('#campaign').hidden = false;
   { const st = CAMPAIGN.filter(c => c.map), won = st.filter(c => STARS[c.map] > 0).length, stars = starTotal(), max = st.length * 3;

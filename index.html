@@ -72,6 +72,10 @@ details summary{list-style:none;cursor:pointer;display:flex;justify-content:spac
 details summary::-webkit-details-marker{display:none}
 details[open] summary::after{content:"Hide"} details:not([open]) summary::after{content:"Show"}
 #log{max-height:34vh;overflow:auto;margin:5px 0 0;padding-left:16px;display:flex;flex-direction:column;gap:2px;font-size:13px;line-height:1.35}
+#goalList{list-style:none;margin:5px 0 0;padding:0;display:flex;flex-direction:column;gap:3px;font-size:13px;line-height:1.3;color:#f4e3b2}
+#goalList li{display:flex;gap:7px;align-items:flex-start} #goalList b{width:10px;color:var(--muted)} #goalList li.ok b{color:#f0c95a}
+.glHead{display:inline-flex;align-items:center;gap:6px} .glTicks{color:#f0c95a;letter-spacing:.12em;font-size:13px;text-shadow:0 0 6px rgba(255,205,90,.5)}
+#ledger.hard summary{cursor:default;pointer-events:none;color:#ff9a80} #ledger.hard summary::after{content:""!important} #ledger.hard #goalList{display:none}
 #log li::marker{color:var(--gold)}
 #log .warn{color:var(--bad)} #log .good{color:var(--ok)}
 .dock{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;
@@ -244,9 +248,9 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
    darken it, more than the title does, so the cards and text stay clear */
 body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 45%, rgba(8,9,6,.45) 0%, rgba(8,9,6,.62) 60%, rgba(5,6,4,.9) 100%)!important}
 /* buttons stand out on the dark: a bronze plate with a gold rim, light gold text and a soft glow; the main action stays solid gold */
-.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
+.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
   box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 12px rgba(212,168,78,.18),inset 0 1px 0 rgba(255,230,160,.25)!important;font-weight:500}
-.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):hover{filter:brightness(1.15)}
+.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):hover{filter:brightness(1.15)}
 .cArrow{background:linear-gradient(180deg,#4a3c22,#2e2515)!important;border:2px solid #c9a03e!important;box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 14px rgba(212,168,78,.25)!important}
 .cArrow svg{stroke:#f4e3b2}
 /* the campaign's progress under the deck: one segment per stage, filled gold for each won, the stage you're at outlined and pulsing,
@@ -324,9 +328,19 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 /* the card's Upgrade is a dark bronze plate with a gold rim, gold chevrons and costs (Jack preferred it to the gold-filled button) */
 .card .row button.primary{background:linear-gradient(180deg,#3d3220 0%,#2a2216 100%);border:1px solid #c9a03e;color:var(--gold)}
 .pauseCard button:not(.primary),#summary button:not(.primary),.card .row button:not(.primary):not(.danger){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%);border:1px solid #c9a03e;color:#f4e3b2}
+.diff{position:relative;align-self:center;display:flex;align-items:center;gap:8px;font-size:13px}
+.diffL{font-family:var(--display);color:#e6d6ae;font-size:14px}
+.diffSeg{display:flex;padding:2px;border-radius:16px;border:2px solid rgba(240,201,90,.75);background:rgba(10,8,4,.55)}
+.modal.tome .diff .diffSeg button{min-height:0!important;padding:3px 13px!important;border:0!important;border-radius:13px!important;background:none!important;box-shadow:none!important;font-size:13px!important;font-weight:700;font-style:italic;color:#b9a77d!important;display:inline-flex;align-items:center;gap:4px}
+.modal.tome .diff .diffSeg button.on{background:linear-gradient(180deg,#6a5432,#3e3019)!important;color:#fff1c4!important;box-shadow:inset 0 0 0 1px rgba(255,226,160,.35)!important}
+.modal.tome #stDiff #dHard.on{background:linear-gradient(180deg,#8a2a1e,#521510)!important;color:#ffe2d8!important}
+#dHard.locked{opacity:.55} #dHard .lockIco{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2}
+.diffLock{position:absolute;z-index:5;right:0;bottom:calc(100% + 6px);white-space:nowrap;padding:4px 9px;border-radius:8px;background:rgba(14,10,5,.92);border:1px solid rgba(240,201,90,.6);color:#fff1c4;font-size:12px;pointer-events:none;animation:diffPop 1.8s ease-out forwards}
+@keyframes diffPop{0%{opacity:0;transform:translateY(4px)}12%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0}}
 .hardBtn{align-self:center;min-height:28px!important;padding:2px 16px!important;font-size:13px!important;border-radius:14px!important;letter-spacing:.05em}
-#stHard[aria-pressed="true"]{background:linear-gradient(180deg,#8a2a1e,#521510)!important;border-color:#ff9a80!important;color:#ffe2d8!important;box-shadow:0 0 10px rgba(255,110,80,.45)}
+#stHardOld[aria-pressed="true"]{background:linear-gradient(180deg,#8a2a1e,#521510)!important;border-color:#ff9a80!important;color:#ffe2d8!important;box-shadow:0 0 10px rgba(255,110,80,.45)}
 .crown svg,.hardTag svg{width:20px;height:20px;fill:#f0c95a;stroke:#fff1c4;stroke-width:1;vertical-align:-3px;margin-left:6px;filter:drop-shadow(0 0 6px rgba(255,205,90,.6))} .hardTag{color:#f0c95a}
+.cName .crown svg{width:13px!important;height:13px!important;margin-left:4px;vertical-align:-2px}
 /* the pause card's loudness sliders: a long gold track, filled up to the handle */
 .audioRows{display:flex;flex-direction:column;gap:9px;margin-top:12px;width:min(240px,70vw)}
 .volRow{display:flex;align-items:center;gap:10px;font-size:13px;color:#f4e3b2}
@@ -602,9 +616,10 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
       <div class="chip" id="cPop" title="Idle"><span class="ico" data-ico="pop"></span><b>0</b></div>
     </div>
     <details id="ledger">
-      <summary>Town log</summary>
-      <ol id="log"></ol>
+      <summary><span class="glHead"><span id="goalHead">Goals</span><span class="glTicks" id="goalTicks"></span></span></summary>
+      <ol id="goalList"></ol>
     </details>
+    <ol id="log" hidden></ol>
   </div>
   <div class="banner" id="banner"></div>
   <button class="iconBtn" id="pauseBtn" aria-pressed="false" aria-label="Pause" title="Pause (P)"></button>
@@ -694,7 +709,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
           <div class="stInfo" id="stInfo"></div>
           <div class="stNew" id="stNew"></div>
           <div id="stStars"></div>
-          <button class="hardBtn" id="stHard" hidden aria-pressed="false">Hard</button>
+          <div class="diff" id="stDiff"><span class="diffL">Difficulty</span><span class="diffSeg"><button id="dNormal" class="seg on">Normal</button><button id="dHard" class="seg">Hard</button></span><span class="diffLock" id="diffLock" hidden>Win 3 stars to unlock</span></div>
           <div class="stActs"><button id="campBack">Back</button><span id="stPlay"></span></div>
         </div></div>
       </div>
@@ -983,7 +998,21 @@ const stageGoals = m => STAGE_GOALS[m] || [];
 const goalOk = ([t, ok]) => !!goalsMet[t] || !!ok();
 function goalTick() {
   if (gameOver) return;
-  for (const [t, ok, end] of stageGoals(MAP)) if (!end && !goalsMet[t] && ok()) { goalsMet[t] = true; log(`<b>Goal</b> · ${t} ✓`, 'good'); }
+  for (const [t, ok, end] of stageGoals(MAP)) if (!end && !goalsMet[t] && ok()) { goalsMet[t] = true; log(`<b>Goal</b> · ${t} ✓`, 'good'); sfx('star'); }
+  renderGoals();
+}
+// the top panel's Goals (Jack; it was the town log): "Goals" and a gold tick per goal met, Show opens the three goals (Survive and
+// the stage's two; free play's three); on hard mode there are no goals, so it just reads "Hard Mode" with no Show
+var goalsKey = '';
+function renderGoals() {
+  const camp = stageGoals(MAP).length > 0, hard = !!hardOn;
+  const list = camp ? [[`Survive ${NIGHTS} nights`, false], ...stageGoals(MAP).map(g => [g[0], !!goalsMet[g[0]]])] : [[`Survive ${NIGHTS} nights`, false], ['No buildings lost', false], ['No soldiers lost', false], ['Castle above half', false]];
+  const key = hard + '|' + list.map(g => g[0] + g[1]).join(',');
+  if (key === goalsKey) return; goalsKey = key;
+  const L = $('#ledger'); L.classList.toggle('hard', hard); if (hard) L.open = false;
+  $('#goalHead').textContent = hard ? 'Hard Mode' : 'Goals';
+  $('#goalTicks').textContent = hard ? '' : '✓'.repeat(list.filter(g => g[1]).length);
+  $('#goalList').innerHTML = list.map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
 }
 // campaign stops' own maps: the buildings each one has (the stop's and every earlier stop's), and where it sits on the overview
 const CAMP_MAPS = {
@@ -7625,6 +7654,7 @@ function makeMarketCross() {
 // back to where this game was chosen: the campaign for a campaign map, else the map picker
 function showStart() { if (CAMP_MAPS[MAP]) { showMapPick(); $('#mapPick').hidden = true; openCampaign(CAMP_MAPS[MAP].stop); } else showMapPick(); }
 function showMapPick() {
+  $('#tipPill').hidden = true; tipT = 0;   // a tip still up when the game was left stayed over the menus
   hushSfx();
   if (paused && !$('#pausedTag').hidden) setPaused(false);
   clearSummary(); paused = true; hideGhost(); $('#mapPick').hidden = false;
@@ -7677,7 +7707,7 @@ function buildDeck() {
   $('#cCards').innerHTML = CAMPAIGN.map((c, i) => { const st = won[i] ? 'won' : i === cur ? 'cur' : i > cur ? 'locked' : '';
     const mark = i > cur ? `<i class="jLock">${LOCK_SVG}</i>` : '';
     return `<button class="cCard ${st}${c.boss ? ' boss' : ''}" data-i="${i}" tabindex="-1"><span class="cPic" style="background-image:url(maps/thumb/${c.map}.jpg)"></span>
-      <span class="cName"><small>${c.boss ? 'Boss · ' : ''}Stage ${i + 1}${won[i] ? ' ' + starsHTML(STARS[c.map] || 0) : ''}</small><b>${c.name}</b></span>${mark}</button>`; }).join('');
+      <span class="cName"><small>${c.boss ? 'Boss · ' : ''}Stage ${i + 1}${won[i] ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}</button>`; }).join('');
   $('#cDots').innerHTML = CAMPAIGN.map((c, i) => `<button class="cDot${c.boss ? ' boss' : ''}${won[i] ? ' won' : i === cur ? ' cur' : ''}" data-i="${i}" aria-label="Stage ${i + 1}"></button>`).join('');
 }
 // place every card for the front index cSel plus the live drag (in cards); the card's size follows the room the deck has
@@ -7706,7 +7736,8 @@ function openStage(i) {
   $('#stNew').innerHTML = c.adds.map(t => `<span>${TOOL_ICON[t] || ''}<b>${t === 'road' ? 'Path' : DEF[t].name}</b></span>`).join('');
   $('#stStars').innerHTML = starsHTML(c.map ? STARS[c.map] || 0 : 0) + (c.map && CROWNS[c.map] ? `<span class="crown" title="Won on hard">${CROWN_ICO}</span>` : '');
   // hard mode: open once the stage has 3 stars (raiders a tier up, 30% less gold and wood to start; a win earns the crown)
-  const hb = $('#stHard'), canHard = c.map && (STARS[c.map] || 0) >= 3; hb.hidden = !canHard; if (!canHard) hardSel = false; hb.setAttribute('aria-pressed', String(hardSel));
+  // a Difficulty switch, Normal | Hard (Jack): Hard shows a padlock until the stage has 3 stars, and a tap on it then says so
+  const canHard = !!c.map && (STARS[c.map] || 0) >= 3; if (!canHard) hardSel = false; $('#stDiff').hidden = !c.map; syncDiff(canHard);
   // how many waves, how long to prepare before the first, and the quickest win so far
   const R = c.map && MAP_RULES[c.map];
   $('#stInfo').innerHTML = R ? `<span>Day 1: <b>${Math.round(R.day[0] / 60)}</b> min${Math.round(R.day[0] / 60) === 1 ? '' : 's'}</span><span>Waves: <b>${R.waves.length}</b></span>${BEST[c.map] ? `<span>Best: <b>${fmt(BEST[c.map])}</b></span>` : ''}` : '';
@@ -7724,7 +7755,16 @@ function openStage(i) {
   });
 }
 var hardSel = false;
-$('#stHard').addEventListener('click', () => { hardSel = !hardSel; $('#stHard').setAttribute('aria-pressed', String(hardSel)); });
+function syncDiff(can) {
+  const h = $('#dHard'); h.classList.toggle('locked', !can); h.innerHTML = (can ? '' : LOCK_ICO) + 'Hard';
+  h.classList.toggle('on', hardSel); $('#dNormal').classList.toggle('on', !hardSel);
+}
+const stageCanHard = () => { const c = CAMPAIGN[cSel]; return !!(c && c.map) && (STARS[c.map] || 0) >= 3; };
+$('#dNormal').addEventListener('click', () => { hardSel = false; syncDiff(stageCanHard()); });
+$('#dHard').addEventListener('click', () => {
+  if (!stageCanHard()) { sfx('nope'); const p = $('#diffLock'); p.hidden = true; void p.offsetWidth; p.hidden = false; clearTimeout(p._t); p._t = setTimeout(() => p.hidden = true, 1800); return; }
+  hardSel = true; syncDiff(true);
+});
 // turning the deck: drag (a tap without a drag on a side card brings it forward), arrows, keys, wheel, the markers
 { const deck = $('#campMap'); let x0 = null, moved = 0, wheelT = 0, wheelAcc = 0;
   deck.addEventListener('pointerdown', e => { if (e.target.closest('.cArrow')) return; x0 = e.clientX; moved = 0; deck.setPointerCapture(e.pointerId); });
@@ -7745,6 +7785,7 @@ $('#stHard').addEventListener('click', () => { hardSel = !hardSel; $('#stHard').
 const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' }, 2: { src: 'maps/cross.jpg' }, 3: { src: 'maps/watch.jpg' }, 4: { src: 'maps/dune.jpg' }, 5: { src: 'maps/bend.jpg' }, 6: { src: 'maps/crag.jpg' }, 7: { src: 'maps/ford.jpg' }, 8: { src: 'maps/mere.jpg' }, 9: { src: 'maps/plains.jpg' }, 10: { src: 'maps/keep.jpg' }, 11: { src: 'maps/hold.jpg' } };
 markMapStars();
 function openCampaign(i) {
+  $('#tipPill').hidden = true; tipT = 0;
   hushSfx();
   buildDeck(); $('#mapPick').hidden = true; $('#campaign').hidden = false;
   { const st = CAMPAIGN.filter(c => c.map), won = st.filter(c => STARS[c.map] > 0).length, stars = starTotal(), max = st.length * 3;

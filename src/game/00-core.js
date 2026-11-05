@@ -240,7 +240,21 @@ const stageGoals = m => STAGE_GOALS[m] || [];
 const goalOk = ([t, ok]) => !!goalsMet[t] || !!ok();
 function goalTick() {
   if (gameOver) return;
-  for (const [t, ok, end] of stageGoals(MAP)) if (!end && !goalsMet[t] && ok()) { goalsMet[t] = true; log(`<b>Goal</b> · ${t} ✓`, 'good'); }
+  for (const [t, ok, end] of stageGoals(MAP)) if (!end && !goalsMet[t] && ok()) { goalsMet[t] = true; log(`<b>Goal</b> · ${t} ✓`, 'good'); sfx('star'); }
+  renderGoals();
+}
+// the top panel's Goals (Jack; it was the town log): "Goals" and a gold tick per goal met, Show opens the three goals (Survive and
+// the stage's two; free play's three); on hard mode there are no goals, so it just reads "Hard Mode" with no Show
+var goalsKey = '';
+function renderGoals() {
+  const camp = stageGoals(MAP).length > 0, hard = !!hardOn;
+  const list = camp ? [[`Survive ${NIGHTS} nights`, false], ...stageGoals(MAP).map(g => [g[0], !!goalsMet[g[0]]])] : [[`Survive ${NIGHTS} nights`, false], ['No buildings lost', false], ['No soldiers lost', false], ['Castle above half', false]];
+  const key = hard + '|' + list.map(g => g[0] + g[1]).join(',');
+  if (key === goalsKey) return; goalsKey = key;
+  const L = $('#ledger'); L.classList.toggle('hard', hard); if (hard) L.open = false;
+  $('#goalHead').textContent = hard ? 'Hard Mode' : 'Goals';
+  $('#goalTicks').textContent = hard ? '' : '✓'.repeat(list.filter(g => g[1]).length);
+  $('#goalList').innerHTML = list.map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
 }
 // campaign stops' own maps: the buildings each one has (the stop's and every earlier stop's), and where it sits on the overview
 const CAMP_MAPS = {
