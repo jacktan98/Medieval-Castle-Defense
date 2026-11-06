@@ -91,13 +91,32 @@ function applyUpgrades() {
 }
 // a burning raider: fire pots and the fire volley set it alight for a few seconds, a little damage every frame and embers
 function burnEnemy(e, dps, t) { if (e.dead || ENEMY[e.kind].engine) return; e.burnD = Math.max(e.burnD || 0, dps); e.burnT = Math.max(e.burnT || 0, t); }
+// a burning raider is wrapped in flickering tongues of fire (the torches' own flames, flameShader) that follow it and die down
+// as the burn runs out (Jack saw no fire at all: only a few tiny embers)
+function burnFx(e) {
+  const g = new THREE.Group();
+  // tongues in a ring round the body (inside it they were hidden), two licking up past the shoulders
+  const T = [];
+  for (let n = 0; n < 6; n++) { const a = n / 6 * Math.PI * 2 + .3; T.push([M.flame, a, .24, .12 + (n % 2) * .12, .55 + (n % 3) * .12, .12], [M.flameMid, a + .2, .22, .14, .38, .085]); }
+  T.push([M.flame, .8, .16, .6, .55, .1], [M.flame, 3.9, .16, .55, .5, .1], [M.flameCore, 1.5, .23, .14, .24, .06], [M.flameCore, 4.6, .23, .14, .22, .06]);
+  for (const [m, a, rr, y, h, r] of T) {
+    const f = new THREE.Mesh(FLAME_GEO, m); f.scale.set(r, h, r); f.position.set(Math.cos(a) * rr, y + h / 2, Math.sin(a) * rr);
+    f.renderOrder = m === M.flame ? 1 : m === M.flameMid ? 2 : 3; f.userData.noShadow = true; g.add(f);
+  }
+  const E = ENEMY[e.kind]; g.userData.k = (E.boss || 1) * (E.mounted ? 1.25 : 1); g.userData.y = E.mounted ? SADDLE * UNIT_K : 0;
+  scene.add(g); return g;
+}
+function burnOff(e) { if (e.burnG) { scene.remove(e.burnG); e.burnG = null; } }
 function burnTick(e, dt) {
-  if (!(e.burnT > 0) || e.dead) return;
+  if (!(e.burnT > 0) || e.dead) { burnOff(e); return; }
   e.burnT -= dt; const f = e.flashT; hurtEnemy(e, e.burnD * dt); if (!e.dead) e.flashT = f;
+  if (e.dead) { burnOff(e); return; }
+  const g = e.burnG || (e.burnG = burnFx(e)), k = g.userData.k * Math.min(1, e.burnT / .5 + .15) * (.92 + Math.sin(performance.now() * .017 + e.phase) * .08);
+  g.position.set(e.rx ?? e.x, e.g.position.y + g.userData.y, e.rz ?? e.z); g.scale.setScalar(k);
   if ((e.emberT = (e.emberT || 0) - dt) <= 0 && puffs.length < 160) {
-    e.emberT = .12;
+    e.emberT = .08;
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: emberTex, color: '#ff8a30', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
-    sp.position.set(e.x + (Math.random() - .5) * .3, walkY(e.x, e.z) + .5 + Math.random() * .5, e.z + (Math.random() - .5) * .3); sp.scale.setScalar(.1);
+    sp.position.set(e.x + (Math.random() - .5) * .3, walkY(e.x, e.z) + .5 + Math.random() * .5, e.z + (Math.random() - .5) * .3); sp.scale.setScalar(.16);
     scene.add(sp); puffs.push({ sp, t: 0, life: .5 + Math.random() * .5, dx: (Math.random() - .5) * .3, ember: true });
   }
   if (e.burnT <= 0) e.burnD = 0;

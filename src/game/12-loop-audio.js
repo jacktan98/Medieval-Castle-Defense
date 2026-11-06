@@ -58,7 +58,7 @@ function startGame() {
   for (const B of buildings) { scene.remove(B.group); scene.remove(B.bar.grp); scene.remove(B.pbar.grp); removeScaffold(B); hideDefenders(B); if (B.rallyFlag) setRally(B, null); } buildings.length = 0;
   for (const v of villagers) { scene.remove(v.g); if (v.sbar) scene.remove(v.sbar.grp); } villagers.length = 0;
   for (const f of fallen) scene.remove(f.v.g); fallen.length = 0; for (const c of chips) scene.remove(c.m); chips.length = 0; respawns.length = 0; rallyFor = null; moveFor = null;
-  for (const e of enemies) { scene.remove(e.g); scene.remove(e.bar.grp); } enemies.length = 0;
+  for (const e of enemies) { scene.remove(e.g); scene.remove(e.bar.grp); burnOff(e); } enemies.length = 0;
   for (const a of arrows) scene.remove(a.m); arrows.length = 0; volleyQ = []; volleyCd = 0; volleyAim = false; summonCd = 0; summonOut = false; volleyLine.visible = false;
   for (const f of floats) scene.remove(f.sp); floats.length = 0;
   for (const p of puffs) scene.remove(p.sp); puffs.length = 0;

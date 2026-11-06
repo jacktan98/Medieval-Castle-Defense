@@ -686,7 +686,7 @@ function updateEnemies(dt) {
         e.crew.forEach(c => c.body.rotation.x = -Math.min(1.5, e.deadT * 4));
       } else e.body.rotation.x = -Math.min(1.5, e.deadT * 4);
       e.g.position.y = walkY(e.x, e.z) - Math.max(0, e.deadT - .8) * (E.engine ? 1.2 : .8);
-      if (e.deadT > 1.9) { scene.remove(e.g); scene.remove(e.bar.grp); enemies.splice(n, 1); }
+      if (e.deadT > 1.9) { scene.remove(e.g); scene.remove(e.bar.grp); burnOff(e); enemies.splice(n, 1); }
       continue;
     }
     e.walking = false; e.aiming = false; e.running = false;
