@@ -3,7 +3,8 @@
 | File | When it plays |
 |---|---|
 | `Click_sound.mp3` | Any button, and placing a building or wall |
-| `Building_built.mp3` | A building finishes, an upgrade finishes, a repair finishes (softer) |
+| `Building_built.mp3` | A building finishes, a repair finishes (softer) |
+| `Upgrade_sound.mp3` | A star upgrade is bought on the Upgrades screen; a building's upgrade finishes |
 | `Building_sold.mp3` | You demolish a building |
 | `Building_destroyed.mp3` | Raiders destroy a building; a raider siege engine is broken |
 | `Coins_payout.mp3` | Every 20 s payout |

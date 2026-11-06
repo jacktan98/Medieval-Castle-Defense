@@ -167,7 +167,7 @@ $('#upPick').addEventListener('click', e => {
   if (b.dataset.up) { sfx('click'); selectUpgrade(b.dataset.up); return; }
   if (b.id === 'upBuy') {
     const f = upFind(upSel); if (UPG.has(upSel) || (f.prev && !UPG.has(f.prev)) || upLeft() < 1) { sfx('nope'); return; }
-    UPG.add(upSel); saveUpg(); sfx('star');
+    UPG.add(upSel); saveUpg(); sfx('upgrade');
     // the building's second upgrade is picked next, so two taps on Buy get both (Jack)
     for (const [, rows] of UP_TABS) for (const [, , ups] of rows) { const i = ups.findIndex(u => u[0] === upSel); if (i >= 0 && ups[i + 1] && !UPG.has(ups[i + 1][0])) { upSel = ups[i + 1][0]; break; } }
     renderUpgrades(); return;

@@ -191,6 +191,7 @@ addEventListener('keydown', e => { if (e.key === 'p' || e.key === 'P') !gameOver
 var SND = {   // game event -> file in audio/sfx (or audio/music) and its trim against the common loudness
   click:     { file: 'sfx/Click_sound.mp3',          trim: .445 },
   build:     { file: 'sfx/Building_built.mp3',       trim: .9 },
+  upgrade:   { file: 'sfx/Upgrade_sound.mp3',        trim: .9 },     // a star upgrade bought, a building's upgrade finished
   sold:      { file: 'sfx/Building_sold.mp3',        trim: .7 },
   destroyed: { file: 'sfx/Building_destroyed.mp3',   trim: 1 },
   coins:     { file: 'sfx/Coins_payout.mp3',         trim: .7 },

@@ -4342,7 +4342,7 @@ function completeSite(B) {
     B.tier++; stats.upgrades++; swapModel(B); settleBase(B); rebuildRoads(); B.group.scale.y = 1; B.max = T.hp[B.tier - 1]; B.hp = B.max;
     if (B.tier === 2) rebuildRoads();   // the new stone base: paths now stop at its edge
     if (B.figs && B.figs.length) { hideDefenders(B); (B.manned || []).forEach((on, a) => on && showDefender(B, a)); }
-    floatText(`${T.tiers[B.tier - 1]}!`, '#f2c95e', c.x, B.group.position.y + 4, c.z); sfx('build', c);
+    floatText(`${T.tiers[B.tier - 1]}!`, '#f2c95e', c.x, B.group.position.y + 4, c.z); sfx('upgrade', c);
     log(`<b>${T.tiers[B.tier - 1]}</b> ready`, 'good');
   }
   syncResidents(B); assignJobs(); if (WALLY[B.type]) refreshWalls(); refreshCard();
@@ -8620,7 +8620,7 @@ $('#upPick').addEventListener('click', e => {
   if (b.dataset.up) { sfx('click'); selectUpgrade(b.dataset.up); return; }
   if (b.id === 'upBuy') {
     const f = upFind(upSel); if (UPG.has(upSel) || (f.prev && !UPG.has(f.prev)) || upLeft() < 1) { sfx('nope'); return; }
-    UPG.add(upSel); saveUpg(); sfx('star');
+    UPG.add(upSel); saveUpg(); sfx('upgrade');
     // the building's second upgrade is picked next, so two taps on Buy get both (Jack)
     for (const [, rows] of UP_TABS) for (const [, , ups] of rows) { const i = ups.findIndex(u => u[0] === upSel); if (i >= 0 && ups[i + 1] && !UPG.has(ups[i + 1][0])) { upSel = ups[i + 1][0]; break; } }
     renderUpgrades(); return;
@@ -8822,6 +8822,7 @@ addEventListener('keydown', e => { if (e.key === 'p' || e.key === 'P') !gameOver
 var SND = {   // game event -> file in audio/sfx (or audio/music) and its trim against the common loudness
   click:     { file: 'sfx/Click_sound.mp3',          trim: .445 },
   build:     { file: 'sfx/Building_built.mp3',       trim: .9 },
+  upgrade:   { file: 'sfx/Upgrade_sound.mp3',        trim: .9 },     // a star upgrade bought, a building's upgrade finished
   sold:      { file: 'sfx/Building_sold.mp3',        trim: .7 },
   destroyed: { file: 'sfx/Building_destroyed.mp3',   trim: 1 },
   coins:     { file: 'sfx/Coins_payout.mp3',         trim: .7 },
