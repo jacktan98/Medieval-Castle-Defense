@@ -8335,8 +8335,16 @@ function updatePowers() {
   r.classList.toggle('cool', rc); r.querySelector('.cd').textContent = rc ? Math.ceil(summonCd) : ''; r.setAttribute('aria-pressed', String(out && rallyFor === K));
   r.setAttribute('aria-label', out ? 'Rally riders' : 'Riders');
   // above the dock on a phone held upright; in the bottom-left corner, stacked, when the dock leaves room there (sideways, laptop)
-  const d = document.querySelector('.dock').getBoundingClientRect(), side = d.left >= 76;
-  el.classList.toggle('col', side); el.style.bottom = (side ? 12 : innerHeight - d.top + 10) + 'px';
+  const dock = document.querySelector('.dock'), d = dock.getBoundingClientRect(), side = d.left >= 76;
+  el.classList.toggle('col', side);
+  // upright: just above whatever part of the dock sits under them (its bar, or a card or hint wide enough to reach their side);
+  // a narrow card on the right no longer pushes them up (Jack)
+  let top = d.bottom;
+  if (!side) {
+    const pr = el.getBoundingClientRect().right + 8;
+    for (const c of dock.children) { const r = c.getBoundingClientRect(); if (r.height && r.left < pr) top = Math.min(top, r.top); }
+  }
+  el.style.bottom = (side ? 12 : innerHeight - top + 10) + 'px';
 }
 // the boss's health along the top while one is out
 function updateBossBar() {
