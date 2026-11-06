@@ -8404,10 +8404,10 @@ function burnEnemy(e, dps, t) { if (e.dead || ENEMY[e.kind].engine) return; e.bu
 // as the burn runs out (Jack saw no fire at all: only a few tiny embers)
 function burnFx(e) {
   const g = new THREE.Group();
-  // tongues in a ring round the body (inside it they were hidden), two licking up past the shoulders
+  // a few small tongues licking up round the body (inside it they were hidden; a full ring of sixteen big ones was too much: Jack)
   const T = [];
-  for (let n = 0; n < 6; n++) { const a = n / 6 * Math.PI * 2 + .3; T.push([M.flame, a, .24, .12 + (n % 2) * .12, .55 + (n % 3) * .12, .12], [M.flameMid, a + .2, .22, .14, .38, .085]); }
-  T.push([M.flame, .8, .16, .6, .55, .1], [M.flame, 3.9, .16, .55, .5, .1], [M.flameCore, 1.5, .23, .14, .24, .06], [M.flameCore, 4.6, .23, .14, .22, .06]);
+  for (let n = 0; n < 4; n++) { const a = n / 4 * Math.PI * 2 + .4; T.push([M.flame, a, .22, .3 + (n % 2) * .12, .3 + (n % 2) * .08, .075]); }
+  T.push([M.flameMid, 1.2, .21, .32, .22, .055], [M.flameMid, 4.3, .21, .36, .2, .05], [M.flameCore, 2.7, .22, .33, .13, .035]);
   for (const [m, a, rr, y, h, r] of T) {
     const f = new THREE.Mesh(FLAME_GEO, m); f.scale.set(r, h, r); f.position.set(Math.cos(a) * rr, y + h / 2, Math.sin(a) * rr);
     f.renderOrder = m === M.flame ? 1 : m === M.flameMid ? 2 : 3; f.userData.noShadow = true; g.add(f);
