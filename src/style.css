@@ -551,14 +551,14 @@ body.islandR{--padR:max(8px,env(safe-area-inset-right,0px));--padL:12px}
   .phase{padding-bottom:4px}
   .chip{padding:2px 2px;gap:2px} .chip b{font-size:12px;letter-spacing:-.2px} .chip .ico{width:12px;height:12px}
   /* the short hints (Select a building, Placed…) between the bar and the building card, as upright */
-  .dock > .pill{align-self:flex-end}
+  .dock > .pill{position:fixed;left:auto;transform:none;margin:0}
   /* the bar: as upright, horizontal, in the bottom-right corner, with the building card on top of it (Jack) */
   .dock{left:auto;right:var(--padR);bottom:8px;transform:none;width:auto;max-width:calc(100vw - var(--padL) - var(--padR) - 150px);flex-direction:column;align-items:flex-end;gap:5px;pointer-events:none}
   .dock > *{pointer-events:auto}
   /* every button, tab and tile at its upright size (Jack) */
   .tools{flex-wrap:nowrap!important;gap:4px} .tools button{flex:0 1 auto;min-width:58px!important;min-height:56px;padding:3px 6px 2px!important} .tools button b,.tools button small{white-space:nowrap}
-  /* the whole height on the right is the card's, up to the top (only a card taller than that would scroll) */
-  .dock > .card{max-height:calc(100vh - 160px);overflow:auto}
+  /* the whole height above the bar is the card's (only a card taller than that would scroll) */
+  .dock > .card{max-height:calc(100vh - 130px);overflow:auto}
   /* the first day's guide and the tips: at the bottom, just left of the bar (placed by updateTips) */
   .dock > .guideCard{position:fixed;left:auto;transform:none;margin:0}
   .tipPill{left:auto!important;transform:none!important}

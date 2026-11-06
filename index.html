@@ -567,14 +567,14 @@ body.islandR{--padR:max(8px,env(safe-area-inset-right,0px));--padL:12px}
   .phase{padding-bottom:4px}
   .chip{padding:2px 2px;gap:2px} .chip b{font-size:12px;letter-spacing:-.2px} .chip .ico{width:12px;height:12px}
   /* the short hints (Select a building, Placed…) between the bar and the building card, as upright */
-  .dock > .pill{align-self:flex-end}
+  .dock > .pill{position:fixed;left:auto;transform:none;margin:0}
   /* the bar: as upright, horizontal, in the bottom-right corner, with the building card on top of it (Jack) */
   .dock{left:auto;right:var(--padR);bottom:8px;transform:none;width:auto;max-width:calc(100vw - var(--padL) - var(--padR) - 150px);flex-direction:column;align-items:flex-end;gap:5px;pointer-events:none}
   .dock > *{pointer-events:auto}
   /* every button, tab and tile at its upright size (Jack) */
   .tools{flex-wrap:nowrap!important;gap:4px} .tools button{flex:0 1 auto;min-width:58px!important;min-height:56px;padding:3px 6px 2px!important} .tools button b,.tools button small{white-space:nowrap}
-  /* the whole height on the right is the card's, up to the top (only a card taller than that would scroll) */
-  .dock > .card{max-height:calc(100vh - 160px);overflow:auto}
+  /* the whole height above the bar is the card's (only a card taller than that would scroll) */
+  .dock > .card{max-height:calc(100vh - 130px);overflow:auto}
   /* the first day's guide and the tips: at the bottom, just left of the bar (placed by updateTips) */
   .dock > .guideCard{position:fixed;left:auto;transform:none;margin:0}
   .tipPill{left:auto!important;transform:none!important}
@@ -6780,13 +6780,17 @@ function tipOnce(key, html) {
   TIPS_SEEN[key] = 1; try { localStorage.setItem('mtd-tips', JSON.stringify(TIPS_SEEN)); } catch (e) {}
   tipQ.push([key, html]);
 }
-// a phone held sideways (Jack): the first day's guide and the tips sit at the bottom, just left of the bar, a tip above the guide
+// a phone held sideways (Jack): at the bottom, just left of the bar, the short hint (Select a building, Placed…), the first day's
+// guide above it and a tip above that, so the building card has the whole height over the bar
 function sideHints() {
   if (!matchMedia('(max-height:520px)').matches) return;
   const bar = document.querySelector('.bar').getBoundingClientRect(), pn = document.querySelector('.panel').getBoundingClientRect();
-  const right = (innerWidth - bar.left + 8) + 'px', maxW = Math.max(160, bar.left - pn.right - 24) + 'px', g = $('#guide'), t = $('#tipPill');
-  g.style.right = right; g.style.bottom = '8px'; g.style.maxWidth = maxW;
-  t.style.right = right; t.style.top = 'auto'; t.style.maxWidth = maxW; t.style.bottom = (g.hidden ? 8 : innerHeight - g.getBoundingClientRect().top + 6) + 'px';
+  const right = (innerWidth - bar.left + 8) + 'px', maxW = Math.max(160, bar.left - pn.right - 24) + 'px';
+  let bottom = 8;
+  for (const el of [$('#hint'), $('#guide'), $('#tipPill')]) {
+    el.style.right = right; el.style.maxWidth = maxW; el.style.top = 'auto'; el.style.bottom = bottom + 'px';
+    if (!el.hidden && el.offsetHeight) bottom += el.offsetHeight + 6;
+  }
 }
 function updateTips(dt) {
   const el = $('#tipPill');

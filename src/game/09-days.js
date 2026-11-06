@@ -110,13 +110,17 @@ function tipOnce(key, html) {
   TIPS_SEEN[key] = 1; try { localStorage.setItem('mtd-tips', JSON.stringify(TIPS_SEEN)); } catch (e) {}
   tipQ.push([key, html]);
 }
-// a phone held sideways (Jack): the first day's guide and the tips sit at the bottom, just left of the bar, a tip above the guide
+// a phone held sideways (Jack): at the bottom, just left of the bar, the short hint (Select a building, Placed…), the first day's
+// guide above it and a tip above that, so the building card has the whole height over the bar
 function sideHints() {
   if (!matchMedia('(max-height:520px)').matches) return;
   const bar = document.querySelector('.bar').getBoundingClientRect(), pn = document.querySelector('.panel').getBoundingClientRect();
-  const right = (innerWidth - bar.left + 8) + 'px', maxW = Math.max(160, bar.left - pn.right - 24) + 'px', g = $('#guide'), t = $('#tipPill');
-  g.style.right = right; g.style.bottom = '8px'; g.style.maxWidth = maxW;
-  t.style.right = right; t.style.top = 'auto'; t.style.maxWidth = maxW; t.style.bottom = (g.hidden ? 8 : innerHeight - g.getBoundingClientRect().top + 6) + 'px';
+  const right = (innerWidth - bar.left + 8) + 'px', maxW = Math.max(160, bar.left - pn.right - 24) + 'px';
+  let bottom = 8;
+  for (const el of [$('#hint'), $('#guide'), $('#tipPill')]) {
+    el.style.right = right; el.style.maxWidth = maxW; el.style.top = 'auto'; el.style.bottom = bottom + 'px';
+    if (!el.hidden && el.offsetHeight) bottom += el.offsetHeight + 6;
+  }
 }
 function updateTips(dt) {
   const el = $('#tipPill');
