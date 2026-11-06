@@ -680,7 +680,14 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .modal.tome .campBack{position:absolute;top:calc(16px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left));z-index:6;width:40px;height:40px;min-height:0!important;min-width:0!important;padding:0!important;border-radius:11px!important;border:2px solid #d9b04e!important;background:linear-gradient(180deg,#5a4428,#2c210f)!important;display:flex!important;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,230,160,.25)!important}
 .campBack svg{display:block;width:22px;height:22px;fill:none;stroke:#f0c95a;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .cDet .stActs #campPlay{min-width:96px!important;padding:4px 18px!important}
-@media (max-height:520px){ #campaign .cHead{padding-left:calc(60px + env(safe-area-inset-left,0px));box-sizing:border-box} .modal.tome .campBack{top:calc(10px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left))} }
+/* menus on a phone held sideways: the same room at each side as the game (--padL/--padR: the camera island's side at its safe
+   area, the other side near the edge; Jack) */
+@media (max-height:520px){
+  .modal,#campaign{padding-left:calc(var(--padL) + 4px);padding-right:calc(var(--padR) + 4px)}
+  #campaign .cHead{padding-left:52px;box-sizing:border-box}
+  .modal.tome .campBack{top:calc(10px + env(safe-area-inset-top));left:calc(var(--padL) + 4px)}
+  .setBtn{right:calc(var(--padR) + 4px)}
+}
 /* the title screen on a phone held sideways (Jack: the title and Campaign were cut off): smaller title, the map pictures cropped wide */
 @media (max-height:520px){
   #mapPick.modal{padding-top:max(6px,env(safe-area-inset-top,0px));padding-bottom:max(6px,env(safe-area-inset-bottom,0px))}
@@ -694,26 +701,27 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
   #mapPick #campBtn,#mapPick #saveResume{margin-top:0;padding:5px 20px;font-size:15px}
   #mapPick .saveInfo{margin-top:-4px}
 }
-/* the town picker on a phone held sideways (Jack: it ran off the bottom, then its long option bars looked stretched): each pick is a
-   small group, the resource or defence icon over its two options as square tiles (icon, name, cost), three groups to a row */
+/* the town picker on a phone held sideways (Jack: it ran off the bottom): Economy and Defences side by side, each pair on a row
+   behind its icon, every decor on one row, all of it on one screen and no wider than it needs (Jack: grouped square tiles were
+   tried and dropped, the first rows were too long) */
 @media (max-height:520px){
-  #loadPick.modal{padding:max(6px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) max(6px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
-  .loadSheet{gap:5px!important;width:min(580px,100%)}
+  #loadPick.modal{padding:max(6px,env(safe-area-inset-top,0px)) calc(var(--padR) + 4px) max(6px,env(safe-area-inset-bottom,0px)) calc(var(--padL) + 4px)}
+  .loadSheet{display:grid!important;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:4px;width:min(600px,100%)}
   .modal.tome .loadSheet{padding:8px 10px 10px}
+  .loadSheet > .mapSub,.loadSheet > section:nth-of-type(3),.loadSheet > .ldBtns{grid-column:1 / -1}
   .modal.tome .loadSheet > .mapSub{margin:-8px -10px 0;padding:6px 0 5px;font-size:11px}
   .loadSheet section{gap:3px}
   .loadSheet h3{font-size:15px!important;line-height:1.1}
-  .ldRows{display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px}
-  .ldRow{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:4px;padding:4px;border-radius:9px;background:rgba(10,8,4,.32);border:1px solid rgba(212,168,78,.18)}
-  .ldRow .ldCat{grid-column:1 / -1} .ldCat .ico{width:17px;height:17px}
-  .ldRow .ldOpt,.ldGrid .ldOpt{flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:1px;padding:4px 2px!important;min-height:56px!important}
-  .ldRow .ldOpt .tIco{width:20px;height:20px}
-  .ldRow .ldOpt b{font-size:13px;line-height:1.1;white-space:nowrap}
-  .ldRow .ldOpt small{font-size:10px}
+  .ldRows{display:flex!important;flex-direction:column;gap:4px}
+  .ldRow{grid-template-columns:20px 1fr 1fr;gap:4px}
+  .ldCat .ico{width:18px;height:18px}
+  .ldOpt{min-height:34px!important;padding:2px 5px!important;gap:5px}
+  .ldOpt .tIco{width:18px;height:18px}
+  .ldOpt b{font-size:13px;line-height:1.1;white-space:nowrap} .ldOpt small{font-size:10px}
   .ldGrid{grid-template-columns:repeat(9,1fr)!important;gap:4px}
-  .ldGrid .ldOpt{min-height:46px!important}
-  .ldGrid .ldOpt .tIco{width:18px;height:18px}
-  .ldGrid .ldOpt b{font-size:10.5px!important;line-height:1.05}
+  .ldGrid .ldOpt{padding:4px 2px!important;min-height:42px!important}
+  .ldGrid .ldOpt .tIco{width:16px;height:16px}
+  .ldGrid .ldOpt b{font-size:10px!important;line-height:1.05;white-space:normal}
   .loadSheet > .ldBtns{margin-top:2px} .loadSheet > .ldBtns button{min-height:30px;padding:3px 18px}
 }
 }
