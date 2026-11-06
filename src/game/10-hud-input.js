@@ -323,7 +323,8 @@ const pinchState = () => { const [a, b] = [...ptrs.values()]; return { d: Math.h
 function paintAt(e) {
   const pt = pick(e); if (!pt) return;
   const a = Math.floor(pt.x / CELL), b = Math.floor(pt.z / CELL);
-  if (tool === 'road') { paintRoad(a, b); showGhostAt(pt); } else { paintWall(a, b); }
+  // the outline first, then the path: drawn after it, the outline found the new path there and said "Already a path" (Jack)
+  if (tool === 'road') { showGhostAt(pt); paintRoad(a, b); } else { paintWall(a, b); }
 }
 function endStroke() {
   if (wallStroke) { log(`<b>Wall</b> ×${wallStroke}`); wallStroke = 0; }
