@@ -71,8 +71,11 @@ let markRect = null, markRectT = 0;
 // the band the edge marks may use: below the top panel, above the dock (measured every .5 s)
 function markBand(dt) {
   if ((markRectT -= dt) <= 0 || !markRect) {
-    markRectT = .5; const top = document.querySelector('.panel').getBoundingClientRect(), dock = document.querySelector('.dock').getBoundingClientRect();
-    markRect = { x0: 24, x1: innerWidth - 24, y0: (top.bottom < innerHeight / 2 && top.right > innerWidth / 2 ? top.bottom : 60) + 26, y1: Math.min(innerHeight, dock.top) - 26 };
+    markRectT = .5; const top = document.querySelector('.panel').getBoundingClientRect(), dock = document.querySelector('.dock').getBoundingClientRect(),
+      bar = document.querySelector('.bar').getBoundingClientRect();
+    // a phone held sideways: the panel and the bar are columns down the sides, so the band is the room between them
+    if (bar.height > innerHeight * .5) markRect = { x0: top.right + 26, x1: bar.left - 26, y0: 34, y1: innerHeight - 26 };
+    else markRect = { x0: 24, x1: innerWidth - 24, y0: (top.bottom < innerHeight / 2 && top.right > innerWidth / 2 ? top.bottom : 60) + 26, y1: Math.min(innerHeight, dock.top) - 26 };
   }
   return markRect;
 }
@@ -111,7 +114,10 @@ function tipOnce(key, html) {
 function updateTips(dt) {
   const el = $('#tipPill');
   if (menuOn() || gameOver) { el.hidden = true; return; }
-  if (tipT > 0 && (tipT -= dt) > 0) { const d = document.querySelector('.dock').getBoundingClientRect(); el.style.bottom = (innerHeight - d.top + 10) + 'px'; return; }
+  if (tipT > 0 && (tipT -= dt) > 0) { const bar = document.querySelector('.bar').getBoundingClientRect(), card = $('#card');
+    // above the dock; sideways, above the building card in the bottom middle (or the bottom edge)
+    const top = bar.height > innerHeight * .5 ? (card.hidden ? innerHeight : card.getBoundingClientRect().top) : document.querySelector('.dock').getBoundingClientRect().top;
+    el.style.bottom = (innerHeight - top + 10) + 'px'; return; }
   el.hidden = true; if (!tipQ.length || paused) return;
   const [, html] = tipQ.shift(); el.innerHTML = html; el.hidden = false; tipT = 6; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
 }

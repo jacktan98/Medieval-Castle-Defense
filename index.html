@@ -547,27 +547,37 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
   .corner{flex-direction:column-reverse}
   .cornerBtns{flex-direction:column}
 }
-/* short landscape screens (phones turned sideways) */
+/* short landscape screens (phones turned sideways): the top panel a column down the left, the build bar a column down the right
+   (the corner buttons in a row above it), the building card in the bottom middle, so the middle of the screen is the map's (Jack) */
 @media (max-height:520px){
-  .panel{width:min(326px,calc(45% - 16px))}
-  .dock{gap:4px;bottom:6px}
-  .bar{padding:4px 5px;gap:4px}
-  .barTop{padding-bottom:4px}
-  .tools button{min-height:38px;min-width:58px;padding:2px 6px}
-  .tools button .tIco{display:none}
-  .tab{min-height:26px}
-  .iconBtn{width:28px;min-width:28px;height:28px;min-height:28px}
-  .dock{flex-direction:row;align-items:flex-end}
-  /* phone sideways (Jack): the bar in the bottom-right corner, the building card in the middle of the room left of it;
-     the dock spans the bottom, so it lets taps through between its parts */
-  .dock{left:max(8px,env(safe-area-inset-left,0px));right:max(8px,env(safe-area-inset-right,0px));transform:none;width:auto;max-width:none;justify-content:flex-end;pointer-events:none}
-  .dock > *{pointer-events:auto}
-  .dock > .card{margin:0 auto}
-  .card{width:min(300px,calc(100vw - 340px));max-height:calc(100vh - 135px);overflow:auto}
+  .panel{width:150px;max-height:calc(100% - 16px);overflow:hidden;padding:7px 7px 5px!important}
+  .phase{flex-wrap:wrap;gap:4px 6px}
+  .phIco{width:22px;height:22px}
+  .phMain{flex:1 1 90px}
+  #phaseText{font-size:15px;line-height:1.1} #phaseSub{font-size:11.5px}
+  .phase .tick{margin-left:auto}
+  .res{display:grid!important;grid-template-columns:1fr 1fr;gap:3px}
+  .res .chip{padding:3px 2px}
   .pill{display:none}
-  .corner{bottom:auto;top:52px;flex-direction:column-reverse}
-  .cornerBtns{flex-direction:column}
-  .admin{max-height:calc(100vh - 110px);overflow:auto}
+  /* the bar: a column on the right, under the corner buttons, reaching down to the bottom */
+  .dock{left:auto;right:max(8px,env(safe-area-inset-right,0px));bottom:6px;transform:none;width:auto;max-width:none;flex-direction:column;align-items:flex-end;gap:4px;pointer-events:none}
+  .dock > *{pointer-events:auto}
+  .bar{width:112px;box-sizing:border-box;padding:4px;gap:4px;max-height:calc(100vh - 56px);overflow-y:auto}
+  .barTop{flex-direction:column;align-items:stretch;gap:4px;padding-bottom:4px;flex-wrap:nowrap}
+  .tabs{flex-direction:column;flex-wrap:nowrap}
+  .tab{min-height:24px;font-size:13px;padding:0 4px}
+  .util{justify-content:center;flex-wrap:nowrap}
+  .iconBtn{width:28px;min-width:28px;height:28px;min-height:28px}
+  .tools{flex-direction:column;flex-wrap:nowrap!important;gap:4px}
+  .tools button{min-height:36px;min-width:0!important;width:100%;padding:2px 4px!important}
+  .tools button .tIco{display:none}
+  /* the building card: in the bottom middle, between the two columns */
+  .dock > .card{position:fixed;left:50%;bottom:6px;transform:translateX(-50%);margin:0;width:fit-content;max-width:min(440px,calc(100vw - 2 * (max(8px,env(safe-area-inset-left,0px)) + 166px)));max-height:calc(100vh - 16px);overflow:auto}
+  /* the first day's guide: along the top, between the panel and the corner buttons */
+  .dock > .guideCard{position:fixed;left:50%;top:8px;transform:translateX(-50%);max-width:calc(100vw - 2 * (max(8px,env(safe-area-inset-left,0px)) + 200px))}
+  .corner{bottom:auto;top:8px;right:calc(max(8px,env(safe-area-inset-right,0px)) + 44px);flex-direction:column;align-items:flex-end}
+  .cornerBtns{flex-direction:row}
+  .admin{max-height:calc(100vh - 60px);overflow:auto}
   #raidDash{width:440px;max-height:calc(100vh - 16px);position:fixed;top:8px;right:50px;z-index:30} .rdList{grid-template-columns:1fr repeat(3,32px) 1fr repeat(3,32px);gap:3px 5px} .rdList button,.rdCount button{min-height:24px}
   .pausedTag{padding-top:0;align-items:center}
 }
@@ -695,25 +705,28 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
   #mapPick #campBtn,#mapPick #saveResume{margin-top:0;padding:5px 20px;font-size:15px}
   #mapPick .saveInfo{margin-top:-4px}
 }
-/* the town picker on a phone held sideways (Jack: it ran off the bottom): Economy and Defences side by side, each pair on one row,
-   every decor on one row, all of it on one screen */
+/* the town picker on a phone held sideways (Jack: it ran off the bottom, then its long option bars looked stretched): each pick is a
+   small group, the resource or defence icon over its two options as square tiles (icon, name, cost), three groups to a row */
 @media (max-height:520px){
   #loadPick.modal{padding:max(6px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) max(6px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
-  .loadSheet{display:grid!important;grid-template-columns:1fr 1fr;column-gap:14px;row-gap:4px;width:min(820px,100%)}
+  .loadSheet{gap:5px!important;width:min(580px,100%)}
   .modal.tome .loadSheet{padding:8px 10px 10px}
-  .loadSheet > .mapSub,.loadSheet > section:nth-of-type(3),.loadSheet > .ldBtns{grid-column:1 / -1}
   .modal.tome .loadSheet > .mapSub{margin:-8px -10px 0;padding:6px 0 5px;font-size:11px}
   .loadSheet section{gap:3px}
-  .loadSheet h3{font-size:15px!important}
-  .ldRows{display:flex!important;flex-direction:column;gap:4px}
-  .ldRow{grid-template-columns:22px 1fr 1fr;gap:5px}
-  .ldOpt{min-height:34px!important;padding:2px 6px!important;gap:6px}
-  .ldOpt .tIco{width:20px;height:20px}
-  .ldOpt b{font-size:14px}
+  .loadSheet h3{font-size:15px!important;line-height:1.1}
+  .ldRows{display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px}
+  .ldRow{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:4px;padding:4px;border-radius:9px;background:rgba(10,8,4,.32);border:1px solid rgba(212,168,78,.18)}
+  .ldRow .ldCat{grid-column:1 / -1} .ldCat .ico{width:17px;height:17px}
+  .ldRow .ldOpt,.ldGrid .ldOpt{flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:1px;padding:4px 2px!important;min-height:56px!important}
+  .ldRow .ldOpt .tIco{width:20px;height:20px}
+  .ldRow .ldOpt b{font-size:13px;line-height:1.1;white-space:nowrap}
+  .ldRow .ldOpt small{font-size:10px}
   .ldGrid{grid-template-columns:repeat(9,1fr)!important;gap:4px}
-  .ldGrid .ldOpt{padding:4px 2px!important;min-height:44px!important}
-  .ldGrid .ldOpt b{font-size:11px!important}
-  .loadSheet > .ldBtns button{min-height:30px;padding:3px 18px}
+  .ldGrid .ldOpt{min-height:46px!important}
+  .ldGrid .ldOpt .tIco{width:18px;height:18px}
+  .ldGrid .ldOpt b{font-size:10.5px!important;line-height:1.05}
+  .loadSheet > .ldBtns{margin-top:2px} .loadSheet > .ldBtns button{min-height:30px;padding:3px 18px}
+}
 }
 
 </style>
@@ -6723,8 +6736,11 @@ let markRect = null, markRectT = 0;
 // the band the edge marks may use: below the top panel, above the dock (measured every .5 s)
 function markBand(dt) {
   if ((markRectT -= dt) <= 0 || !markRect) {
-    markRectT = .5; const top = document.querySelector('.panel').getBoundingClientRect(), dock = document.querySelector('.dock').getBoundingClientRect();
-    markRect = { x0: 24, x1: innerWidth - 24, y0: (top.bottom < innerHeight / 2 && top.right > innerWidth / 2 ? top.bottom : 60) + 26, y1: Math.min(innerHeight, dock.top) - 26 };
+    markRectT = .5; const top = document.querySelector('.panel').getBoundingClientRect(), dock = document.querySelector('.dock').getBoundingClientRect(),
+      bar = document.querySelector('.bar').getBoundingClientRect();
+    // a phone held sideways: the panel and the bar are columns down the sides, so the band is the room between them
+    if (bar.height > innerHeight * .5) markRect = { x0: top.right + 26, x1: bar.left - 26, y0: 34, y1: innerHeight - 26 };
+    else markRect = { x0: 24, x1: innerWidth - 24, y0: (top.bottom < innerHeight / 2 && top.right > innerWidth / 2 ? top.bottom : 60) + 26, y1: Math.min(innerHeight, dock.top) - 26 };
   }
   return markRect;
 }
@@ -6763,7 +6779,10 @@ function tipOnce(key, html) {
 function updateTips(dt) {
   const el = $('#tipPill');
   if (menuOn() || gameOver) { el.hidden = true; return; }
-  if (tipT > 0 && (tipT -= dt) > 0) { const d = document.querySelector('.dock').getBoundingClientRect(); el.style.bottom = (innerHeight - d.top + 10) + 'px'; return; }
+  if (tipT > 0 && (tipT -= dt) > 0) { const bar = document.querySelector('.bar').getBoundingClientRect(), card = $('#card');
+    // above the dock; sideways, above the building card in the bottom middle (or the bottom edge)
+    const top = bar.height > innerHeight * .5 ? (card.hidden ? innerHeight : card.getBoundingClientRect().top) : document.querySelector('.dock').getBoundingClientRect().top;
+    el.style.bottom = (innerHeight - top + 10) + 'px'; return; }
   el.hidden = true; if (!tipQ.length || paused) return;
   const [, html] = tipQ.shift(); el.innerHTML = html; el.hidden = false; tipT = 6; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
 }
