@@ -154,9 +154,9 @@ var newCards = [], newCardI = 0;
 function newCardStats(t) {
   const T = DEF[t], st = [];
   if (T.hp) st.push(STAT('hp', T.hp[0]));
-  if (T.residents) st.push(STAT('home', T.residents[0])); if (T.gold) st.push(STAT('gold', `+${T.gold[0]}`)); if (T.food) st.push(STAT('food', `+${Math.round(T.food[0])}`));
+  if (T.residents) st.push(STAT('home', T.residents[0])); if (T.gold) st.push(STAT('gold', `+${T.gold[0]}`)); if (T.food) st.push(STAT('food', `+${T.food[0]}`));
   if (T.workers) st.push(STAT('hammer', T.workers[0])); if (T.reach) st.push(STAT('range', `${T.reach} m`, '', 'Reach'));
-  if (T.archers) st.push(STAT('guard', T.archers[0])); if (T.dmg && T.archers) st.push(STAT('bow', T.dmg[0])); if (T.dmg && T.crew) st.push(STAT('guard', T.crew[0], '', 'Crew'), STAT('siege', T.dmg[0], '', 'Damage')); if (T.range) st.push(STAT('range', `${Math.round(T.range[0])} m`, '', 'Range'));
+  if (T.archers) st.push(STAT('guard', T.archers[0])); if (T.dmg && T.archers) st.push(STAT('bow', T.dmg[0])); if (T.dmg && T.crew) st.push(STAT('guard', T.crew[0], '', 'Crew'), STAT('siege', T.dmg[0], '', 'Damage')); if (T.range) st.push(STAT('range', `${T.range[0]} m`, '', 'Range'));
   if (T.soldiers) st.push(STAT('guard', T.soldiers[0], '', 'Soldiers'), STAT('sword', SOLDIER.dmg[0]));
   if (T.decor) { st.push(...fxStats(t, (i, v, n) => STAT(i, v, 'good', n))); if (T.charm) st.push(STAT('charm', `+${Math.round(T.charm * 100)}%`, 'good')); }
   return st.join('');
