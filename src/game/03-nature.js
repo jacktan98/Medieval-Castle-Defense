@@ -410,9 +410,6 @@ addGrit(pathStones.material, 'rock'); pathStones.receiveShadow = pathStones.cast
 // sized up front: r128 sizes instanceColor from .count on the first setColorAt, and count starts at 0 here
 pathStones.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAX_PSTONES * 3), 3); pathStones.count = 0;
 const DIRS = [[0, -1, 1], [1, 0, 2], [0, 1, 4], [-1, 0, 8]];
-const SHAPE = m => { const c = [1, 2, 4, 8].filter(b => m & b).length;
-  return c === 0 ? 'lone piece' : c === 1 ? 'dead end' : c === 2 ? ((m === 5 || m === 10) ? 'straight' : 'corner') : c === 3 ? 'T-junction' : 'crossroads'; };
-const BITNAME = m => ['N', 'E', 'S', 'W'].filter((_, n) => m & (1 << n)).join('+') || 'nothing';
 function roadMask(a, b) {
   let m = 0;
   for (const [da, db, bit] of DIRS) { const na = a + da, nb = b + db; if (na >= 0 && nb >= 0 && na < N && nb < N && road[nb * N + na]) m |= bit; }

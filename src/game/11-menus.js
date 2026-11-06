@@ -582,11 +582,9 @@ const CAMP_RIVER = [
 ];
 // ---------- the campaign as a carousel (Jack's sketch; it replaced a scrolling road, which replaced the overview map): the stages are
 // cards in a 3D deck, the one in front large, the others angled away behind it on both sides; swipe, tap a side card, the arrows, the
-// arrow keys or the mouse wheel to turn it. Under it a row of twelve markers (banner = won, flag = where you are, padlock = ahead, red
-// = boss; tap one to jump there), then the front stage's details and Play. Behind it the title's scene keeps running.
+// arrow keys or the mouse wheel to turn it. Under it the progress bar (one segment per stage: gold = won, pulsing = where you are, red
+// edge = boss; tap one to jump there), then the front stage's details and Play. Behind it the title's scene keeps running.
 const LOCK_SVG = '<svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5 V8 a4 4 0 0 1 8 0 V10.5"/></svg>';
-const DOT_BAN = '<svg viewBox="0 0 24 24"><path d="M7 22 V3" stroke="#d9c79a" stroke-width="2" fill="none"/><path d="M7.5 4 H18 V15 L12.7 12.6 L7.5 15 Z" fill="#3a6fd0" stroke="#163a7a" stroke-width="1.2"/></svg>';
-const DOT_FLAG = '<svg viewBox="0 0 24 24"><path d="M6 22 V3" stroke="#f2d27a" stroke-width="2" fill="none"/><path d="M6.5 4 C10 2.5 13 6 18.5 4.5 V12.5 C13 14 10 10.5 6.5 12 Z" fill="#3a6fd0" stroke="#f2d27a" stroke-width="1.2"/></svg>';
 let cSel = 0, cCur = 0, cDrag = 0;
 function campState() { const won = CAMPAIGN.map(c => !!(c.map && STARS[c.map] > 0)); let cur = won.indexOf(false); if (cur < 0) cur = CAMPAIGN.length - 1; return { won, cur }; }
 function buildDeck() {
@@ -669,7 +667,6 @@ $('#dHard').addEventListener('click', () => {
   addEventListener('resize', () => { if (!$('#campaign').hidden) layoutDeck(false); });
   if (window.ResizeObserver) new ResizeObserver(() => { if (!$('#campaign').hidden) layoutDeck(false); }).observe(deck);
 }
-const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' }, 2: { src: 'maps/cross.jpg' }, 3: { src: 'maps/watch.jpg' }, 4: { src: 'maps/dune.jpg' }, 5: { src: 'maps/bend.jpg' }, 6: { src: 'maps/crag.jpg' }, 7: { src: 'maps/ford.jpg' }, 8: { src: 'maps/mere.jpg' }, 9: { src: 'maps/plains.jpg' }, 10: { src: 'maps/keep.jpg' }, 11: { src: 'maps/hold.jpg' } };
 markMapStars();
 function openCampaign(i) {
   $('#tipPill').hidden = true; tipT = 0;
@@ -827,6 +824,7 @@ function closeGallery() {
   galleryOn = false; Object.assign(CAM_LIM, gSaved.lim);
   target.copy(gSaved.target); yaw = gSaved.yaw; pitch = gSaved.pitch; dist = gSaved.dist; paused = gSaved.paused; updateCam();
   $('#app').classList.remove('gallery'); $('#galBar').hidden = true;
+  sweepGeo();
 }
 // tap a building: a quarter turn, to see its other sides
 function galleryTap(e) {

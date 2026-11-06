@@ -8,6 +8,17 @@ const pixelMax = () => Math.min(devicePixelRatio, gfxLow ? 1.5 : 3);
 var pixelK = pixelMax(), fpsAcc = 0, fpsN = 0;
 renderer.setPixelRatio(pixelK);
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+// GPU memory: three keeps every shape (geometry) it has drawn until it is disposed, and raiders, buildings swapped on upgrade and whole
+// maps were only taken out of the scene, so a long session kept growing (about 750 shapes a stage started, 300 for every 20 raiders).
+// Every shape three uploads is noted here, and sweepGeo (at every new game, every dawn and on leaving the gallery) disposes the ones
+// no longer in a scene; one that is shown again later is simply uploaded again
+const liveGeo = new Set();
+{ const on = THREE.BufferGeometry.prototype.addEventListener; THREE.BufferGeometry.prototype.addEventListener = function (type, fn) { if (type === 'dispose') liveGeo.add(this); return on.call(this, type, fn); }; }
+function sweepGeo() {
+  const used = new Set(), mark = o => { if (o.geometry) used.add(o.geometry); };
+  scene.traverse(mark); if (gScene) gScene.traverse(mark);
+  for (const g of liveGeo) if (!used.has(g)) { liveGeo.delete(g); g.dispose(); }
+}
 renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
 const scene = new THREE.Scene();
 const SKY_DAY = new THREE.Color('#9db1b5'), SKY_NIGHT = new THREE.Color('#2a3b63'), SKY_DUSK = new THREE.Color('#c98a5a');

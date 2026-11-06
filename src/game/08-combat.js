@@ -1,6 +1,5 @@
 // ---------- enemies + combat ----------
 const raiderRed = teamMat(mat('#a32a22'), 'foe', '#a32a22');   // every raider wears the same red
-const shieldM = mat('#5a2a1e');
 // mounted raiders (and the stables' riders) ride: a horse under the rider, who sits astride with legs to either side
 const horseM = mat('#5a3a22'), maneM = mat('#2a1d14'), saddleM = mat('#3a2418'), blanketM = teamMat(mat('#8a221c'), 'foe', '#8a221c'), hoofM = mat('#1f1a16');
 const SADDLE = .72;   // lifts the rider's body so the hips sit on the saddle
@@ -493,18 +492,25 @@ function hurtEnemy(e, d, by) {
 const NOT_WALL = B => B.type !== 'wall' && B.type !== 'gate';
 // how many cells a raider at (x, z) must walk to each cell: over land and bridges (ends only), buildings counted as open
 // (they break through); water with no bridge is Infinity. Targets are picked by this, never by a straight line across a river
+// raiders' walking distances from a cell; buildings count as open, so they change only with the ground: kept per start cell until the
+// ground changes (cacheCells clears them). Every raider re-picking its target used to search the whole map afresh, and many re-pick
+// in the same step (a building falls, a column arrives), so Warlord's Hold's last night stuttered for up to 200 ms
+var fieldCache = null, pass3 = null;
 function landField(x, z) {
-  const f = new Float32Array(N * N).fill(Infinity), q = new Int32Array(N * N), s = cellAt(x, z); let h = 0, t = 0; f[s] = 0; q[t++] = s;
+  const s = cellAt(x, z); if (!fieldCache) fieldCache = new Map(); const hit = fieldCache.get(s); if (hit) return hit;
+  if (!pass3) { pass3 = new Uint8Array(N * N); for (let n = 0; n < N * N; n++) pass3[n] = cellPass(n, 3) ? 1 : 0; }
+  const f = new Float32Array(N * N).fill(Infinity), q = new Int32Array(N * N); let h = 0, t = 0; f[s] = 0; q[t++] = s;
   while (h < t) {
     const c = q[h++], a = c % N, b = (c / N) | 0, bc = bridgeCell[c];
     for (let k = 0; k < 4; k++) {
       const na = a + ND[k][0], nb = b + ND[k][1]; if (na < 0 || nb < 0 || na >= N || nb >= N) continue;
-      const nn = nb * N + na; if (f[nn] !== Infinity || !cellPass(nn, 3)) continue;
+      const nn = nb * N + na; if (f[nn] !== Infinity || !pass3[nn]) continue;
       const bn = bridgeCell[nn]; if (bc !== bn && ((bc && !bridges[bc - 1].ends.has(c)) || (bn && !bridges[bn - 1].ends.has(nn)))) continue;
       f[nn] = f[c] + 1; q[t++] = nn;
     }
   }
-  return f;
+  if (fieldCache.size > 120) fieldCache.clear();
+  fieldCache.set(s, f); return f;
 }
 // the nearest building by walking distance (straight-line distance only breaks ties); also where to stand: the cell beside it
 // the raider reaches first, so e.tp is on the side they actually arrive at
@@ -692,7 +698,7 @@ function updateEnemies(dt) {
     e.walking = false; e.aiming = false; e.running = false;
     if (e.dormant && dormantStep(e, dt)) {} else {
     if (!e.target || e.target.dead || (e.retarget -= dt) < 0) {
-      const t = pickTarget(e); if (t !== e.target) e.lob = false; e.target = t; e.retarget = 3;
+      const t = pickTarget(e); if (t !== e.target) e.lob = false; e.target = t; e.retarget = 2.6 + Math.random() * .8;
       if (t) e.tp = e.tpNew || { x: clamp(e.x, t.ev.x0, t.ev.x1), z: clamp(e.z, t.ev.z0, t.ev.z1) };   // the side they reach first, fixed until the next retarget
     }
     const B = e.target, foe = !SHOOTER[e.kind] && !E.engine ? nearestSoldier(e.x, e.z, e.horse ? 2.6 : 2.2) : null;

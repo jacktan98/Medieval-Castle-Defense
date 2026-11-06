@@ -110,7 +110,7 @@ function startGame() {
   applyLoadout(); cat = 'eco'; renderTools(); setTool('select');
   // the Goals panel shows this game's goals at once (it only redrew on the HUD tick, which waits behind the new-building cards,
   // so an open panel kept the last stage's goals: Jack)
-  goalsKey = ''; renderGoals(); weatherReset();
+  goalsKey = ''; renderGoals(); weatherReset(); sweepGeo(); cellOpen = fieldCache = pass3 = null; regionDirty = true;
 }
 
 // ---------- loop ----------

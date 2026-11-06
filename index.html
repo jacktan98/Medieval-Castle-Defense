@@ -67,7 +67,6 @@ input{-webkit-user-select:text;user-select:text}
 #phaseSub{font-size:12px;line-height:1.2;color:var(--muted);font-variant-numeric:tabular-nums}
 .res{display:flex;gap:3px}
 .res .chip{flex:1 1 auto}
-.chip .badge{font-style:normal;font-size:10px;font-weight:700;line-height:1;padding:2px 4px;border-radius:999px;background:#3c5a2c;color:#d8f0c4;margin-left:-1px}
 .chip{border:1px solid #4a4838;background:#24261f;border-radius:6px;padding:3px 3px;display:flex;align-items:center;justify-content:center;gap:3px;min-width:0;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
 .chip .ico{width:14px;height:14px}
 .chip b{font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap} .chip.short b{color:#ff6b5b} .chip.dim{opacity:.5}
@@ -145,7 +144,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .loadSheet h3{margin:0;font-family:var(--display);font-weight:400;font-size:20px;color:var(--gold)} .loadSheet h3 span{font-family:var(--body);font-size:14px;color:var(--muted)} .loadSheet h3 span.short{color:var(--bad)}
 .ldRows{display:flex;flex-direction:column;gap:6px}
 .ldRow{display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;align-items:stretch}
-.ldCat{display:flex;align-items:center;justify-content:center} .ldCat .ico{width:22px;height:22px} .ldCat .tag{font-size:10px;line-height:1.05;color:var(--muted);text-align:center;letter-spacing:.02em}
+.ldCat{display:flex;align-items:center;justify-content:center} .ldCat .ico{width:22px;height:22px} 
 .ldOpt{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;padding:5px 8px;border-radius:9px;background:#24261f;border-color:#4a4838;text-align:left;min-height:0;height:auto}
 .ldOpt .tIco{width:24px;height:24px;flex:0 0 auto;display:inline-flex;color:#cfc4a6} .ldOpt .tIco svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round} .ldOpt[aria-pressed="true"] .tIco{color:var(--gold)} .ldOpt b{font-family:var(--display);font-weight:400;font-size:16px;color:var(--parch);line-height:1.05;display:block}
 .ldOpt small{display:block;font-size:11px;color:var(--muted)} .ldOpt small .cost .ico{width:11px;height:11px}
@@ -200,7 +199,6 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #campaign{background:#14150f}
 .campSheet{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(720px,100%);max-height:100%}
 #campMap{width:100%;flex:1 1 auto;min-height:0;display:flex;justify-content:center}
-#campInfo{width:100%;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 /* the menus sit in the game's own world: the campaign landscape (maps/menu-bg.jpg: maps/overview.jpg shrunk to 240 px and blurred, so the
    browser's upscale is soft and costs nothing) darkened toward the edges; the content on dark translucent panels edged in muted gold */
 .modal.tome{background-color:#10120e!important;background-image:radial-gradient(ellipse at 50% 40%, rgba(8,9,6,.25) 0%, rgba(8,9,6,.55) 55%, rgba(5,6,4,.9) 100%),
@@ -216,11 +214,10 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .modal.tome .loadSheet,.modal.tome .stSide{background:rgba(14,16,11,.72);border:1px solid rgba(201,160,62,.28);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 .modal.tome .loadSheet{padding:12px 12px 14px}
 .modal.tome .stSide{padding:12px 16px 14px}
-.modal.tome .stPic{border-color:rgba(201,160,62,.45);box-shadow:0 0 0 1px rgba(0,0,0,.6),0 10px 34px rgba(0,0,0,.7)}
 .modal.tome button:not(.mapBtn):not(.ldOpt){background:rgba(20,22,16,.72)}
 /* a plain gold frame (Jack: no corner pieces, a thicker edge): a 2 px gold border with a faint inner line */
-.modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide,.modal.tome .stPic{position:relative;border:2px solid rgba(212,168,78,.75)!important;box-shadow:inset 0 0 0 2px rgba(8,9,6,.55),inset 0 0 0 3px rgba(212,168,78,.18),0 8px 26px rgba(0,0,0,.55)!important}
-.modal.tome .stPic,.modal.tome .mapBtn img{border-radius:6px} .modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide{border-radius:10px}
+.modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide,
+.modal.tome .mapBtn img{border-radius:6px} .modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide{border-radius:10px}
 /* the three map cards line up: names get two lines' room, so Mountain pass's picture sits level with the others */
 .mapBtn{justify-content:flex-start;padding:13px 13px 12px;width:min(186px,29vw)} .mapBtn b{min-height:2.3em;display:flex;align-items:center;justify-content:center;line-height:1.1}
 /* campaign progress: stages won, a slim gold bar, stars (Jack) */
@@ -276,10 +273,7 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 .cDet .stActs{display:flex;gap:10px;justify-content:center} .cDet .stActs button{min-width:110px;min-height:42px}
 @media (min-width:900px) and (min-height:600px){ .cMain{flex-direction:row;align-items:stretch;gap:24px} .cLeft{flex:1 1 auto} .cDet{width:300px;align-self:center} .cCard .cName b{font-size:24px} }
 @media (max-height:520px){ #campaign .cHead{flex-direction:row;gap:14px} #campaign .cHead .mapSub{width:auto} .cMain{flex-direction:row;align-items:stretch;gap:12px} .cDet{width:250px;align-self:center;padding:8px 10px!important;gap:5px} .cDet h3{font-size:18px} }
-/* the banner and the rally flag: the overview's 3D sprite strips (maps/banner.png, maps/flag.png: 32 frames of 220 x 200), played with steps() */
-.jSpr{position:absolute;right:-30px;top:-62px;width:121px;height:110px;background-repeat:no-repeat;background-size:3872px 110px;animation:jWave 2.513s steps(32) infinite;pointer-events:none}
-.jBan{background-image:url(maps/banner.png)} .jFlag{background-image:url(maps/flag.png);filter:drop-shadow(0 0 1.5px #fbeab0) drop-shadow(0 0 1px #fbeab0)}
-@keyframes jWave{to{background-position:-3872px 0}}
+
 /* behind the campaign and the town picker the title's scene keeps running (Jack: it flashed up between them before); these screens only
    darken it, more than the title does, so the cards and text stay clear */
 body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 45%, rgba(8,9,6,.45) 0%, rgba(8,9,6,.62) 60%, rgba(5,6,4,.9) 100%)!important}
@@ -373,8 +367,7 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 /* the locked message: the same small black strip as a stat icon's name (.statTip) */
 .diffLock{position:absolute;z-index:5;right:0;bottom:calc(100% + 6px);padding:3px 8px;border-radius:6px;background:#1c1d18;border:1px solid #6b5a2e;color:var(--parch);font-size:12px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.4);animation:diffPop 1.8s ease-out forwards}
 @keyframes diffPop{0%{opacity:0;transform:translateY(4px)}12%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0}}
-.hardBtn{align-self:center;min-height:28px!important;padding:2px 16px!important;font-size:13px!important;border-radius:14px!important;letter-spacing:.05em}
-#stHardOld[aria-pressed="true"]{background:linear-gradient(180deg,#8a2a1e,#521510)!important;border-color:#ff9a80!important;color:#ffe2d8!important;box-shadow:0 0 10px rgba(255,110,80,.45)}
+
 .crown svg,.hardTag svg{width:20px;height:20px;fill:#f0c95a;stroke:#fff1c4;stroke-width:1;vertical-align:-3px;margin-left:6px;filter:drop-shadow(0 0 6px rgba(255,205,90,.6))} .hardTag{color:#f0c95a}
 .crown.empty svg{fill:none!important;stroke:#d9b04e!important;stroke-width:1.6!important;filter:none!important;opacity:.85}
 .cName .crown svg{width:13px!important;height:13px!important;margin-left:4px;vertical-align:-2px}
@@ -413,7 +406,6 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .ncGoals{list-style:none;margin:0;padding:0 4px;display:flex;flex-direction:column;gap:5px;font-size:13px;color:#f4e3b2;text-align:left}
 .ncGoals li{display:flex;align-items:flex-start;gap:7px;line-height:1.25} .ncGoals b{color:#f0c95a;font-size:14px;line-height:1.1;text-shadow:0 0 6px rgba(255,205,90,.5)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
-
 .ncInfo{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left}
 .ncStep{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .ncIcon{flex:0 0 auto;align-self:center;display:flex} .ncIcon svg{width:44px;height:44px;stroke:var(--gold);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
@@ -422,17 +414,13 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .ncStats{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:5px 11px;font-size:12.5px;color:var(--parch)}
 #ncStats .stat{font-size:12.5px;gap:3px} #ncStats .stat .ico,#ncCost .ico{width:13px;height:13px}
 .ncCard button{min-width:72px;min-height:0;padding:6px 12px;font-size:13px;margin-top:4px;align-self:flex-end}
-.stageSheet{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(520px,100%);max-height:100%;overflow:auto}
-.stPic{width:100%;max-width:min(520px,62dvh);aspect-ratio:1/1;border-radius:10px;border:1px solid #4a4838;overflow:hidden;background:#2a2b22;display:flex;align-items:center;justify-content:center;position:relative;flex:0 0 auto}
-.stPic img{width:100%;height:100%;object-fit:cover;display:block} .stPic .tag{position:absolute;left:8px;top:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--parch);background:rgba(20,21,15,.75);padding:2px 7px;border-radius:5px} .stPic .soon{color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-size:13px}
+
 .stSide{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
 .stSide h3{margin:0;font-family:var(--display);font-weight:400;font-size:21px;color:var(--gold)} .stSide .sub{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 .stNew{display:flex;flex-wrap:wrap;justify-content:center;gap:7px 12px;font-size:13px;color:var(--parch)} .stNew span{display:flex;align-items:center;gap:5px} .stNew svg{width:20px;height:20px;stroke:var(--gold);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .stActs{display:flex;gap:10px;margin-top:4px} .stActs button{min-width:92px}
-@media (max-height:520px){ .stageSheet{flex-direction:row;width:min(780px,100%);justify-content:center} .stPic{width:auto;height:calc(100dvh - 40px);max-width:none} .stSide{width:240px} }
-#campInfo h3{margin:0;font-family:var(--display);font-weight:400;font-size:19px;color:var(--gold)} #campInfo .sub{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
-#campInfo .unl{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 10px;font-size:12px;color:var(--parch)}
-#campInfo .unl span{display:flex;align-items:center;gap:4px} #campInfo .unl svg{width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+@media (max-height:520px){ .stSide{width:240px} }
+
 .mapSub{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .maps{display:flex;gap:min(12px,2vw);justify-content:center;flex-wrap:wrap}
 .mapBtn{display:flex;flex-direction:column;align-items:stretch;gap:7px;padding:6px 6px 8px;border-radius:12px;background:#24261f;border-color:#4a4838;width:min(170px,25vw)}
@@ -521,7 +509,6 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
 .pausedTag{position:absolute;inset:0;z-index:20;transform:none;top:0;left:0;display:flex;align-items:flex-start;justify-content:center;padding-top:18vh;background:rgba(10,12,10,.35);pointer-events:none;font-family:inherit;font-size:inherit;text-shadow:none}
 .pauseCard{pointer-events:auto;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:14px 22px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
 .pauseT{font-family:var(--display);font-size:30px;color:var(--parch);line-height:1}
-.pauseS{font-size:12px;color:var(--muted)}
 .pauseBtns{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;justify-content:center}
 .pauseBtns .pIco{width:56px;min-width:56px;height:46px;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .pIco svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round} .pIco svg .solid{fill:currentColor}
@@ -686,7 +673,6 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .modal.tome .upDet .upBuy:disabled{filter:grayscale(.6) brightness(.75)}
 /* the campaign screen's way in: beside the stars, with the stars still to spend */
 .modal.tome .campProg .upBtn{min-height:0!important;padding:3px 11px!important;font-size:14px!important;border-radius:14px!important;margin-left:2px;white-space:nowrap;display:inline-flex!important;flex-direction:row!important;gap:5px;align-items:center} .campProg .upBtn b{color:var(--gold)}
-
 /* the campaign screen's round buttons, on the left just above the progress bar (Jack): Upgrades (a hammer, with the stars still to spend), Achievements later beside it; no height of their own, so the deck and the bar don't move */
 .cDotsWrap{position:relative;width:min(380px,100%)} .cDotsWrap .cDots{width:100%}
 .campSide{position:absolute;left:0;bottom:100%;margin-bottom:10px;z-index:5;display:flex;gap:10px}
@@ -695,7 +681,6 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .campBadge{position:absolute;top:-5px;right:-14px;padding:0 5px;border-radius:9px;background:#f0c95a;color:#2a1d0a;font-size:11px;font-weight:700;line-height:16px;border:1.5px solid #fff1c4;box-shadow:0 1px 3px rgba(0,0,0,.6);animation:badgePulse 1.6s ease-in-out infinite}
 /* stars still to spend: the badge pulses and glows so players see there are upgrades to buy (Jack); hidden at none */
 @keyframes badgePulse{0%,100%{transform:scale(1);box-shadow:0 1px 3px rgba(0,0,0,.6),0 0 0 rgba(255,214,110,0)}50%{transform:scale(1.14);box-shadow:0 1px 3px rgba(0,0,0,.6),0 0 12px 3px rgba(255,214,110,.75)}}
-
 /* a phone held sideways: the trees eight across on a wider sheet, everything a little smaller, so most of a tab fits */
 @media (max-height:520px){ .upSheet{max-width:820px;padding-top:8px} .upTop{margin-bottom:4px} .upTop h2{font-size:22px} .upTabs{margin-bottom:8px}
   .upGrid{grid-template-columns:repeat(8,1fr);gap:8px 6px} .upBan{padding:4px 0 7px;margin-bottom:4px} .upBan svg{width:22px;height:22px}
@@ -705,7 +690,6 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
   .modal.tome .upTabs .upTab{padding:4px 0 3px!important;font-size:14px} .modal.tome .upTop .upBack{width:34px;height:34px} .upBank{height:26px} }
 /* a phone held sideways: the deck reaches down to the bar, so the round buttons sit to the bar's left instead */
 @media (max-height:520px){ .campSide{left:auto;right:100%;bottom:0;margin:0 12px 0 0} }
-
 /* the campaign screen's way back to the title: a round button in the top-left corner (Jack); Play has the details' foot to itself */
 .modal.tome .campBack{position:absolute;top:calc(16px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left));z-index:6;width:40px;height:40px;min-height:0!important;min-width:0!important;padding:0!important;border-radius:11px!important;border:2px solid #d9b04e!important;background:linear-gradient(180deg,#5a4428,#2c210f)!important;display:flex!important;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,230,160,.25)!important}
 .campBack svg{display:block;width:22px;height:22px;fill:none;stroke:#f0c95a;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
@@ -757,7 +741,6 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
   .loadSheet > .ldBtns{margin-top:2px} .loadSheet > .ldBtns button{min-height:30px;padding:3px 18px}
 }
 }
-
 </style>
 
 <!-- shown from the first paint until the game is ready (three.js comes from a CDN; on a slow phone that takes a while) -->
@@ -1525,7 +1508,6 @@ const HOLD_RIVER = smoothPts([[-1, 38], [12, 36], [26, 40], [40, 38], [54, 36], 
 // sides (Jack: the diagonal roads laid as zigzags; they crossed the river by land before)
 const HOLD_PASSES = [[[-1, 25], [8, 28], [14, 31], [16, 33], [16, 45], [22, 45], [22, 65], [34, 65]], [[81, 25], [72, 28], [66, 31], [64, 33], [64, 45], [58, 45], [58, 65], [44, 65]]];
 const HOLD_ROADS = [[[39, 17], [39, 33]], [[39, 43], [39, 60]], ...HOLD_PASSES];
-const HOLD_ICE = [];   // where the two passes cross the river: a plain land crossing (a ford of grass and earth)
 const holdMtn = (x, z) => Math.max(...HOLD_MTNS.map(([cx, cz, rx, rz, sd]) => 1 - sstep(.75, 1.05, blobD(x, z, [cx, cz, rx, rz], sd)))) * sstep(3, 6, Math.min(...HOLD_PASSES.map(p => polyDist(p, x, z))));
 const holdOpen = (x, z) => holdMtn(x, z) < .5;
 const holdRiverZ = x => { const P = HOLD_RIVER; for (let i = 0; i < P.length - 1; i++) if (x >= P[i][0] && x <= P[i + 1][0]) return lerp(P[i][1], P[i + 1][1], (x - P[i][0]) / (P[i + 1][0] - P[i][0])); return 38; };
@@ -1537,9 +1519,7 @@ function holdHeight(x, z) {
   // a ramp down from the gate, so its door meets the ground (Jack)
   else if (z > 14.5 && z < 22) h = lerp(h, lerp(6, h, sstep(15.4, 21.5, z)), sstep(3.4, 2.2, Math.abs(x - HOLD_GATE[0])));
   h = lerp(3 + (h - 3) * .35, h, sstep(6, 11, Math.hypot(x - KX, z - KZ)));
-  const fd = Math.min(...HOLD_ICE.map(f => Math.abs(x - f))), ice = sstep(4.2, 2.6, fd), ramp = sstep(9, 4.5, fd);
-  const d = polyDist(HOLD_RIVER, x, z), river = lerp(-1.3, h, lerp(sstep(2.2, 4.6, d), sstep(2.4, 9, d), ramp));
-  return d < 5 ? Math.max(river, lerp(river, .6 + .05 * vnoise(x * .9, z * .9), ice)) : river;
+  return lerp(-1.3, h, sstep(2.2, 4.6, polyDist(HOLD_RIVER, x, z)));
 }
 // the boss stages' fixed scenery nobody walks through or builds on: the keep and the burned village's ruins, the hold
 // the Warlord's horse guard idling outside the gate (Jack: livelier): tier-3 horse swords, scenery
@@ -1687,7 +1667,7 @@ const cH = new Float32Array(N_MAX * N_MAX), cS = new Float32Array(N_MAX * N_MAX)
 // which cells can reach which (see regions); rebuilt lazily after any build, removal or terrain change
 var reg = new Int32Array(N_MAX * N_MAX), regPass = new Uint8Array(N_MAX * N_MAX), regTry = new Int32Array(N_MAX * N_MAX), regionDirty = true;
 function cacheCells() {
-  regionDirty = true;
+  regionDirty = true; fieldCache = pass3 = cellOpen = null;
   for (let b = 0; b < N; b++) for (let a = 0; a < N; a++) { const n = b * N + a; cH[n] = hAt((a + .5) * CELL, (b + .5) * CELL); cS[n] = cellStats(a, b).spread; }
   for (let n = 0; n < N * N; n++) if (bridgeCell[n]) { const p = bridgeWaypoint(n); cH[n] = walkY(p.x, p.z); cS[n] = 0; }
 }
@@ -1702,6 +1682,17 @@ const pixelMax = () => Math.min(devicePixelRatio, gfxLow ? 1.5 : 3);
 var pixelK = pixelMax(), fpsAcc = 0, fpsN = 0;
 renderer.setPixelRatio(pixelK);
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+// GPU memory: three keeps every shape (geometry) it has drawn until it is disposed, and raiders, buildings swapped on upgrade and whole
+// maps were only taken out of the scene, so a long session kept growing (about 750 shapes a stage started, 300 for every 20 raiders).
+// Every shape three uploads is noted here, and sweepGeo (at every new game, every dawn and on leaving the gallery) disposes the ones
+// no longer in a scene; one that is shown again later is simply uploaded again
+const liveGeo = new Set();
+{ const on = THREE.BufferGeometry.prototype.addEventListener; THREE.BufferGeometry.prototype.addEventListener = function (type, fn) { if (type === 'dispose') liveGeo.add(this); return on.call(this, type, fn); }; }
+function sweepGeo() {
+  const used = new Set(), mark = o => { if (o.geometry) used.add(o.geometry); };
+  scene.traverse(mark); if (gScene) gScene.traverse(mark);
+  for (const g of liveGeo) if (!used.has(g)) { liveGeo.delete(g); g.dispose(); }
+}
 renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
 const scene = new THREE.Scene();
 const SKY_DAY = new THREE.Color('#9db1b5'), SKY_NIGHT = new THREE.Color('#2a3b63'), SKY_DUSK = new THREE.Color('#c98a5a');
@@ -2501,9 +2492,6 @@ addGrit(pathStones.material, 'rock'); pathStones.receiveShadow = pathStones.cast
 // sized up front: r128 sizes instanceColor from .count on the first setColorAt, and count starts at 0 here
 pathStones.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAX_PSTONES * 3), 3); pathStones.count = 0;
 const DIRS = [[0, -1, 1], [1, 0, 2], [0, 1, 4], [-1, 0, 8]];
-const SHAPE = m => { const c = [1, 2, 4, 8].filter(b => m & b).length;
-  return c === 0 ? 'lone piece' : c === 1 ? 'dead end' : c === 2 ? ((m === 5 || m === 10) ? 'straight' : 'corner') : c === 3 ? 'T-junction' : 'crossroads'; };
-const BITNAME = m => ['N', 'E', 'S', 'W'].filter((_, n) => m & (1 << n)).join('+') || 'nothing';
 function roadMask(a, b) {
   let m = 0;
   for (const [da, db, bit] of DIRS) { const na = a + da, nb = b + db; if (na >= 0 && nb >= 0 && na < N && nb < N && road[nb * N + na]) m |= bit; }
@@ -4453,7 +4441,6 @@ const OBST = {
   farmhouse: { 1: [[-1.0, -1.15, .6, .45], [1.15, -1.3, .32, .28]], 2: [[-1.0, -1.15, .65, .5], [1.15, -1.3, .32, .28], [1.25, -.25, .4, .35]],
     3: [[-1.0, -1.15, .65, .5], [1.15, -1.3, .32, .28], [1.25, -.25, .4, .35], [-1.3, .75, .3, .55]] },
 };
-const FARM_OBST = OBST.farm;
 function farmBlocked(B, x, z) { const L = OBST[B.type]; if (!L) return false; const c = center(B), [lx, lz] = unrot(B.face || 0, x - c.x, z - c.z); return L[B.tier].some(([ox, oz, hx, hz]) => Math.abs(lx - ox) < hx + .18 && Math.abs(lz - oz) < hz + .18); }
 function canStand(x, z, mode) {   // mode 0 villager, 1 worker, 2 enemy
   if (x < .5 || z < .5 || x > SIZE - .5 || z > SIZE - .5) return false;
@@ -4864,10 +4851,16 @@ function smoothPos(u, dt, now) {
 }
 function stride(u, dt, rate) { u.amp = (u.amp || 0) + ((u.walking ? 1 : 0) - (u.amp || 0)) * Math.min(1, dt * 6); if (u.amp > .02) u.phase += dt * rate; return u.amp; }
 // ---------- pathfinding: A* over the cell grid, then follow cell centres, skipping any we can see past ----------
+// the cells nobody may ever enter (scenery, Watchhill's ruin, closed ground): the same all game, so worked out once per map (route
+// searches asked for them several times per cell and step, and the closed ground's noise made that the bulk of a search's time);
+// cleared by cacheCells and at the end of startGame, once the stage's scenery and camps stand
+var cellOpen = null;
 function cellPass(n, mode) {
-  if (MAP === 'watch' && n === cellAt(WATCH_RUIN[0], WATCH_RUIN[1])) return false;
-  if (sceneryAt((n % N + .5) * CELL, (((n / N) | 0) + .5) * CELL)) return false;
-  if (!mapOpen((n % N + .5) * CELL, (((n / N) | 0) + .5) * CELL)) return false;
+  if (!cellOpen) {
+    cellOpen = new Uint8Array(N * N); const ruin = MAP === 'watch' ? cellAt(WATCH_RUIN[0], WATCH_RUIN[1]) : -1;
+    for (let k = 0; k < N * N; k++) { const x = (k % N + .5) * CELL, z = (((k / N) | 0) + .5) * CELL; cellOpen[k] = k !== ruin && !sceneryAt(x, z) && mapOpen(x, z) ? 1 : 0; }
+  }
+  if (!cellOpen[n]) return false;
   if (bridgeCell[n]) return true;
   const o = mode === 3 ? null : occB[n]; if (o && !WALK[o.type] && !(o.type === 'gate' && mode !== 2)) return false;   // mode 3: raiders' ground, buildings count as open (they break through)
   // a farm cell whose middle is the hut, barn, hay or a scarecrow is routed round (people still walk the open ground by it)
@@ -5362,7 +5355,6 @@ function updateTrees(now) {
 
 // ---------- enemies + combat ----------
 const raiderRed = teamMat(mat('#a32a22'), 'foe', '#a32a22');   // every raider wears the same red
-const shieldM = mat('#5a2a1e');
 // mounted raiders (and the stables' riders) ride: a horse under the rider, who sits astride with legs to either side
 const horseM = mat('#5a3a22'), maneM = mat('#2a1d14'), saddleM = mat('#3a2418'), blanketM = teamMat(mat('#8a221c'), 'foe', '#8a221c'), hoofM = mat('#1f1a16');
 const SADDLE = .72;   // lifts the rider's body so the hips sit on the saddle
@@ -5855,18 +5847,25 @@ function hurtEnemy(e, d, by) {
 const NOT_WALL = B => B.type !== 'wall' && B.type !== 'gate';
 // how many cells a raider at (x, z) must walk to each cell: over land and bridges (ends only), buildings counted as open
 // (they break through); water with no bridge is Infinity. Targets are picked by this, never by a straight line across a river
+// raiders' walking distances from a cell; buildings count as open, so they change only with the ground: kept per start cell until the
+// ground changes (cacheCells clears them). Every raider re-picking its target used to search the whole map afresh, and many re-pick
+// in the same step (a building falls, a column arrives), so Warlord's Hold's last night stuttered for up to 200 ms
+var fieldCache = null, pass3 = null;
 function landField(x, z) {
-  const f = new Float32Array(N * N).fill(Infinity), q = new Int32Array(N * N), s = cellAt(x, z); let h = 0, t = 0; f[s] = 0; q[t++] = s;
+  const s = cellAt(x, z); if (!fieldCache) fieldCache = new Map(); const hit = fieldCache.get(s); if (hit) return hit;
+  if (!pass3) { pass3 = new Uint8Array(N * N); for (let n = 0; n < N * N; n++) pass3[n] = cellPass(n, 3) ? 1 : 0; }
+  const f = new Float32Array(N * N).fill(Infinity), q = new Int32Array(N * N); let h = 0, t = 0; f[s] = 0; q[t++] = s;
   while (h < t) {
     const c = q[h++], a = c % N, b = (c / N) | 0, bc = bridgeCell[c];
     for (let k = 0; k < 4; k++) {
       const na = a + ND[k][0], nb = b + ND[k][1]; if (na < 0 || nb < 0 || na >= N || nb >= N) continue;
-      const nn = nb * N + na; if (f[nn] !== Infinity || !cellPass(nn, 3)) continue;
+      const nn = nb * N + na; if (f[nn] !== Infinity || !pass3[nn]) continue;
       const bn = bridgeCell[nn]; if (bc !== bn && ((bc && !bridges[bc - 1].ends.has(c)) || (bn && !bridges[bn - 1].ends.has(nn)))) continue;
       f[nn] = f[c] + 1; q[t++] = nn;
     }
   }
-  return f;
+  if (fieldCache.size > 120) fieldCache.clear();
+  fieldCache.set(s, f); return f;
 }
 // the nearest building by walking distance (straight-line distance only breaks ties); also where to stand: the cell beside it
 // the raider reaches first, so e.tp is on the side they actually arrive at
@@ -6054,7 +6053,7 @@ function updateEnemies(dt) {
     e.walking = false; e.aiming = false; e.running = false;
     if (e.dormant && dormantStep(e, dt)) {} else {
     if (!e.target || e.target.dead || (e.retarget -= dt) < 0) {
-      const t = pickTarget(e); if (t !== e.target) e.lob = false; e.target = t; e.retarget = 3;
+      const t = pickTarget(e); if (t !== e.target) e.lob = false; e.target = t; e.retarget = 2.6 + Math.random() * .8;
       if (t) e.tp = e.tpNew || { x: clamp(e.x, t.ev.x0, t.ev.x1), z: clamp(e.z, t.ev.z0, t.ev.z1) };   // the side they reach first, fixed until the next retarget
     }
     const B = e.target, foe = !SHOOTER[e.kind] && !E.engine ? nearestSoldier(e.x, e.z, e.horse ? 2.6 : 2.2) : null;
@@ -6987,6 +6986,7 @@ function standDown() {
   for (const B of buildings) { B.manned = []; hideDefenders(B); }
 }
 function startDay() {
+  sweepGeo();
   const test = PH.testDay; PH.testDay = undefined; nextPts = null;   // the end of an admin test raid: back to the same day, the wave not used up
   sfx('rooster'); if (test === undefined) PH.wave++; PH.kind = 'day'; PH.t = test !== undefined ? Math.max(test, DUSK + 5) : DAYLEN[PH.wave - 1];
   standDown();
@@ -8121,11 +8121,9 @@ const CAMP_RIVER = [
 ];
 // ---------- the campaign as a carousel (Jack's sketch; it replaced a scrolling road, which replaced the overview map): the stages are
 // cards in a 3D deck, the one in front large, the others angled away behind it on both sides; swipe, tap a side card, the arrows, the
-// arrow keys or the mouse wheel to turn it. Under it a row of twelve markers (banner = won, flag = where you are, padlock = ahead, red
-// = boss; tap one to jump there), then the front stage's details and Play. Behind it the title's scene keeps running.
+// arrow keys or the mouse wheel to turn it. Under it the progress bar (one segment per stage: gold = won, pulsing = where you are, red
+// edge = boss; tap one to jump there), then the front stage's details and Play. Behind it the title's scene keeps running.
 const LOCK_SVG = '<svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5 V8 a4 4 0 0 1 8 0 V10.5"/></svg>';
-const DOT_BAN = '<svg viewBox="0 0 24 24"><path d="M7 22 V3" stroke="#d9c79a" stroke-width="2" fill="none"/><path d="M7.5 4 H18 V15 L12.7 12.6 L7.5 15 Z" fill="#3a6fd0" stroke="#163a7a" stroke-width="1.2"/></svg>';
-const DOT_FLAG = '<svg viewBox="0 0 24 24"><path d="M6 22 V3" stroke="#f2d27a" stroke-width="2" fill="none"/><path d="M6.5 4 C10 2.5 13 6 18.5 4.5 V12.5 C13 14 10 10.5 6.5 12 Z" fill="#3a6fd0" stroke="#f2d27a" stroke-width="1.2"/></svg>';
 let cSel = 0, cCur = 0, cDrag = 0;
 function campState() { const won = CAMPAIGN.map(c => !!(c.map && STARS[c.map] > 0)); let cur = won.indexOf(false); if (cur < 0) cur = CAMPAIGN.length - 1; return { won, cur }; }
 function buildDeck() {
@@ -8208,7 +8206,6 @@ $('#dHard').addEventListener('click', () => {
   addEventListener('resize', () => { if (!$('#campaign').hidden) layoutDeck(false); });
   if (window.ResizeObserver) new ResizeObserver(() => { if (!$('#campaign').hidden) layoutDeck(false); }).observe(deck);
 }
-const STAGE_PIC = { 0: { src: 'maps/vale.jpg' }, 1: { src: 'maps/bridge.jpg' }, 2: { src: 'maps/cross.jpg' }, 3: { src: 'maps/watch.jpg' }, 4: { src: 'maps/dune.jpg' }, 5: { src: 'maps/bend.jpg' }, 6: { src: 'maps/crag.jpg' }, 7: { src: 'maps/ford.jpg' }, 8: { src: 'maps/mere.jpg' }, 9: { src: 'maps/plains.jpg' }, 10: { src: 'maps/keep.jpg' }, 11: { src: 'maps/hold.jpg' } };
 markMapStars();
 function openCampaign(i) {
   $('#tipPill').hidden = true; tipT = 0;
@@ -8366,6 +8363,7 @@ function closeGallery() {
   galleryOn = false; Object.assign(CAM_LIM, gSaved.lim);
   target.copy(gSaved.target); yaw = gSaved.yaw; pitch = gSaved.pitch; dist = gSaved.dist; paused = gSaved.paused; updateCam();
   $('#app').classList.remove('gallery'); $('#galBar').hidden = true;
+  sweepGeo();
 }
 // tap a building: a quarter turn, to see its other sides
 function galleryTap(e) {
@@ -8614,7 +8612,6 @@ function burnTick(e, dt) {
 // ---- the Upgrades screen (from the campaign screen) ----
 let upTab = 0, upSel = null;
 const UP_VOL = '<svg viewBox="0 0 24 24"><path d="M4 4 L13 13 M9 2.5 L18 11.5 M2.5 9 L11.5 18"/><path fill="currentColor" d="M15 15 L11.2 14.2 L14.2 11.2 Z M20 13.5 L16.2 12.7 L19.2 9.7 Z M13.5 20 L12.7 16.2 L9.7 19.2 Z"/></svg>';
-const UP_LOCK = '<svg class="upLock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V8 a4 4 0 0 1 8 0 V11"/></svg>';
 const UP_RESET = '<svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>';
 const upRowIco = k => k === 'VOL' ? UP_VOL : k === 'HORSE' ? `<svg viewBox="0 0 24 24">${HORSE_ICO}</svg>` : TOOL_ICON[k];
 // the knight's cloth follows the town's colour
@@ -8775,7 +8772,7 @@ function startGame() {
   applyLoadout(); cat = 'eco'; renderTools(); setTool('select');
   // the Goals panel shows this game's goals at once (it only redrew on the HUD tick, which waits behind the new-building cards,
   // so an open panel kept the last stage's goals: Jack)
-  goalsKey = ''; renderGoals(); weatherReset();
+  goalsKey = ''; renderGoals(); weatherReset(); sweepGeo(); cellOpen = fieldCache = pass3 = null; regionDirty = true;
 }
 
 // ---------- loop ----------

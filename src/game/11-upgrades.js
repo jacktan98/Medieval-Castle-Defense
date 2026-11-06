@@ -127,7 +127,6 @@ function burnTick(e, dt) {
 // ---- the Upgrades screen (from the campaign screen) ----
 let upTab = 0, upSel = null;
 const UP_VOL = '<svg viewBox="0 0 24 24"><path d="M4 4 L13 13 M9 2.5 L18 11.5 M2.5 9 L11.5 18"/><path fill="currentColor" d="M15 15 L11.2 14.2 L14.2 11.2 Z M20 13.5 L16.2 12.7 L19.2 9.7 Z M13.5 20 L12.7 16.2 L9.7 19.2 Z"/></svg>';
-const UP_LOCK = '<svg class="upLock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V8 a4 4 0 0 1 8 0 V11"/></svg>';
 const UP_RESET = '<svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>';
 const upRowIco = k => k === 'VOL' ? UP_VOL : k === 'HORSE' ? `<svg viewBox="0 0 24 24">${HORSE_ICO}</svg>` : TOOL_ICON[k];
 // the knight's cloth follows the town's colour

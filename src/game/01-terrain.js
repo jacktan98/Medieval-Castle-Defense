@@ -272,7 +272,6 @@ const HOLD_RIVER = smoothPts([[-1, 38], [12, 36], [26, 40], [40, 38], [54, 36], 
 // sides (Jack: the diagonal roads laid as zigzags; they crossed the river by land before)
 const HOLD_PASSES = [[[-1, 25], [8, 28], [14, 31], [16, 33], [16, 45], [22, 45], [22, 65], [34, 65]], [[81, 25], [72, 28], [66, 31], [64, 33], [64, 45], [58, 45], [58, 65], [44, 65]]];
 const HOLD_ROADS = [[[39, 17], [39, 33]], [[39, 43], [39, 60]], ...HOLD_PASSES];
-const HOLD_ICE = [];   // where the two passes cross the river: a plain land crossing (a ford of grass and earth)
 const holdMtn = (x, z) => Math.max(...HOLD_MTNS.map(([cx, cz, rx, rz, sd]) => 1 - sstep(.75, 1.05, blobD(x, z, [cx, cz, rx, rz], sd)))) * sstep(3, 6, Math.min(...HOLD_PASSES.map(p => polyDist(p, x, z))));
 const holdOpen = (x, z) => holdMtn(x, z) < .5;
 const holdRiverZ = x => { const P = HOLD_RIVER; for (let i = 0; i < P.length - 1; i++) if (x >= P[i][0] && x <= P[i + 1][0]) return lerp(P[i][1], P[i + 1][1], (x - P[i][0]) / (P[i + 1][0] - P[i][0])); return 38; };
@@ -284,9 +283,7 @@ function holdHeight(x, z) {
   // a ramp down from the gate, so its door meets the ground (Jack)
   else if (z > 14.5 && z < 22) h = lerp(h, lerp(6, h, sstep(15.4, 21.5, z)), sstep(3.4, 2.2, Math.abs(x - HOLD_GATE[0])));
   h = lerp(3 + (h - 3) * .35, h, sstep(6, 11, Math.hypot(x - KX, z - KZ)));
-  const fd = Math.min(...HOLD_ICE.map(f => Math.abs(x - f))), ice = sstep(4.2, 2.6, fd), ramp = sstep(9, 4.5, fd);
-  const d = polyDist(HOLD_RIVER, x, z), river = lerp(-1.3, h, lerp(sstep(2.2, 4.6, d), sstep(2.4, 9, d), ramp));
-  return d < 5 ? Math.max(river, lerp(river, .6 + .05 * vnoise(x * .9, z * .9), ice)) : river;
+  return lerp(-1.3, h, sstep(2.2, 4.6, polyDist(HOLD_RIVER, x, z)));
 }
 // the boss stages' fixed scenery nobody walks through or builds on: the keep and the burned village's ruins, the hold
 // the Warlord's horse guard idling outside the gate (Jack: livelier): tier-3 horse swords, scenery
@@ -434,7 +431,7 @@ const cH = new Float32Array(N_MAX * N_MAX), cS = new Float32Array(N_MAX * N_MAX)
 // which cells can reach which (see regions); rebuilt lazily after any build, removal or terrain change
 var reg = new Int32Array(N_MAX * N_MAX), regPass = new Uint8Array(N_MAX * N_MAX), regTry = new Int32Array(N_MAX * N_MAX), regionDirty = true;
 function cacheCells() {
-  regionDirty = true;
+  regionDirty = true; fieldCache = pass3 = cellOpen = null;
   for (let b = 0; b < N; b++) for (let a = 0; a < N; a++) { const n = b * N + a; cH[n] = hAt((a + .5) * CELL, (b + .5) * CELL); cS[n] = cellStats(a, b).spread; }
   for (let n = 0; n < N * N; n++) if (bridgeCell[n]) { const p = bridgeWaypoint(n); cH[n] = walkY(p.x, p.z); cS[n] = 0; }
 }

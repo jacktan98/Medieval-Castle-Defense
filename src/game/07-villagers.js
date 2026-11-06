@@ -11,7 +11,6 @@ const OBST = {
   farmhouse: { 1: [[-1.0, -1.15, .6, .45], [1.15, -1.3, .32, .28]], 2: [[-1.0, -1.15, .65, .5], [1.15, -1.3, .32, .28], [1.25, -.25, .4, .35]],
     3: [[-1.0, -1.15, .65, .5], [1.15, -1.3, .32, .28], [1.25, -.25, .4, .35], [-1.3, .75, .3, .55]] },
 };
-const FARM_OBST = OBST.farm;
 function farmBlocked(B, x, z) { const L = OBST[B.type]; if (!L) return false; const c = center(B), [lx, lz] = unrot(B.face || 0, x - c.x, z - c.z); return L[B.tier].some(([ox, oz, hx, hz]) => Math.abs(lx - ox) < hx + .18 && Math.abs(lz - oz) < hz + .18); }
 function canStand(x, z, mode) {   // mode 0 villager, 1 worker, 2 enemy
   if (x < .5 || z < .5 || x > SIZE - .5 || z > SIZE - .5) return false;
@@ -422,10 +421,16 @@ function smoothPos(u, dt, now) {
 }
 function stride(u, dt, rate) { u.amp = (u.amp || 0) + ((u.walking ? 1 : 0) - (u.amp || 0)) * Math.min(1, dt * 6); if (u.amp > .02) u.phase += dt * rate; return u.amp; }
 // ---------- pathfinding: A* over the cell grid, then follow cell centres, skipping any we can see past ----------
+// the cells nobody may ever enter (scenery, Watchhill's ruin, closed ground): the same all game, so worked out once per map (route
+// searches asked for them several times per cell and step, and the closed ground's noise made that the bulk of a search's time);
+// cleared by cacheCells and at the end of startGame, once the stage's scenery and camps stand
+var cellOpen = null;
 function cellPass(n, mode) {
-  if (MAP === 'watch' && n === cellAt(WATCH_RUIN[0], WATCH_RUIN[1])) return false;
-  if (sceneryAt((n % N + .5) * CELL, (((n / N) | 0) + .5) * CELL)) return false;
-  if (!mapOpen((n % N + .5) * CELL, (((n / N) | 0) + .5) * CELL)) return false;
+  if (!cellOpen) {
+    cellOpen = new Uint8Array(N * N); const ruin = MAP === 'watch' ? cellAt(WATCH_RUIN[0], WATCH_RUIN[1]) : -1;
+    for (let k = 0; k < N * N; k++) { const x = (k % N + .5) * CELL, z = (((k / N) | 0) + .5) * CELL; cellOpen[k] = k !== ruin && !sceneryAt(x, z) && mapOpen(x, z) ? 1 : 0; }
+  }
+  if (!cellOpen[n]) return false;
   if (bridgeCell[n]) return true;
   const o = mode === 3 ? null : occB[n]; if (o && !WALK[o.type] && !(o.type === 'gate' && mode !== 2)) return false;   // mode 3: raiders' ground, buildings count as open (they break through)
   // a farm cell whose middle is the hut, barn, hay or a scarecrow is routed round (people still walk the open ground by it)

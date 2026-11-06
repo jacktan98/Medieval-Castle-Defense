@@ -50,7 +50,6 @@ input{-webkit-user-select:text;user-select:text}
 #phaseSub{font-size:12px;line-height:1.2;color:var(--muted);font-variant-numeric:tabular-nums}
 .res{display:flex;gap:3px}
 .res .chip{flex:1 1 auto}
-.chip .badge{font-style:normal;font-size:10px;font-weight:700;line-height:1;padding:2px 4px;border-radius:999px;background:#3c5a2c;color:#d8f0c4;margin-left:-1px}
 .chip{border:1px solid #4a4838;background:#24261f;border-radius:6px;padding:3px 3px;display:flex;align-items:center;justify-content:center;gap:3px;min-width:0;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
 .chip .ico{width:14px;height:14px}
 .chip b{font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap} .chip.short b{color:#ff6b5b} .chip.dim{opacity:.5}
@@ -128,7 +127,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .loadSheet h3{margin:0;font-family:var(--display);font-weight:400;font-size:20px;color:var(--gold)} .loadSheet h3 span{font-family:var(--body);font-size:14px;color:var(--muted)} .loadSheet h3 span.short{color:var(--bad)}
 .ldRows{display:flex;flex-direction:column;gap:6px}
 .ldRow{display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;align-items:stretch}
-.ldCat{display:flex;align-items:center;justify-content:center} .ldCat .ico{width:22px;height:22px} .ldCat .tag{font-size:10px;line-height:1.05;color:var(--muted);text-align:center;letter-spacing:.02em}
+.ldCat{display:flex;align-items:center;justify-content:center} .ldCat .ico{width:22px;height:22px} 
 .ldOpt{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;padding:5px 8px;border-radius:9px;background:#24261f;border-color:#4a4838;text-align:left;min-height:0;height:auto}
 .ldOpt .tIco{width:24px;height:24px;flex:0 0 auto;display:inline-flex;color:#cfc4a6} .ldOpt .tIco svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round} .ldOpt[aria-pressed="true"] .tIco{color:var(--gold)} .ldOpt b{font-family:var(--display);font-weight:400;font-size:16px;color:var(--parch);line-height:1.05;display:block}
 .ldOpt small{display:block;font-size:11px;color:var(--muted)} .ldOpt small .cost .ico{width:11px;height:11px}
@@ -183,7 +182,6 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #campaign{background:#14150f}
 .campSheet{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(720px,100%);max-height:100%}
 #campMap{width:100%;flex:1 1 auto;min-height:0;display:flex;justify-content:center}
-#campInfo{width:100%;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 /* the menus sit in the game's own world: the campaign landscape (maps/menu-bg.jpg: maps/overview.jpg shrunk to 240 px and blurred, so the
    browser's upscale is soft and costs nothing) darkened toward the edges; the content on dark translucent panels edged in muted gold */
 .modal.tome{background-color:#10120e!important;background-image:radial-gradient(ellipse at 50% 40%, rgba(8,9,6,.25) 0%, rgba(8,9,6,.55) 55%, rgba(5,6,4,.9) 100%),
@@ -199,11 +197,10 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .modal.tome .loadSheet,.modal.tome .stSide{background:rgba(14,16,11,.72);border:1px solid rgba(201,160,62,.28);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 .modal.tome .loadSheet{padding:12px 12px 14px}
 .modal.tome .stSide{padding:12px 16px 14px}
-.modal.tome .stPic{border-color:rgba(201,160,62,.45);box-shadow:0 0 0 1px rgba(0,0,0,.6),0 10px 34px rgba(0,0,0,.7)}
 .modal.tome button:not(.mapBtn):not(.ldOpt){background:rgba(20,22,16,.72)}
 /* a plain gold frame (Jack: no corner pieces, a thicker edge): a 2 px gold border with a faint inner line */
-.modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide,.modal.tome .stPic{position:relative;border:2px solid rgba(212,168,78,.75)!important;box-shadow:inset 0 0 0 2px rgba(8,9,6,.55),inset 0 0 0 3px rgba(212,168,78,.18),0 8px 26px rgba(0,0,0,.55)!important}
-.modal.tome .stPic,.modal.tome .mapBtn img{border-radius:6px} .modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide{border-radius:10px}
+.modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide,
+.modal.tome .mapBtn img{border-radius:6px} .modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide{border-radius:10px}
 /* the three map cards line up: names get two lines' room, so Mountain pass's picture sits level with the others */
 .mapBtn{justify-content:flex-start;padding:13px 13px 12px;width:min(186px,29vw)} .mapBtn b{min-height:2.3em;display:flex;align-items:center;justify-content:center;line-height:1.1}
 /* campaign progress: stages won, a slim gold bar, stars (Jack) */
@@ -259,10 +256,7 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 .cDet .stActs{display:flex;gap:10px;justify-content:center} .cDet .stActs button{min-width:110px;min-height:42px}
 @media (min-width:900px) and (min-height:600px){ .cMain{flex-direction:row;align-items:stretch;gap:24px} .cLeft{flex:1 1 auto} .cDet{width:300px;align-self:center} .cCard .cName b{font-size:24px} }
 @media (max-height:520px){ #campaign .cHead{flex-direction:row;gap:14px} #campaign .cHead .mapSub{width:auto} .cMain{flex-direction:row;align-items:stretch;gap:12px} .cDet{width:250px;align-self:center;padding:8px 10px!important;gap:5px} .cDet h3{font-size:18px} }
-/* the banner and the rally flag: the overview's 3D sprite strips (maps/banner.png, maps/flag.png: 32 frames of 220 x 200), played with steps() */
-.jSpr{position:absolute;right:-30px;top:-62px;width:121px;height:110px;background-repeat:no-repeat;background-size:3872px 110px;animation:jWave 2.513s steps(32) infinite;pointer-events:none}
-.jBan{background-image:url(maps/banner.png)} .jFlag{background-image:url(maps/flag.png);filter:drop-shadow(0 0 1.5px #fbeab0) drop-shadow(0 0 1px #fbeab0)}
-@keyframes jWave{to{background-position:-3872px 0}}
+
 /* behind the campaign and the town picker the title's scene keeps running (Jack: it flashed up between them before); these screens only
    darken it, more than the title does, so the cards and text stay clear */
 body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 45%, rgba(8,9,6,.45) 0%, rgba(8,9,6,.62) 60%, rgba(5,6,4,.9) 100%)!important}
@@ -356,8 +350,7 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 /* the locked message: the same small black strip as a stat icon's name (.statTip) */
 .diffLock{position:absolute;z-index:5;right:0;bottom:calc(100% + 6px);padding:3px 8px;border-radius:6px;background:#1c1d18;border:1px solid #6b5a2e;color:var(--parch);font-size:12px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.4);animation:diffPop 1.8s ease-out forwards}
 @keyframes diffPop{0%{opacity:0;transform:translateY(4px)}12%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0}}
-.hardBtn{align-self:center;min-height:28px!important;padding:2px 16px!important;font-size:13px!important;border-radius:14px!important;letter-spacing:.05em}
-#stHardOld[aria-pressed="true"]{background:linear-gradient(180deg,#8a2a1e,#521510)!important;border-color:#ff9a80!important;color:#ffe2d8!important;box-shadow:0 0 10px rgba(255,110,80,.45)}
+
 .crown svg,.hardTag svg{width:20px;height:20px;fill:#f0c95a;stroke:#fff1c4;stroke-width:1;vertical-align:-3px;margin-left:6px;filter:drop-shadow(0 0 6px rgba(255,205,90,.6))} .hardTag{color:#f0c95a}
 .crown.empty svg{fill:none!important;stroke:#d9b04e!important;stroke-width:1.6!important;filter:none!important;opacity:.85}
 .cName .crown svg{width:13px!important;height:13px!important;margin-left:4px;vertical-align:-2px}
@@ -396,7 +389,6 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .ncGoals{list-style:none;margin:0;padding:0 4px;display:flex;flex-direction:column;gap:5px;font-size:13px;color:#f4e3b2;text-align:left}
 .ncGoals li{display:flex;align-items:flex-start;gap:7px;line-height:1.25} .ncGoals b{color:#f0c95a;font-size:14px;line-height:1.1;text-shadow:0 0 6px rgba(255,205,90,.5)}
 .ncCard{width:fit-content;min-width:190px;max-width:90vw;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:9px 11px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
-
 .ncInfo{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left}
 .ncStep{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .ncIcon{flex:0 0 auto;align-self:center;display:flex} .ncIcon svg{width:44px;height:44px;stroke:var(--gold);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
@@ -405,17 +397,13 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .ncStats{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:5px 11px;font-size:12.5px;color:var(--parch)}
 #ncStats .stat{font-size:12.5px;gap:3px} #ncStats .stat .ico,#ncCost .ico{width:13px;height:13px}
 .ncCard button{min-width:72px;min-height:0;padding:6px 12px;font-size:13px;margin-top:4px;align-self:flex-end}
-.stageSheet{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(520px,100%);max-height:100%;overflow:auto}
-.stPic{width:100%;max-width:min(520px,62dvh);aspect-ratio:1/1;border-radius:10px;border:1px solid #4a4838;overflow:hidden;background:#2a2b22;display:flex;align-items:center;justify-content:center;position:relative;flex:0 0 auto}
-.stPic img{width:100%;height:100%;object-fit:cover;display:block} .stPic .tag{position:absolute;left:8px;top:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--parch);background:rgba(20,21,15,.75);padding:2px 7px;border-radius:5px} .stPic .soon{color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-size:13px}
+
 .stSide{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
 .stSide h3{margin:0;font-family:var(--display);font-weight:400;font-size:21px;color:var(--gold)} .stSide .sub{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 .stNew{display:flex;flex-wrap:wrap;justify-content:center;gap:7px 12px;font-size:13px;color:var(--parch)} .stNew span{display:flex;align-items:center;gap:5px} .stNew svg{width:20px;height:20px;stroke:var(--gold);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .stActs{display:flex;gap:10px;margin-top:4px} .stActs button{min-width:92px}
-@media (max-height:520px){ .stageSheet{flex-direction:row;width:min(780px,100%);justify-content:center} .stPic{width:auto;height:calc(100dvh - 40px);max-width:none} .stSide{width:240px} }
-#campInfo h3{margin:0;font-family:var(--display);font-weight:400;font-size:19px;color:var(--gold)} #campInfo .sub{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
-#campInfo .unl{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 10px;font-size:12px;color:var(--parch)}
-#campInfo .unl span{display:flex;align-items:center;gap:4px} #campInfo .unl svg{width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+@media (max-height:520px){ .stSide{width:240px} }
+
 .mapSub{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .maps{display:flex;gap:min(12px,2vw);justify-content:center;flex-wrap:wrap}
 .mapBtn{display:flex;flex-direction:column;align-items:stretch;gap:7px;padding:6px 6px 8px;border-radius:12px;background:#24261f;border-color:#4a4838;width:min(170px,25vw)}
@@ -504,7 +492,6 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
 .pausedTag{position:absolute;inset:0;z-index:20;transform:none;top:0;left:0;display:flex;align-items:flex-start;justify-content:center;padding-top:18vh;background:rgba(10,12,10,.35);pointer-events:none;font-family:inherit;font-size:inherit;text-shadow:none}
 .pauseCard{pointer-events:auto;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:14px 22px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
 .pauseT{font-family:var(--display);font-size:30px;color:var(--parch);line-height:1}
-.pauseS{font-size:12px;color:var(--muted)}
 .pauseBtns{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;justify-content:center}
 .pauseBtns .pIco{width:56px;min-width:56px;height:46px;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .pIco svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round} .pIco svg .solid{fill:currentColor}
@@ -669,7 +656,6 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .modal.tome .upDet .upBuy:disabled{filter:grayscale(.6) brightness(.75)}
 /* the campaign screen's way in: beside the stars, with the stars still to spend */
 .modal.tome .campProg .upBtn{min-height:0!important;padding:3px 11px!important;font-size:14px!important;border-radius:14px!important;margin-left:2px;white-space:nowrap;display:inline-flex!important;flex-direction:row!important;gap:5px;align-items:center} .campProg .upBtn b{color:var(--gold)}
-
 /* the campaign screen's round buttons, on the left just above the progress bar (Jack): Upgrades (a hammer, with the stars still to spend), Achievements later beside it; no height of their own, so the deck and the bar don't move */
 .cDotsWrap{position:relative;width:min(380px,100%)} .cDotsWrap .cDots{width:100%}
 .campSide{position:absolute;left:0;bottom:100%;margin-bottom:10px;z-index:5;display:flex;gap:10px}
@@ -678,7 +664,6 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .campBadge{position:absolute;top:-5px;right:-14px;padding:0 5px;border-radius:9px;background:#f0c95a;color:#2a1d0a;font-size:11px;font-weight:700;line-height:16px;border:1.5px solid #fff1c4;box-shadow:0 1px 3px rgba(0,0,0,.6);animation:badgePulse 1.6s ease-in-out infinite}
 /* stars still to spend: the badge pulses and glows so players see there are upgrades to buy (Jack); hidden at none */
 @keyframes badgePulse{0%,100%{transform:scale(1);box-shadow:0 1px 3px rgba(0,0,0,.6),0 0 0 rgba(255,214,110,0)}50%{transform:scale(1.14);box-shadow:0 1px 3px rgba(0,0,0,.6),0 0 12px 3px rgba(255,214,110,.75)}}
-
 /* a phone held sideways: the trees eight across on a wider sheet, everything a little smaller, so most of a tab fits */
 @media (max-height:520px){ .upSheet{max-width:820px;padding-top:8px} .upTop{margin-bottom:4px} .upTop h2{font-size:22px} .upTabs{margin-bottom:8px}
   .upGrid{grid-template-columns:repeat(8,1fr);gap:8px 6px} .upBan{padding:4px 0 7px;margin-bottom:4px} .upBan svg{width:22px;height:22px}
@@ -688,7 +673,6 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
   .modal.tome .upTabs .upTab{padding:4px 0 3px!important;font-size:14px} .modal.tome .upTop .upBack{width:34px;height:34px} .upBank{height:26px} }
 /* a phone held sideways: the deck reaches down to the bar, so the round buttons sit to the bar's left instead */
 @media (max-height:520px){ .campSide{left:auto;right:100%;bottom:0;margin:0 12px 0 0} }
-
 /* the campaign screen's way back to the title: a round button in the top-left corner (Jack); Play has the details' foot to itself */
 .modal.tome .campBack{position:absolute;top:calc(16px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left));z-index:6;width:40px;height:40px;min-height:0!important;min-width:0!important;padding:0!important;border-radius:11px!important;border:2px solid #d9b04e!important;background:linear-gradient(180deg,#5a4428,#2c210f)!important;display:flex!important;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,230,160,.25)!important}
 .campBack svg{display:block;width:22px;height:22px;fill:none;stroke:#f0c95a;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
@@ -740,4 +724,3 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
   .loadSheet > .ldBtns{margin-top:2px} .loadSheet > .ldBtns button{min-height:30px;padding:3px 18px}
 }
 }
-

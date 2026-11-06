@@ -1,3 +1,0 @@
-const { chromium } = require('/opt/npm-tools/node_modules/playwright');
-(async()=>{const b=await chromium.launch();let errs=0;for (const [w,h,n] of [[390,800,'panel-phone.png'],[1200,800,'panel-desk.png']]){const p=await b.newPage({viewport:{width:w,height:h}});p.on('pageerror',e=>{errs++;console.log('ERR',e.message)});
-await p.goto('file://'+process.cwd()+'/test.html');await p.waitForTimeout(3500);await p.click('#ledger summary');await p.waitForTimeout(300);await (await p.$('.panel')).screenshot({path:n});await (await p.$('.dock')).screenshot({path:'d-'+n});await p.close();}console.log('errors',errs);await b.close();})();
