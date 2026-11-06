@@ -4,6 +4,7 @@
 |---|---|
 | `Click_sound.mp3` | Any button, and placing a building or wall |
 | `Building_built.mp3` | A building finishes, a repair finishes (softer) |
+| `Unlock_stage.mp3` | A stage unlocks on the campaign screen after its first win (Continue) |
 | `Upgrade_sound.mp3` | A star upgrade is bought on the Upgrades screen; a building's upgrade finishes |
 | `Building_sold.mp3` | You demolish a building |
 | `Building_destroyed.mp3` | Raiders destroy a building; a raider siege engine is broken |

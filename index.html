@@ -8247,12 +8247,12 @@ function openCampaign(i) {
 }
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
 // a stage just unlocked by the last win (Jack): its card starts grey with the padlock, the padlock springs open and fades, and the
-// picture's colour comes back slowly, with the upgrade sound
+// picture's colour comes back slowly, with the unlock sound (Unlock_stage.mp3)
 function unlockCard(i) {
   const card = document.querySelector(`.cCard[data-i="${i}"]`); if (!card) return;
   const lock = document.createElement('i'); lock.className = 'jLock opening'; lock.innerHTML = LOCK_SVG; card.appendChild(lock);
   card.classList.add('unlocking');
-  setTimeout(() => sfx('upgrade'), 900);
+  sfx('unlock');
   setTimeout(() => { card.classList.remove('unlocking'); lock.remove(); }, 3800);
 }
 // ---------- Colours (Jack): the town's and the raiders' colours, five each, in the title's Settings (gear); a colour one side
@@ -8891,7 +8891,8 @@ addEventListener('keydown', e => { if (e.key === 'p' || e.key === 'P') !gameOver
 var SND = {   // game event -> file in audio/sfx (or audio/music) and its trim against the common loudness
   click:     { file: 'sfx/Click_sound.mp3',          trim: .445 },
   build:     { file: 'sfx/Building_built.mp3',       trim: .9 },
-  upgrade:   { file: 'sfx/Upgrade_sound.mp3',        trim: .9 },     // a star upgrade bought, a building's upgrade finished
+  upgrade:   { file: 'sfx/Upgrade_sound.mp3',        trim: .9 },
+  unlock:    { file: 'sfx/Unlock_stage.mp3',         trim: .9 },     // a stage unlocking on the campaign (its peak, ~1 s in, meets the padlock opening)     // a star upgrade bought, a building's upgrade finished
   sold:      { file: 'sfx/Building_sold.mp3',        trim: .7 },
   destroyed: { file: 'sfx/Building_destroyed.mp3',   trim: 1 },
   coins:     { file: 'sfx/Coins_payout.mp3',         trim: .7 },
