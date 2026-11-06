@@ -7056,7 +7056,8 @@ function refreshCard() {
   if (T.range) {
     const m = (B.manned || []).filter(Boolean).length, n = (T.archers || T.crew)[k];
     st.push(STAT('guard', PH.kind === 'night' ? `${m}/${n}` : `${n}`, T.crew && PH.kind === 'night' && m < n ? 'warn' : '', T.crew ? 'Crew' : undefined));
-    st.push(STAT('siege', `${T.dmg[k]}`, '', 'Damage'));
+    // a siege engine's damage shows the catapult, a tower's or the castle's the bow (Jack saw the catapult on the archers)
+    st.push(STAT(T.crew ? 'siege' : 'bow', `${T.dmg[k]}`, '', 'Damage'));
     const R = rangeOf(B); st.push(STAT('range', `${+R.toFixed(1)} m`, R > T.range[k] ? 'good' : '', 'Range'));
     if (T.crew && siegeRate(B) < T.rate[k]) st.push(STAT('rate', `+${Math.round((1 - siegeRate(B) / T.rate[k]) * 100)}%`, 'good', 'Reload'));
   }
@@ -8472,7 +8473,10 @@ $('#upPick').addEventListener('click', e => {
   if (b.dataset.up) { sfx('click'); selectUpgrade(b.dataset.up); return; }
   if (b.id === 'upBuy') {
     const f = upFind(upSel); if (UPG.has(upSel) || (f.prev && !UPG.has(f.prev)) || upLeft() < 1) { sfx('nope'); return; }
-    UPG.add(upSel); saveUpg(); sfx('star'); renderUpgrades(); return;
+    UPG.add(upSel); saveUpg(); sfx('star');
+    // the building's second upgrade is picked next, so two taps on Buy get both (Jack)
+    for (const [, rows] of UP_TABS) for (const [, , ups] of rows) { const i = ups.findIndex(u => u[0] === upSel); if (i >= 0 && ups[i + 1] && !UPG.has(ups[i + 1][0])) { upSel = ups[i + 1][0]; break; } }
+    renderUpgrades(); return;
   }
   // a tab's reset gives back only the stars spent in that tab (Jack)
   if (b.id === 'upReset') { sfx('click'); for (const [, , ups] of UP_TABS[upTab][1]) for (const [id] of ups) UPG.delete(id); saveUpg(); renderUpgrades(); }

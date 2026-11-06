@@ -134,7 +134,8 @@ function refreshCard() {
   if (T.range) {
     const m = (B.manned || []).filter(Boolean).length, n = (T.archers || T.crew)[k];
     st.push(STAT('guard', PH.kind === 'night' ? `${m}/${n}` : `${n}`, T.crew && PH.kind === 'night' && m < n ? 'warn' : '', T.crew ? 'Crew' : undefined));
-    st.push(STAT('siege', `${T.dmg[k]}`, '', 'Damage'));
+    // a siege engine's damage shows the catapult, a tower's or the castle's the bow (Jack saw the catapult on the archers)
+    st.push(STAT(T.crew ? 'siege' : 'bow', `${T.dmg[k]}`, '', 'Damage'));
     const R = rangeOf(B); st.push(STAT('range', `${+R.toFixed(1)} m`, R > T.range[k] ? 'good' : '', 'Range'));
     if (T.crew && siegeRate(B) < T.rate[k]) st.push(STAT('rate', `+${Math.round((1 - siegeRate(B) / T.rate[k]) * 100)}%`, 'good', 'Reload'));
   }
