@@ -880,7 +880,7 @@ function updateVillagers(dt, now) {
     if (v.barrow) v.barrow.visible = barrow; v.carryStone.scale.setScalar(barrow ? .001 : 1);
     const twoLogs = logC && v.carryLog.children[0] && v.carryLog.children[0].visible;
     if (twoLogs) { Rt = 0; L = -swing * .6; }                         // the right arm swung out sideways (rotation.z below) under both logs
-    else if (logC) { Rt = -2.75; L = -swing * .6; }                   // hand on the log over the right shoulder
+    else if (logC) { Rt = -2.5; L = -swing * .6; }                    // hand on the log over the right shoulder
     else if (barrow) { L = Rt = -.75; lean = 0; }                     // both hands on the barrow's handles (upright, so they stay on them)
     else if (stoneC) { L = Rt = -1.2; }                               // block held against the chest
     else if (v.working && TOOL_POSE[kind]) { ({ w, R: Rt, L, tilt, lean, crouch = 0, twist = 0, big = false } = TOOL_POSE[kind](now / 1000 + v.seed, v.seed)); if (crouch) kneel(v, crouch); } else if (kind) { Rt = -.3 + swing * .25; tilt = -.25; }          // walking with the tool held low
@@ -901,7 +901,8 @@ function updateVillagers(dt, now) {
     if (v.pushing) { L = Rt = -1.45; lean = .1; }                    // both hands on the engine's back beam
     if (cheer) { L = -2.9 + Math.sin(now / 1000 * 9) * .2; Rt = -2.9 - Math.sin(now / 1000 * 9) * .2; lean = 0; }
     v.arms[0].rotation.x = ease(v.arms[0].rotation.x, L); v.arms[1].rotation.x = ease(v.arms[1].rotation.x, Rt);
-    v.arms[1].rotation.z = ease(v.arms[1].rotation.z, twoLogs ? 2.3 : 0);   // out and up: the hand round the bundle's outer log v.body.rotation.x = ease(v.body.rotation.x, lean);
+    // out and up: the hand round the bundle's outer log; with one log a little out too, the hand on its outer side (Jack)
+    v.arms[1].rotation.z = ease(v.arms[1].rotation.z, twoLogs ? 2.3 : logC ? .55 : 0); v.body.rotation.x = ease(v.body.rotation.x, lean);
     if (v.soldier) (v.toolKind === 'spear' ? spearPose : swordPose)(v, v.attackT || 0, swing);   // exact: eased, the strikes go soft
     smoothPos(v, dt, now); v.g.position.set(v.rx, walkY(v.rx, v.rz), v.rz);
     if (v.sbar) { const on = v.soldier && v.hp < v.maxHp; v.sbar.grp.visible = on; if (on) { v.sbar.set(v.hp / v.maxHp); v.sbar.grp.position.set(v.rx, v.g.position.y + 1.5 * UNIT_K, v.rz); } }
