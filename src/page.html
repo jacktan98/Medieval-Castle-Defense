@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Town Defense">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <title>Medieval Town Defense</title>
@@ -74,7 +75,7 @@
       <button class="iconBtn" id="adminBtn" aria-pressed="false" aria-label="Admin" title="Admin tools"><svg viewBox="0 0 24 24"><path d="M14.5 5.5 a4 4 0 0 0 4.9 5 l-8.6 8.6 a2.1 2.1 0 0 1-3-3 l8.6-8.6 a4 4 0 0 0-1.9-2z"/><path d="M5 5 L9 9"/></svg></button>
     </div>
   </div>
-  <div class="pausedTag" id="pausedTag" hidden><div class="pauseCard"><div class="pauseT">Paused</div><div class="pauseBtns"><button class="primary pIco" id="resumeBtn" title="Resume" aria-label="Resume"></button><button class="pIco" id="fsBtn" title="Full screen" aria-label="Full screen"></button><button class="danger pIco" id="reset" title="Restart" aria-label="Restart"></button></div><div class="audioRows"><label class="volRow"><span>Music</span><input type="range" id="musicVol" min="0" max="100" step="1" aria-label="Music loudness"></label><label class="volRow"><span>Sounds</span><input type="range" id="sfxVol" min="0" max="100" step="1" aria-label="Sound loudness"></label></div><div class="pCols"><div class="colRow"><span>Your town</span><div class="colSw" data-side="town"></div></div><div class="colRow"><span>Raiders</span><div class="colSw" data-side="foe"></div></div></div></div></div>
+  <div class="pausedTag" id="pausedTag" hidden><div class="pauseCard"><div class="pauseT">Paused</div><div class="pauseBtns"><button class="primary pIco" id="resumeBtn" title="Resume" aria-label="Resume"></button><button class="pIco" id="fsBtn" title="Full screen" aria-label="Full screen"></button><button class="danger pIco" id="reset" title="Restart" aria-label="Restart"></button></div><div class="audioRows"><label class="volRow"><span>Music</span><input type="range" id="musicVol" min="0" max="100" step="1" aria-label="Music loudness"></label><label class="volRow"><span>Sounds</span><input type="range" id="sfxVol" min="0" max="100" step="1" aria-label="Sound loudness"></label><div class="volRow"><span>Graphics</span><span class="gfxSeg"><button class="seg" data-gfx="low">Low</button><button class="seg" data-gfx="high">High</button></span></div></div><div class="pCols"><div class="colRow"><span>Your town</span><div class="colSw" data-side="town"></div></div><div class="colRow"><span>Raiders</span><div class="colSw" data-side="foe"></div></div></div></div></div>
   <div class="dock">
     <div class="statTip" id="statTip" hidden></div>
     <div class="card" id="card" hidden>
@@ -128,12 +129,16 @@
     <button class="iconBtn setBtn" id="setBtn" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24"><defs><linearGradient id="gearG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6d9dc"/><stop offset=".55" stop-color="#9a9fa5"/><stop offset="1" stop-color="#6c7177"/></linearGradient></defs><path class="gearBody" d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/><circle class="gearHole" cx="12" cy="12" r="3"/></svg></button>
     <div class="colCard" id="colCard" hidden>
       <h3>Settings</h3>
+      <div class="setCols"><div class="setCol">
       <div class="setSub">Colours</div>
       <div class="colRow"><span>Your town</span><div class="colSw" id="colTown" data-side="town"></div></div>
       <div class="colRow"><span>Raiders</span><div class="colSw" id="colFoe" data-side="foe"></div></div>
+      </div><div class="setCol">
       <div class="setSub">Sound</div>
       <div class="setVols"><label class="volRow"><span>Music</span><input type="range" id="setMusic" min="0" max="100" step="1" aria-label="Music loudness"></label>
       <label class="volRow"><span>Sounds</span><input type="range" id="setSfx" min="0" max="100" step="1" aria-label="Sound loudness"></label></div>
+      <div class="setSub">Graphics</div>
+      <div class="gfxRow"><span class="gfxSeg"><button class="seg" data-gfx="low">Low</button><button class="seg" data-gfx="high">High</button></span></div></div></div>
       <button class="primary" id="colDone">Done</button>
     </div>
   </div>
@@ -199,8 +204,11 @@
 // the loading screen's failure states: three.js didn't arrive (offline, blocked), or the game hit an error while starting
 function ldFail(msg) { const L = document.getElementById('loading'); if (!L || L.classList.contains('done') || L.classList.contains('fail')) return; L.classList.add('fail'); document.getElementById('ldMsg').textContent = msg; document.getElementById('ldRetry').hidden = false; }
 addEventListener('error', () => ldFail('Something went wrong'));
+// offline play (Jack): sw.js keeps the game, three.js, the pictures and the sounds on the phone once it has been opened online
+// (on https, i.e. the live site; ?sw turns it on for a local test server)
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || /[?&]sw\b/.test(location.search))) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="ldFail('No connection')"></script>
+<script src="vendor/three.min.js" onerror="ldFail('No connection')"></script>
 <script>
 <!--@game-->
 </script>

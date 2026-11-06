@@ -1,7 +1,7 @@
 // Renders the design gallery (index.html?gallery) into contact sheets: one shot per row, front and back.
 //   node tools/render/gallery.js [--out design/gallery] [--three path/to/three.min.js] [--back]
-// Needs Playwright (npm i -D playwright, then npx playwright install chromium). --three serves a local three.js r128
-// instead of the cdnjs copy, for machines that can't reach the CDN (npm pack three@0.128.0 has build/three.min.js).
+// Needs Playwright (npm i -D playwright, then npx playwright install chromium). --three serves another three.js r128
+// in place of vendor/three.min.js.
 // Writes <out>/sheet.png (all rows, front) and, with --back, <out>/sheet-back.png (every building turned 180°).
 const path = require('path'), fs = require('fs');
 const { openGame } = require('./serve');

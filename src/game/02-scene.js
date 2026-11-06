@@ -1,8 +1,11 @@
 // ---------- three setup ----------
 const canvas = $('#c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-// render at the screen's full sharpness (phones are 3×); adaptResolution steps it down if frames get slow
-var pixelK = Math.min(devicePixelRatio, 3), fpsAcc = 0, fpsN = 0;
+// Graphics (Jack: Low / High in Settings and the pause card, kept in 'mtd-gfx'): High renders at the screen's full sharpness (phones
+// are 3×; adaptResolution steps it down if frames get slow), Low at most 1.5 pixels a point, with no shadows and a third of the weather
+var gfxLow = false; try { gfxLow = localStorage.getItem('mtd-gfx') === 'low'; } catch (e) {}
+const pixelMax = () => Math.min(devicePixelRatio, gfxLow ? 1.5 : 3);
+var pixelK = pixelMax(), fpsAcc = 0, fpsN = 0;
 renderer.setPixelRatio(pixelK);
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
@@ -24,7 +27,7 @@ const camera = new THREE.PerspectiveCamera(45, 1, .5, 400);
 const hemi = new THREE.HemisphereLight('#d6e6ff', '#4a3d28', .6); scene.add(hemi);
 const sun = new THREE.DirectionalLight('#ffe7c4', 1.05);
 sun.position.set(SIZE / 2 - 36, 38, SIZE / 2 - 16); sun.target.position.set(SIZE / 2, 0, SIZE / 2);
-sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+sun.castShadow = !gfxLow; sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -54, right: 54, top: 54, bottom: -54, near: 1, far: 170 });
 sun.shadow.bias = -.0006;
 scene.add(sun, sun.target);

@@ -9,5 +9,5 @@ Both scripts serve the repo themselves, so no server is needed.
 - `node tools/render/motion.js [--secs 60]` runs a busy town and reports how often villagers shake (`rapid`) and whether
   every site gets built. Compare against the previous build.
 
-`--three path/to/three.min.js` serves a local three.js r128 instead of cdnjs (for machines that can't reach the CDN;
-`npm pack three@0.128.0` and take `package/build/three.min.js`).
+three.js r128 is in the repo (`vendor/three.min.js`), so nothing is fetched from a CDN; `--three path/to/three.min.js`
+still serves another copy in its place. The game's own tests are in `tools/test/run.js` (see CLAUDE.md, Tests).

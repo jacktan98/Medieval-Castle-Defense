@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Town Defense">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <title>Medieval Town Defense</title>
@@ -183,6 +184,15 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .pauseCard .colSw .sw{width:28px;height:28px;min-height:0!important;min-width:0!important;padding:0!important;border-radius:50%!important;background:var(--c)!important;border:2px solid rgba(255,240,200,.25)!important;box-shadow:inset 0 2px 4px rgba(255,255,255,.18),inset 0 -3px 5px rgba(0,0,0,.35)!important;position:relative}
 .pauseCard .colSw .sw.on{border-color:#f0c95a!important;box-shadow:0 0 0 2px rgba(240,201,90,.35),0 0 10px rgba(240,201,90,.55)!important}
 .colCard #colDone{align-self:center;min-width:110px}
+/* Graphics: Low | High, the hard-mode switch's pill (Settings and the pause card) */
+.gfxRow{display:flex;justify-content:center}
+.setCols{display:flex;flex-direction:column;gap:12px} .setCol{display:flex;flex-direction:column;gap:12px}
+/* a phone held sideways: Colours on the left, Sound and Graphics on the right, so the card fits the height (Jack) */
+@media (max-height:520px){.colCard{width:min(580px,88vw)}.setCols{flex-direction:row;align-items:flex-start;gap:6px}.setCol{flex:1 1 0}}
+.gfxSeg{display:inline-flex;flex-wrap:nowrap;padding:2px;border-radius:16px;border:2px solid rgba(240,201,90,.75);background:rgba(10,8,4,.55)}
+.gfxSeg button.seg{min-height:0!important;min-width:0!important;padding:3px 15px!important;border:0!important;border-radius:13px!important;background:none!important;box-shadow:none!important;font-size:13px!important;font-weight:700;color:#b9a77d!important;cursor:pointer}
+.gfxSeg button.seg.on{background:linear-gradient(180deg,#6a5432,#3e3019)!important;color:#fff1c4!important;box-shadow:inset 0 0 0 1px rgba(255,226,160,.35)!important}
+.volRow .gfxSeg{width:auto;margin:0 auto}
 #adReset.armed{background:#8e2a20!important;border-color:#e0705a!important;color:#fff!important}
 #saveResume{padding:9px 30px;font-family:var(--display);font-size:17px;letter-spacing:.06em;-webkit-text-stroke:.35px currentColor}
 .mapActs{display:flex;flex-direction:column;align-items:center;gap:14px} .resumeBox{display:flex;flex-direction:column;align-items:center;gap:5px} .resumeBox:has(#saveResume[hidden]){display:none}
@@ -807,7 +817,7 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
       <button class="iconBtn" id="adminBtn" aria-pressed="false" aria-label="Admin" title="Admin tools"><svg viewBox="0 0 24 24"><path d="M14.5 5.5 a4 4 0 0 0 4.9 5 l-8.6 8.6 a2.1 2.1 0 0 1-3-3 l8.6-8.6 a4 4 0 0 0-1.9-2z"/><path d="M5 5 L9 9"/></svg></button>
     </div>
   </div>
-  <div class="pausedTag" id="pausedTag" hidden><div class="pauseCard"><div class="pauseT">Paused</div><div class="pauseBtns"><button class="primary pIco" id="resumeBtn" title="Resume" aria-label="Resume"></button><button class="pIco" id="fsBtn" title="Full screen" aria-label="Full screen"></button><button class="danger pIco" id="reset" title="Restart" aria-label="Restart"></button></div><div class="audioRows"><label class="volRow"><span>Music</span><input type="range" id="musicVol" min="0" max="100" step="1" aria-label="Music loudness"></label><label class="volRow"><span>Sounds</span><input type="range" id="sfxVol" min="0" max="100" step="1" aria-label="Sound loudness"></label></div><div class="pCols"><div class="colRow"><span>Your town</span><div class="colSw" data-side="town"></div></div><div class="colRow"><span>Raiders</span><div class="colSw" data-side="foe"></div></div></div></div></div>
+  <div class="pausedTag" id="pausedTag" hidden><div class="pauseCard"><div class="pauseT">Paused</div><div class="pauseBtns"><button class="primary pIco" id="resumeBtn" title="Resume" aria-label="Resume"></button><button class="pIco" id="fsBtn" title="Full screen" aria-label="Full screen"></button><button class="danger pIco" id="reset" title="Restart" aria-label="Restart"></button></div><div class="audioRows"><label class="volRow"><span>Music</span><input type="range" id="musicVol" min="0" max="100" step="1" aria-label="Music loudness"></label><label class="volRow"><span>Sounds</span><input type="range" id="sfxVol" min="0" max="100" step="1" aria-label="Sound loudness"></label><div class="volRow"><span>Graphics</span><span class="gfxSeg"><button class="seg" data-gfx="low">Low</button><button class="seg" data-gfx="high">High</button></span></div></div><div class="pCols"><div class="colRow"><span>Your town</span><div class="colSw" data-side="town"></div></div><div class="colRow"><span>Raiders</span><div class="colSw" data-side="foe"></div></div></div></div></div>
   <div class="dock">
     <div class="statTip" id="statTip" hidden></div>
     <div class="card" id="card" hidden>
@@ -861,12 +871,16 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
     <button class="iconBtn setBtn" id="setBtn" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24"><defs><linearGradient id="gearG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6d9dc"/><stop offset=".55" stop-color="#9a9fa5"/><stop offset="1" stop-color="#6c7177"/></linearGradient></defs><path class="gearBody" d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/><circle class="gearHole" cx="12" cy="12" r="3"/></svg></button>
     <div class="colCard" id="colCard" hidden>
       <h3>Settings</h3>
+      <div class="setCols"><div class="setCol">
       <div class="setSub">Colours</div>
       <div class="colRow"><span>Your town</span><div class="colSw" id="colTown" data-side="town"></div></div>
       <div class="colRow"><span>Raiders</span><div class="colSw" id="colFoe" data-side="foe"></div></div>
+      </div><div class="setCol">
       <div class="setSub">Sound</div>
       <div class="setVols"><label class="volRow"><span>Music</span><input type="range" id="setMusic" min="0" max="100" step="1" aria-label="Music loudness"></label>
       <label class="volRow"><span>Sounds</span><input type="range" id="setSfx" min="0" max="100" step="1" aria-label="Sound loudness"></label></div>
+      <div class="setSub">Graphics</div>
+      <div class="gfxRow"><span class="gfxSeg"><button class="seg" data-gfx="low">Low</button><button class="seg" data-gfx="high">High</button></span></div></div></div>
       <button class="primary" id="colDone">Done</button>
     </div>
   </div>
@@ -932,8 +946,11 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 // the loading screen's failure states: three.js didn't arrive (offline, blocked), or the game hit an error while starting
 function ldFail(msg) { const L = document.getElementById('loading'); if (!L || L.classList.contains('done') || L.classList.contains('fail')) return; L.classList.add('fail'); document.getElementById('ldMsg').textContent = msg; document.getElementById('ldRetry').hidden = false; }
 addEventListener('error', () => ldFail('Something went wrong'));
+// offline play (Jack): sw.js keeps the game, three.js, the pictures and the sounds on the phone once it has been opened online
+// (on https, i.e. the live site; ?sw turns it on for a local test server)
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || /[?&]sw\b/.test(location.search))) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="ldFail('No connection')"></script>
+<script src="vendor/three.min.js" onerror="ldFail('No connection')"></script>
 <script>
 (() => {
 const $ = s => document.querySelector(s);
@@ -1678,8 +1695,11 @@ function cacheCells() {
 // ---------- three setup ----------
 const canvas = $('#c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-// render at the screen's full sharpness (phones are 3×); adaptResolution steps it down if frames get slow
-var pixelK = Math.min(devicePixelRatio, 3), fpsAcc = 0, fpsN = 0;
+// Graphics (Jack: Low / High in Settings and the pause card, kept in 'mtd-gfx'): High renders at the screen's full sharpness (phones
+// are 3×; adaptResolution steps it down if frames get slow), Low at most 1.5 pixels a point, with no shadows and a third of the weather
+var gfxLow = false; try { gfxLow = localStorage.getItem('mtd-gfx') === 'low'; } catch (e) {}
+const pixelMax = () => Math.min(devicePixelRatio, gfxLow ? 1.5 : 3);
+var pixelK = pixelMax(), fpsAcc = 0, fpsN = 0;
 renderer.setPixelRatio(pixelK);
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
@@ -1701,7 +1721,7 @@ const camera = new THREE.PerspectiveCamera(45, 1, .5, 400);
 const hemi = new THREE.HemisphereLight('#d6e6ff', '#4a3d28', .6); scene.add(hemi);
 const sun = new THREE.DirectionalLight('#ffe7c4', 1.05);
 sun.position.set(SIZE / 2 - 36, 38, SIZE / 2 - 16); sun.target.position.set(SIZE / 2, 0, SIZE / 2);
-sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+sun.castShadow = !gfxLow; sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -54, right: 54, top: 54, bottom: -54, near: 1, far: 170 });
 sun.shadow.bias = -.0006;
 scene.add(sun, sun.target);
@@ -4050,7 +4070,7 @@ function updateWeather(dt, live) {
   sun.intensity *= 1 - K.dark * w; hemi.intensity *= 1 - K.dark * .5 * w;
   // the fog closes in toward the camera: with fogK 1 (mist) it starts about half way to the focus and is thick a little past it
   const fk = K.fogK * w; scene.fog.near = lerp(dist + 100, dist * .55, fk); scene.fog.far = lerp(dist + 240, dist + 60, fk);
-  const n = Math.round((K.n || 0) * w);
+  const n = Math.round((K.n || 0) * w * (gfxLow ? .35 : 1));
   wxLines.visible = !!K.lines && n > 0; wxPts.visible = !K.lines && n > 0;
   if (!n) return;
   // spread over the whole map (Jack: a box round the camera showed as a box or a line from above), wrapped at its edges
@@ -9068,6 +9088,14 @@ $('#setMusic').addEventListener('input', e => setVol('music', e.target.value / 1
 $('#setSfx').addEventListener('input', e => setVol('sfx', e.target.value / 100));
 $('#setSfx').addEventListener('change', () => sfx('click'));
 syncAudioToggles();
+// Graphics: Low / High (both switches, Settings and the pause card, share data-gfx)
+function syncGfx() { for (const b of document.querySelectorAll('[data-gfx]')) b.classList.toggle('on', (b.dataset.gfx === 'low') === gfxLow); }
+function setGfx(low) {
+  gfxLow = low; try { localStorage.setItem('mtd-gfx', low ? 'low' : 'high'); } catch (e) {}
+  pixelK = pixelMax(); renderer.setPixelRatio(pixelK); resize(); sun.castShadow = !low; syncGfx();
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-gfx]'); if (b) setGfx(b.dataset.gfx === 'low'); });
+syncGfx();
 addEventListener('keydown', e => { if ((e.key === 'm' || e.key === 'M') && !e.target.closest('input')) setMuted(!muted); });
 setMuted(muted);
 
@@ -9210,31 +9238,8 @@ const MENUS = ['#mapPick', '#loadPick', '#campaign', '#newCards', '#upPick'].map
 const menuOn = () => MENUS.some(m => !m.hidden);
 const mapPickEl = $('#mapPick'), campEl = $('#campaign'), loadEl = $('#loadPick'), upEl = $('#upPick'); let liteN = 0;
 mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button') && !e.target.closest('#colCard')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
-function frame(now) {
-  adaptResolution((now - last) / 1000);
-  const dt = Math.min(.05, (now - last) / 1000); last = now;
-  keyCamera(dt);
-  if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now); updateWeather(dt, !paused && !menuOn() && !gameOver);
-  const sc = showcaseBuilt && (!mapPickEl.hidden || !campEl.hidden || !loadEl.hidden || !upEl.hidden); if (sc !== document.body.classList.contains('showcase')) document.body.classList.toggle('showcase', sc);
-  // the title's showcase town: the camera circles slowly. It looks a little beyond the town, so the town sits low on the screen,
-  // under the cards (an off-centre lens did that before and skewed the picture: Jack found it squeezed); on a wide screen the view
-  // is narrowed to about 64 degrees across (45 degrees up and down gave nearly 90 across a laptop: wide-angle smear at the sides)
-  // and the camera steps back to keep the town the same size
-  if (sc) {
-    showPh += dt * .03; const S = SHOW_SCENES[showScene]; yaw = S.swing ? showYaw0 + Math.sin(showPh * 2) * S.swing : showYaw0 + showPh;
-    const asp = innerWidth / innerHeight, fov = clamp(2 * Math.atan(Math.tan(.56) / asp) * 180 / Math.PI, 30, 45);
-    if (Math.abs(camera.fov - fov) > .01) { camera.fov = fov; camera.updateProjectionMatrix(); }
-    dist = showDist * Math.tan(Math.PI / 8) / Math.tan(fov * Math.PI / 360);
-    const ahead = dist * (asp < 1 ? .3 : .12);
-    target.set(showC.x - Math.sin(yaw) * ahead, showC.y, showC.z - Math.cos(yaw) * ahead);
-    updateCam(); updateTrees(now); emitSmoke(dt); updateBirds(dt); if ((showT += dt) > SHOW_T) nextShowcase();
-  } else if (camera.fov !== 45) { camera.fov = 45; camera.updateProjectionMatrix(); }
-  // behind the campaign and the town picker the scene is darkened under panels: drawn at 1x pixels and every other frame, so the
-  // phone keeps its time for the cards (Jack found the carousel slow to answer); full detail again on the title and in the game
-  const lite = sc && (!campEl.hidden || !loadEl.hidden || !upEl.hidden), pr = lite ? Math.min(pixelK, 1) : pixelK;
-  // (a resize clears the canvas, so that frame is always drawn: a skipped one showed a blank canvas for a moment)
-  let fresh = false; if (renderer.getPixelRatio() !== pr) { renderer.setPixelRatio(pr); resize(); fresh = true; }
-  if (paused || menuOn()) { if (!lite || fresh || (liteN = (liteN + 1) % 2) === 0) renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
+// one step of the game itself (no camera, no drawing): frame runs it every animation frame; tools/test runs it in a loop to play fast
+function tick(dt, now) {
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not
   if (!gameOver) stats.playT = (stats.playT || 0) + dt;   // time spent playing (never paused or under a menu): a stage's best win time
   if (gameOver && endCheer > 0) { endCheer -= gdt; updateVillagers(gdt, now); separateUnits(gdt); updateDoors(gdt); }   // the town's cheer before the summary
@@ -9262,6 +9267,33 @@ function frame(now) {
     B.bar.grp.visible = B.hp < B.max; B.bar.set(B.hp / B.max); B.bar.grp.position.set(c.x, B.group.position.y + barTop(B), c.z);
   }
   for (let n = floats.length - 1; n >= 0; n--) { const f = floats[n]; const L = f.life || 1.8; f.t += dt; f.sp.position.y += dt * (L > 2 ? .25 : .9); f.sp.material.opacity = L > 2 ? 1 - sstep(L - 1.5, L, f.t) : 1 - f.t / L; if (f.t > L) { scene.remove(f.sp); f.sp.material.dispose(); floats.splice(n, 1); } }
+}
+function frame(now) {
+  adaptResolution((now - last) / 1000);
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  keyCamera(dt);
+  if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now); updateWeather(dt, !paused && !menuOn() && !gameOver);
+  const sc = showcaseBuilt && (!mapPickEl.hidden || !campEl.hidden || !loadEl.hidden || !upEl.hidden); if (sc !== document.body.classList.contains('showcase')) document.body.classList.toggle('showcase', sc);
+  // the title's showcase town: the camera circles slowly. It looks a little beyond the town, so the town sits low on the screen,
+  // under the cards (an off-centre lens did that before and skewed the picture: Jack found it squeezed); on a wide screen the view
+  // is narrowed to about 64 degrees across (45 degrees up and down gave nearly 90 across a laptop: wide-angle smear at the sides)
+  // and the camera steps back to keep the town the same size
+  if (sc) {
+    showPh += dt * .03; const S = SHOW_SCENES[showScene]; yaw = S.swing ? showYaw0 + Math.sin(showPh * 2) * S.swing : showYaw0 + showPh;
+    const asp = innerWidth / innerHeight, fov = clamp(2 * Math.atan(Math.tan(.56) / asp) * 180 / Math.PI, 30, 45);
+    if (Math.abs(camera.fov - fov) > .01) { camera.fov = fov; camera.updateProjectionMatrix(); }
+    dist = showDist * Math.tan(Math.PI / 8) / Math.tan(fov * Math.PI / 360);
+    const ahead = dist * (asp < 1 ? .3 : .12);
+    target.set(showC.x - Math.sin(yaw) * ahead, showC.y, showC.z - Math.cos(yaw) * ahead);
+    updateCam(); updateTrees(now); emitSmoke(dt); updateBirds(dt); if ((showT += dt) > SHOW_T) nextShowcase();
+  } else if (camera.fov !== 45) { camera.fov = 45; camera.updateProjectionMatrix(); }
+  // behind the campaign and the town picker the scene is darkened under panels: drawn at 1x pixels and every other frame, so the
+  // phone keeps its time for the cards (Jack found the carousel slow to answer); full detail again on the title and in the game
+  const lite = sc && (!campEl.hidden || !loadEl.hidden || !upEl.hidden), pr = lite ? Math.min(pixelK, 1) : pixelK;
+  // (a resize clears the canvas, so that frame is always drawn: a skipped one showed a blank canvas for a moment)
+  let fresh = false; if (renderer.getPixelRatio() !== pr) { renderer.setPixelRatio(pr); resize(); fresh = true; }
+  if (paused || menuOn()) { if (!lite || fresh || (liteN = (liteN + 1) % 2) === 0) renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
+  tick(dt, now);
   if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); guideTick(); goalTick(); updatePowers(); updateBossBar(); }
   updateDebris(dt); updateRaidMarks(dt); updateHitMarks(dt, now); updateTips(dt); updateGuideSpot(now);
   const sh = shakeOffset(dt); camera.position.add(sh);

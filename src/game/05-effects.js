@@ -277,7 +277,7 @@ function updateWeather(dt, live) {
   sun.intensity *= 1 - K.dark * w; hemi.intensity *= 1 - K.dark * .5 * w;
   // the fog closes in toward the camera: with fogK 1 (mist) it starts about half way to the focus and is thick a little past it
   const fk = K.fogK * w; scene.fog.near = lerp(dist + 100, dist * .55, fk); scene.fog.far = lerp(dist + 240, dist + 60, fk);
-  const n = Math.round((K.n || 0) * w);
+  const n = Math.round((K.n || 0) * w * (gfxLow ? .35 : 1));
   wxLines.visible = !!K.lines && n > 0; wxPts.visible = !K.lines && n > 0;
   if (!n) return;
   // spread over the whole map (Jack: a box round the camera showed as a box or a line from above), wrapped at its edges
