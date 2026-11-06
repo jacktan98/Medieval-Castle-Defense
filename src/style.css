@@ -254,7 +254,7 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
    darken it, more than the title does, so the cards and text stay clear */
 body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 45%, rgba(8,9,6,.45) 0%, rgba(8,9,6,.62) 60%, rgba(5,6,4,.9) 100%)!important}
 /* buttons stand out on the dark: a bronze plate with a gold rim, light gold text and a soft glow; the main action stays solid gold */
-.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw):not(.setBtn),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
+.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw):not(.setBtn):not(.upTab):not(.upNode),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
   box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 12px rgba(212,168,78,.18),inset 0 1px 0 rgba(255,230,160,.25)!important;font-weight:500}
 .modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw):not(.setBtn):hover{filter:brightness(1.15)}
 .cArrow{background:linear-gradient(180deg,#4a3c22,#2e2515)!important;border:2px solid #c9a03e!important;box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 14px rgba(212,168,78,.25)!important}
@@ -604,8 +604,9 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .upBank{display:flex;align-items:center;gap:4px;padding:0 11px 0 8px;height:30px;border-radius:16px;border:2px solid #d9b04e;background:linear-gradient(#4a3820,#1c150a);font-weight:700;font-size:16px;color:#fff1c4}
 .upBank b{font-size:20px;line-height:1;color:#f0c95a;text-shadow:0 0 8px rgba(255,205,90,.7)}
 .upTabs{display:flex;gap:4px;width:100%;border-bottom:2px solid #d9b04e;margin-bottom:12px}
-.modal.tome .upTabs .upTab{flex:1;min-height:0!important;padding:8px 0 6px!important;border-radius:10px 10px 0 0!important;border:2px solid rgba(217,176,78,.4)!important;border-bottom:none!important;background:#1a140a!important;font-family:var(--display);font-weight:400;font-size:15px;color:#a8986f!important;box-shadow:none!important}
-.modal.tome .upTabs .upTab.on{background:linear-gradient(#7a5c2a,#4a3616)!important;border-color:#f0c95a!important;color:#fff1c4!important;transform:translateY(2px)}
+.modal.tome .upTabs .upTab{flex:1;min-height:0!important;padding:8px 0 6px!important;border-radius:10px 10px 0 0!important;border:2px solid rgba(217,176,78,.4)!important;border-bottom:none!important;background:#1a140a!important;font-family:var(--display);font-weight:400;font-size:15px;color:#8f8160!important;box-shadow:none!important}
+/* the tab in use is lit: gold like the main buttons, dark text, a glow; the others stay dark and dim (Jack: it didn't stand out) */
+.modal.tome .upTabs .upTab.on{background:linear-gradient(#f6d985,#c99a3a)!important;border-color:#fff1c4!important;color:#2a1d0a!important;box-shadow:0 0 12px rgba(255,205,90,.55)!important;transform:translateY(2px)}
 .upGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px;width:100%}
 .upTree{display:flex;flex-direction:column;align-items:center;padding-bottom:16px;border-radius:10px;background:linear-gradient(rgba(60,45,22,.55),rgba(20,15,8,.35));border:1px solid rgba(217,176,78,.25)}
 .upBan{width:100%;padding:5px 0 9px;text-align:center;background:linear-gradient(var(--tc),var(--td));clip-path:polygon(0 0,100% 0,100% 78%,50% 100%,0 78%);border-radius:9px 9px 0 0;margin-bottom:6px}
