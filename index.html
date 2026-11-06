@@ -14,6 +14,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+/* iPhone Safari enlarges text on its own when the phone is turned sideways; keep every size as written (Jack saw the town
+   picker's rows come out uneven and bigger than designed) */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* Layout: full-bleed 3D field; town ledger top-left, tabbed build dock at the bottom, banners centred. Single dark look by choice. */
 :root{
   --bg:#141a17; --panel:linear-gradient(180deg,rgba(44,34,18,.92) 0%,rgba(26,20,11,.93) 100%); --line:rgba(212,168,78,.4); --parch:#ece2c8; --muted:#a69e87;
@@ -731,7 +734,8 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
   .ldRows{display:flex!important;flex-direction:column;gap:4px}
   .ldRow{grid-template-columns:20px 1fr 1fr;gap:4px}
   .ldCat .ico{width:18px;height:18px}
-  .ldOpt{min-height:42px!important;padding:7px 7px 3px!important;gap:6px}
+  .ldOpt{height:44px;min-height:0!important;padding:7px 7px 3px!important;gap:6px;box-sizing:border-box}
+  .ldGrid .ldOpt{height:auto}
   .ldOpt .tIco{width:18px;height:18px}
   .ldOpt b{font-size:13px;line-height:1.1;white-space:nowrap} .ldOpt small{font-size:10px}
   .ldGrid{grid-template-columns:repeat(9,1fr)!important;gap:4px}
