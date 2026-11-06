@@ -629,10 +629,12 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .upBan svg{width:28px;height:28px;display:block;margin:0 auto 1px;fill:none;stroke:#fff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .upBan div{font-size:10.5px;font-weight:700;color:#fff;letter-spacing:.02em}
 .modal.tome .upTree .upNode{width:62px;height:62px;min-height:0!important;padding:0!important;border-radius:10px!important;position:relative;display:grid;place-items:center;border:2px solid #8a6d36!important;background:linear-gradient(#2c2213,#130e07)!important;box-shadow:none!important}
-.upNode > svg:first-child{width:36px;height:36px;transform:translateY(-5px);filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+.upNode > svg:first-child{width:36px;height:36px;transform:translateY(-2px);filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
 .modal.tome .upTree .upNode.s2{border-color:#f7d77a!important;background:radial-gradient(circle at 50% 35%,#a07a32,#4a3410)!important;box-shadow:0 0 12px rgba(255,205,90,.55),inset 0 0 0 2px rgba(255,241,196,.25)!important}
 .modal.tome .upTree .upNode.s1{border-color:#f0c95a!important;box-shadow:0 0 0 3px rgba(240,201,90,.18)!important}
-.modal.tome .upTree .upNode.s0{border-color:#4a3c22!important} .upNode.s0 > svg:first-child{opacity:.4;filter:grayscale(.7)}
+.modal.tome .upTree .upNode.s0{border-color:#4a3c22!important}
+/* every picture stays dim and grey until it is bought (Jack); the next one to buy a little less dim than those still locked */
+.upNode.s1 > svg:first-child{opacity:.55;filter:grayscale(1)} .upNode.s0 > svg:first-child{opacity:.32;filter:grayscale(1)} .upBig.dim svg{opacity:.55;filter:grayscale(1)}
 .modal.tome .upTree .upNode.sel{outline:2.5px solid #fff1c4;outline-offset:3px}
 .upLock{position:absolute;width:16px;height:16px;fill:none;stroke:#9a8a62;stroke-width:2;stroke-linecap:round}
 .upCost{position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);background:#120d06;border:1.5px solid #d9b04e;border-radius:9px;font-size:11px;font-weight:700;padding:0 6px;color:#f0c95a;line-height:15px;white-space:nowrap}
@@ -663,7 +665,7 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 /* a phone held sideways: the trees eight across on a wider sheet, everything a little smaller, so most of a tab fits */
 @media (max-height:520px){ .upSheet{max-width:820px;padding-top:8px} .upTop{margin-bottom:4px} .upTop h2{font-size:22px} .upTabs{margin-bottom:8px}
   .upGrid{grid-template-columns:repeat(8,1fr);gap:8px 6px} .upBan{padding:4px 0 7px;margin-bottom:4px} .upBan svg{width:22px;height:22px}
-  .modal.tome .upTree .upNode{width:52px;height:52px} .upNode > svg:first-child{width:30px;height:30px;transform:translateY(-4px)} .upChain{height:12px;margin:4px 0} .upTree{padding-bottom:12px}
+  .modal.tome .upTree .upNode{width:52px;height:52px} .upNode > svg:first-child{width:30px;height:30px;transform:translateY(-1px)} .upChain{height:12px;margin:4px 0} .upTree{padding-bottom:12px}
   .upRs{padding-top:10px;margin-bottom:-36px;justify-content:flex-start;position:relative;z-index:1;pointer-events:none} .upRs button{pointer-events:auto}
   .upDet{max-width:520px;align-self:center;padding:6px 10px}   /* Reset sits to the left of the details, on their row */
   .modal.tome .upTabs .upTab{padding:4px 0 3px!important;font-size:14px} .modal.tome .upTop .upBack{width:30px;height:30px;font-size:18px} .upBank{height:26px} }
@@ -8420,9 +8422,9 @@ function renderUpgrades() {
   sh.innerHTML = `<div class="upTop"><button class="upBack" id="upBack" aria-label="Back">‹</button><h2>Upgrades</h2><div class="upBank">★<b>${left}</b></div></div>
     <div class="upTabs">${UP_TABS.map(([t], i) => `<button class="upTab${i === upTab ? ' on' : ''}" data-tab="${i}">${t}</button>`).join('')}</div>
     <div class="upGrid">${rows.map(([n, ic, ups]) => `<div class="upTree"><div class="upBan">${upRowIco(ic)}<div>${n}</div></div>${ups.map(([id, name], j) => {
-      const sj = st(id); return `${j ? `<div class="upChain${st(ups[j - 1][0]) === 2 ? ' on' : ''}"></div>` : ''}<button class="upNode s${sj}${id === upSel ? ' sel' : ''}" data-up="${id}" aria-label="${name}">${upIco(name)}${sj === 0 ? UP_LOCK : ''}${sj === 2 ? '<span class="upTick">✓</span>' : '<span class="upCost">★1</span>'}</button>`; }).join('')}</div>`).join('')}</div>
+      const sj = st(id); return `${j ? `<div class="upChain${st(ups[j - 1][0]) === 2 ? ' on' : ''}"></div>` : ''}<button class="upNode s${sj}${id === upSel ? ' sel' : ''}" data-up="${id}" aria-label="${name}">${upIco(name)}${sj === 2 ? '<span class="upTick">✓</span>' : '<span class="upCost">★1</span>'}</button>`; }).join('')}</div>`).join('')}</div>
     <div class="upRs"><button id="upReset" ${spent ? '' : 'disabled'}>${UP_RESET}Reset ${UP_TABS[upTab][0]}</button></div>
-    <div class="upDet"><div class="upBig">${upIco(sel.u[1])}</div><div class="upTx"><div class="upOf">${sel.row}</div><h3>${sel.u[1]}</h3><p>${sel.u[2]}</p></div>
+    <div class="upDet"><div class="upBig${s === 2 ? '' : ' dim'}">${upIco(sel.u[1])}</div><div class="upTx"><div class="upOf">${sel.row}</div><h3>${sel.u[1]}</h3><p>${sel.u[2]}</p></div>
       <button class="primary upBuy" id="upBuy" ${s === 1 && left > 0 ? '' : 'disabled'}>${s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1'}</button></div>`;
 }
 // picking another upgrade only moves the highlight and refills the details; the tiles stay as they are
@@ -8430,7 +8432,7 @@ function selectUpgrade(id) {
   upSel = id; const el = $('#upPick');
   for (const n of el.querySelectorAll('.upNode')) n.classList.toggle('sel', n.dataset.up === id);
   const f = upFind(id), s = UPG.has(id) ? 2 : (!f.prev || UPG.has(f.prev)) ? 1 : 0, b = el.querySelector('#upBuy');
-  el.querySelector('.upBig').innerHTML = upIco(f.u[1]); el.querySelector('.upOf').textContent = f.row;
+  el.querySelector('.upBig').innerHTML = upIco(f.u[1]); el.querySelector('.upBig').classList.toggle('dim', s !== 2); el.querySelector('.upOf').textContent = f.row;
   el.querySelector('.upTx h3').textContent = f.u[1]; el.querySelector('.upTx p').textContent = f.u[2];
   b.disabled = !(s === 1 && upLeft() > 0); b.textContent = s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1';
 }

@@ -124,9 +124,9 @@ function renderUpgrades() {
   sh.innerHTML = `<div class="upTop"><button class="upBack" id="upBack" aria-label="Back">‹</button><h2>Upgrades</h2><div class="upBank">★<b>${left}</b></div></div>
     <div class="upTabs">${UP_TABS.map(([t], i) => `<button class="upTab${i === upTab ? ' on' : ''}" data-tab="${i}">${t}</button>`).join('')}</div>
     <div class="upGrid">${rows.map(([n, ic, ups]) => `<div class="upTree"><div class="upBan">${upRowIco(ic)}<div>${n}</div></div>${ups.map(([id, name], j) => {
-      const sj = st(id); return `${j ? `<div class="upChain${st(ups[j - 1][0]) === 2 ? ' on' : ''}"></div>` : ''}<button class="upNode s${sj}${id === upSel ? ' sel' : ''}" data-up="${id}" aria-label="${name}">${upIco(name)}${sj === 0 ? UP_LOCK : ''}${sj === 2 ? '<span class="upTick">✓</span>' : '<span class="upCost">★1</span>'}</button>`; }).join('')}</div>`).join('')}</div>
+      const sj = st(id); return `${j ? `<div class="upChain${st(ups[j - 1][0]) === 2 ? ' on' : ''}"></div>` : ''}<button class="upNode s${sj}${id === upSel ? ' sel' : ''}" data-up="${id}" aria-label="${name}">${upIco(name)}${sj === 2 ? '<span class="upTick">✓</span>' : '<span class="upCost">★1</span>'}</button>`; }).join('')}</div>`).join('')}</div>
     <div class="upRs"><button id="upReset" ${spent ? '' : 'disabled'}>${UP_RESET}Reset ${UP_TABS[upTab][0]}</button></div>
-    <div class="upDet"><div class="upBig">${upIco(sel.u[1])}</div><div class="upTx"><div class="upOf">${sel.row}</div><h3>${sel.u[1]}</h3><p>${sel.u[2]}</p></div>
+    <div class="upDet"><div class="upBig${s === 2 ? '' : ' dim'}">${upIco(sel.u[1])}</div><div class="upTx"><div class="upOf">${sel.row}</div><h3>${sel.u[1]}</h3><p>${sel.u[2]}</p></div>
       <button class="primary upBuy" id="upBuy" ${s === 1 && left > 0 ? '' : 'disabled'}>${s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1'}</button></div>`;
 }
 // picking another upgrade only moves the highlight and refills the details; the tiles stay as they are
@@ -134,7 +134,7 @@ function selectUpgrade(id) {
   upSel = id; const el = $('#upPick');
   for (const n of el.querySelectorAll('.upNode')) n.classList.toggle('sel', n.dataset.up === id);
   const f = upFind(id), s = UPG.has(id) ? 2 : (!f.prev || UPG.has(f.prev)) ? 1 : 0, b = el.querySelector('#upBuy');
-  el.querySelector('.upBig').innerHTML = upIco(f.u[1]); el.querySelector('.upOf').textContent = f.row;
+  el.querySelector('.upBig').innerHTML = upIco(f.u[1]); el.querySelector('.upBig').classList.toggle('dim', s !== 2); el.querySelector('.upOf').textContent = f.row;
   el.querySelector('.upTx h3').textContent = f.u[1]; el.querySelector('.upTx p').textContent = f.u[2];
   b.disabled = !(s === 1 && upLeft() > 0); b.textContent = s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1';
 }
