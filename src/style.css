@@ -643,7 +643,9 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .campSide{position:absolute;left:0;bottom:100%;margin-bottom:10px;z-index:5;display:flex;gap:10px}
 .modal.tome .campSide .campCirc{position:relative;width:48px;height:48px;min-height:0!important;padding:0!important;border-radius:50%!important;display:grid!important;place-items:center;background:radial-gradient(circle at 50% 35%,#5a4426,#241a0c)!important;border:2px solid #d9b04e!important;box-shadow:0 2px 8px rgba(0,0,0,.6),0 0 10px rgba(240,201,90,.25)!important}
 .campCirc > svg{width:30px;height:30px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.7))}
-.campBadge{position:absolute;top:-5px;right:-14px;padding:0 5px;border-radius:9px;background:#f0c95a;color:#2a1d0a;font-size:11px;font-weight:700;line-height:16px;border:1.5px solid #fff1c4;box-shadow:0 1px 3px rgba(0,0,0,.6)}
+.campBadge{position:absolute;top:-5px;right:-14px;padding:0 5px;border-radius:9px;background:#f0c95a;color:#2a1d0a;font-size:11px;font-weight:700;line-height:16px;border:1.5px solid #fff1c4;box-shadow:0 1px 3px rgba(0,0,0,.6);animation:badgePulse 1.6s ease-in-out infinite}
+/* stars still to spend: the badge pulses and glows so players see there are upgrades to buy (Jack); hidden at none */
+@keyframes badgePulse{0%,100%{transform:scale(1);box-shadow:0 1px 3px rgba(0,0,0,.6),0 0 0 rgba(255,214,110,0)}50%{transform:scale(1.14);box-shadow:0 1px 3px rgba(0,0,0,.6),0 0 12px 3px rgba(255,214,110,.75)}}
 
 /* a phone held sideways: the trees eight across on a wider sheet, everything a little smaller, so most of a tab fits */
 @media (max-height:520px){ .upSheet{max-width:820px;padding-top:8px} .upTop{margin-bottom:4px} .upTop h2{font-size:22px} .upTabs{margin-bottom:8px}
@@ -658,5 +660,5 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 /* the campaign screen's way back to the title: a round button in the top-left corner (Jack); Play has the details' foot to itself */
 .modal.tome .campBack{position:absolute;top:calc(16px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left));z-index:6;width:40px;height:40px;min-height:0!important;min-width:0!important;padding:0!important;border-radius:11px!important;border:2px solid #d9b04e!important;background:linear-gradient(180deg,#5a4428,#2c210f)!important;display:flex!important;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,230,160,.25)!important}
 .campBack svg{display:block;width:22px;height:22px;fill:none;stroke:#f0c95a;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
-.cDet .stActs #campPlay{min-width:116px!important;padding:4px 22px!important}
+.cDet .stActs #campPlay{min-width:96px!important;padding:4px 18px!important}
 @media (max-height:520px){ #campaign .cHead{padding-left:60px;box-sizing:border-box} .modal.tome .campBack{top:calc(10px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left))} }
