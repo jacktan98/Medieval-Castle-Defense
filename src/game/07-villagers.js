@@ -281,9 +281,10 @@ const castleB = () => buildings.find(B => B.type === 'castle');
 function addLoads(v) {
   v.carryLog = cyl(.085, .085, .9, 6, M.log, .19, 1.03, .02); v.carryLog.rotation.x = Math.PI / 2; v.carryLog.visible = false; v.body.add(v.carryLog);
   v.carryStone = box(.32, .26, .3, M.stone2, 0, .72, .26); v.carryStone.visible = false; v.body.add(v.carryStone);
-  // Carts: a second log on the left shoulder, held by the left hand (Jack: stacked on the first it floated above the hand;
-  // three was too many; shown only for a lumber camp's trip)
-  { const l = cyl(.085, .085, .9, 6, M.log, -.38, 0, 0); l.visible = false; v.carryLog.add(l); }
+  // Carts: a second log beside the first on the right shoulder, outside it; the right arm comes up from below and the hand holds
+  // the outer log's side (Jack's front-view sketch; stacked, the second floated above the hand; three was too many; shown only on a
+  // lumber camp's trip). In the log's frame its x is the body's x and its z the body's height, downward
+  { const l = cyl(.085, .085, .9, 6, M.log, .17, 0, .01); l.visible = false; v.carryLog.add(l); }
 }
 // Wheelbarrows: a quarry mason wheels the stone home in a barrow, both hands on its handles (made the first time it's needed)
 function makeBarrow() {
@@ -875,7 +876,9 @@ function updateVillagers(dt, now) {
     const barrow = stoneC && v.barrowOn;
     if (barrow && !v.barrow) { v.barrow = makeBarrow(); v.body.add(v.barrow); }
     if (v.barrow) v.barrow.visible = barrow; v.carryStone.scale.setScalar(barrow ? .001 : 1);
-    if (logC) { Rt = -2.75; L = v.carryLog.children[0] && v.carryLog.children[0].visible ? -2.75 : -swing * .6; }   // a hand on each log over the shoulder
+    const twoLogs = logC && v.carryLog.children[0] && v.carryLog.children[0].visible;
+    if (twoLogs) { Rt = 0; L = -swing * .6; }                         // the right arm swung out sideways (rotation.z below) under both logs
+    else if (logC) { Rt = -2.75; L = -swing * .6; }                   // hand on the log over the right shoulder
     else if (barrow) { L = Rt = -.75; lean = 0; }                     // both hands on the barrow's handles (upright, so they stay on them)
     else if (stoneC) { L = Rt = -1.2; }                               // block held against the chest
     else if (v.working && TOOL_POSE[kind]) { ({ w, R: Rt, L, tilt, lean, crouch = 0, twist = 0, big = false } = TOOL_POSE[kind](now / 1000 + v.seed, v.seed)); if (crouch) kneel(v, crouch); } else if (kind) { Rt = -.3 + swing * .25; tilt = -.25; }          // walking with the tool held low
@@ -895,7 +898,8 @@ function updateVillagers(dt, now) {
     if (v.pivot) { v.pivot.visible = !logC && !stoneC && !(v.changing && v.toolOff); v.pivot.rotation.x = ease(v.pivot.rotation.x, tilt); }
     if (v.pushing) { L = Rt = -1.45; lean = .1; }                    // both hands on the engine's back beam
     if (cheer) { L = -2.9 + Math.sin(now / 1000 * 9) * .2; Rt = -2.9 - Math.sin(now / 1000 * 9) * .2; lean = 0; }
-    v.arms[0].rotation.x = ease(v.arms[0].rotation.x, L); v.arms[1].rotation.x = ease(v.arms[1].rotation.x, Rt); v.body.rotation.x = ease(v.body.rotation.x, lean);
+    v.arms[0].rotation.x = ease(v.arms[0].rotation.x, L); v.arms[1].rotation.x = ease(v.arms[1].rotation.x, Rt);
+    v.arms[1].rotation.z = ease(v.arms[1].rotation.z, twoLogs ? 2.0 : 0);   // out and up: the hand at the outer log's side v.body.rotation.x = ease(v.body.rotation.x, lean);
     if (v.soldier) (v.toolKind === 'spear' ? spearPose : swordPose)(v, v.attackT || 0, swing);   // exact: eased, the strikes go soft
     smoothPos(v, dt, now); v.g.position.set(v.rx, walkY(v.rx, v.rz), v.rz);
     if (v.sbar) { const on = v.soldier && v.hp < v.maxHp; v.sbar.grp.visible = on; if (on) { v.sbar.set(v.hp / v.maxHp); v.sbar.grp.position.set(v.rx, v.g.position.y + 1.5 * UNIT_K, v.rz); } }
