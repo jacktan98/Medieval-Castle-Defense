@@ -364,7 +364,7 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 #summary .sheet{background:var(--panel)!important;max-height:calc(100% - 8px);overflow-y:auto}
 .sumTip{margin:0;font-size:13px;color:#f4e3b2;text-align:center} .sumTip b{color:#f0c95a}
 /* a phone held sideways: two columns (title, stars, play again | goals, numbers, tip) so it all fits without scrolling */
-@media (max-height:520px){ #summary .sheet{width:min(640px,100%);display:grid;grid-template-columns:1fr 1fr;grid-template-areas:'t n' 's n' 'x n' 'g n' 'b p';column-gap:22px;row-gap:8px;padding:14px 18px;align-items:start}
+@media (max-height:520px){ #summary .sheet{width:min(640px,100%);display:grid;grid-template-columns:1fr 1fr;grid-template-areas:'t n' 's n' 'x n' 'g p' 'g b';column-gap:22px;row-gap:8px;padding:14px 18px;align-items:start}
   #summary #sumTitle{grid-area:t;font-size:26px} #summary #sumStars{grid-area:s;font-size:28px;text-align:left} #summary #sumText{grid-area:x;margin:0} #summary #sumGoals{grid-area:g}
   #summary #sumStats{grid-area:n;margin:0} #summary .sumTip{grid-area:p;text-align:left} #summary #again{grid-area:b;align-self:end}
   /* hard mode has only the crown and Survive: one compact column (Jack) */

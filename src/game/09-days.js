@@ -317,7 +317,8 @@ function endGame(won) {
   // hard mode: no stars, one crown that pops in on a win (Jack); hard has no goals, so only Survive is listed
   $('#sumStars').innerHTML = hardOn ? `<span class="stars"><span class="sumCrown">${CROWN_ICO}</span></span>` : starsHTML(0);
   const tip = won ? '' : defeatTip(); $('#sumTip').hidden = !tip; $('#sumTip').innerHTML = tip ? `<b>Tip:</b> ${tip}` : '';
-  $('#sumGoals').innerHTML = [['Survive', won], ...(hardOn ? [] : goals)].map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
+  // after a defeat Survive isn't listed (Jack): the title says it
+  $('#sumGoals').innerHTML = [...(won ? [['Survive', won]] : []), ...(hardOn ? [] : goals)].map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
   if (!hardOn && n > (STARS[MAP] || 0)) { STARS[MAP] = n; try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {} }
   if (won && hardOn && !CROWNS[MAP]) { CROWNS[MAP] = 1; try { localStorage.setItem('mtd-crowns', JSON.stringify(CROWNS)); } catch (e) {} }
   if (won && hardOn) $('#sumText').innerHTML = `All ${NIGHTS} waves held · <b class="hardTag">Hard</b>`;
