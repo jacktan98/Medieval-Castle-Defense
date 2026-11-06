@@ -284,7 +284,9 @@ function addLoads(v) {
   // Carts: a second log beside the first on the right shoulder, outside it; the right arm comes up from below and the hand holds
   // the outer log's side (Jack's front-view sketch; stacked, the second floated above the hand; three was too many; shown only on a
   // lumber camp's trip). In the log's frame its x is the body's x and its z the body's height, downward
-  { const l = cyl(.085, .085, .9, 6, M.log, .17, 0, .01); l.visible = false; v.carryLog.add(l); }
+  // a bundle of three: a second log tight beside the first, a third in the groove on top, tied with two rope bands (Jack)
+  for (const [x, z] of [[.15, .005], [.075, -.13]]) { const l = cyl(.085, .085, .9, 6, M.log, x, 0, z); l.visible = false; v.carryLog.add(l); }
+  for (const y of [-.3, .3]) { const r = new THREE.Mesh(new THREE.TorusGeometry(.15, .013, 4, 12), ropeM); r.rotation.x = Math.PI / 2; r.position.set(.075, y, -.043); r.visible = false; v.carryLog.add(r); }
 }
 // Wheelbarrows: a quarry mason wheels the stone home in a barrow, both hands on its handles (made the first time it's needed)
 function makeBarrow() {
@@ -899,7 +901,7 @@ function updateVillagers(dt, now) {
     if (v.pushing) { L = Rt = -1.45; lean = .1; }                    // both hands on the engine's back beam
     if (cheer) { L = -2.9 + Math.sin(now / 1000 * 9) * .2; Rt = -2.9 - Math.sin(now / 1000 * 9) * .2; lean = 0; }
     v.arms[0].rotation.x = ease(v.arms[0].rotation.x, L); v.arms[1].rotation.x = ease(v.arms[1].rotation.x, Rt);
-    v.arms[1].rotation.z = ease(v.arms[1].rotation.z, twoLogs ? 2.0 : 0);   // out and up: the hand at the outer log's side v.body.rotation.x = ease(v.body.rotation.x, lean);
+    v.arms[1].rotation.z = ease(v.arms[1].rotation.z, twoLogs ? 2.3 : 0);   // out and up: the hand round the bundle's outer log v.body.rotation.x = ease(v.body.rotation.x, lean);
     if (v.soldier) (v.toolKind === 'spear' ? spearPose : swordPose)(v, v.attackT || 0, swing);   // exact: eased, the strikes go soft
     smoothPos(v, dt, now); v.g.position.set(v.rx, walkY(v.rx, v.rz), v.rz);
     if (v.sbar) { const on = v.soldier && v.hp < v.maxHp; v.sbar.grp.visible = on; if (on) { v.sbar.set(v.hp / v.maxHp); v.sbar.grp.position.set(v.rx, v.g.position.y + 1.5 * UNIT_K, v.rz); } }
