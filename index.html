@@ -555,19 +555,20 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
 body.islandL{--padL:max(8px,env(safe-area-inset-left,0px));--padR:12px}
 body.islandR{--padR:max(8px,env(safe-area-inset-right,0px));--padL:12px}
 @media (max-height:520px){
-  .panel{left:var(--padL);top:8px;width:150px;max-height:calc(100% - 20px);overflow:hidden;padding:7px 7px 5px!important}
+  .panel{left:var(--padL);top:8px;width:134px;max-height:calc(100% - 20px);overflow:hidden;padding:7px 7px 5px!important}
   .phase{flex-wrap:wrap;gap:5px 6px}
-  .phIco{width:22px;height:22px}
-  .phMain{flex:1 1 90px}
+  .phIco{width:20px;height:20px}
+  .phMain{flex:1 1 calc(100% - 30px);min-width:0} #phaseText,#phaseSub{white-space:nowrap}
   #phaseText{font-size:16px;line-height:1.1} #phaseSub{font-size:12px}
   /* the payout ring under the sun, Skip day at the row's other end, both at their upright size */
   .phase .tick{margin:0}
   .phase #nightBtn{margin-left:auto}
   .res{display:grid!important;grid-template-columns:1fr 1fr;gap:3px}
+  .phase{padding-bottom:4px}
   .chip{padding:2px 2px;gap:2px} .chip b{font-size:12px;letter-spacing:-.2px} .chip .ico{width:12px;height:12px}
   .pill{display:none}
   /* the bar: as upright, horizontal, in the bottom-right corner, with the building card on top of it (Jack) */
-  .dock{left:auto;right:var(--padR);bottom:8px;transform:none;width:auto;max-width:calc(100vw - var(--padL) - var(--padR) - 166px);flex-direction:column;align-items:flex-end;gap:5px;pointer-events:none}
+  .dock{left:auto;right:var(--padR);bottom:8px;transform:none;width:auto;max-width:calc(100vw - var(--padL) - var(--padR) - 150px);flex-direction:column;align-items:flex-end;gap:5px;pointer-events:none}
   .dock > *{pointer-events:auto}
   /* every button, tab and tile at its upright size (Jack) */
   .tools{flex-wrap:nowrap!important;gap:4px} .tools button{flex:0 1 auto;min-width:58px!important;min-height:56px;padding:3px 6px 2px!important} .tools button b,.tools button small{white-space:nowrap}
