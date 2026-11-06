@@ -110,12 +110,21 @@ function tipOnce(key, html) {
   TIPS_SEEN[key] = 1; try { localStorage.setItem('mtd-tips', JSON.stringify(TIPS_SEEN)); } catch (e) {}
   tipQ.push([key, html]);
 }
+// a phone held sideways (Jack): the first day's guide and the tips sit at the bottom, just left of the bar, a tip above the guide
+function sideHints() {
+  if (!matchMedia('(max-height:520px)').matches) return;
+  const bar = document.querySelector('.bar').getBoundingClientRect(), pn = document.querySelector('.panel').getBoundingClientRect();
+  const right = (innerWidth - bar.left + 8) + 'px', maxW = Math.max(160, bar.left - pn.right - 24) + 'px', g = $('#guide'), t = $('#tipPill');
+  g.style.right = right; g.style.bottom = '8px'; g.style.maxWidth = maxW;
+  t.style.right = right; t.style.top = 'auto'; t.style.maxWidth = maxW; t.style.bottom = (g.hidden ? 8 : innerHeight - g.getBoundingClientRect().top + 6) + 'px';
+}
 function updateTips(dt) {
   const el = $('#tipPill');
   if (menuOn() || gameOver) { el.hidden = true; return; }
+  sideHints();
   if (tipT > 0 && (tipT -= dt) > 0) {
-    // above the dock; on a phone held sideways in the top-right corner, under the first day's guide while it shows (Jack)
-    if (matchMedia('(max-height:520px)').matches) { const g = $('#guide'); el.style.bottom = 'auto'; el.style.top = (g.hidden ? 8 : g.getBoundingClientRect().bottom + 6) + 'px'; return; }
+    // above the dock; on a phone held sideways at the bottom left of the bar, above the first day's guide (Jack)
+    if (matchMedia('(max-height:520px)').matches) { sideHints(); return; }
     el.style.top = 'auto'; el.style.bottom = (innerHeight - document.querySelector('.dock').getBoundingClientRect().top + 10) + 'px'; return; }
   el.hidden = true; if (!tipQ.length || paused) return;
   const [, html] = tipQ.shift(); el.innerHTML = html; el.hidden = false; tipT = 6; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';

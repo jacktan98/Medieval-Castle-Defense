@@ -566,20 +566,22 @@ body.islandR{--padR:max(8px,env(safe-area-inset-right,0px));--padL:12px}
   .res{display:grid!important;grid-template-columns:1fr 1fr;gap:3px}
   .phase{padding-bottom:4px}
   .chip{padding:2px 2px;gap:2px} .chip b{font-size:12px;letter-spacing:-.2px} .chip .ico{width:12px;height:12px}
-  .pill{display:none}
+  /* the short hints (Select a building, Placed…) between the bar and the building card, as upright */
+  .dock > .pill{align-self:center}
   /* the bar: as upright, horizontal, in the bottom-right corner, with the building card on top of it (Jack) */
   .dock{left:auto;right:var(--padR);bottom:8px;transform:none;width:auto;max-width:calc(100vw - var(--padL) - var(--padR) - 150px);flex-direction:column;align-items:flex-end;gap:5px;pointer-events:none}
   .dock > *{pointer-events:auto}
   /* every button, tab and tile at its upright size (Jack) */
   .tools{flex-wrap:nowrap!important;gap:4px} .tools button{flex:0 1 auto;min-width:58px!important;min-height:56px;padding:3px 6px 2px!important} .tools button b,.tools button small{white-space:nowrap}
-  .dock > .card{max-height:calc(100vh - 150px);overflow:auto}
-  /* the first day's guide and the tips: in the top-right corner, clear of the buttons at the top middle */
-  .dock > .guideCard{position:fixed;top:8px;right:var(--padR);left:auto;transform:none;margin:0;max-width:calc(50vw - 100px - var(--padR))}
-  .tipPill{left:auto!important;right:var(--padR);transform:none!important;max-width:calc(50vw - 100px - var(--padR))!important}
-  /* pause and the corner buttons: one row at the top middle */
-  .corner{bottom:auto;top:8px;right:auto;left:calc(50% - 85px);flex-direction:column;align-items:flex-start}
-  .cornerBtns{flex-direction:row}
-  #pauseBtn{right:auto;left:calc(50% + 47px)}
+  /* clear of the pause and corner buttons' column in the top-right corner */
+  .dock > .card{max-height:calc(100vh - 180px);overflow:auto;margin-right:46px}
+  /* the first day's guide and the tips: at the bottom, just left of the bar (placed by updateTips) */
+  .dock > .guideCard{position:fixed;left:auto;transform:none;margin:0}
+  .tipPill{left:auto!important;transform:none!important}
+  /* pause in the top-right corner and the corner buttons in a column under it, as upright (Jack) */
+  .corner{bottom:auto;top:52px;right:var(--padR);left:auto;flex-direction:column-reverse;align-items:flex-end}
+  .cornerBtns{flex-direction:column}
+  #pauseBtn{right:var(--padR);left:auto}
   .admin{max-height:calc(100vh - 60px);overflow:auto}
   #raidDash{width:440px;max-height:calc(100vh - 16px);position:fixed;top:8px;right:50px;z-index:30} .rdList{grid-template-columns:1fr repeat(3,32px) 1fr repeat(3,32px);gap:3px 5px} .rdList button,.rdCount button{min-height:24px}
   .pausedTag{padding-top:0;align-items:center}
@@ -6778,12 +6780,21 @@ function tipOnce(key, html) {
   TIPS_SEEN[key] = 1; try { localStorage.setItem('mtd-tips', JSON.stringify(TIPS_SEEN)); } catch (e) {}
   tipQ.push([key, html]);
 }
+// a phone held sideways (Jack): the first day's guide and the tips sit at the bottom, just left of the bar, a tip above the guide
+function sideHints() {
+  if (!matchMedia('(max-height:520px)').matches) return;
+  const bar = document.querySelector('.bar').getBoundingClientRect(), pn = document.querySelector('.panel').getBoundingClientRect();
+  const right = (innerWidth - bar.left + 8) + 'px', maxW = Math.max(160, bar.left - pn.right - 24) + 'px', g = $('#guide'), t = $('#tipPill');
+  g.style.right = right; g.style.bottom = '8px'; g.style.maxWidth = maxW;
+  t.style.right = right; t.style.top = 'auto'; t.style.maxWidth = maxW; t.style.bottom = (g.hidden ? 8 : innerHeight - g.getBoundingClientRect().top + 6) + 'px';
+}
 function updateTips(dt) {
   const el = $('#tipPill');
   if (menuOn() || gameOver) { el.hidden = true; return; }
+  sideHints();
   if (tipT > 0 && (tipT -= dt) > 0) {
-    // above the dock; on a phone held sideways in the top-right corner, under the first day's guide while it shows (Jack)
-    if (matchMedia('(max-height:520px)').matches) { const g = $('#guide'); el.style.bottom = 'auto'; el.style.top = (g.hidden ? 8 : g.getBoundingClientRect().bottom + 6) + 'px'; return; }
+    // above the dock; on a phone held sideways at the bottom left of the bar, above the first day's guide (Jack)
+    if (matchMedia('(max-height:520px)').matches) { sideHints(); return; }
     el.style.top = 'auto'; el.style.bottom = (innerHeight - document.querySelector('.dock').getBoundingClientRect().top + 10) + 'px'; return; }
   el.hidden = true; if (!tipQ.length || paused) return;
   const [, html] = tipQ.shift(); el.innerHTML = html; el.hidden = false; tipT = 6; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
