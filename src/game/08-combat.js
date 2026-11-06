@@ -929,8 +929,13 @@ function updateSoldier(v, dt) {
   v.foe = foe;
   if (foe) {
     const reach = (v.toolKind === 'spear' ? 1.15 : .9) + (foe.horse ? .3 : 0) + (foe.engine ? ENEMY[foe.kind].r : 0) + (v.cav ? .35 : 0), d = Math.hypot(foe.x - v.x, foe.z - v.z);
-    if (d > reach) { walkTo(v, foe.x, foe.z, dt, 1, reach * .9, 1.25 * ride); if (v.noProg > 4) { v.skip = { e: foe, t: 4 }; v.foe = null; } }    // can't reach that one
-    else { turnTo(v, Math.atan2(foe.x - v.x, foe.z - v.z), dt); if (v.cool <= 0) { v.cool = S.rate * (1 - decorFx(v.x, v.z, 'troopRate')); v.attackT = v.toolKind === 'spear' ? SPEAR_T : SWORD_T; hurtEnemy(foe, S.dmg[k] * (1 + decorFx(v.x, v.z, 'troopDmg')) * (UPK.lance && v.cav && v.charged !== foe ? 2 : 1)); v.charged = foe; sfx('clash', v); } }
+    // a charge: the castle's riders always know it, the stables' only with Lance charge (Jack); they spur on at a new foe and
+    // their first blow on it hits twice as hard, with a burst of dust
+    const charge = v.cav && v.charged !== foe && (v.summoned || UPK.lance);
+    if (d > reach) { walkTo(v, foe.x, foe.z, dt, 1, reach * .9, 1.25 * ride * (charge ? 1.35 : 1)); if (v.noProg > 4) { v.skip = { e: foe, t: 4 }; v.foe = null; } }    // can't reach that one
+    else { turnTo(v, Math.atan2(foe.x - v.x, foe.z - v.z), dt); if (v.cool <= 0) { v.cool = S.rate * (1 - decorFx(v.x, v.z, 'troopRate')); v.attackT = v.toolKind === 'spear' ? SPEAR_T : SWORD_T; hurtEnemy(foe, S.dmg[k] * (1 + decorFx(v.x, v.z, 'troopDmg')) * (charge ? 2 : 1));
+      if (charge) { const y = walkY(foe.x, foe.z); for (let n = 0; n < 3; n++) dustAt(foe.x + (Math.random() - .5) * .6, y, foe.z + (Math.random() - .5) * .6); shake(.03, foe, 'charge', .8); }
+      v.charged = foe; sfx('clash', v); } }
   } else if (Math.hypot(hx - v.x, hz - v.z) > .35) walkTo(v, hx, hz, dt, 1, .3, 1.3 * ride);
   // the castle's riders, at their place, face away from the castle (out of the door, or out from it at a rally flag)
   else if (v.summoned) { const c = center(B); turnTo(v, B.rally ? Math.atan2(hx - c.x, hz - c.z) : faceAngle(B), dt); }

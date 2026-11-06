@@ -281,6 +281,21 @@ const castleB = () => buildings.find(B => B.type === 'castle');
 function addLoads(v) {
   v.carryLog = cyl(.085, .085, .9, 6, M.log, .19, 1.03, .02); v.carryLog.rotation.x = Math.PI / 2; v.carryLog.visible = false; v.body.add(v.carryLog);
   v.carryStone = box(.32, .26, .3, M.stone2, 0, .72, .26); v.carryStone.visible = false; v.body.add(v.carryStone);
+  // Carts: a bundle of three logs on the shoulder (two more ride on the first; shown only for a lumber camp's trip)
+  for (const [x, z] of [[-.075, -.12], [.08, -.115]]) { const l = cyl(.075, .075, .82, 6, M.log, x, (x > 0 ? .04 : -.03), z); l.visible = false; v.carryLog.add(l); }
+}
+// Wheelbarrows: a quarry mason wheels the stone home in a barrow, both hands on its handles (made the first time it's needed)
+function makeBarrow() {
+  const g = new THREE.Group();
+  g.add(box(.42, .06, .5, M.timber, 0, .36, .72));
+  for (const [x, z, w, d] of [[-.21, .72, .04, .5], [.21, .72, .04, .5], [0, .97, .42, .04], [0, .47, .42, .04]]) g.add(box(w, .2, d, M.plank || M.timber, x, .46, z));
+  const wh = cyl(.15, .15, .06, 10, M.timber, 0, .15, 1.05); wh.rotation.z = Math.PI / 2; g.add(wh);
+  for (const sx of [-1, 1]) {
+    const h = box(.04, .04, .95, M.timber, sx * .17, .5, .72); h.rotation.x = .2; g.add(h);
+    g.add(box(.035, .26, .035, M.timber, sx * .17, .2, .5));
+  }
+  for (const [x, z] of [[-.08, .66], [.1, .8]]) { const s = new THREE.Mesh(new THREE.DodecahedronGeometry(.12, 0), M.stone2); s.position.set(x, .5, z); s.castShadow = true; g.add(s); }
+  return g;
 }
 function makeVillager(home) {
   const v = makePerson({}); v.plainHat = Math.random() < .5; dress(v, null);
@@ -746,7 +761,9 @@ function updateWorker(v, dt, now) {
         if (!t) { v.state = 'find'; break; }
         if (t.grove) { t.g = 0; t.cut = true; v.carryLog.visible = true; stats.felled++; }          // a grove tree felled: a sapling again
         else if (lumber) { t.cut = true; t.fallStart = now; t.regrow = now + 45000; v.carryLog.visible = true; }
-        else { t.amount--; seatRocks(); v.carryStone.visible = true; }
+        else { t.amount--; seatRocks(); v.carryStone.visible = true; v.barrowOn = UPK.stoneTrip > 0 && W.type === 'quarry'; }
+        // a lumber camp's woodcutter carries the Carts bundle; a forester's, one log
+        v.carryLog.children.forEach(c => c.visible = lumber && !t.grove && LUMBER_LOAD > 2);
         release(v); v.state = 'home'; v.stuck = 0;
       }
       break;
@@ -851,7 +868,11 @@ function updateVillagers(dt, now) {
     // arm angle: 0 hangs down, -1.57 points straight ahead, -3 is overhead; tools follow the right hand
     const kind = v.pivot ? v.toolKind : null, logC = v.carryLog.visible, stoneC = v.carryStone.visible;
     let L = -swing * .8, Rt = swing * .8, tilt = -.2, lean = 0, w = null, crouch = 0, twist = 0, big = false;
+    const barrow = stoneC && v.barrowOn;
+    if (barrow && !v.barrow) { v.barrow = makeBarrow(); v.g.add(v.barrow); }
+    if (v.barrow) v.barrow.visible = barrow; v.carryStone.scale.setScalar(barrow ? .001 : 1);
     if (logC) { Rt = -2.75; L = -swing * .6; }                       // hand on the log over the right shoulder
+    else if (barrow) { L = Rt = -.75; lean = .08; }                   // both hands on the barrow's handles
     else if (stoneC) { L = Rt = -1.2; }                               // block held against the chest
     else if (v.working && TOOL_POSE[kind]) { ({ w, R: Rt, L, tilt, lean, crouch = 0, twist = 0, big = false } = TOOL_POSE[kind](now / 1000 + v.seed, v.seed)); if (crouch) kneel(v, crouch); } else if (kind) { Rt = -.3 + swing * .25; tilt = -.25; }          // walking with the tool held low
     if (v.changing) {                                                 // bending down to change: lean in and out, arms to the ground

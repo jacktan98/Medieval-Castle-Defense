@@ -165,7 +165,7 @@ function updateBirds(dt) {
 // ---------- chimney smoke ----------
 const smokeTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); const g = x.createRadialGradient(32, 32, 2, 32, 32, 30); g.addColorStop(0, 'rgba(255,255,255,.9)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
 const puffs = [];
-const CHIMNEY = { house: [null, [.45, 1.72, -.25], [.45, 2.45, -.3]], lodge: [null, null, [1.05, 3.05, -.45]] };
+const CHIMNEY = { house: [[.4, 2.27, -.22], [.45, 1.72, -.25], [.45, 2.45, -.3]], lodge: [null, null, [1.05, 3.05, -.45]] };
 const emberTex = smokeTex;
 function emitSmoke(dt) {
   for (const F of sceneFires) {   // the scenery's fires: embers, and dark smoke off a burning ruin
@@ -188,7 +188,7 @@ function emitSmoke(dt) {
       sp.position.set(B.group.position.x + (Math.random() - .5) * .12, B.group.position.y + fy, B.group.position.z + (Math.random() - .5) * .12); sp.scale.setScalar(.07);
       scene.add(sp); puffs.push({ sp, t: 0, life: .8 + Math.random() * .7, dx: (Math.random() - .5) * .35, ember: true });
     }
-    const ch = CHIMNEY[B.type] && CHIMNEY[B.type][B.tier - 1]; if (!ch || B.rise) continue;
+    const ch = CHIMNEY[B.type] && CHIMNEY[B.type][B.tier - 1]; if (!ch || B.rise || (B.type === 'house' && !UPK.chimney)) continue;
     if ((B.smokeT = (B.smokeT || Math.random()) - dt) > 0) continue;
     B.smokeT = .5 + Math.random() * .5;
     if (puffs.length > 140) continue;

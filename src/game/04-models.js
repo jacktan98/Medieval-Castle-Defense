@@ -11,6 +11,7 @@ function makeHouse(tier, plinth) {
     g.add(pyramid(1.12, 1.15, .95, M.thatchOld, 1.9));
     g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[1], 0, .08 + DOOR_H / 2, .54));
     g.add(box(.16, .14, .04, M.glow, .45, 1.0, .54));
+    if (UPK.chimney) g.add(box(.16, .55, .16, M.stone, .4, 1.98, -.22));
   } else if (tier === 2) {     // cottage: plain daub walls, corner posts, a straw gable roof, one door and one window
     g.add(box(1.4, 1.3, 1.1, M.daub, 0, .75, 0));
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.1, 1.32, .1, M.timber, sx * .68, .75, sz * .53));
@@ -19,7 +20,7 @@ function makeHouse(tier, plinth) {
     g.add(prism(1.4, 1.1, .7, M.daub, 0, 1.4, 0));
     const sl = Math.atan2(.7, .55), len = Math.hypot(.7, .55) + .2;
     for (const sz of [-1, 1]) { const r = box(1.6, .1, len, M.logGable, 0, 1.4 + .35, sz * .35); r.rotation.x = sz * sl; g.add(r); }
-    g.add(box(.18, .45, .18, M.stone, .45, 2.01, -.25));
+    if (UPK.chimney) g.add(box(.18, .45, .18, M.stone, .45, 2.01, -.25));
   } else {                     // town house: one tall stone storey, a timber band and a plaster gable, blue gable roof
     g.add(box(1.4, 1.45, 1.2, M.stone2, 0, .8, 0));
     g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[3], 0, .1 + DOOR_H / 2, .61));
@@ -28,7 +29,7 @@ function makeHouse(tier, plinth) {
     g.add(prism(1.4, 1.2, .8, M.plaster, 0, 1.56, 0));
     const sl = Math.atan2(.8, .6), len = Math.hypot(.8, .6) + .2;
     for (const sz of [-1, 1]) { const r = box(1.6, .1, len, M.roofBlue, 0, 1.56 + .4 + .03, sz * .32); r.rotation.x = sz * sl; g.add(r); }
-    g.add(box(.2, .6, .2, M.stone2, .45, 2.15, -.3));
+    if (UPK.chimney) g.add(box(.2, .6, .2, M.stone2, .45, 2.15, -.3));
   }
   return g;
 }
@@ -395,11 +396,11 @@ function makeFarm(tier) {
       g.add(cone(.13, h, 4, tier === 1 ? M.crop1 : M.crop2, x, h / 2 + .08, z));
     }
   }
-  for (let s = -1.75; s <= 1.76; s += .5) for (const [x, z] of [[s, -1.75], [s, 1.75], [-1.75, s], [1.75, s]]) {
+  if (UPK.fences) for (let s = -1.75; s <= 1.76; s += .5) for (const [x, z] of [[s, -1.75], [s, 1.75], [-1.75, s], [1.75, s]]) {
     if (tier === 1 && hash(x * 3, z * 5) < .45) continue;
     const p = box(.07, .5, .07, tier === 1 ? M.rough : M.timber, x, .25, z); if (tier === 1) p.rotation.z = (hash(x, z) - .5) * .4; g.add(p);
   }
-  if (tier > 1) for (const [x, z, w, d] of [[0, -1.75, 3.5, .05], [0, 1.75, 3.5, .05], [-1.75, 0, .05, 3.5], [1.75, 0, .05, 3.5]]) g.add(box(w, .05, d, M.timber, x, .38, z));
+  if (UPK.fences && tier > 1) for (const [x, z, w, d] of [[0, -1.75, 3.5, .05], [0, 1.75, 3.5, .05], [-1.75, 0, .05, 3.5], [1.75, 0, .05, 3.5]]) g.add(box(w, .05, d, M.timber, x, .38, z));
   if (tier === 1) { // thatched field hut
     g.add(box(1.1, 1.25, .8, M.mud, -1.0, .7, -1.2)); g.add(pyramid(.95, .85, .8, M.thatchOld, 1.75, -1.0, -1.2)); g.add(box(DOOR_W, DOOR_H, .05, DOOR_M[1], -1.0, .08 + DOOR_H / 2, -.79));
     g.add(cyl(.28, .3, .4, 8, M.hay, .9, .25, -1.2));
