@@ -121,7 +121,7 @@ function renderUpgrades() {
   const el = $('#upPick'); el.style.setProperty('--tc', tc); el.style.setProperty('--td', '#' + dk.getHexString());
   // the sheet stays put (a new one replayed the menus' rise animation and the whole screen flickered on every tap: Jack)
   let sh = el.querySelector('.upSheet'); if (!sh) { sh = document.createElement('div'); sh.className = 'upSheet'; el.replaceChildren(sh); }
-  sh.innerHTML = `<div class="upTop"><button class="upBack" id="upBack" aria-label="Back">‹</button><h2>Upgrades</h2><div class="upBank">★<b>${left}</b></div></div>
+  sh.innerHTML = `<div class="upTop"><button class="upBack campBack" id="upBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Upgrades</h2><div class="upBank">★<b>${left}</b></div></div>
     <div class="upTabs">${UP_TABS.map(([t], i) => `<button class="upTab${i === upTab ? ' on' : ''}" data-tab="${i}">${t}</button>`).join('')}</div>
     <div class="upGrid">${rows.map(([n, ic, ups]) => `<div class="upTree"><div class="upBan">${upRowIco(ic)}<div>${n}</div></div>${ups.map(([id, name], j) => {
       const sj = st(id); return `${j ? `<div class="upChain${st(ups[j - 1][0]) === 2 ? ' on' : ''}"></div>` : ''}<button class="upNode s${sj}${id === upSel ? ' sel' : ''}" data-up="${id}" aria-label="${name}">${upIco(name)}${sj === 2 ? '<span class="upTick">✓</span>' : '<span class="upCost">★1</span>'}</button>`; }).join('')}</div>`).join('')}</div>

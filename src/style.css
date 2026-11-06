@@ -599,14 +599,14 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
 body.showcase #upPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 20%, rgba(42,32,18,.9) 0%, rgba(14,11,6,.95) 55%, rgba(6,5,3,.98) 100%)!important}
 .upSheet{width:100%;max-width:390px;min-height:100%;display:flex;flex-direction:column;align-items:center;padding:12px 10px calc(10px + env(safe-area-inset-bottom));box-sizing:border-box;font-family:var(--body);color:#f3ead2}
 .upTop{width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.modal.tome .upTop .upBack{width:36px;height:36px;min-height:0;border-radius:50%;padding:0;border:2px solid #d9b04e;background:linear-gradient(#5a4428,#2c210f);color:#f0c95a;font-size:22px;line-height:1;display:grid;place-items:center}
+.modal.tome .upTop .upBack{position:static}
 .upTop h2{margin:0;font-family:var(--display);font-weight:400;color:#f0c95a;font-size:28px;text-shadow:0 2px 0 #000}
 .upBank{display:flex;align-items:center;gap:4px;padding:0 11px 0 8px;height:30px;border-radius:16px;border:2px solid #d9b04e;background:linear-gradient(#4a3820,#1c150a);font-weight:700;font-size:16px;color:#fff1c4}
 .upBank b{font-size:20px;line-height:1;color:#f0c95a;text-shadow:0 0 8px rgba(255,205,90,.7)}
 .upTabs{display:flex;gap:4px;width:100%;border-bottom:2px solid #d9b04e;margin-bottom:12px}
 .modal.tome .upTabs .upTab{flex:1;min-height:0!important;padding:8px 0 6px!important;border-radius:10px 10px 0 0!important;border:2px solid rgba(217,176,78,.4)!important;border-bottom:none!important;background:#1a140a!important;font-family:var(--display);font-weight:400;font-size:15px;color:#8f8160!important;box-shadow:none!important}
 /* the tab in use is lit: gold like the main buttons, dark text, a glow; the others stay dark and dim (Jack: it didn't stand out) */
-.modal.tome .upTabs .upTab.on{background:linear-gradient(#f6d985,#c99a3a)!important;border-color:#fff1c4!important;color:#2a1d0a!important;box-shadow:0 0 12px rgba(255,205,90,.55)!important;transform:translateY(2px)}
+.modal.tome .upTabs .upTab.on{background:linear-gradient(180deg,#e9c463 0%,#c7962f 55%,#a47422 100%)!important;border-color:#f2d27a!important;color:#2a1a06!important;text-shadow:0 1px 0 rgba(255,236,170,.6);box-shadow:inset 0 1px 0 rgba(255,245,200,.7)!important;transform:translateY(2px)}
 .upGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px;width:100%}
 .upTree{display:flex;flex-direction:column;align-items:center;padding-bottom:16px;border-radius:10px;background:linear-gradient(rgba(60,45,22,.55),rgba(20,15,8,.35));border:1px solid rgba(217,176,78,.25)}
 .upBan{width:100%;padding:5px 0 9px;text-align:center;background:linear-gradient(var(--tc),var(--td));clip-path:polygon(0 0,100% 0,100% 78%,50% 100%,0 78%);border-radius:9px 9px 0 0;margin-bottom:6px}
@@ -637,7 +637,6 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .modal.tome .upDet .upBuy:disabled{filter:grayscale(.6) brightness(.75)}
 /* the campaign screen's way in: beside the stars, with the stars still to spend */
 .modal.tome .campProg .upBtn{min-height:0!important;padding:3px 11px!important;font-size:14px!important;border-radius:14px!important;margin-left:2px;white-space:nowrap;display:inline-flex!important;flex-direction:row!important;gap:5px;align-items:center} .campProg .upBtn b{color:var(--gold)}
-.iconCredit{font-size:11px;color:#9a8c6a;text-align:center;margin-top:6px}
 
 /* the campaign screen's round buttons, on the left just above the progress bar (Jack): Upgrades (a hammer, with the stars still to spend), Achievements later beside it; no height of their own, so the deck and the bar don't move */
 .cDotsWrap{position:relative;width:min(380px,100%)} .cDotsWrap .cDots{width:100%}
@@ -652,11 +651,12 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
   .modal.tome .upTree .upNode{width:52px;height:52px} .upNode > svg:first-child{width:30px;height:30px;transform:translateY(-1px)} .upChain{height:12px;margin:4px 0} .upTree{padding-bottom:12px}
   .upRs{padding-top:10px;margin-bottom:-36px;justify-content:flex-start;position:relative;z-index:1;pointer-events:none} .upRs button{pointer-events:auto}
   .upDet{max-width:520px;align-self:center;padding:6px 10px}   /* Reset sits to the left of the details, on their row */
-  .modal.tome .upTabs .upTab{padding:4px 0 3px!important;font-size:14px} .modal.tome .upTop .upBack{width:30px;height:30px;font-size:18px} .upBank{height:26px} }
+  .modal.tome .upTabs .upTab{padding:4px 0 3px!important;font-size:14px} .modal.tome .upTop .upBack{width:34px;height:34px} .upBank{height:26px} }
 /* a phone held sideways: the deck reaches down to the bar, so the round buttons sit to the bar's left instead */
 @media (max-height:520px){ .campSide{left:auto;right:100%;bottom:0;margin:0 12px 0 0} }
 
 /* the campaign screen's way back to the title: a round button in the top-left corner (Jack); Play has the details' foot to itself */
-.modal.tome .campBack{position:absolute;top:calc(10px + env(safe-area-inset-top));left:10px;z-index:6;width:38px;height:38px;min-height:0!important;min-width:0!important;padding:0!important;border-radius:50%!important;border:2px solid #d9b04e!important;background:linear-gradient(#5a4428,#2c210f)!important;color:#f0c95a!important;font-size:24px;line-height:1;display:grid!important;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.6)!important}
-.cDet .stActs #campPlay{min-width:170px!important}
-@media (max-height:520px){ #campaign .cHead{padding-left:46px;box-sizing:border-box} }
+.modal.tome .campBack{position:absolute;top:calc(16px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left));z-index:6;width:40px;height:40px;min-height:0!important;min-width:0!important;padding:0!important;border-radius:11px!important;border:2px solid #d9b04e!important;background:linear-gradient(180deg,#5a4428,#2c210f)!important;display:flex!important;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,230,160,.25)!important}
+.campBack svg{display:block;width:22px;height:22px;fill:none;stroke:#f0c95a;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.cDet .stActs #campPlay{min-width:116px!important;padding:4px 22px!important}
+@media (max-height:520px){ #campaign .cHead{padding-left:60px;box-sizing:border-box} .modal.tome .campBack{top:calc(10px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left))} }
