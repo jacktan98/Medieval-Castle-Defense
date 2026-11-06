@@ -604,7 +604,7 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .upBank{display:flex;align-items:center;gap:4px;padding:0 11px 0 8px;height:30px;border-radius:16px;border:2px solid #d9b04e;background:linear-gradient(#4a3820,#1c150a);font-weight:700;font-size:16px;color:#fff1c4}
 .upBank b{font-size:20px;line-height:1;color:#f0c95a;text-shadow:0 0 8px rgba(255,205,90,.7)}
 .upTabs{display:flex;gap:4px;width:100%;border-bottom:2px solid #d9b04e;margin-bottom:12px}
-.modal.tome .upTabs .upTab{flex:1;min-height:0!important;padding:8px 0 6px!important;border-radius:10px 10px 0 0!important;border:2px solid rgba(217,176,78,.4)!important;border-bottom:none!important;background:#1a140a!important;font-family:var(--display);font-weight:400;font-size:15px;color:#8f8160!important;box-shadow:none!important}
+.modal.tome .upTabs .upTab{flex:1;min-height:0!important;padding:8px 0 6px!important;border-radius:10px 10px 0 0!important;border:2px solid rgba(217,176,78,.4)!important;border-bottom:none!important;background:#1a140a!important;font-family:var(--display);font-weight:400;font-size:15px;letter-spacing:.06em;-webkit-text-stroke:.35px currentColor;color:#8f8160!important;box-shadow:none!important}
 /* the tab in use is lit: gold like the main buttons, dark text, a glow; the others stay dark and dim (Jack: it didn't stand out) */
 .modal.tome .upTabs .upTab.on{background:linear-gradient(180deg,#e9c463 0%,#c7962f 55%,#a47422 100%)!important;border-color:#f2d27a!important;color:#2a1a06!important;text-shadow:0 1px 0 rgba(255,236,170,.6);box-shadow:inset 0 1px 0 rgba(255,245,200,.7)!important;transform:translateY(2px)}
 .upGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px;width:100%}
