@@ -120,30 +120,30 @@ function refreshCard() {
     st.push(STAT('', `<span class="mini"><i style="width:${pc}%"></i></span>${pc}%`, 'warn', { new: 'Building', up: 'Upgrading', repair: 'Repairing' }[B.site.kind]));
     st.push(STAT('hammer', `${crew}`, crew ? '' : 'bad', 'Builders'));
   }
-  st.push(STAT('hp', B.hp < B.max ? `${Math.ceil(B.hp)}/${B.max}` : `${B.max}`, hpf < .35 ? 'bad' : ''));
-  if (B.type === 'castle') { st.push(STAT('gold', `+${T.gold[k]}`)); st.push(STAT('food', `+${T.food[k]}`)); }
+  st.push(STAT('hp', B.hp < B.max ? `${Math.ceil(B.hp)}/${Math.round(B.max)}` : `${Math.round(B.max)}`, hpf < .35 ? 'bad' : ''));
+  if (B.type === 'castle') { st.push(STAT('gold', `+${Math.round(T.gold[k])}`)); st.push(STAT('food', `+${Math.round(T.food[k])}`)); }
   if (B.type === 'house') {
     st.push(STAT('gold', `+${T.gold[k]}`));
     const ch = Math.round(charmOf(B) * 100); if (ch) st.push(STAT('charm', `+${ch}%`, 'good'));
     const hg = villagers.filter(v => v.home === B && v.hungry).length; if (hg) st.push(STAT('bowl', `${hg}`, 'bad'));
   }
   if (B.type === 'forester' && B.built) st.push(STAT('wood', `${(B.grove || []).filter(t => t.g >= 1).length}/${T.grove[k]}`, '', 'Trees grown'));
-  if (T.field) { const f = +(T.food[k] * farmersAt(B) / T.workers[k] * prodK(B)).toFixed(1); st.push(STAT('food', `+${f}`, f < T.food[k] ? 'warn' : '')); }
+  if (T.field) { const fr = T.food[k] * farmersAt(B) / T.workers[k] * prodK(B), f = Math.round(fr); st.push(STAT('food', `+${f}`, fr < T.food[k] ? 'warn' : '')); }
   if (T.residents) st.push(STAT('home', `${villagers.filter(v => v.home === B && !v.homeless && !v.summoned).length}/${B.built ? T.residents[B.tier - 1] : 0}`));   // housing: residents / room
   if (T.workers && B.built) { const w = villagers.filter(v => v.job === B).length; st.push(STAT('hammer', `${w}/${T.workers[k]}`, w < T.workers[k] ? 'warn' : '')); }
   if (T.range) {
     const m = (B.manned || []).filter(Boolean).length, n = (T.archers || T.crew)[k];
     st.push(STAT('guard', PH.kind === 'night' ? `${m}/${n}` : `${n}`, T.crew && PH.kind === 'night' && m < n ? 'warn' : '', T.crew ? 'Crew' : undefined));
     // a siege engine's damage shows the catapult, a tower's or the castle's the bow (Jack saw the catapult on the archers)
-    st.push(STAT(T.crew ? 'siege' : 'bow', `${T.dmg[k]}`, '', 'Damage'));
-    const R = rangeOf(B); st.push(STAT('range', `${+R.toFixed(1)} m`, R > T.range[k] ? 'good' : '', 'Range'));
+    st.push(STAT(T.crew ? 'siege' : 'bow', `${Math.round(T.dmg[k])}`, '', 'Damage'));
+    const R = rangeOf(B); st.push(STAT('range', `${Math.round(R)} m`, R > T.range[k] ? 'good' : '', 'Range'));
     if (T.crew && siegeRate(B) < T.rate[k]) st.push(STAT('rate', `+${Math.round((1 - siegeRate(B) / T.rate[k]) * 100)}%`, 'good', 'Reload'));
   }
   if (ECO[B.type] && prodK(B) > 1) st.push(STAT('prod', `+${Math.round((prodK(B) - 1) * 100)}%`, 'good', 'Production'));
   if (T.soldiers) {
     const m = villagers.filter(v => v.soldier && v.post && v.post.B === B).length;
     st.push(STAT('guard', PH.kind === 'night' ? `${m}/${T.soldiers[k]}` : `${T.soldiers[k]}`, '', 'Soldiers'));
-    st.push(STAT('sword', `${(T.cavalry ? RIDER : SOLDIER).dmg[k]}`));
+    st.push(STAT('sword', `${Math.round((T.cavalry ? RIDER : SOLDIER).dmg[k])}`));
   }
   if (T.decor) { st.push(...fxStats(B.type, (i, v, n) => STAT(i, v, 'good', n))); st.push(STAT('charm', `+${Math.round(T.charm * 100)}%`, 'good')); }
   $('#cardStats').innerHTML = st.join('');
