@@ -8956,6 +8956,10 @@ function sfx(name, at, vol = 1) {
   if (name === 'victory' || name === 'defeat' ? musicOff : sfxOff) return;
   if (!clips[name] || !clips[name].length) return SND[name] && SND[name].fallback ? sfx(SND[name].fallback, at, vol * .7) : undefined;
   const now = actx.currentTime; if (now - (sfxLast[name] || -9) < (SFX_GAP[name] || .05)) return;
+  // a refused tap sounds only the error, never the button's click as well (Jack): every button's click plays first (the capture
+  // handler), so the error cuts off a click started a moment ago, and a click right after an error is skipped
+  if (name === 'click' && now - (sfxLast.nope || -9) < .2) return;
+  if (name === 'nope') for (const src of liveSfx) if (src.sndName === 'click' && now - src.t0 < .2) { try { src.stop(); } catch (e) {} liveSfx.delete(src); }
   let v = vol;
   // reach: metres to fade out over (28 by default); near: the least it keeps when zoomed far out
   if (at) { const S = SND[name] || {}; v *= clamp(1 - Math.hypot(at.x - target.x, at.z - target.z) / (S.reach || 28), 0, 1) * clamp(1.25 - dist / 80, S.near || .3, 1); if (v < .03) return; }
@@ -8966,7 +8970,7 @@ function sfx(name, at, vol = 1) {
   const c = list[n], src = actx.createBufferSource(), g = actx.createGain();
   src.buffer = c.buf; src.playbackRate.value = .95 + Math.random() * .1; g.gain.value = c.gain * v;
   src.connect(g); g.connect(name === 'victory' || name === 'defeat' ? musicBus : sfxBus); src.start(0, c.from, c.len);
-  src.sndName = name; liveSfx.add(src); src.onended = () => liveSfx.delete(src);
+  src.sndName = name; src.t0 = now; liveSfx.add(src); src.onended = () => liveSfx.delete(src);
   return src;
 }
 // every one-shot still sounding, so leaving a game can cut them off (Jack heard the last stage's sounds carry on in the menu)
