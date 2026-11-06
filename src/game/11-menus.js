@@ -933,7 +933,7 @@ function updateBossBar() {
   // under the top panel when it spans the screen (upright), else beside it, clear of its right edge (sideways)
   const top = document.querySelector('.panel').getBoundingClientRect(), wide = top.right > innerWidth * .6, w = el.offsetWidth;
   // a phone held sideways: under the row of buttons at the top middle
-  const side = document.querySelector('.bar').getBoundingClientRect().height > innerHeight * .5;
+  const side = matchMedia('(max-height:520px)').matches;
   el.style.top = (wide ? top.bottom + 8 : side ? 54 : 10) + 'px'; el.style.left = (wide ? innerWidth / 2 : Math.max(innerWidth / 2, top.right + 14 + w / 2)) + 'px';
   $('#bossName').textContent = RAIDER_NAME[B.kind]; $('#bossFill').style.width = Math.max(0, B.hp / B.max * 100) + '%';
 }
