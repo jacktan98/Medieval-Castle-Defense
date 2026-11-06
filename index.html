@@ -4632,8 +4632,9 @@ const castleB = () => buildings.find(B => B.type === 'castle');
 function addLoads(v) {
   v.carryLog = cyl(.085, .085, .9, 6, M.log, .19, 1.03, .02); v.carryLog.rotation.x = Math.PI / 2; v.carryLog.visible = false; v.body.add(v.carryLog);
   v.carryStone = box(.32, .26, .3, M.stone2, 0, .72, .26); v.carryStone.visible = false; v.body.add(v.carryStone);
-  // Carts: two logs on the shoulder, the second riding on the first (Jack: three was too many; shown only for a lumber camp's trip)
-  { const l = cyl(.075, .075, .82, 6, M.log, -.02, .04, -.155); l.visible = false; v.carryLog.add(l); }
+  // Carts: a second log on the left shoulder, held by the left hand (Jack: stacked on the first it floated above the hand;
+  // three was too many; shown only for a lumber camp's trip)
+  { const l = cyl(.085, .085, .9, 6, M.log, -.38, 0, 0); l.visible = false; v.carryLog.add(l); }
 }
 // Wheelbarrows: a quarry mason wheels the stone home in a barrow, both hands on its handles (made the first time it's needed)
 function makeBarrow() {
@@ -5225,7 +5226,7 @@ function updateVillagers(dt, now) {
     const barrow = stoneC && v.barrowOn;
     if (barrow && !v.barrow) { v.barrow = makeBarrow(); v.body.add(v.barrow); }
     if (v.barrow) v.barrow.visible = barrow; v.carryStone.scale.setScalar(barrow ? .001 : 1);
-    if (logC) { Rt = -2.75; L = -swing * .6; }                       // hand on the log over the right shoulder
+    if (logC) { Rt = -2.75; L = v.carryLog.children[0] && v.carryLog.children[0].visible ? -2.75 : -swing * .6; }   // a hand on each log over the shoulder
     else if (barrow) { L = Rt = -.75; lean = 0; }                     // both hands on the barrow's handles (upright, so they stay on them)
     else if (stoneC) { L = Rt = -1.2; }                               // block held against the chest
     else if (v.working && TOOL_POSE[kind]) { ({ w, R: Rt, L, tilt, lean, crouch = 0, twist = 0, big = false } = TOOL_POSE[kind](now / 1000 + v.seed, v.seed)); if (crouch) kneel(v, crouch); } else if (kind) { Rt = -.3 + swing * .25; tilt = -.25; }          // walking with the tool held low
