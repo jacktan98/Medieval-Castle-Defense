@@ -492,7 +492,7 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
 .mini{display:inline-block;width:38px;height:5px;border-radius:3px;background:#3a3a30;overflow:hidden;margin-right:2px} .mini i{display:block;height:100%;background:#e6c46a} .card .row button.ib{width:34px;padding:0}
 .card .row .bIco{width:15px;height:15px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #pauseBtn{position:absolute;top:8px;right:max(8px,env(safe-area-inset-right,0px));width:38px;height:38px;min-height:38px;background:var(--panel);border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
-.pausedTag{position:absolute;inset:0;transform:none;top:0;left:0;display:flex;align-items:flex-start;justify-content:center;padding-top:18vh;background:rgba(10,12,10,.35);pointer-events:none;font-family:inherit;font-size:inherit;text-shadow:none}
+.pausedTag{position:absolute;inset:0;z-index:20;transform:none;top:0;left:0;display:flex;align-items:flex-start;justify-content:center;padding-top:18vh;background:rgba(10,12,10,.35);pointer-events:none;font-family:inherit;font-size:inherit;text-shadow:none}
 .pauseCard{pointer-events:auto;background:var(--panel);border:1px solid #6b5a2e;border-radius:12px;padding:14px 22px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
 .pauseT{font-family:var(--display);font-size:30px;color:var(--parch);line-height:1}
 .pauseS{font-size:12px;color:var(--muted)}

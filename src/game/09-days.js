@@ -113,7 +113,14 @@ function tipOnce(key, html) {
 // a phone held sideways (Jack): at the bottom, just left of the bar, the short hint (Select a building, Placed…), the first day's
 // guide above it and a tip above that, so the building card has the whole height over the bar
 function sideHints() {
-  if (!matchMedia('(max-height:520px)').matches) return;
+  if (!matchMedia('(max-height:520px)').matches) {
+    // upright again: drop the sideways placement (a tip left a tall thin strip at the right edge after the phone was turned)
+    for (const el of [$('#hint'), $('#guide'), $('#tipPill')]) if (el.style.right) {
+      el.style.right = el.style.maxWidth = el.style.top = el.style.bottom = '';
+      if (el.id === 'tipPill') el.style.bottom = (innerHeight - document.querySelector('.dock').getBoundingClientRect().top + 10) + 'px';
+    }
+    return;
+  }
   const bar = document.querySelector('.bar').getBoundingClientRect(), pn = document.querySelector('.panel').getBoundingClientRect();
   const right = (innerWidth - bar.left + 8) + 'px', maxW = Math.max(160, bar.left - pn.right - 24) + 'px';
   let bottom = 8;

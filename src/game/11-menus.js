@@ -726,7 +726,10 @@ function islandSide() {
   const a = screen.orientation && typeof screen.orientation.angle === 'number' ? screen.orientation.angle : (window.orientation || 0);
   document.body.classList.toggle('islandL', a === 90); document.body.classList.toggle('islandR', a === 270 || a === -90);
 }
-islandSide(); addEventListener('resize', islandSide); addEventListener('orientationchange', () => setTimeout(islandSide, 100));
+islandSide(); addEventListener('resize', islandSide);
+// the HUD tick that places the night powers and the boss bar stops while paused: place them again whenever the screen turns
+// (Jack turned the phone while paused and the powers stayed where the sideways layout had them)
+addEventListener('resize', () => { markRect = null; updatePowers(); updateBossBar(); if (typeof sideHints === 'function') sideHints(); }); addEventListener('orientationchange', () => setTimeout(islandSide, 100));
 if (screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener('change', islandSide);
 addEventListener('scroll', keepTop, { passive: true }); addEventListener('orientationchange', () => { keepTop(); setTimeout(keepTop, 300); setTimeout(() => { keepTop(); resize(); }, 700); });
 addEventListener('resize', () => setTimeout(keepTop, 50)); if (window.visualViewport) visualViewport.addEventListener('resize', () => setTimeout(keepTop, 50));
