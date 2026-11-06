@@ -112,26 +112,37 @@ const upRowIco = k => k === 'VOL' ? UP_VOL : k === 'HORSE' ? `<svg viewBox="0 0 
 const upIco = name => { const c = new THREE.Color(); c.setStyle(TEAM_PAL[TEAM.town]); const lt = '#' + c.clone().lerp(new THREE.Color(1, 1, 1), .45).getHexString();
   return (UPG_ICO[name] || '').replace(/#9cc5ff/g, lt).replace(/#2f5faf/g, TEAM_PAL[TEAM.town]); };
 const upFind = id => { for (const [, rows] of UP_TABS) for (const [row, , ups] of rows) { const k = ups.findIndex(u => u[0] === id); if (k >= 0) return { row, u: ups[k], prev: k ? ups[k - 1][0] : null }; } };
-function openUpgrades() { sfx('click'); $('#campaign').hidden = true; $('#upPick').hidden = false; upSel = null; renderUpgrades(); }
+function openUpgrades() { sfx('click'); $('#upPick').replaceChildren(); $('#campaign').hidden = true; $('#upPick').hidden = false; upSel = null; renderUpgrades(); }
 function renderUpgrades() {
   const [, rows] = UP_TABS[upTab], left = upLeft(), tc = TEAM_PAL[TEAM.town], dk = new THREE.Color(); dk.setStyle(tc); dk.multiplyScalar(.45);
   if (!upSel || !rows.some(r => r[2].some(u => u[0] === upSel))) upSel = rows[0][2][0][0];
   const st = id => UPG.has(id) ? 2 : (!upFind(id).prev || UPG.has(upFind(id).prev)) ? 1 : 0;
   const sel = upFind(upSel), s = st(upSel), spent = rows.flatMap(r => r[2]).filter(u => UPG.has(u[0])).length;
   const el = $('#upPick'); el.style.setProperty('--tc', tc); el.style.setProperty('--td', '#' + dk.getHexString());
-  el.innerHTML = `<div class="upSheet"><div class="upTop"><button class="upBack" id="upBack" aria-label="Back">‹</button><h2>Upgrades</h2><div class="upBank">★<b>${left}</b></div></div>
+  // the sheet stays put (a new one replayed the menus' rise animation and the whole screen flickered on every tap: Jack)
+  let sh = el.querySelector('.upSheet'); if (!sh) { sh = document.createElement('div'); sh.className = 'upSheet'; el.replaceChildren(sh); }
+  sh.innerHTML = `<div class="upTop"><button class="upBack" id="upBack" aria-label="Back">‹</button><h2>Upgrades</h2><div class="upBank">★<b>${left}</b></div></div>
     <div class="upTabs">${UP_TABS.map(([t], i) => `<button class="upTab${i === upTab ? ' on' : ''}" data-tab="${i}">${t}</button>`).join('')}</div>
     <div class="upGrid">${rows.map(([n, ic, ups]) => `<div class="upTree"><div class="upBan">${upRowIco(ic)}<div>${n}</div></div>${ups.map(([id, name], j) => {
       const sj = st(id); return `${j ? `<div class="upChain${st(ups[j - 1][0]) === 2 ? ' on' : ''}"></div>` : ''}<button class="upNode s${sj}${id === upSel ? ' sel' : ''}" data-up="${id}" aria-label="${name}">${upIco(name)}${sj === 0 ? UP_LOCK : ''}${sj === 2 ? '<span class="upTick">✓</span>' : '<span class="upCost">★1</span>'}</button>`; }).join('')}</div>`).join('')}</div>
     <div class="upRs"><button id="upReset" ${spent ? '' : 'disabled'}>${UP_RESET}Reset ${UP_TABS[upTab][0]}</button></div>
     <div class="upDet"><div class="upBig">${upIco(sel.u[1])}</div><div class="upTx"><div class="upOf">${sel.row}</div><h3>${sel.u[1]}</h3><p>${sel.u[2]}</p></div>
-      <button class="primary upBuy" id="upBuy" ${s === 1 && left > 0 ? '' : 'disabled'}>${s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1'}</button></div></div>`;
+      <button class="primary upBuy" id="upBuy" ${s === 1 && left > 0 ? '' : 'disabled'}>${s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1'}</button></div>`;
+}
+// picking another upgrade only moves the highlight and refills the details; the tiles stay as they are
+function selectUpgrade(id) {
+  upSel = id; const el = $('#upPick');
+  for (const n of el.querySelectorAll('.upNode')) n.classList.toggle('sel', n.dataset.up === id);
+  const f = upFind(id), s = UPG.has(id) ? 2 : (!f.prev || UPG.has(f.prev)) ? 1 : 0, b = el.querySelector('#upBuy');
+  el.querySelector('.upBig').innerHTML = upIco(f.u[1]); el.querySelector('.upOf').textContent = f.row;
+  el.querySelector('.upTx h3').textContent = f.u[1]; el.querySelector('.upTx p').textContent = f.u[2];
+  b.disabled = !(s === 1 && upLeft() > 0); b.textContent = s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1';
 }
 $('#upPick').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.id === 'upBack') { sfx('click'); $('#upPick').hidden = true; openCampaign(cSel); return; }
   if (b.dataset.tab) { sfx('click'); upTab = +b.dataset.tab; upSel = null; renderUpgrades(); return; }
-  if (b.dataset.up) { sfx('click'); upSel = b.dataset.up; renderUpgrades(); return; }
+  if (b.dataset.up) { sfx('click'); selectUpgrade(b.dataset.up); return; }
   if (b.id === 'upBuy') {
     const f = upFind(upSel); if (UPG.has(upSel) || (f.prev && !UPG.has(f.prev)) || upLeft() < 1) { sfx('nope'); return; }
     UPG.add(upSel); saveUpg(); sfx('star'); renderUpgrades(); return;
