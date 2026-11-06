@@ -44,7 +44,7 @@ const upLeft = () => Math.max(0, campStarsN() - UPG.size);
 const upOn = id => !!CAMP_MAPS[MAP] && UPG.has(id);
 // effects the numbers can't carry: a multiplier on chop and dig times, extra stone a trip, the riders' charge, burning hits
 // and what the town shows for them: chimneys (Bigger homes), the fields' fences (Fences); log bundles and wheelbarrows follow LUMBER_LOAD and stoneTrip
-const UPK = { chop: 1, dig: 1, stoneTrip: 0, lance: false, cataBurn: false, volleyBurn: false, chimney: false, fences: false };
+const UPK = { chop: 1, dig: 1, stoneTrip: 0, lance: false, cataBurn: false, volleyBurn: false, chimney: false, fences: false, lanterns: false };
 const UP_KEEP = [[DEF.house, 'gold'], [DEF.house, 'residents'], [DEF.farm, 'food'], [DEF.forester, 'workers'], [DEF.forester, 'grove'],
   [DEF.mine, 'dig'], [DEF.mine, 'workers'], [DEF.farmhouse, 'food'], [DEF.farmhouse, 'workers'], [DEF.tower, 'dmg'], [DEF.tower, 'range'],
   [DEF.crossbow, 'dmg'], [DEF.crossbow, 'rate'], [DEF.ballista, 'dmg'], [DEF.ballista, 'range'], [DEF.catapult, 'splash'], [SOLDIER, 'hp'],
@@ -52,7 +52,7 @@ const UP_KEEP = [[DEF.house, 'gold'], [DEF.house, 'residents'], [DEF.farm, 'food
   [DEF.castle, 'range'], [DEF.castle, 'hp'], ...TRADES.map(t => [t, 'n'])].map(([o, k]) => [o, k, JSON.stringify(o[k])]);
 function applyUpgrades() {
   for (const [o, k, v] of UP_KEEP) o[k] = JSON.parse(v);
-  MEAL = 20; LUMBER_LOAD = 2; Object.assign(UPK, { chop: 1, dig: 1, stoneTrip: 0, lance: false, cataBurn: false, volleyBurn: false, chimney: false, fences: false });
+  MEAL = 20; LUMBER_LOAD = 2; Object.assign(UPK, { chop: 1, dig: 1, stoneTrip: 0, lance: false, cataBurn: false, volleyBurn: false, chimney: false, fences: false, lanterns: false });
   const add = (o, k, n) => { o[k] = o[k].map(x => x + n); }, mul = (o, k, f) => { o[k] = o[k].map(x => Math.round(x * f * 100) / 100); },
     mulI = (o, k, f) => { o[k] = o[k].map(x => Math.round(x * f)); };
   if (upOn('tax')) add(DEF.house, 'gold', 1);
@@ -67,7 +67,7 @@ function applyUpgrades() {
   if (upOn('woodcut')) add(DEF.forester, 'workers', 1);
   if (upOn('grove')) add(DEF.forester, 'grove', 2);
   if (upOn('seams')) mul(DEF.mine, 'dig', .8);
-  if (upOn('lanterns')) add(DEF.mine, 'workers', 1);
+  if (upOn('lanterns')) { add(DEF.mine, 'workers', 1); UPK.lanterns = true; }
   if (upOn('herds')) mul(DEF.farmhouse, 'food', 1.2);
   // the yard's food is shared by its herders, so a herder more brings their share too
   if (upOn('dairy')) { DEF.farmhouse.food = DEF.farmhouse.food.map((f, i) => Math.round(f * (DEF.farmhouse.workers[i] + 1) / DEF.farmhouse.workers[i] * 100) / 100); add(DEF.farmhouse, 'workers', 1); }

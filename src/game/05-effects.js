@@ -105,6 +105,7 @@ function updateLamps(dt, now) {
       // crossbow towers and ballistas light up like the archer towers once manned (they were missed)
       else if (B.type === 'crossbow' && B.manned && B.manned.some(Boolean)) lampSpots.push({ x: c.x, y: y + DEF.crossbow.shootY[B.tier - 1] + .6, z: c.z, k: .8 });
       else if (B.type === 'ballista' && B.manned && B.manned.some(Boolean)) lampSpots.push({ x: c.x, y: y + BALLISTA_DECK[B.tier - 1] + .9, z: c.z, k: .8 });
+      else if (B.type === 'mine' && UPK.lanterns) lampSpots.push({ x: B.ev.x0 + (B.ev.x1 - B.ev.x0) / 2, y: y + 1, z: c.z, k: .7 });
       else if (B.type === 'house' && B.tier > 1) lampSpots.push({ x: c.x, y: y + 1, z: B.ev.z1 + .3, k: .5 });
     }
     if (dark > .05) for (const F of sceneFires) lampSpots.push({ x: F.x, y: F.y + .4, z: F.z, k: F.k });

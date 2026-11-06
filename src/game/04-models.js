@@ -681,7 +681,14 @@ function makeMine(tier, plinth) {
     for (const sx of [-1, 1]) g.add(box(.2, 1.15, .22, M.stone2, ax + sx * .42, b + .58, fz + .1));
     g.add(box(1.08, .22, .24, M.stone2, ax, b + 1.22, fz + .1)); g.add(pyramid(.7, .35, .5, M.roofBlue, b + 1.5, ax, fz + .1));
   }
-  g.add(box(.12, .1, .06, M.glow, ax + .5, b + .95, fz + .22));                             // a lantern by the mouth
+  // Lanterns (+1 miner): two iron lanterns hang either side of the adit's mouth, lit day and night (Jack); none without it
+  if (UPK.lanterns) for (const sx of [-1, 1]) {
+    const lx = ax + sx * (tier < 3 ? .37 : .42), lz = fz + .3, ly = b + (tier < 3 ? .86 : .9);
+    g.add(box(.012, .14, .012, M.iron, lx, ly + .2, lz)); g.add(box(.02, .02, .2, M.iron, lx, ly + .27, lz - .1));
+    g.add(cone(.07, .07, 4, M.iron, lx, ly + .13, lz)); g.add(box(.1, .02, .1, M.iron, lx, ly - .06, lz));
+    g.add(box(.075, .1, .075, M.glow, lx, ly + .03, lz));
+    for (const [x, z] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) g.add(box(.012, .12, .012, M.iron, lx + x * .045, ly + .03, lz + z * .045));
+  }
   for (const sx of [-1, 1]) g.add(box(.035, .035, 1.55, M.iron, ax + sx * .17, b + .04, 1.15));
   for (let zz = .5; zz < 1.9; zz += .28) g.add(box(.48, .03, .08, M.timber, ax, b + .02, zz));
   const cart = new THREE.Group(); cart.position.set(ax, b, .75); cart.userData.cart = true; g.add(cart);
