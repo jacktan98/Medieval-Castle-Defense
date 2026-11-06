@@ -106,7 +106,8 @@ function startGame() {
   log('Drag · twist · pinch');
   log(`Survive <b>${NIGHTS} nights</b>`); if (hardOn) log('<b>Hard:</b> raiders a tier up', 'warn');
   log('<b>Day 1</b>', 'good');
-  banner('Day 1', 'Build before dark');
+  // behind the new-building or goals cards nobody saw it (Jack): it waits for their Play
+  bannerLater = !$('#newCards').hidden ? ['Day 1', 'Build before dark'] : null; if (!bannerLater) banner('Day 1', 'Build before dark');
   applyLoadout(); cat = 'eco'; renderTools(); setTool('select');
   // the Goals panel shows this game's goals at once (it only redrew on the HUD tick, which waits behind the new-building cards,
   // so an open panel kept the last stage's goals: Jack)
@@ -542,7 +543,7 @@ function guideMark() {
   const g = $('#guide'); if (!g) return;
   if (!guideOn || gameOver || guideStep < 0) { if (!guideEndT) g.hidden = true; return; }
   const S = GUIDE[guideStep]; g.hidden = false;
-  $('#gStep').textContent = `${guideStep + 1}/${GUIDE.length}`; $('#gText').innerHTML = S.text;
+  $('#gStep').textContent = `${guideStep + 1}/${GUIDE.length}`; $('#gText').innerHTML = S.text; $('#gSkip').hidden = false;
   if (tool !== S.tool) {
     if (S.cat && cat !== S.cat) { const tab = document.querySelector(`.tab[data-cat="${S.cat}"]`); if (tab) tab.classList.add('guidePulse'); }
     else { const b = document.querySelector(`.tool[data-tool="${S.tool}"]`); if (b) b.classList.add('guidePulse'); }
@@ -554,7 +555,7 @@ function guideTick() {
   if (!guideOn) return;
   const next = GUIDE.findIndex(S => !S.done());
   // the last step done (Stage 1: the archers): point at Skip day (Jack), which glows until it's pressed or night falls
-  if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').innerHTML = 'When ready, <b>Skip day</b> to face the raiders'; guideEndT = performance.now() + 6000; guideFinish(); g.hidden = false; $('#nightBtn').classList.add('skipGlow'); return; }
+  if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').innerHTML = 'When ready, <b>Skip day</b> to face the raiders'; $('#gSkip').hidden = true; guideEndT = performance.now() + 6000; guideFinish(); g.hidden = false; $('#nightBtn').classList.add('skipGlow'); return; }
   if (next !== guideStep) { guideStep = next; guideMark(); }
 }
 $('#gSkip').addEventListener('click', () => { guideFinish(); $('#guide').hidden = true; });

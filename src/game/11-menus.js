@@ -192,6 +192,7 @@ $('#ncNext').addEventListener('click', () => {
   sfx('click');
   if (++newCardI < newCards.length) { renderNewCard(); sfx('alert'); return; }
   $('#newCards').hidden = true; paused = false;
+  if (bannerLater) { banner(...bannerLater); bannerLater = null; }
 });
 // Market Cross: the old roads laid as paths cell by cell (stepping round corners so they join), the stone cross by the junction
 // (it works as a statue: its charm lifts the hamlet's gold), and the hamlet's three houses round it

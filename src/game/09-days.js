@@ -49,6 +49,7 @@ function updateHungry(v, dt) {
 
 // ---------- phases ----------
 const bannerEl = $('#banner'); let bannerTimer = 0;
+var bannerLater = null;   // the first day's banner, held until the new-building cards are closed
 function banner(title, sub, night) {
   bannerEl.innerHTML = `${title}<small>${sub}</small>`; bannerEl.className = 'banner show' + (night ? ' night' : '');
   clearTimeout(bannerTimer); bannerTimer = setTimeout(() => bannerEl.classList.remove('show'), 3200);
@@ -295,6 +296,7 @@ function startDay() {
 }
 function endGame(won) {
   if (gameOver) return; gameOver = true; clearSave();
+  $('#summary .sheet').classList.toggle('hard', !!hardOn);
   // a win: dawn breaks, everyone comes out and cheers (`endCheer` keeps the villagers moving in `frame`), and the victory
   // music waits for the summary (Jack); a defeat sounds at once
   if (won) { PH.kind = 'day'; PH.t = DAYLEN[PH.wave - 1] || 120; standDown(); for (const v of villagers) v.cheerT = 3.4; endCheer = 3.6; setMusic('none'); sfx('rooster'); }

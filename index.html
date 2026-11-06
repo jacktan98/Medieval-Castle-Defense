@@ -381,9 +381,14 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 #summary .sheet{background:var(--panel)!important;max-height:calc(100% - 8px);overflow-y:auto}
 .sumTip{margin:0;font-size:13px;color:#f4e3b2;text-align:center} .sumTip b{color:#f0c95a}
 /* a phone held sideways: two columns (title, stars, play again | goals, numbers, tip) so it all fits without scrolling */
-@media (max-height:520px){ #summary .sheet{width:min(640px,100%);display:grid;grid-template-columns:1fr 1fr;grid-template-areas:'t g' 's g' 'x n' 'b p';column-gap:22px;row-gap:8px;padding:14px 18px;align-items:start}
+@media (max-height:520px){ #summary .sheet{width:min(640px,100%);display:grid;grid-template-columns:1fr 1fr;grid-template-areas:'t n' 's n' 'x n' 'g n' 'b p';column-gap:22px;row-gap:8px;padding:14px 18px;align-items:start}
   #summary #sumTitle{grid-area:t;font-size:26px} #summary #sumStars{grid-area:s;font-size:28px;text-align:left} #summary #sumText{grid-area:x;margin:0} #summary #sumGoals{grid-area:g}
-  #summary #sumStats{grid-area:n;margin:0} #summary .sumTip{grid-area:p;text-align:left} #summary #again{grid-area:b;align-self:end} }
+  #summary #sumStats{grid-area:n;margin:0} #summary .sumTip{grid-area:p;text-align:left} #summary #again{grid-area:b;align-self:end}
+  /* hard mode has only the crown and Survive: one compact column (Jack) */
+  #summary .sheet.hard{display:flex;flex-direction:column;align-items:stretch;width:min(340px,100%);gap:4px;padding:10px 18px 12px}
+  #summary .sheet.hard #sumTitle{font-size:22px;text-align:center;margin:0} #summary .sheet.hard #sumStars{text-align:center;font-size:24px}
+  #summary .sheet.hard .sumCrown svg{width:34px;height:34px} #summary .sheet.hard #sumText{text-align:center} #summary .sheet.hard #sumGoals{margin:0}
+  #summary .sheet.hard #sumStats{margin:2px 0} #summary .sheet.hard #sumStats dt,#summary .sheet.hard #sumStats dd{padding-top:1px;padding-bottom:1px} #summary .sheet.hard #again{margin-top:4px;align-self:stretch;width:100%} }
 #summary .stars.big span{display:inline-block}
 #summary .sumCrown svg{width:46px;height:46px;fill:rgba(20,16,8,.55);stroke:rgba(240,201,90,.75);stroke-width:1.2;stroke-linejoin:round;vertical-align:middle} #summary .sumCrown.on svg{fill:#f0c95a;stroke:#fff1c4;filter:drop-shadow(0 0 10px rgba(255,205,90,.6))} #summary .stars.big .pop{animation:starPop .55s cubic-bezier(.2,1.4,.4,1) both}
 @keyframes starPop{0%{transform:scale(0) rotate(-40deg);opacity:0}55%{transform:scale(1.5) rotate(8deg);opacity:1}100%{transform:scale(1) rotate(0)}}
@@ -6752,6 +6757,7 @@ function updateHungry(v, dt) {
 
 // ---------- phases ----------
 const bannerEl = $('#banner'); let bannerTimer = 0;
+var bannerLater = null;   // the first day's banner, held until the new-building cards are closed
 function banner(title, sub, night) {
   bannerEl.innerHTML = `${title}<small>${sub}</small>`; bannerEl.className = 'banner show' + (night ? ' night' : '');
   clearTimeout(bannerTimer); bannerTimer = setTimeout(() => bannerEl.classList.remove('show'), 3200);
@@ -6998,6 +7004,7 @@ function startDay() {
 }
 function endGame(won) {
   if (gameOver) return; gameOver = true; clearSave();
+  $('#summary .sheet').classList.toggle('hard', !!hardOn);
   // a win: dawn breaks, everyone comes out and cheers (`endCheer` keeps the villagers moving in `frame`), and the victory
   // music waits for the summary (Jack); a defeat sounds at once
   if (won) { PH.kind = 'day'; PH.t = DAYLEN[PH.wave - 1] || 120; standDown(); for (const v of villagers) v.cheerT = 3.4; endCheer = 3.6; setMusic('none'); sfx('rooster'); }
@@ -7731,6 +7738,7 @@ $('#ncNext').addEventListener('click', () => {
   sfx('click');
   if (++newCardI < newCards.length) { renderNewCard(); sfx('alert'); return; }
   $('#newCards').hidden = true; paused = false;
+  if (bannerLater) { banner(...bannerLater); bannerLater = null; }
 });
 // Market Cross: the old roads laid as paths cell by cell (stepping round corners so they join), the stone cross by the junction
 // (it works as a statue: its charm lifts the hamlet's gold), and the hamlet's three houses round it
@@ -8768,7 +8776,8 @@ function startGame() {
   log('Drag · twist · pinch');
   log(`Survive <b>${NIGHTS} nights</b>`); if (hardOn) log('<b>Hard:</b> raiders a tier up', 'warn');
   log('<b>Day 1</b>', 'good');
-  banner('Day 1', 'Build before dark');
+  // behind the new-building or goals cards nobody saw it (Jack): it waits for their Play
+  bannerLater = !$('#newCards').hidden ? ['Day 1', 'Build before dark'] : null; if (!bannerLater) banner('Day 1', 'Build before dark');
   applyLoadout(); cat = 'eco'; renderTools(); setTool('select');
   // the Goals panel shows this game's goals at once (it only redrew on the HUD tick, which waits behind the new-building cards,
   // so an open panel kept the last stage's goals: Jack)
@@ -9204,7 +9213,7 @@ function guideMark() {
   const g = $('#guide'); if (!g) return;
   if (!guideOn || gameOver || guideStep < 0) { if (!guideEndT) g.hidden = true; return; }
   const S = GUIDE[guideStep]; g.hidden = false;
-  $('#gStep').textContent = `${guideStep + 1}/${GUIDE.length}`; $('#gText').innerHTML = S.text;
+  $('#gStep').textContent = `${guideStep + 1}/${GUIDE.length}`; $('#gText').innerHTML = S.text; $('#gSkip').hidden = false;
   if (tool !== S.tool) {
     if (S.cat && cat !== S.cat) { const tab = document.querySelector(`.tab[data-cat="${S.cat}"]`); if (tab) tab.classList.add('guidePulse'); }
     else { const b = document.querySelector(`.tool[data-tool="${S.tool}"]`); if (b) b.classList.add('guidePulse'); }
@@ -9216,7 +9225,7 @@ function guideTick() {
   if (!guideOn) return;
   const next = GUIDE.findIndex(S => !S.done());
   // the last step done (Stage 1: the archers): point at Skip day (Jack), which glows until it's pressed or night falls
-  if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').innerHTML = 'When ready, <b>Skip day</b> to face the raiders'; guideEndT = performance.now() + 6000; guideFinish(); g.hidden = false; $('#nightBtn').classList.add('skipGlow'); return; }
+  if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').innerHTML = 'When ready, <b>Skip day</b> to face the raiders'; $('#gSkip').hidden = true; guideEndT = performance.now() + 6000; guideFinish(); g.hidden = false; $('#nightBtn').classList.add('skipGlow'); return; }
   if (next !== guideStep) { guideStep = next; guideMark(); }
 }
 $('#gSkip').addEventListener('click', () => { guideFinish(); $('#guide').hidden = true; });
