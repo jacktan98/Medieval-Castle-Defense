@@ -610,21 +610,22 @@ const mineRockM = mat('#79746b'), penM = mat('#7c6b4a'), henM = mat('#efe8da'), 
   groveTrunkM = mat('#5a3e26'), groveLeafM = mat('#3f6a2c'), groveLeaf2M = mat('#4f7d34');
 addGrit(mineRockM, 'rock');
 // a fence round a 2x2 plot (open at the front left, where the plot's door tile is); rough leaning stakes at tier 1, posts and rails after
-function plotFence(g, tier, hd = 1.75) {                 // hd: half the plot's depth (a 2x3 plot is deeper than it is wide)
-  const gap = (x, z) => z > hd - .05 && x > -1.5 && x < -.5, posts = [];
-  for (let s = -1.75; s <= 1.76; s += .5) posts.push([s, -hd], [s, hd]);
-  for (let s = -hd; s <= hd + .01; s += .5) posts.push([-1.75, s], [1.75, s]);
+function plotFence(g, tier, hd = 1.75, hw = 1.75, gx = -1) {     // hd, hw: half the plot's depth and width; gx: the middle of the gap in front
+  const gap = (x, z) => z > hd - .05 && x > gx - .5 && x < gx + .5, posts = [];
+  for (let s = -hw; s <= hw + .01; s += .5) posts.push([s, -hd], [s, hd]);
+  for (let s = -hd; s <= hd + .01; s += .5) posts.push([-hw, s], [hw, s]);
   for (const [x, z] of posts) {
     if (gap(x, z) || (tier === 1 && hash(x * 3, z * 5) < .3)) continue;
     const p = box(.07, .55, .07, tier === 1 ? M.rough : M.timber, x, .27, z); if (tier === 1) p.rotation.z = (hash(x, z) - .5) * .35; g.add(p);
   }
-  if (tier > 1) for (const [x, z, w, d] of [[0, -hd, 3.5, .05], [-1.75, 0, .05, hd * 2], [1.75, 0, .05, hd * 2], [.6, hd, 2.3, .05], [-1.6, hd, .3, .05]])
+  const lw = gx - .5 + hw, rw = hw - gx - .5;
+  if (tier > 1) for (const [x, z, w, d] of [[0, -hd, hw * 2, .05], [-hw, 0, .05, hd * 2], [hw, 0, .05, hd * 2], [hw - rw / 2, hd, rw, .05], [-hw + lw / 2, hd, lw, .05]])
     for (const y of [.25, .45]) g.add(box(w, .05, d, M.timber, x, y, z));
 }
 // a small hut at the plot's back left with its door to the front (the door everyone uses): tier 1 daub or logs under old thatch,
 // tier 2 a log roof, tier 3 plastered with the blue roof
-function plotHut(g, tier, wallM, w = 1.2, d = .9, z = -1.15) {
-  const x = -1.05, h = 1.28;
+function plotHut(g, tier, wallM, w = 1.2, d = .9, z = -1.15, x = -1.05) {
+  const h = 1.28;
   g.add(box(w, h, d, tier === 3 ? M.plaster : wallM, x, h / 2 + .06, z));
   if (tier >= 2) for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(.08, h + .02, .08, M.timber, x + sx * (w / 2 - .02), h / 2 + .06, z + sz * (d / 2 - .02)));   // brown corner posts
   g.add(pyramid(w * .78, .8, d / w * 1.05, tier === 1 ? M.thatchOld : tier === 2 ? M.thatch : M.roofBlue, h + .06 + .4, x, z));
@@ -634,9 +635,11 @@ function plotHut(g, tier, wallM, w = 1.2, d = .9, z = -1.15) {
 // forester: a fenced plot of young trees planted in rows (the trees are drawn by updateEco so they grow and get felled), the
 // forester's hut at the back left; tier 1 a sapling bundle and a chopping block, tier 2 a stack of cut poles, tier 3 a log pile
 // and a sawhorse on the far side
-// the plot is 2 x 3 tiles (4 m wide, 6 m deep): room for trees nearer the size of the woods' own
-const FOREST_HD = 2.75, GROVE_K = 1.5;
-const GROVE_AT = [[.5, -2.1], [1.3, -.9], [-.9, -.9], [.2, .1], [-1.1, .95], [1.25, .95], [-.45, 1.9], [.6, 2.25]];
+// the plot is 3 x 3 tiles (6 m square; it was 2 x 3 until Jack wanted bigger trees and room for ten): the hut at the back
+// left, the gate in the middle of the front; GROVE_AT is where each tree stands, in the order they are planted (5/7/8 by tier,
+// 10 with the Big grove upgrade)
+const FOREST_HD = 2.75, GROVE_K = 1.85;
+const GROVE_AT = [[.6, -1.95], [1.95, -.95], [-.45, -.6], [-.75, 1.1], [1.75, 2.15], [.95, .05], [-1.95, 1.95], [2.1, 1.05], [-1.95, .2], [.55, 1.75]];   // spread over the plot whatever the count
 function makeGroveTree() {
   const t = new THREE.Group();
   t.add(cyl(.035, .06, .6, 5, groveTrunkM, 0, .3, 0));
@@ -645,18 +648,18 @@ function makeGroveTree() {
 }
 function makeForester(tier) {
   const g = new THREE.Group();
-  g.add(box(3.5, .07, FOREST_HD * 2, M.soil, 0, .045, 0));
+  g.add(box(FOREST_HD * 2 - .2, .07, FOREST_HD * 2, M.soil, 0, .045, 0));
   GROVE_AT.forEach(([x, z]) => g.add(cyl(.3, .34, .03, 8, M.court, x, .09, z)));   // hoed rings where the trees stand
-  plotFence(g, tier, FOREST_HD); plotHut(g, tier, tier === 2 ? M.plaster : M.log, 1.15, .85, -2.15);   // the coppice: cream walls, brown posts
+  plotFence(g, tier, FOREST_HD, FOREST_HD, 0); plotHut(g, tier, tier === 2 ? M.plaster : M.log, 1.15, .85, -2.15, -1.6);   // the coppice: cream walls, brown posts
   if (tier === 1) {
-    g.add(cyl(.2, .22, .3, 8, M.log, -.15, .2, -2.45)); g.add(box(.03, .14, .18, M.iron, -.15, .44, -2.45));     // chopping block with the axe in it
-    for (let n = 0; n < 5; n++) { const s = box(.03, .7, .03, M.rough, 1.55 + n * .04, .4, -1.9 + n * .05); s.rotation.z = .25; g.add(s); }   // bundled saplings
+    g.add(cyl(.2, .22, .3, 8, M.log, -.55, .2, -2.45)); g.add(box(.03, .14, .18, M.iron, -.55, .44, -2.45));     // chopping block with the axe in it
+    for (let n = 0; n < 5; n++) { const s = box(.03, .7, .03, M.rough, 2.25 + n * .04, .4, -2.2 + n * .05); s.rotation.z = .25; g.add(s); }   // bundled saplings
   } else {
-    for (let r = 0; r < 3; r++) for (let n = 0; n < 4 - r; n++) { const l = cyl(.07, .07, 1.0, 6, M.log, 1.5, .14 + r * .12, -2.3 + n * .15 + r * .075); l.rotation.x = Math.PI / 2; g.add(l); }
+    for (let r = 0; r < 3; r++) for (let n = 0; n < 4 - r; n++) { const l = cyl(.07, .07, 1.0, 6, M.log, 2.15, .14 + r * .12, -2.45 + n * .15 + r * .075); l.rotation.x = Math.PI / 2; g.add(l); }
   }
   if (tier === 3) {
-    for (const sx of [-1, 1]) { const l = box(.05, .45, .05, M.timber, 1.35 + sx * .2, .25, 2.45); l.rotation.z = sx * .35; g.add(l); }
-    g.add(box(.6, .05, .06, M.timber, 1.35, .45, 2.45)); const lg = cyl(.08, .08, .7, 6, M.log, 1.35, .55, 2.45); lg.rotation.z = Math.PI / 2; g.add(lg);
+    for (const sx of [-1, 1]) { const l = box(.05, .45, .05, M.timber, -.35 + sx * .2, .25, -2.4); l.rotation.z = sx * .35; g.add(l); }
+    g.add(box(.6, .05, .06, M.timber, -.35, .45, -2.4)); const lg = cyl(.08, .08, .7, 6, M.log, -.35, .55, -2.4); lg.rotation.z = Math.PI / 2; g.add(lg);
   }
   return g;
 }

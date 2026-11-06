@@ -519,7 +519,7 @@ const DOOR = {
   barracks: [[-1, .42], [-1, .42], [-1, .42]],
   mine: [[-.55, .55], [-.55, .55], [-.55, .55]],
   stables: [[-1, .4], [-1, .4], [-1, .4]],         // the armoury hut at the front left
-  forester: [[-1.05, -1.66], [-1.05, -1.66], [-1.05, -1.66]],
+  forester: [[-1.6, -1.66], [-1.6, -1.66], [-1.6, -1.66]],
   // towers and the ballista are reached from the back: tiers 1-2 (and every ballista) at the foot of a ladder, tier-3 towers at a door
   tower: [[0, -.92], [0, -.84], [0, -.8]], crossbow: [[0, -.86], [0, -.88], [0, -.68]], ballista: [[0, -1.1], [0, -1.15], [0, -1.22]],   // the hut at the back of the plot: log carriers cross the plot to it     // the adit: in through the timber (stone) portal in the face of the mound
 };

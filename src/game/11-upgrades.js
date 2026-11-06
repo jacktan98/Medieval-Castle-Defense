@@ -13,7 +13,7 @@ const UP_TABS = [
     ['Lumber', 'lodge', [['axes', 'Sharp axes', 'Chop 20% faster'], ['carts', 'Carts', '+1 wood a trip']]],
     ['Quarry', 'quarry', [['picks', 'Iron picks', 'Dig 20% faster'], ['barrows', 'Wheelbarrows', '+1 stone a trip']]],
     ['Market', 'market', [['fair', 'Fair trade', '+2 when buying'], ['haggle', 'Haggling', '+2 gold when selling']]],
-    ['Forester', 'forester', [['saplings', 'Quick saplings', 'Trees grow 25% faster'], ['grove', 'Big grove', '+1 woodcutter']]],
+    ['Forester', 'forester', [['saplings', 'Quick saplings', 'Trees grow 25% faster'], ['grove', 'Big grove', '+2 trees']]],
     ['Mine', 'mine', [['seams', 'Rich seams', 'Dig 20% faster'], ['lanterns', 'Lanterns', '+1 miner']]],
     ['Farmhouse', 'farmhouse', [['herds', 'Fat herds', '+20% food'], ['dairy', 'Dairy', '+1 herder']]],
   ]],
@@ -42,7 +42,7 @@ const upLeft = () => Math.max(0, campStarsN() - UPG.size);
 const upOn = id => !!CAMP_MAPS[MAP] && UPG.has(id);
 // effects the numbers can't carry: a multiplier on chop and dig times, extra stone a trip, the riders' charge, burning hits
 const UPK = { chop: 1, dig: 1, stoneTrip: 0, lance: false, cataBurn: false, volleyBurn: false };
-const UP_KEEP = [[DEF.house, 'gold'], [DEF.house, 'residents'], [DEF.farm, 'food'], [DEF.forester, 'grow'], [DEF.forester, 'workers'],
+const UP_KEEP = [[DEF.house, 'gold'], [DEF.house, 'residents'], [DEF.farm, 'food'], [DEF.forester, 'grow'], [DEF.forester, 'grove'],
   [DEF.mine, 'dig'], [DEF.mine, 'workers'], [DEF.farmhouse, 'food'], [DEF.farmhouse, 'workers'], [DEF.tower, 'dmg'], [DEF.tower, 'range'],
   [DEF.crossbow, 'dmg'], [DEF.crossbow, 'rate'], [DEF.ballista, 'dmg'], [DEF.ballista, 'range'], [DEF.catapult, 'splash'], [SOLDIER, 'hp'],
   [DEF.barracks, 'soldiers'], [RIDER, 'hp'], [DEF.wall, 'hp'], [DEF.gate, 'hp'], [VOLLEY, 'cd'], [SUMMON, 'n'], [SUMMON, 'cd'],
@@ -62,7 +62,7 @@ function applyUpgrades() {
   if (upOn('barrows')) UPK.stoneTrip = 1;
   for (const t of TRADES) { if (upOn('fair') && t.give === 'gold') add(t, 'n', 2); if (upOn('haggle') && t.get === 'gold') add(t, 'n', 2); }
   if (upOn('saplings')) mul(DEF.forester, 'grow', .8);
-  if (upOn('grove')) add(DEF.forester, 'workers', 1);
+  if (upOn('grove')) add(DEF.forester, 'grove', 2);
   if (upOn('seams')) mul(DEF.mine, 'dig', .8);
   if (upOn('lanterns')) add(DEF.mine, 'workers', 1);
   if (upOn('herds')) mul(DEF.farmhouse, 'food', 1.2);

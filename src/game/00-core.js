@@ -98,7 +98,7 @@ const DEF = {
             up: [{ wood: 25, gold: 30 }, { stone: 25, gold: 50 }], tiers: ['Market stall', 'Market', 'Market hall'], key: '9' },
   // the other economy picks (one of each pair before a game): a grove grown on its own plot, a mine dug down into its own ground,
   // a yard of animals; none of them needs forest or rock nearby
-  forester: { size: 2, dz: 3, turnDims: true, name: 'Forester', maxdh: 1.6, plot: true, hp: [100, 140, 200], cost: { gold: 30, wood: 5 },
+  forester: { size: 3, name: 'Forester', maxdh: 1.6, plot: true, hp: [100, 140, 200], cost: { gold: 30, wood: 5 },
             up: [{ gold: 55, stone: 10 }, { gold: 85, stone: 25 }], workers: [1, 2, 3], grove: [5, 7, 8], grow: [32, 27, 22], chop: [5, 4.5, 4],
             tiers: ["Forester's hut", 'Coppice', 'Tree farm'] },
   mine:   { size: 2, name: 'Mine', maxdh: 2.6, hp: [160, 230, 320], cost: { gold: 30, wood: 20 },
