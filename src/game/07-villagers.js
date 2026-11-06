@@ -644,7 +644,8 @@ function release(v) { if (v.target && v.target.claim === v) v.target.claim = nul
 function deliver(v) {
   if (v.dropLoad) return;
   if (PH.kind === 'night') { if ((v.carryLog && v.carryLog.visible) || (v.carryStone && v.carryStone.visible)) v.dropLoad = true; if (!v.doorWalk) dropLoad(v); return; }   // nothing is gathered at night: a load carried in after dark is lost
-  if (v.carryLog && v.carryLog.visible) { res.wood += LUMBER_LOAD; stats.wood += LUMBER_LOAD; v.dropLoad = true; }
+  // Carts (+1 wood a trip) is the lumber camp's upgrade only: a forester's woodcutters always bring 2 (Jack)
+  if (v.carryLog && v.carryLog.visible) { const L = v.job && v.job.type === 'forester' ? 2 : LUMBER_LOAD; res.wood += L; stats.wood += L; v.dropLoad = true; }
   if (v.carryStone && v.carryStone.visible) { res.stone += 1 + UPK.stoneTrip; stats.stone += 1 + UPK.stoneTrip; v.dropLoad = true; }
   if (!v.doorWalk) dropLoad(v);           // otherwise it is carried in through the door
 }
