@@ -720,6 +720,14 @@ function resize() { const w = canvas.clientWidth, h = canvas.clientHeight; rende
 addEventListener('resize', resize);
 // and if the browser scrolls the document anyway (iOS after a rotation or a toolbar change), put it straight back
 const keepTop = () => { if (scrollX || scrollY || document.documentElement.scrollTop || document.body.scrollTop) { scrollTo(0, 0); document.documentElement.scrollTop = document.body.scrollTop = 0; } };
+// which side the camera island is on with the phone turned (90: turned left, the island on the left; 270 / -90: on the right), so the
+// landscape layout keeps that side's column clear of it and lets the other column sit near the edge (Jack)
+function islandSide() {
+  const a = screen.orientation && typeof screen.orientation.angle === 'number' ? screen.orientation.angle : (window.orientation || 0);
+  document.body.classList.toggle('islandL', a === 90); document.body.classList.toggle('islandR', a === 270 || a === -90);
+}
+islandSide(); addEventListener('resize', islandSide); addEventListener('orientationchange', () => setTimeout(islandSide, 100));
+if (screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener('change', islandSide);
 addEventListener('scroll', keepTop, { passive: true }); addEventListener('orientationchange', () => { keepTop(); setTimeout(keepTop, 300); setTimeout(() => { keepTop(); resize(); }, 700); });
 addEventListener('resize', () => setTimeout(keepTop, 50)); if (window.visualViewport) visualViewport.addEventListener('resize', () => setTimeout(keepTop, 50));
 const heldKeys = new Set();
@@ -924,7 +932,9 @@ function updateBossBar() {
   el.hidden = !B || gameOver || menuOn(); if (el.hidden) return;
   // under the top panel when it spans the screen (upright), else beside it, clear of its right edge (sideways)
   const top = document.querySelector('.panel').getBoundingClientRect(), wide = top.right > innerWidth * .6, w = el.offsetWidth;
-  el.style.top = (wide ? top.bottom + 8 : 10) + 'px'; el.style.left = (wide ? innerWidth / 2 : Math.max(innerWidth / 2, top.right + 14 + w / 2)) + 'px';
+  // a phone held sideways: under the row of buttons at the top middle
+  const side = document.querySelector('.bar').getBoundingClientRect().height > innerHeight * .5;
+  el.style.top = (wide ? top.bottom + 8 : side ? 54 : 10) + 'px'; el.style.left = (wide ? innerWidth / 2 : Math.max(innerWidth / 2, top.right + 14 + w / 2)) + 'px';
   $('#bossName').textContent = RAIDER_NAME[B.kind]; $('#bossFill').style.width = Math.max(0, B.hp / B.max * 100) + '%';
 }
 $('#recallBtn').addEventListener('click', () => { if (selected) { setRally(selected, null); rallyFor = null; setHint('Recalled'); refreshCard(); } });
