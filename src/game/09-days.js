@@ -111,7 +111,7 @@ function tipOnce(key, html) {
 function updateTips(dt) {
   const el = $('#tipPill');
   if (menuOn() || gameOver) { el.hidden = true; return; }
-  if (tipT > 0 && (tipT -= dt) > 0) { const d = document.querySelector('.dock').getBoundingClientRect(), pw = $('#powers'); el.style.bottom = (innerHeight - Math.min(d.top, pw.hidden ? 1e9 : pw.getBoundingClientRect().top) + 10) + 'px'; return; }
+  if (tipT > 0 && (tipT -= dt) > 0) { const d = document.querySelector('.dock').getBoundingClientRect(); el.style.bottom = (innerHeight - d.top + 10) + 'px'; return; }
   el.hidden = true; if (!tipQ.length || paused) return;
   const [, html] = tipQ.shift(); el.innerHTML = html; el.hidden = false; tipT = 6; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
 }

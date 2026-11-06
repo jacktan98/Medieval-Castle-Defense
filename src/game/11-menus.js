@@ -911,17 +911,12 @@ function updatePowers() {
   if (r.dataset.ico !== ico) { r.dataset.ico = ico; r.querySelector('svg').innerHTML = out ? '<path d="M6 21 V3.5"/><path d="M6 4 H17.5 L15 8 L17.5 12 H6"/>' : HORSE_ICO; }
   r.classList.toggle('cool', rc); r.querySelector('.cd').textContent = rc ? Math.ceil(summonCd) : ''; r.setAttribute('aria-pressed', String(out && rallyFor === K));
   r.setAttribute('aria-label', out ? 'Rally riders' : 'Riders');
-  // above the dock on a phone held upright; in the bottom-left corner, stacked, when the dock leaves room there (sideways, laptop)
-  const dock = document.querySelector('.dock'), d = dock.getBoundingClientRect(), side = d.left >= 76;
-  el.classList.toggle('col', side);
-  // upright: just above whatever part of the dock sits under them (its bar, or a card or hint wide enough to reach their side);
-  // a narrow card on the right no longer pushes them up (Jack)
-  let top = d.bottom;
-  if (!side) {
-    const pr = el.getBoundingClientRect().right + 8;
-    for (const c of dock.children) { const r = c.getBoundingClientRect(); if (r.height && r.left < pr) top = Math.min(top, r.top); }
-  }
-  el.style.bottom = (side ? 12 : innerHeight - top + 10) + 'px';
+  // side by side just under the top panel (under the boss bar too while one is out), at its left edge (Jack): always the same spot,
+  // clear of the dock and the building card
+  const pn = document.querySelector('.panel').getBoundingClientRect(), bb = $('#bossBar');
+  let top = pn.bottom + 8;
+  if (bb && !bb.hidden) { const r = bb.getBoundingClientRect(); if (r.height && r.left < pn.left + 110) top = Math.max(top, r.bottom + 8); }
+  el.classList.remove('col'); el.style.bottom = 'auto'; el.style.top = top + 'px'; el.style.left = pn.left + 'px';
 }
 // the boss's health along the top while one is out
 function updateBossBar() {

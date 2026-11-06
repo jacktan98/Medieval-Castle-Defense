@@ -542,6 +542,11 @@ button.armed .bIco{width:18px;height:18px;fill:none;stroke:currentColor;stroke-w
   .tab{min-height:26px}
   .iconBtn{width:28px;min-width:28px;height:28px;min-height:28px}
   .dock{flex-direction:row;align-items:flex-end}
+  /* phone sideways (Jack): the bar in the bottom-right corner, the building card in the middle of the room left of it;
+     the dock spans the bottom, so it lets taps through between its parts */
+  .dock{left:max(8px,env(safe-area-inset-left,0px));right:max(8px,env(safe-area-inset-right,0px));transform:none;width:auto;max-width:none;justify-content:flex-end;pointer-events:none}
+  .dock > *{pointer-events:auto}
+  .dock > .card{margin:0 auto}
   .card{width:min(300px,calc(100vw - 340px));max-height:calc(100vh - 135px);overflow:auto}
   .pill{display:none}
   .corner{bottom:auto;top:52px;flex-direction:column-reverse}
@@ -660,4 +665,38 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .modal.tome .campBack{position:absolute;top:calc(16px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left));z-index:6;width:40px;height:40px;min-height:0!important;min-width:0!important;padding:0!important;border-radius:11px!important;border:2px solid #d9b04e!important;background:linear-gradient(180deg,#5a4428,#2c210f)!important;display:flex!important;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,230,160,.25)!important}
 .campBack svg{display:block;width:22px;height:22px;fill:none;stroke:#f0c95a;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .cDet .stActs #campPlay{min-width:96px!important;padding:4px 18px!important}
-@media (max-height:520px){ #campaign .cHead{padding-left:60px;box-sizing:border-box} .modal.tome .campBack{top:calc(10px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left))} }
+@media (max-height:520px){ #campaign .cHead{padding-left:calc(60px + env(safe-area-inset-left,0px));box-sizing:border-box} .modal.tome .campBack{top:calc(10px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left))} }
+/* the title screen on a phone held sideways (Jack: the title and Campaign were cut off): smaller title, the map pictures cropped wide */
+@media (max-height:520px){
+  #mapPick.modal{padding-top:max(6px,env(safe-area-inset-top,0px));padding-bottom:max(6px,env(safe-area-inset-bottom,0px))}
+  #mapPick .mapSheet{gap:6px}
+  #mapPick .gameTitle{font-size:clamp(26px,8.5vh,38px)}
+  #mapPick .mapSub{font-size:11px}
+  #mapPick .mapBtn{width:min(172px,24vw);gap:5px}
+  #mapPick .mapBtn img{aspect-ratio:16/10}
+  .modal.tome #mapPick .mapBtn b,#mapPick.modal.tome .mapBtn b{min-height:0!important;padding:4px!important;font-size:15px}
+  .modal.tome .mapBtn .stars{font-size:18px!important}
+  #mapPick #campBtn,#mapPick #saveResume{margin-top:0;padding:5px 20px;font-size:15px}
+  #mapPick .saveInfo{margin-top:-4px}
+}
+/* the town picker on a phone held sideways (Jack: it ran off the bottom): Economy and Defences side by side, each pair on one row,
+   every decor on one row, all of it on one screen */
+@media (max-height:520px){
+  #loadPick.modal{padding:max(6px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) max(6px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
+  .loadSheet{display:grid!important;grid-template-columns:1fr 1fr;column-gap:14px;row-gap:4px;width:min(820px,100%)}
+  .modal.tome .loadSheet{padding:8px 10px 10px}
+  .loadSheet > .mapSub,.loadSheet > section:nth-of-type(3),.loadSheet > .ldBtns{grid-column:1 / -1}
+  .modal.tome .loadSheet > .mapSub{margin:-8px -10px 0;padding:6px 0 5px;font-size:11px}
+  .loadSheet section{gap:3px}
+  .loadSheet h3{font-size:15px!important}
+  .ldRows{display:flex!important;flex-direction:column;gap:4px}
+  .ldRow{grid-template-columns:22px 1fr 1fr;gap:5px}
+  .ldOpt{min-height:34px!important;padding:2px 6px!important;gap:6px}
+  .ldOpt .tIco{width:20px;height:20px}
+  .ldOpt b{font-size:14px}
+  .ldGrid{grid-template-columns:repeat(9,1fr)!important;gap:4px}
+  .ldGrid .ldOpt{padding:4px 2px!important;min-height:44px!important}
+  .ldGrid .ldOpt b{font-size:11px!important}
+  .loadSheet > .ldBtns button{min-height:30px;padding:3px 18px}
+}
+
