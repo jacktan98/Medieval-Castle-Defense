@@ -148,7 +148,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .ldOpt[aria-pressed="true"]{border-color:var(--gold);background:#2e2b1e} .ldOpt[aria-pressed="true"] b{color:var(--gold)}
 .ldOpt.locked{opacity:.5;cursor:default;justify-content:center} .ldOpt.locked b{color:var(--muted)} .lockIco{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;vertical-align:-2px} .ldOpt .tIco .lockIco{width:100%;height:100%;stroke-width:1.7}
 .ldGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
-.ldGrid .ldOpt{flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:3px;padding:6px 4px} .ldGrid .ldOpt b{font-size:14px}
+.ldGrid .lb{display:none} .ldGrid .ldOpt{flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:3px;padding:6px 4px} .ldGrid .ldOpt b{font-size:14px}
 .ldBtns{display:flex;justify-content:space-between;gap:8px;margin-top:4px} .ldBtns button{min-width:110px;min-height:42px;font-size:16px}
 @media (max-height:520px){ .loadSheet{gap:6px;width:min(780px,100%)} .ldRows{display:grid;grid-template-columns:1fr 1fr;gap:6px} .ldOpt{min-height:38px;padding:4px 6px} .loadSheet h3{font-size:17px} }
 #mapPick{z-index:50;background:radial-gradient(ellipse at 50% 35%, #23271f 0%, #121410 70%, #0b0c09 100%)}
@@ -182,7 +182,8 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .colCard #colDone{align-self:center;min-width:110px}
 #adReset.armed{background:#8e2a20!important;border-color:#e0705a!important;color:#fff!important}
 #saveResume{padding:9px 30px;font-family:var(--display);font-size:17px;letter-spacing:.06em;-webkit-text-stroke:.35px currentColor}
-.saveInfo{margin-top:-9px;font-size:12px;font-weight:600;color:#f4e3b2;letter-spacing:.02em;text-shadow:0 1px 3px rgba(0,0,0,.85)}
+.mapActs{display:flex;flex-direction:column;align-items:center;gap:14px} .resumeBox{display:flex;flex-direction:column;align-items:center;gap:5px} .resumeBox:has(#saveResume[hidden]){display:none}
+.saveInfo{margin-top:0;font-size:12px;font-weight:600;color:#f4e3b2;letter-spacing:.02em;text-shadow:0 1px 3px rgba(0,0,0,.85)}
 #campaign{background:#14150f}
 .campSheet{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(720px,100%);max-height:100%}
 #campMap{width:100%;flex:1 1 auto;min-height:0;display:flex;justify-content:center}
@@ -683,10 +684,10 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 @keyframes badgePulse{0%,100%{transform:scale(1);box-shadow:0 1px 3px rgba(0,0,0,.6),0 0 0 rgba(255,214,110,0)}50%{transform:scale(1.14);box-shadow:0 1px 3px rgba(0,0,0,.6),0 0 12px 3px rgba(255,214,110,.75)}}
 
 /* a phone held sideways: the trees eight across on a wider sheet, everything a little smaller, so most of a tab fits */
-@media (max-height:520px){ #upPick.modal{padding-top:max(2px,env(safe-area-inset-top,0px))} .upSheet{max-width:820px;padding-top:0} .upTop{margin-bottom:4px} .upTop h2{font-size:22px} .upTabs{margin-bottom:8px}
+@media (max-height:520px){ .upSheet{max-width:820px;padding-top:8px} .upTop{margin-bottom:4px} .upTop h2{font-size:22px} .upTabs{margin-bottom:8px}
   .upGrid{grid-template-columns:repeat(8,1fr);gap:8px 6px} .upBan{padding:4px 0 7px;margin-bottom:4px} .upBan svg{width:22px;height:22px}
   .modal.tome .upTree .upNode{width:52px;height:52px} .upNode > svg:first-child{width:30px;height:30px;transform:translateY(-1px)} .upChain{height:12px;margin:4px 0} .upTree{padding-bottom:12px}
-  .upRs{padding-top:18px;margin-bottom:-36px;justify-content:flex-start;position:relative;z-index:1;pointer-events:none} .upRs button{pointer-events:auto}
+  .upRs{padding-top:10px;margin-bottom:-29.4px;justify-content:flex-start;position:relative;z-index:1;pointer-events:none} .upRs button{pointer-events:auto}
   .upDet{max-width:520px;align-self:center;padding:6px 10px}   /* Reset sits to the left of the details, on their row */
   .modal.tome .upTabs .upTab{padding:4px 0 3px!important;font-size:14px} .modal.tome .upTop .upBack{width:34px;height:34px} .upBank{height:26px} }
 /* a phone held sideways: the deck reaches down to the bar, so the round buttons sit to the bar's left instead */
@@ -710,12 +711,11 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
   #mapPick .mapSheet{gap:6px}
   #mapPick .gameTitle{font-size:clamp(26px,8.5vh,38px)}
   #mapPick .mapSub{font-size:11px}
-  #mapPick .mapBtn{width:min(172px,24vw);gap:5px}
-  #mapPick .mapBtn img{aspect-ratio:16/10}
-  .modal.tome #mapPick .mapBtn b,#mapPick.modal.tome .mapBtn b{min-height:0!important;padding:4px!important;font-size:15px}
-  .modal.tome .mapBtn .stars{font-size:18px!important}
+  /* the map cards at their upright size (Jack) */
+  #mapPick .mapBtn{width:96px}
+  /* Resume beside Campaign (Jack) */
+  .mapActs{flex-direction:row;align-items:flex-start;gap:12px}
   #mapPick #campBtn,#mapPick #saveResume{margin-top:0;padding:5px 20px;font-size:15px}
-  #mapPick .saveInfo{margin-top:-4px}
 }
 /* the town picker on a phone held sideways (Jack: it ran off the bottom): Economy and Defences side by side, each pair on a row
    behind its icon, every decor on one row, all of it on one screen and no wider than it needs (Jack: grouped square tiles were
@@ -731,13 +731,15 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
   .ldRows{display:flex!important;flex-direction:column;gap:4px}
   .ldRow{grid-template-columns:20px 1fr 1fr;gap:4px}
   .ldCat .ico{width:18px;height:18px}
-  .ldOpt{min-height:42px!important;padding:5px 7px!important;gap:6px}
+  .ldOpt{min-height:42px!important;padding:7px 7px 3px!important;gap:6px}
   .ldOpt .tIco{width:18px;height:18px}
   .ldOpt b{font-size:13px;line-height:1.1;white-space:nowrap} .ldOpt small{font-size:10px}
   .ldGrid{grid-template-columns:repeat(9,1fr)!important;gap:4px}
   .ldGrid .ldOpt{padding:4px 2px!important;min-height:42px!important}
   .ldGrid .ldOpt .tIco{width:16px;height:16px}
   .ldGrid .ldOpt b{font-size:10px!important;line-height:1.05;white-space:normal}
+  /* two-word decor names on two lines (Jack: Siege stores stayed on one) */
+  .ldGrid .lb{display:inline}
   .loadSheet > .ldBtns{margin-top:2px} .loadSheet > .ldBtns button{min-height:30px;padding:3px 18px}
 }
 }
@@ -848,9 +850,9 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
         <button class="mapBtn" data-map="isle"><img src="maps/isle.jpg" alt=""><b>River isle</b></button>
         <button class="mapBtn" data-map="pass"><img src="maps/pass.jpg" alt=""><b>Mountain pass</b></button>
       </div>
-      <button id="campBtn">Campaign</button>
-      <button id="saveResume" class="primary" hidden>Resume</button>
-      <div class="saveInfo" id="saveInfo" hidden></div>
+      <div class="mapActs"><button id="campBtn">Campaign</button>
+        <div class="resumeBox"><button id="saveResume" class="primary" hidden>Resume</button>
+        <div class="saveInfo" id="saveInfo" hidden></div></div></div>
     </div>
     <button class="iconBtn setBtn" id="setBtn" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24"><defs><linearGradient id="gearG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6d9dc"/><stop offset=".55" stop-color="#9a9fa5"/><stop offset="1" stop-color="#6c7177"/></linearGradient></defs><path class="gearBody" d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/><circle class="gearHole" cx="12" cy="12" r="3"/></svg></button>
     <div class="colCard" id="colCard" hidden>
@@ -7573,7 +7575,7 @@ function renderLoadPick() {
   for (const k of ['eco', 'def']) $(k === 'eco' ? '#ldEco' : '#ldDef').innerHTML = LOAD_SLOTS[k].map(([slot, opts]) =>
     `<div class="ldRow"><span class="ldCat">${k === 'eco' ? `<span class="ico">${ICON[slot]}</span>` : `<span class="ico" title="${LOAD_TAG[slot]}">${ICON[LOAD_ICO[slot]]}</span>`}</span>${opts.map(t => opt(t, L[slot] === t, slot)).join('')}</div>`).join('');
   $('#ldDecor').innerHTML = DECOR_ALL.map(t => lk(t) ? `<button class="ldOpt locked" data-slot="decor" data-t="${t}" aria-pressed="false" aria-label="Locked"><span class="tIco">${LOCK_ICO}</span></button>`
-    : `<button class="ldOpt" data-slot="decor" data-t="${t}" aria-pressed="${L.decor.includes(t)}"><span class="tIco">${TOOL_ICON[t]}</span><b>${t === 'road' ? 'Path' : DEF[t].name}</b></button>`).join('');
+    : `<button class="ldOpt" data-slot="decor" data-t="${t}" aria-pressed="${L.decor.includes(t)}"><span class="tIco">${TOOL_ICON[t]}</span><b>${(t === 'road' ? 'Path' : DEF[t].name).replace(' ', ' <br class="lb">')}</b></button>`).join('');
   $('#ldBack').textContent = SM ? 'Back' : 'Maps';
   const n = (L.decor || []).length; $('#ldDecN').textContent = `${n}/${DECOR_PICK}`; $('#ldDecN').classList.toggle('short', n !== DECOR_PICK); $('#ldStart').disabled = n !== DECOR_PICK;
 }

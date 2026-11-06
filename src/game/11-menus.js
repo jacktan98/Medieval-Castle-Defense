@@ -67,7 +67,7 @@ function renderLoadPick() {
   for (const k of ['eco', 'def']) $(k === 'eco' ? '#ldEco' : '#ldDef').innerHTML = LOAD_SLOTS[k].map(([slot, opts]) =>
     `<div class="ldRow"><span class="ldCat">${k === 'eco' ? `<span class="ico">${ICON[slot]}</span>` : `<span class="ico" title="${LOAD_TAG[slot]}">${ICON[LOAD_ICO[slot]]}</span>`}</span>${opts.map(t => opt(t, L[slot] === t, slot)).join('')}</div>`).join('');
   $('#ldDecor').innerHTML = DECOR_ALL.map(t => lk(t) ? `<button class="ldOpt locked" data-slot="decor" data-t="${t}" aria-pressed="false" aria-label="Locked"><span class="tIco">${LOCK_ICO}</span></button>`
-    : `<button class="ldOpt" data-slot="decor" data-t="${t}" aria-pressed="${L.decor.includes(t)}"><span class="tIco">${TOOL_ICON[t]}</span><b>${t === 'road' ? 'Path' : DEF[t].name}</b></button>`).join('');
+    : `<button class="ldOpt" data-slot="decor" data-t="${t}" aria-pressed="${L.decor.includes(t)}"><span class="tIco">${TOOL_ICON[t]}</span><b>${(t === 'road' ? 'Path' : DEF[t].name).replace(' ', ' <br class="lb">')}</b></button>`).join('');
   $('#ldBack').textContent = SM ? 'Back' : 'Maps';
   const n = (L.decor || []).length; $('#ldDecN').textContent = `${n}/${DECOR_PICK}`; $('#ldDecN').classList.toggle('short', n !== DECOR_PICK); $('#ldStart').disabled = n !== DECOR_PICK;
 }
