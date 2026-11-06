@@ -390,6 +390,13 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
   #summary .sheet.hard .sumCrown svg{width:34px;height:34px} #summary .sheet.hard #sumText{text-align:center} #summary .sheet.hard #sumGoals{margin:0}
   #summary .sheet.hard #sumStats{margin:2px 0} #summary .sheet.hard #sumStats dt,#summary .sheet.hard #sumStats dd{padding-top:1px;padding-bottom:1px} #summary .sheet.hard #again{margin-top:4px;align-self:stretch;width:100%} }
 #summary .stars.big span{display:inline-block}
+/* Restart (bronze) and Continue / Main menu (gold), side by side, full width (Jack) */
+.sumActs{display:flex;gap:10px;width:100%} .sumActs button{flex:1 1 0;min-width:0}
+/* a stage just unlocked: grey with the padlock, which springs open and fades, then the picture's colour comes back */
+.cCard.unlocking .cPic{animation:unlockPic 2.2s 1.2s both} @keyframes unlockPic{from{filter:grayscale(1) brightness(.55)}to{filter:none}}
+.cCard.unlocking{animation:unlockGlow 2.6s 1.1s both} @keyframes unlockGlow{0%{box-shadow:0 0 0 rgba(255,210,100,0)}35%{box-shadow:0 0 34px 6px rgba(255,210,100,.75)}100%{box-shadow:0 0 0 rgba(255,210,100,0)}}
+.jLock.opening{animation:lockGone .6s 1.6s both} .jLock.opening svg path{transform-box:fill-box;transform-origin:100% 100%;animation:shackle .45s .9s both}
+@keyframes shackle{from{transform:none}to{transform:translateY(-3px) rotate(28deg)}} @keyframes lockGone{to{opacity:0;transform:scale(1.6)}}
 #summary .sumCrown svg{width:46px;height:46px;fill:rgba(20,16,8,.55);stroke:rgba(240,201,90,.75);stroke-width:1.2;stroke-linejoin:round;vertical-align:middle} #summary .sumCrown.on svg{fill:#f0c95a;stroke:#fff1c4;filter:drop-shadow(0 0 10px rgba(255,205,90,.6))} #summary .stars.big .pop{animation:starPop .55s cubic-bezier(.2,1.4,.4,1) both}
 @keyframes starPop{0%{transform:scale(0) rotate(-40deg);opacity:0}55%{transform:scale(1.5) rotate(8deg);opacity:1}100%{transform:scale(1) rotate(0)}}
 #summary .stars.big .on{color:#f0c95a;-webkit-text-stroke:1px #fff1c4;text-shadow:0 0 12px rgba(255,205,90,.6)} #summary .stars.big span{-webkit-text-stroke:1px rgba(240,201,90,.75)}
@@ -925,7 +932,7 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
       <ul id="sumGoals"></ul>
       <dl id="sumStats"></dl>
       <p class="sumTip" id="sumTip" hidden></p>
-      <button class="primary" id="again">Play again</button>
+      <div class="sumActs" id="again"><button id="sumRestart">Restart</button><button class="primary" id="sumNext">Continue</button></div>
     </div>
   </div>
 </div>
@@ -7027,6 +7034,11 @@ function endGame(won) {
   const tip = won ? '' : defeatTip(); $('#sumTip').hidden = !tip; $('#sumTip').innerHTML = tip ? `<b>Tip:</b> ${tip}` : '';
   // after a defeat Survive isn't listed (Jack): the title says it
   $('#sumGoals').innerHTML = [...(won ? [['Survive', won]] : []), ...(hardOn ? [] : goals)].map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
+  // Restart, and Continue after a win (to the next stage's preview) or Main menu after a defeat (Jack); a stage's first win unlocks
+  // the next, which Continue shows unlocking (unlockNext)
+  $('#sumNext').textContent = won ? 'Continue' : 'Main menu';
+  { const st = CAMP_MAPS[MAP] ? CAMP_MAPS[MAP].stop : -1; nextStage = won && st >= 0 ? Math.min(st + 1, CAMPAIGN.length - 1) : st;
+    unlockNext = won && !hardOn && st >= 0 && st + 1 < CAMPAIGN.length && !(STARS[MAP] > 0) ? st + 1 : null; }
   if (!hardOn && n > (STARS[MAP] || 0)) { STARS[MAP] = n; try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {} }
   if (won && hardOn && !CROWNS[MAP]) { CROWNS[MAP] = 1; try { localStorage.setItem('mtd-crowns', JSON.stringify(CROWNS)); } catch (e) {} }
   if (won && hardOn) $('#sumText').innerHTML = `All ${NIGHTS} waves held · <b class="hardTag">Hard</b>`;
@@ -7055,6 +7067,7 @@ function defeatTip() {
 }
 // the quickest win per map, in seconds of play (localStorage 'mtd-best'), shown on the stage's details
 var BEST = {}; try { BEST = JSON.parse(localStorage.getItem('mtd-best') || '{}') || {}; } catch (e) {}
+var nextStage = -1, unlockNext = null;
 function clearSummary() { (sumTimers || []).forEach(clearTimeout); sumTimers = []; $('#summary').hidden = true; }
 // best stars per map (localStorage 'mtd-stars'); the total is to be spent on upgrades later
 var STARS = {}; try { STARS = JSON.parse(localStorage.getItem('mtd-stars') || '{}') || {}; } catch (e) {}
@@ -7544,7 +7557,13 @@ $('#reset').addEventListener('click', () => {
   resetArmed = performance.now(); $('#reset').innerHTML = PICO.tick; $('#reset').classList.add('armed');
   setTimeout(() => { if (resetArmed && performance.now() - resetArmed >= 2900) { resetArmed = 0; $('#reset').innerHTML = PICO.restart; $('#reset').classList.remove('armed'); } }, 3000);
 });
-$('#again').addEventListener('click', () => showStart());
+// the summary's Restart plays the same stage again (same picks and difficulty); Continue / Main menu goes to a stage's preview
+$('#sumRestart').addEventListener('click', () => { clearSummary(); hushSfx(); paused = false; startGame(); });
+$('#sumNext').addEventListener('click', () => {
+  const u = unlockNext; unlockNext = null;
+  if (nextStage < 0) { showStart(); return; }
+  showMapPick(); $('#mapPick').hidden = true; openCampaign(nextStage); if (u != null) unlockCard(u);
+});
 // ---------- the town's buildings for this game: one of each pair for the economy and the defences, any five decor ----------
 const LOAD_SLOTS = {
   eco: [['food', ['farm', 'farmhouse']], ['wood', ['lodge', 'forester']], ['stone', ['quarry', 'mine']]],
@@ -8227,6 +8246,15 @@ function openCampaign(i) {
   cSel = i !== undefined ? i : cCur; cDrag = 0; layoutDeck(false); openStage(cSel);
 }
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
+// a stage just unlocked by the last win (Jack): its card starts grey with the padlock, the padlock springs open and fades, and the
+// picture's colour comes back slowly, with the upgrade sound
+function unlockCard(i) {
+  const card = document.querySelector(`.cCard[data-i="${i}"]`); if (!card) return;
+  const lock = document.createElement('i'); lock.className = 'jLock opening'; lock.innerHTML = LOCK_SVG; card.appendChild(lock);
+  card.classList.add('unlocking');
+  setTimeout(() => sfx('upgrade'), 900);
+  setTimeout(() => { card.classList.remove('unlocking'); lock.remove(); }, 3800);
+}
 // ---------- Colours (Jack): the town's and the raiders' colours, five each, in the title's Settings (gear); a colour one side
 // has is greyed out for the other; a tap recolours at once (the title's town shows it) and is kept ('mtd-colours')
 const COL_NAME = { blue: 'Blue', red: 'Red', green: 'Green', purple: 'Purple', black: 'Black' };

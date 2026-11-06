@@ -680,6 +680,15 @@ function openCampaign(i) {
   cSel = i !== undefined ? i : cCur; cDrag = 0; layoutDeck(false); openStage(cSel);
 }
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
+// a stage just unlocked by the last win (Jack): its card starts grey with the padlock, the padlock springs open and fades, and the
+// picture's colour comes back slowly, with the upgrade sound
+function unlockCard(i) {
+  const card = document.querySelector(`.cCard[data-i="${i}"]`); if (!card) return;
+  const lock = document.createElement('i'); lock.className = 'jLock opening'; lock.innerHTML = LOCK_SVG; card.appendChild(lock);
+  card.classList.add('unlocking');
+  setTimeout(() => sfx('upgrade'), 900);
+  setTimeout(() => { card.classList.remove('unlocking'); lock.remove(); }, 3800);
+}
 // ---------- Colours (Jack): the town's and the raiders' colours, five each, in the title's Settings (gear); a colour one side
 // has is greyed out for the other; a tap recolours at once (the title's town shows it) and is kept ('mtd-colours')
 const COL_NAME = { blue: 'Blue', red: 'Red', green: 'Green', purple: 'Purple', black: 'Black' };

@@ -452,4 +452,10 @@ $('#reset').addEventListener('click', () => {
   resetArmed = performance.now(); $('#reset').innerHTML = PICO.tick; $('#reset').classList.add('armed');
   setTimeout(() => { if (resetArmed && performance.now() - resetArmed >= 2900) { resetArmed = 0; $('#reset').innerHTML = PICO.restart; $('#reset').classList.remove('armed'); } }, 3000);
 });
-$('#again').addEventListener('click', () => showStart());
+// the summary's Restart plays the same stage again (same picks and difficulty); Continue / Main menu goes to a stage's preview
+$('#sumRestart').addEventListener('click', () => { clearSummary(); hushSfx(); paused = false; startGame(); });
+$('#sumNext').addEventListener('click', () => {
+  const u = unlockNext; unlockNext = null;
+  if (nextStage < 0) { showStart(); return; }
+  showMapPick(); $('#mapPick').hidden = true; openCampaign(nextStage); if (u != null) unlockCard(u);
+});

@@ -319,6 +319,11 @@ function endGame(won) {
   const tip = won ? '' : defeatTip(); $('#sumTip').hidden = !tip; $('#sumTip').innerHTML = tip ? `<b>Tip:</b> ${tip}` : '';
   // after a defeat Survive isn't listed (Jack): the title says it
   $('#sumGoals').innerHTML = [...(won ? [['Survive', won]] : []), ...(hardOn ? [] : goals)].map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
+  // Restart, and Continue after a win (to the next stage's preview) or Main menu after a defeat (Jack); a stage's first win unlocks
+  // the next, which Continue shows unlocking (unlockNext)
+  $('#sumNext').textContent = won ? 'Continue' : 'Main menu';
+  { const st = CAMP_MAPS[MAP] ? CAMP_MAPS[MAP].stop : -1; nextStage = won && st >= 0 ? Math.min(st + 1, CAMPAIGN.length - 1) : st;
+    unlockNext = won && !hardOn && st >= 0 && st + 1 < CAMPAIGN.length && !(STARS[MAP] > 0) ? st + 1 : null; }
   if (!hardOn && n > (STARS[MAP] || 0)) { STARS[MAP] = n; try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {} }
   if (won && hardOn && !CROWNS[MAP]) { CROWNS[MAP] = 1; try { localStorage.setItem('mtd-crowns', JSON.stringify(CROWNS)); } catch (e) {} }
   if (won && hardOn) $('#sumText').innerHTML = `All ${NIGHTS} waves held · <b class="hardTag">Hard</b>`;
@@ -347,6 +352,7 @@ function defeatTip() {
 }
 // the quickest win per map, in seconds of play (localStorage 'mtd-best'), shown on the stage's details
 var BEST = {}; try { BEST = JSON.parse(localStorage.getItem('mtd-best') || '{}') || {}; } catch (e) {}
+var nextStage = -1, unlockNext = null;
 function clearSummary() { (sumTimers || []).forEach(clearTimeout); sumTimers = []; $('#summary').hidden = true; }
 // best stars per map (localStorage 'mtd-stars'); the total is to be spent on upgrades later
 var STARS = {}; try { STARS = JSON.parse(localStorage.getItem('mtd-stars') || '{}') || {}; } catch (e) {}
