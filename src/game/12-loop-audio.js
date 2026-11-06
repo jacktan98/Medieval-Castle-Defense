@@ -62,7 +62,7 @@ function startGame() {
   for (const a of arrows) scene.remove(a.m); arrows.length = 0; volleyQ = []; volleyCd = 0; volleyAim = false; summonCd = 0; summonOut = false; volleyLine.visible = false;
   for (const f of floats) scene.remove(f.sp); floats.length = 0;
   for (const p of puffs) scene.remove(p.sp); puffs.length = 0;
-  mapRules();
+  mapRules(); applyUpgrades();
   PH = { kind: 'day', wave: 1, t: DAYLEN[0] }; nextPts = null; econT = TICK; gameOver = false; endCheer = 0; light = 1; if (paused) setPaused(false); setMusic('day');
   if (MAP === 'isle') { KX = 27; KZ = 27; } else if (MAP === 'pass') { KX = 27; KZ = 21; } else if (MAP === 'vale') { KX = 25; KZ = 33; } else if (MAP === 'bridge') { KX = 29; KZ = 37; } else if (MAP === 'cross') { KX = 17; KZ = 39; } else if (MAP === 'watch') { KX = 17; KZ = 29; } else if (MAP === 'dune') { KX = 15; KZ = 26; } else if (MAP === 'bend') { KX = 21; KZ = 28; } else if (MAP === 'crag') { KX = 25; KZ = 33; } else if (MAP === 'ford') { KX = 29; KZ = 43; } else if (MAP === 'mere') { KX = 15; KZ = 43; } else if (MAP === 'plains') { KX = 28; KZ = 28; } else if (MAP === 'keep') { KX = 41; KZ = 67; } else if (MAP === 'hold') { KX = 39; KZ = 65; } else { KX = 19; KZ = 27; }
   // a medium map (Stages 7-10) is its 56 m layout scaled up: the castle's site too
@@ -555,16 +555,16 @@ function adaptResolution(raw) {
 }
 // a title screen, map or town picker, campaign or stage preview, or the new-building cards is up: the game underneath stands still
 // (setPaused(false) at startup used to set it running under the title screen, paying out gold)
-const MENUS = ['#mapPick', '#loadPick', '#campaign', '#newCards'].map(q => $(q));
+const MENUS = ['#mapPick', '#loadPick', '#campaign', '#newCards', '#upPick'].map(q => $(q));
 const menuOn = () => MENUS.some(m => !m.hidden);
-const mapPickEl = $('#mapPick'), campEl = $('#campaign'), loadEl = $('#loadPick'); let liteN = 0;
+const mapPickEl = $('#mapPick'), campEl = $('#campaign'), loadEl = $('#loadPick'), upEl = $('#upPick'); let liteN = 0;
 mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button') && !e.target.closest('#colCard')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
 function frame(now) {
   adaptResolution((now - last) / 1000);
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   keyCamera(dt);
   if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now); updateWeather(dt, !paused && !menuOn() && !gameOver);
-  const sc = showcaseBuilt && (!mapPickEl.hidden || !campEl.hidden || !loadEl.hidden); if (sc !== document.body.classList.contains('showcase')) document.body.classList.toggle('showcase', sc);
+  const sc = showcaseBuilt && (!mapPickEl.hidden || !campEl.hidden || !loadEl.hidden || !upEl.hidden); if (sc !== document.body.classList.contains('showcase')) document.body.classList.toggle('showcase', sc);
   // the title's showcase town: the camera circles slowly. It looks a little beyond the town, so the town sits low on the screen,
   // under the cards (an off-centre lens did that before and skewed the picture: Jack found it squeezed); on a wide screen the view
   // is narrowed to about 64 degrees across (45 degrees up and down gave nearly 90 across a laptop: wide-angle smear at the sides)
@@ -580,7 +580,7 @@ function frame(now) {
   } else if (camera.fov !== 45) { camera.fov = 45; camera.updateProjectionMatrix(); }
   // behind the campaign and the town picker the scene is darkened under panels: drawn at 1x pixels and every other frame, so the
   // phone keeps its time for the cards (Jack found the carousel slow to answer); full detail again on the title and in the game
-  const lite = sc && (!campEl.hidden || !loadEl.hidden), pr = lite ? Math.min(pixelK, 1) : pixelK;
+  const lite = sc && (!campEl.hidden || !loadEl.hidden || !upEl.hidden), pr = lite ? Math.min(pixelK, 1) : pixelK;
   // (a resize clears the canvas, so that frame is always drawn: a skipped one showed a blank canvas for a moment)
   let fresh = false; if (renderer.getPixelRatio() !== pr) { renderer.setPixelRatio(pr); resize(); fresh = true; }
   if (paused || menuOn()) { if (!lite || fresh || (liteN = (liteN + 1) % 2) === 0) renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }

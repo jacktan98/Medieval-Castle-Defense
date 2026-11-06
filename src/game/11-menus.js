@@ -676,7 +676,7 @@ function openCampaign(i) {
   hushSfx();
   buildDeck(); $('#mapPick').hidden = true; $('#campaign').hidden = false;
   { const st = CAMPAIGN.filter(c => c.map), won = st.filter(c => STARS[c.map] > 0).length, stars = starTotal(), max = st.length * 3;
-    $('#campStars').innerHTML = `<span><b>${won}</b> / ${st.length} stages</span><span class="sep">·</span><span><b>★ ${stars}</b> / ${max}</span>`; }
+    $('#campStars').innerHTML = `<span><b>${won}</b> / ${st.length} stages</span><span class="sep">·</span><span><b>★ ${stars}</b> / ${max}</span><button class="upBtn" id="campUpBtn">Upgrades${upLeft() ? ` <b>★${upLeft()}</b>` : ''}</button>`; }
   // opens on the given stage (Restart / Play again) or where the player is
   cSel = i !== undefined ? i : cCur; cDrag = 0; layoutDeck(false); openStage(cSel);
 }
@@ -872,7 +872,7 @@ let campResetT = 0;
 $('#adReset').addEventListener('click', () => {
   const b = $('#adReset');
   if (performance.now() > campResetT) { campResetT = performance.now() + 3000; b.classList.add('armed'); b.textContent = 'Tap again to reset'; setTimeout(() => { if (performance.now() > campResetT) { b.classList.remove('armed'); b.textContent = 'Reset campaign'; } }, 3100); return; }
-  try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor']) localStorage.removeItem('mtd-' + k); } catch (e) {}
+  try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor', 'upg']) localStorage.removeItem('mtd-' + k); } catch (e) {}
   location.reload();
 });
 $('#moveBtn').addEventListener('click', () => { if (paused) return setHint('Paused', 'bad'); if (!selected) return; moveFor = moveFor === selected ? null : selected; setHint(moveFor ? 'Tap a tile' : 'Select a building'); refreshCard(); });

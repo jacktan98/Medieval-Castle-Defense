@@ -452,7 +452,7 @@ function updateVolley(dt) {
     if (f) { f.g.rotation.y = Math.atan2(q.x - f.g.position.x, q.z - f.g.position.z); volleyPose(f, false); f.g.updateMatrixWorld(true); from = (f.pivot || f.arms[0]).getWorldPosition(new THREE.Vector3()); f.vLoose = .2; }
     else { const c = C ? center(C) : { x: KX, z: KZ }; from = new THREE.Vector3(c.x + (Math.random() - .5) * 3, (C ? C.group.position.y + DEF.castle.shootY[C.tier - 1] : 4), c.z + (Math.random() - .5) * 3); }
     const d = Math.hypot(tx - from.x, tz - from.z);
-    fireArrow(from, new THREE.Vector3(tx, walkY(tx, tz) + .05, tz), () => { dustAt(tx, walkY(tx, tz), tz); for (const e of enemies) if (!e.dead && Math.hypot(e.x - q.x, e.z - q.z) < q.R) hurtEnemy(e, q.per); }, 3 + d * .25);
+    fireArrow(from, new THREE.Vector3(tx, walkY(tx, tz) + .05, tz), () => { dustAt(tx, walkY(tx, tz), tz); for (const e of enemies) if (!e.dead && Math.hypot(e.x - q.x, e.z - q.z) < q.R) { hurtEnemy(e, q.per); if (UPK.volleyBurn) burnEnemy(e, 4, 3); } }, 3 + d * .25);
   }
   if (VQ && C.volley) figs.forEach((f, i) => {           // after updateDefense, so this pose wins while the volley lasts
     f.vLoose = Math.max(0, (f.vLoose || 0) - dt);
@@ -678,6 +678,7 @@ function animEngine(e, dt, sw) {
 function updateEnemies(dt) {
   for (let n = enemies.length - 1; n >= 0; n--) {
     const e = enemies[n], E = ENEMY[e.kind];
+    burnTick(e, dt);
     if (e.dead) {
       e.deadT += dt;
       if (E.engine) {                                       // slumps to one side and sinks; the crew fall
@@ -894,7 +895,7 @@ const SOLDIER = { hp: [70, 100, 140], dmg: [7, 10, 14], rate: .9, names: ['Milit
 // the stables' riders: tougher and harder hitting, and they ride at RIDER.speed times a soldier's pace
 const RIDER = { hp: [170, 240, 330], dmg: [9, 13, 18], rate: .8, speed: 2.1, names: ['Rider', 'Lancer', 'Knight'] };
 const ridingM = teamMat(mat('#2f4f86'), 'town', '#2f4f86');   // the town's blue saddle cloth
-const SQUAD = [[0, 0], [-.8, -.5], [.8, -.5]];      // where the three stand round their spot
+const SQUAD = [[0, 0], [-.8, -.5], [.8, -.5], [0, -1.1]];      // where the three stand round their spot
 var respawns = [], fallen = [];                     // fallen soldiers come back as villagers after 60 s of daylight
 // the tier's armour (armour()); tier 1 militia: spear; tier 2 guard: spear and a round wooden shield; tier 3 man-at-arms: sword and a blue kite shield
 function soldierKit(v, tier, cav) {
@@ -920,7 +921,7 @@ function nearestSoldier(x, z, r) { let best = null, bd = r; for (const v of vill
 function updateSoldier(v, dt) {
   const B = v.post.B, k = v.kitTier - 1, S = v.cav ? RIDER : SOLDIER, walkK = 1 + decorFx(v.x, v.z, 'troopWalk'), ride = (v.cav ? RIDER.speed : 1) * walkK;
   v.attackT = Math.max(0, (v.attackT || 0) - dt); v.cool = (v.cool || 0) - dt;
-  const base = (!v.post.fled && B.rally) || doorPoint(B), [ox, oz] = v.summoned && !B.rally ? summonSpot(B, v.post.a) : SQUAD[v.post.a % 3], hx = base.x + ox, hz = base.z + oz;
+  const base = (!v.post.fled && B.rally) || doorPoint(B), [ox, oz] = v.summoned && !B.rally ? summonSpot(B, v.post.a) : SQUAD[v.post.a % SQUAD.length], hx = base.x + ox, hz = base.z + oz;
   if (v.skip && (v.skip.t -= dt) <= 0) v.skip = null;
   let foe = v.foe && !v.foe.dead && Math.hypot(v.foe.x - hx, v.foe.z - hz) < 9 ? v.foe : null;
   if (!foe) { let bd = 6; for (const e of enemies) if (!e.dead && (!v.skip || v.skip.e !== e)) { const d = Math.hypot(e.x - hx, e.z - hz); if (d < bd) { bd = d; foe = e; } } }
@@ -929,7 +930,7 @@ function updateSoldier(v, dt) {
   if (foe) {
     const reach = (v.toolKind === 'spear' ? 1.15 : .9) + (foe.horse ? .3 : 0) + (foe.engine ? ENEMY[foe.kind].r : 0) + (v.cav ? .35 : 0), d = Math.hypot(foe.x - v.x, foe.z - v.z);
     if (d > reach) { walkTo(v, foe.x, foe.z, dt, 1, reach * .9, 1.25 * ride); if (v.noProg > 4) { v.skip = { e: foe, t: 4 }; v.foe = null; } }    // can't reach that one
-    else { turnTo(v, Math.atan2(foe.x - v.x, foe.z - v.z), dt); if (v.cool <= 0) { v.cool = S.rate * (1 - decorFx(v.x, v.z, 'troopRate')); v.attackT = v.toolKind === 'spear' ? SPEAR_T : SWORD_T; hurtEnemy(foe, S.dmg[k] * (1 + decorFx(v.x, v.z, 'troopDmg'))); sfx('clash', v); } }
+    else { turnTo(v, Math.atan2(foe.x - v.x, foe.z - v.z), dt); if (v.cool <= 0) { v.cool = S.rate * (1 - decorFx(v.x, v.z, 'troopRate')); v.attackT = v.toolKind === 'spear' ? SPEAR_T : SWORD_T; hurtEnemy(foe, S.dmg[k] * (1 + decorFx(v.x, v.z, 'troopDmg')) * (UPK.lance && v.cav && v.charged !== foe ? 2 : 1)); v.charged = foe; sfx('clash', v); } }
   } else if (Math.hypot(hx - v.x, hz - v.z) > .35) walkTo(v, hx, hz, dt, 1, .3, 1.3 * ride);
   // the castle's riders, at their place, face away from the castle (out of the door, or out from it at a rally flag)
   else if (v.summoned) { const c = center(B); turnTo(v, B.rally ? Math.atan2(hx - c.x, hz - c.z) : faceAngle(B), dt); }
@@ -1274,7 +1275,7 @@ function updateSiege(B, T, dt) {
     B.arm.updateMatrixWorld(true); const from = B.arm.localToWorld(new THREE.Vector3(0, B.tier === 3 ? 1.9 : 1.3, 0)); siegeLaunchFx(B, from, dir);
     const lead = best.walking ? 1.2 : 0, tx = best.x + Math.sin(best.g.rotation.y) * lead, tz = best.z + Math.cos(best.g.rotation.y) * lead, to = new THREE.Vector3(tx, walkY(tx, tz) + .1, tz), rad = T.splash[k];
     fireArrow(from, to, () => {
-      for (const e of enemies) if (!e.dead) { const d = Math.hypot(e.x - tx, e.z - tz); if (d < rad) hurtEnemy(e, dmg * (1 - .5 * d / rad), B); }
+      for (const e of enemies) if (!e.dead) { const d = Math.hypot(e.x - tx, e.z - tz); if (d < rad) { hurtEnemy(e, dmg * (1 - .5 * d / rad), B); if (UPK.cataBurn) burnEnemy(e, dmg * .12, 3); } }
       blastFx(tx, tz, B.tier, rad); shake(.05 + .03 * B.tier, { x: tx, z: tz }, 'stone', .4);
     }, Math.max(3, bd * .45), 'stone').scale.setScalar(CATA_SHOT[k]);
   }

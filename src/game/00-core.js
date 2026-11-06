@@ -117,7 +117,8 @@ const DEF = {
   stores:  { size: 1, name: 'Siege stores', decor: true, maxdh: 1.3, falloff: 1, hp: [80], cost: { wood: 8, gold: 6 }, tiers: ['Bolts and shot'], noRoad: true },
   statue:  { size: 1, name: 'Statue', decor: true, maxdh: 1.2, falloff: 1.2, hp: [150], cost: { stone: 12, gold: 10 }, tiers: ['Statue'], noRoad: true },
 };
-const MEAL = 20, LUMBER_LOAD = 2;
+// var: star upgrades (Granary, Carts) change them for a campaign game (applyUpgrades)
+var MEAL = 20, LUMBER_LOAD = 2;
 // market trades: give 10 of one thing for n of another, n + 2 per market tier; rows of two: buy with gold (left), sell for gold (right)
 const TRADES = [['wood', 4, 4], ['stone', 2, 6], ['food', 6, 2]].flatMap(([r, buy, sell]) => [
   { give: 'gold', get: r, n: [buy, buy + 2, buy + 4] }, { give: r, get: 'gold', n: [sell, sell + 2, sell + 4] }]);

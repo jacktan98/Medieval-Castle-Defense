@@ -645,7 +645,7 @@ function deliver(v) {
   if (v.dropLoad) return;
   if (PH.kind === 'night') { if ((v.carryLog && v.carryLog.visible) || (v.carryStone && v.carryStone.visible)) v.dropLoad = true; if (!v.doorWalk) dropLoad(v); return; }   // nothing is gathered at night: a load carried in after dark is lost
   if (v.carryLog && v.carryLog.visible) { res.wood += LUMBER_LOAD; stats.wood += LUMBER_LOAD; v.dropLoad = true; }
-  if (v.carryStone && v.carryStone.visible) { res.stone++; stats.stone++; v.dropLoad = true; }
+  if (v.carryStone && v.carryStone.visible) { res.stone += 1 + UPK.stoneTrip; stats.stone += 1 + UPK.stoneTrip; v.dropLoad = true; }
   if (!v.doorWalk) dropLoad(v);           // otherwise it is carried in through the door
 }
 function dropLoad(v) { if (v.dropLoad) { v.carryLog.visible = v.carryStone.visible = false; v.dropLoad = false; } }
@@ -734,7 +734,7 @@ function updateWorker(v, dt, now) {
     case 'go': {
       const t = v.target;
       if (!t || (lumber ? (t.dead || t.cut) : t.amount <= 0)) { release(v); v.state = 'find'; break; }
-      if (walkTo(v, t.x, t.z, dt, 1, lumber ? .75 : 1.15, mult)) { v.state = 'work'; v.wait = (t.grove ? DEF.forester.chop[W.tier - 1] : (lumber ? 2.6 : 3.8) * workMul) / prodK(W); v.g.rotation.y = Math.atan2(t.x - v.x, t.z - v.z); }
+      if (walkTo(v, t.x, t.z, dt, 1, lumber ? .75 : 1.15, mult)) { v.state = 'work'; v.wait = (t.grove ? DEF.forester.chop[W.tier - 1] : (lumber ? 2.6 * UPK.chop : 3.8 * UPK.dig) * workMul) / prodK(W); v.g.rotation.y = Math.atan2(t.x - v.x, t.z - v.z); }
       else if (v.noProg > 5) { t.blocked = now + 20000; release(v); v.state = 'find'; v.stuck = 0; v.prog = null; }
       break;
     }
