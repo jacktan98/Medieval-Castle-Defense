@@ -495,6 +495,9 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .pw.cool svg{opacity:.25} .pw.cool .cd{display:flex} .pw.cool{border-color:#7a6638!important}
 .pw[aria-pressed="true"]{border-color:#fff1c4!important;box-shadow:0 0 0 3px rgba(240,201,90,.5),0 3px 10px rgba(0,0,0,.55)}
 .pw:not(.cool):not([aria-pressed="true"]){animation:pwGlow 2.4s ease-in-out infinite}
+/* the power a tip is about pulses while the tip is up (Jack) */
+.pw.tipPulse:not(.cool){animation:pwTip 1s ease-in-out infinite!important;border-color:#fff1c4!important}
+@keyframes pwTip{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,214,110,0),0 3px 10px rgba(0,0,0,.55)}50%{transform:scale(1.14);box-shadow:0 0 0 5px rgba(255,214,110,.75),0 0 22px 6px rgba(255,200,80,.6)}}
 @keyframes pwGlow{0%,100%{box-shadow:0 3px 10px rgba(0,0,0,.55),0 0 0 0 rgba(240,201,90,.0)}50%{box-shadow:0 3px 10px rgba(0,0,0,.55),0 0 12px 2px rgba(240,201,90,.45)}}
 /* a boss's health across the top while one is out */
 .bossBar{position:absolute;left:50%;transform:translateX(-50%);z-index:5;width:min(300px,70vw);display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none}
@@ -6830,7 +6833,10 @@ function updateHitMarks(dt, now) {
 }
 // ---------- one-time tips: the first time a mechanic matters, one line above the dock for 6 s (seen ones kept in 'mtd-tips') ----------
 var TIPS_SEEN = {}; try { TIPS_SEEN = JSON.parse(localStorage.getItem('mtd-tips') || '{}') || {}; } catch (e) {}
-let tipQ = [], tipT = 0;
+let tipQ = [], tipT = 0, tipKey = '';
+// while a tip about a night power is up, that power's round button pulses (Jack), so the player sees which one it means
+const TIP_PULSE = { volley: '#pwVolley', riders: '#pwRiders' };
+function tipPulse(key) { for (const k in TIP_PULSE) $(TIP_PULSE[k]).classList.toggle('tipPulse', k === key); }
 function tipOnce(key, html) {
   if (TIPS_SEEN[key] || showcaseBuilt || galleryOn || tipQ.some(q => q[0] === key)) return;
   TIPS_SEEN[key] = 1; try { localStorage.setItem('mtd-tips', JSON.stringify(TIPS_SEEN)); } catch (e) {}
@@ -6857,14 +6863,14 @@ function sideHints() {
 }
 function updateTips(dt) {
   const el = $('#tipPill');
-  if (menuOn() || gameOver) { el.hidden = true; return; }
+  if (menuOn() || gameOver) { el.hidden = true; if (tipKey) tipPulse(tipKey = ''); return; }
   sideHints();
   if (tipT > 0 && (tipT -= dt) > 0) {
     // above the dock; on a phone held sideways at the bottom left of the bar, above the first day's guide (Jack)
     if (matchMedia('(max-height:520px)').matches) { sideHints(); return; }
     el.style.top = 'auto'; el.style.bottom = (innerHeight - document.querySelector('.dock').getBoundingClientRect().top + 10) + 'px'; return; }
-  el.hidden = true; if (!tipQ.length || paused) return;
-  const [, html] = tipQ.shift(); el.innerHTML = html; el.hidden = false; tipT = 6; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+  el.hidden = true; if (tipKey) tipPulse(tipKey = ''); if (!tipQ.length || paused) return;
+  const [key, html] = tipQ.shift(); tipPulse(tipKey = key); el.innerHTML = html; el.hidden = false; tipT = 6; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
 }
 // the tutorial's build steps: where that building would do well (near the castle; lumber by trees; archers toward the raiders),
 // shown as soft gold tiles over the cells it would take, a small gap between them like the grid (Jack: a grid, not a circle,
@@ -6923,7 +6929,7 @@ function startNight() {
   const w = WAVES[PH.wave - 1];
   PH.kind = 'night'; spawnQueue = []; sfx('horn');
   const pts = nightPts().map((p, i) => cellPass(cellAt(p.x, p.z), 2) ? p : edgePoint(i)); nextPts = null;
-  tipOnce('volley', 'Tap <b>Arrow volley</b>, then tap the raiders'); tipOnce('riders', 'Tap <b>Riders</b> to call two horsemen from the castle');
+  tipOnce('volley', 'Tap <b>Arrow volley</b>, then tap the raiders'); tipOnce('riders', `Tap <b>Riders</b> to call ${SUMMON.n > 1 ? 'two horsemen' : 'a horseman'} from the castle`);
   // siege engines at the head of the column (Jack: they are slow, so they set off first), then foot and horse mixed (spearmen first),
   // bosses last of all; each entry [kind, spawn point, tier]
   // hard mode: every raider a tier up (tier 3 stays 3)
@@ -7278,7 +7284,8 @@ function refreshCard() {
   $('#rallyBtn').hidden = $('#recallBtn').hidden = !T.soldiers || !B.built;
   $('#rallyBtn').setAttribute('aria-pressed', String(rallyFor === B)); $('#recallBtn').disabled = !B.rally;
   $('#moveBtn').hidden = !T.movable || !B.built || !!B.site; $('#moveBtn').setAttribute('aria-pressed', String(moveFor === B));
-  const sb = $('#summonBtn'); sb.hidden = B.type !== 'castle' || !B.built;
+  // the arrow volley and the riders live only on the night powers' round buttons now (Jack had them taken off the castle's card)
+  const sb = $('#summonBtn'); sb.hidden = true;
   if (!sb.hidden) {
     const out = summoned().length > 0, cool = !out && summonCd > 0, day = PH.kind !== 'night';
     const ico = out ? 'rally' : 'horse'; if (sb.dataset.ico !== ico) { sb.dataset.ico = ico; sb.querySelector('svg').innerHTML = out ? '<path d="M6 21 V3.5"/><path d="M6 4 H17.5 L15 8 L17.5 12 H6"/>' : HORSE_ICO; }
@@ -7286,7 +7293,7 @@ function refreshCard() {
     sb.title = out ? 'Rally: tap, then a spot' : day ? 'Night only' : 'Riders: two for the night'; sb.setAttribute('aria-pressed', String(out && rallyFor === B));
     sb.querySelector('.cd').textContent = cool ? Math.ceil(summonCd) : '';
   }
-  const vb = $('#volleyBtn'); vb.hidden = B.type !== 'castle';
+  const vb = $('#volleyBtn'); vb.hidden = true;
   if (!vb.hidden) { const cool = volleyCd > 0, day = PH.kind !== 'night'; vb.classList.toggle('cool', cool); vb.classList.toggle('off', day && !cool); vb.disabled = cool; vb.title = day ? 'Night only' : 'Arrow volley: tap, then a spot'; vb.querySelector('.cd').textContent = cool ? Math.ceil(volleyCd) : ''; vb.setAttribute('aria-pressed', String(volleyAim)); }
   const up = $('#upBtn');
   if (!T.up) up.hidden = true;

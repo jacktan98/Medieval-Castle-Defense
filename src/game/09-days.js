@@ -105,7 +105,10 @@ function updateHitMarks(dt, now) {
 }
 // ---------- one-time tips: the first time a mechanic matters, one line above the dock for 6 s (seen ones kept in 'mtd-tips') ----------
 var TIPS_SEEN = {}; try { TIPS_SEEN = JSON.parse(localStorage.getItem('mtd-tips') || '{}') || {}; } catch (e) {}
-let tipQ = [], tipT = 0;
+let tipQ = [], tipT = 0, tipKey = '';
+// while a tip about a night power is up, that power's round button pulses (Jack), so the player sees which one it means
+const TIP_PULSE = { volley: '#pwVolley', riders: '#pwRiders' };
+function tipPulse(key) { for (const k in TIP_PULSE) $(TIP_PULSE[k]).classList.toggle('tipPulse', k === key); }
 function tipOnce(key, html) {
   if (TIPS_SEEN[key] || showcaseBuilt || galleryOn || tipQ.some(q => q[0] === key)) return;
   TIPS_SEEN[key] = 1; try { localStorage.setItem('mtd-tips', JSON.stringify(TIPS_SEEN)); } catch (e) {}
@@ -132,14 +135,14 @@ function sideHints() {
 }
 function updateTips(dt) {
   const el = $('#tipPill');
-  if (menuOn() || gameOver) { el.hidden = true; return; }
+  if (menuOn() || gameOver) { el.hidden = true; if (tipKey) tipPulse(tipKey = ''); return; }
   sideHints();
   if (tipT > 0 && (tipT -= dt) > 0) {
     // above the dock; on a phone held sideways at the bottom left of the bar, above the first day's guide (Jack)
     if (matchMedia('(max-height:520px)').matches) { sideHints(); return; }
     el.style.top = 'auto'; el.style.bottom = (innerHeight - document.querySelector('.dock').getBoundingClientRect().top + 10) + 'px'; return; }
-  el.hidden = true; if (!tipQ.length || paused) return;
-  const [, html] = tipQ.shift(); el.innerHTML = html; el.hidden = false; tipT = 6; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+  el.hidden = true; if (tipKey) tipPulse(tipKey = ''); if (!tipQ.length || paused) return;
+  const [key, html] = tipQ.shift(); tipPulse(tipKey = key); el.innerHTML = html; el.hidden = false; tipT = 6; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
 }
 // the tutorial's build steps: where that building would do well (near the castle; lumber by trees; archers toward the raiders),
 // shown as soft gold tiles over the cells it would take, a small gap between them like the grid (Jack: a grid, not a circle,
@@ -198,7 +201,7 @@ function startNight() {
   const w = WAVES[PH.wave - 1];
   PH.kind = 'night'; spawnQueue = []; sfx('horn');
   const pts = nightPts().map((p, i) => cellPass(cellAt(p.x, p.z), 2) ? p : edgePoint(i)); nextPts = null;
-  tipOnce('volley', 'Tap <b>Arrow volley</b>, then tap the raiders'); tipOnce('riders', 'Tap <b>Riders</b> to call two horsemen from the castle');
+  tipOnce('volley', 'Tap <b>Arrow volley</b>, then tap the raiders'); tipOnce('riders', `Tap <b>Riders</b> to call ${SUMMON.n > 1 ? 'two horsemen' : 'a horseman'} from the castle`);
   // siege engines at the head of the column (Jack: they are slow, so they set off first), then foot and horse mixed (spearmen first),
   // bosses last of all; each entry [kind, spawn point, tier]
   // hard mode: every raider a tier up (tier 3 stays 3)

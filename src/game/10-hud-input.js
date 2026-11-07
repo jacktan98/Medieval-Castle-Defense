@@ -158,7 +158,8 @@ function refreshCard() {
   $('#rallyBtn').hidden = $('#recallBtn').hidden = !T.soldiers || !B.built;
   $('#rallyBtn').setAttribute('aria-pressed', String(rallyFor === B)); $('#recallBtn').disabled = !B.rally;
   $('#moveBtn').hidden = !T.movable || !B.built || !!B.site; $('#moveBtn').setAttribute('aria-pressed', String(moveFor === B));
-  const sb = $('#summonBtn'); sb.hidden = B.type !== 'castle' || !B.built;
+  // the arrow volley and the riders live only on the night powers' round buttons now (Jack had them taken off the castle's card)
+  const sb = $('#summonBtn'); sb.hidden = true;
   if (!sb.hidden) {
     const out = summoned().length > 0, cool = !out && summonCd > 0, day = PH.kind !== 'night';
     const ico = out ? 'rally' : 'horse'; if (sb.dataset.ico !== ico) { sb.dataset.ico = ico; sb.querySelector('svg').innerHTML = out ? '<path d="M6 21 V3.5"/><path d="M6 4 H17.5 L15 8 L17.5 12 H6"/>' : HORSE_ICO; }
@@ -166,7 +167,7 @@ function refreshCard() {
     sb.title = out ? 'Rally: tap, then a spot' : day ? 'Night only' : 'Riders: two for the night'; sb.setAttribute('aria-pressed', String(out && rallyFor === B));
     sb.querySelector('.cd').textContent = cool ? Math.ceil(summonCd) : '';
   }
-  const vb = $('#volleyBtn'); vb.hidden = B.type !== 'castle';
+  const vb = $('#volleyBtn'); vb.hidden = true;
   if (!vb.hidden) { const cool = volleyCd > 0, day = PH.kind !== 'night'; vb.classList.toggle('cool', cool); vb.classList.toggle('off', day && !cool); vb.disabled = cool; vb.title = day ? 'Night only' : 'Arrow volley: tap, then a spot'; vb.querySelector('.cd').textContent = cool ? Math.ceil(volleyCd) : ''; vb.setAttribute('aria-pressed', String(volleyAim)); }
   const up = $('#upBtn');
   if (!T.up) up.hidden = true;
