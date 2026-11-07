@@ -124,8 +124,9 @@ function rangeOf(B) {
 const siegeRate = B => DEF[B.type].rate[B.tier - 1] * (1 - decorFx(center(B).x, center(B).z, 'siegeRate'));
 // crop blight (Jack: a reason for the farmhouse that makes sense): a blight kills crops but not livestock, so fields fail and the
 // farmhouse's hens, pigs and cow keep their full yield. Meadowmere: the damp from the marsh spreads it, fields grow half anywhere
-// and .3 in the marsh itself; the Blighted Isle (bonus): blight everywhere, fields at a fifth
-const soddenK = B => B.type !== 'farm' ? 1 : MAP === 'mere' ? (marshW(center(B).x / MK, center(B).z / MK) > .5 ? .3 : .5) : bonusOn() && MAP === 'isle' ? .2 : 1;
+// and .3 in the marsh itself; Raider Keep (Jack: blighted too, so the farmhouse pays there): fields at half; the Blighted Isle
+// (bonus): blight everywhere, fields at a fifth
+const soddenK = B => B.type !== 'farm' ? 1 : MAP === 'mere' ? (marshW(center(B).x / MK, center(B).z / MK) > .5 ? .3 : .5) : MAP === 'keep' ? .5 : bonusOn() && MAP === 'isle' ? .2 : 1;
 const prodK = B => (1 + decorFx(center(B).x, center(B).z, 'prod')) * soddenK(B);
 // Jack: fields built on Meadowmere anyway show what they lose: a red "−50%" (−70% in the marsh) with the food icon over them,
 // held a few seconds then fading, when placed and again when built

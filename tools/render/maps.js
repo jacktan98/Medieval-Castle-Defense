@@ -13,6 +13,9 @@ const VIEW = { meadow: [28, 0, 28, 0, 1.56, 64], isle: [28, 0, 28, 0, 1.56, 64],
   for (const m of only.length ? only : Object.keys(VIEW)) {
     const v = VIEW[m];
     await page.evaluate(m => G(`try { localStorage['mtd-guide'] = 'done'; } catch (e) {} guideFinish(); MAP = '${m}'; startGame(); paused = true; 0`), m);
+    // the stage's weather in its picture, lightly (Jack: not overdone): falling snow and ash a bit more, mist least (it greys the view);
+    // seen straight down, rain is only dots and flakes are specks, so for the picture the streaks are slanted longer and the flakes bigger
+    await page.evaluate(() => G(`if (WX.K) { WX.w = WX.cfg.kind === 'mist' ? .3 : WX.cfg.always ? .6 : .45; WX.goal = WX.w; if (WX.K.lines) WX.K = Object.assign({}, WX.K, { len: 2.2, wind: WX.K.wind * 6 }); else wxPts.material.size *= 2.2; } 0`));
     await page.waitForTimeout(1500);
     const url = await page.evaluate(([v, px]) => G(`for (const u of villagers) u.g.visible = false; hideGhost(); deselect();
       target.set(${v[0]}, ${v[1]}, ${v[2]}); yaw = ${v[3]}; pitch = ${v[4]}; dist = ${v[5]}; CAM_LIM.far = 200; updateCam();

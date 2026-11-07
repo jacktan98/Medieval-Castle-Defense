@@ -562,7 +562,7 @@ const CAMPAIGN = [
   { name: 'Siegeford', map: 'ford', at: [320, 405], land: 'Highlands · little wood', adds: ['catapult', 'stores'] },
   { name: 'Meadowmere', map: 'mere', at: [548, 470], land: 'Damp blight · crops fail', adds: ['farmhouse'] },
   { name: 'Horsefields', map: 'plains', at: [668, 340], land: 'Open plains', adds: ['stables'] },
-  { name: 'Raider Keep', sub: 'Boss', map: 'keep', at: [475, 225], boss: true, adds: [] },
+  { name: 'Raider Keep', sub: 'Boss', map: 'keep', at: [475, 225], boss: true, land: 'Blighted land · crops fail', adds: [] },
   { name: "Warlord's Hold", sub: 'Boss', map: 'hold', at: [290, 115], boss: true, adds: [] },
   // the bonus stages (Jack): the old free-play maps made very hard, open once all twelve are won; Hard only, a crown and no stars
   { name: 'Scorched Meadow', sub: 'Bonus', map: 'meadow', at: [140, 820], bonus: true, land: 'Drought · no trees or rocks', adds: [] },
