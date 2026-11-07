@@ -146,11 +146,11 @@ const MAP_RULES = {
           day: [900, 150], spawnGap: .5 },
   // Greenvale, the campaign's first stop and its tutorial: three short nights of tier-1 spearmen and archers, from the north-east
   vale: { waves: [{ spear: [4] }, { spear: [6], archer: [2] }, { spear: [8], archer: [3] }], day: [180, 120, 120], spawnGap: 1.6,
-          res: { gold: 60, wood: 45, stone: 10, food: 30 } },
+          res: { gold: 60, wood: 45, stone: 0, food: 30 } },
   // Stonebridge (stage 2): raiders from the north over the stone bridge; from night 3 some come by the ford upstream
   // three nights after a 3-minute first day (Jack)
   bridge: { waves: [{ spear: [5] }, { spear: [6], sword: [3] }, { spear: [10], sword: [6], archer: [3] }],   // no ram yet (Jack: later stages)
-            day: [180, 120, 120], spawnGap: 1.4, res: { gold: 60, wood: 45, stone: 20, food: 30 } },
+            day: [180, 120, 120], spawnGap: 1.4, res: { gold: 60, wood: 45, stone: 0, food: 30 } },
   // Market Cross (stage 3): down the north road, from night 3 along the east road too; horsemen on nights 3 and 4 (Jack: more horses)
   cross: { waves: [{ spear: [6] }, { spear: [6], sword: [4] }, { spear: [6], sword: [4], archer: [3], lancer: [3] }, { spear: [8], sword: [5], archer: [4], lancer: [4], rider: [2] }],
            day: [240, 120, 120, 120], spawnGap: 1.3, res: { gold: 60, wood: 45, stone: 0, food: 30 } },
