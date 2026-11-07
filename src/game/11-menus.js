@@ -903,7 +903,7 @@ $('#adGallery').addEventListener('click', openGallery);
 // the same button sits in the admin panel and in Settings (the gear; Jack)
 let campResetT = 0;
 for (const b of document.querySelectorAll('.campReset')) b.addEventListener('click', () => {
-  if (performance.now() > campResetT) { campResetT = performance.now() + 3000; b.classList.add('armed'); b.textContent = 'Tap again to reset'; setTimeout(() => { if (performance.now() > campResetT) { b.classList.remove('armed'); b.textContent = 'Reset campaign'; } }, 3100); return; }
+  if (performance.now() > campResetT) { campResetT = performance.now() + 3000; b.style.minWidth = b.offsetWidth + 'px'; b.classList.add('armed'); b.innerHTML = PICO.tick.replace('<svg ', '<svg class="bIco" '); setTimeout(() => { if (performance.now() > campResetT) { b.classList.remove('armed'); b.textContent = 'Reset campaign'; b.style.minWidth = ''; } }, 3100); return; }
   try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor', 'upg']) localStorage.removeItem('mtd-' + k); } catch (e) {}
   location.reload();
 });
