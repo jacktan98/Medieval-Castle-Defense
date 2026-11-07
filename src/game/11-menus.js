@@ -676,6 +676,7 @@ function openCampaign(i) {
   { const st = CAMPAIGN.filter(c => c.map), won = st.filter(c => STARS[c.map] > 0).length, stars = starTotal(), max = st.length * 3;
     $('#campStars').innerHTML = `<span><b>${won}</b> / ${st.length} stages</span><span class="sep">·</span><span><b>★ ${stars}</b> / ${max}</span>`;
     $('#campUpN').hidden = !upLeft(); $('#campUpN').textContent = '★' + upLeft(); }
+  achCheck();
   // opens on the given stage (Restart / Play again) or where the player is
   cSel = i !== undefined ? i : cCur; cDrag = 0; layoutDeck(false); openStage(cSel);
 }
@@ -904,7 +905,7 @@ $('#adGallery').addEventListener('click', openGallery);
 let campResetT = 0;
 for (const b of document.querySelectorAll('.campReset')) b.addEventListener('click', () => {
   if (performance.now() > campResetT) { campResetT = performance.now() + 3000; b.style.minWidth = b.offsetWidth + 'px'; b.classList.add('armed'); b.innerHTML = PICO.tick.replace('<svg ', '<svg class="bIco" '); setTimeout(() => { if (performance.now() > campResetT) { b.classList.remove('armed'); b.textContent = 'Reset campaign'; b.style.minWidth = ''; } }, 3100); return; }
-  try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor', 'upg']) localStorage.removeItem('mtd-' + k); } catch (e) {}
+  try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor', 'upg', 'ach']) localStorage.removeItem('mtd-' + k); } catch (e) {}
   location.reload();
 });
 $('#moveBtn').addEventListener('click', () => { if (paused) return setHint('Paused', 'bad'); if (!selected) return; moveFor = moveFor === selected ? null : selected; setHint(moveFor ? 'Tap a tile' : 'Select a building'); refreshCard(); });
@@ -914,7 +915,7 @@ $('#cardTrade').addEventListener('click', e => {
   if (paused) return setHint('Paused', 'bad');
   const t = TRADES[+b.dataset.i], give = { [t.give]: 10 }, n = t.n[B.tier - 1], c = center(B);
   if (!canAfford(give)) return setHint(`Need ${costHTML(give)}`, 'bad');
-  pay(give); res[t.get] += n; const y = B.group.position.y + 2.4;
+  pay(give); res[t.get] += n; achAdd('trades'); const y = B.group.position.y + 2.4;
   floatRes(t.get, n, c.x, y, c.z); coinFly(c.x, y, c.z, Math.min(4, Math.ceil(n / 2)), t.get); sfx('trade'); refreshCard();
 });
 function volleyAct() {

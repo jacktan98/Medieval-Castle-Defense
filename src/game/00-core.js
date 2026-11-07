@@ -242,6 +242,7 @@ const stageGoals = m => STAGE_GOALS[m] || [];
 const goalOk = ([t, ok]) => !!goalsMet[t] || !!ok();
 function goalTick() {
   if (gameOver) return;
+  achMax('vill', townsfolk().length);
   // hard mode has no goals: no tick, log line or star sound (Jack)
   if (!hardOn) for (const [t, ok, end] of stageGoals(MAP)) if (!end && !goalsMet[t] && ok()) { goalsMet[t] = true; log(`<b>Goal</b> · ${t} ✓`, 'good'); sfx('star'); }
   renderGoals();

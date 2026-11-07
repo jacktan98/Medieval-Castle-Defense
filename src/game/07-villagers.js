@@ -672,8 +672,8 @@ function deliver(v) {
   if (v.dropLoad) return;
   if (PH.kind === 'night') { if ((v.carryLog && v.carryLog.visible) || (v.carryStone && v.carryStone.visible)) v.dropLoad = true; if (!v.doorWalk) dropLoad(v); return; }   // nothing is gathered at night: a load carried in after dark is lost
   // Carts (+1 wood a trip) is the lumber camp's upgrade only: a forester's woodcutters always bring 2 (Jack)
-  if (v.carryLog && v.carryLog.visible) { const L = v.job && v.job.type === 'forester' ? 2 : LUMBER_LOAD; res.wood += L; stats.wood += L; v.dropLoad = true; }
-  if (v.carryStone && v.carryStone.visible) { res.stone += 1 + UPK.stoneTrip; stats.stone += 1 + UPK.stoneTrip; v.dropLoad = true; }
+  if (v.carryLog && v.carryLog.visible) { const L = v.job && v.job.type === 'forester' ? 2 : LUMBER_LOAD; res.wood += L; stats.wood += L; achAdd('wood', L); v.dropLoad = true; }
+  if (v.carryStone && v.carryStone.visible) { res.stone += 1 + UPK.stoneTrip; stats.stone += 1 + UPK.stoneTrip; achAdd('stone', 1 + UPK.stoneTrip); v.dropLoad = true; }
   if (!v.doorWalk) dropLoad(v);           // otherwise it is carried in through the door
 }
 function dropLoad(v) { if (v.dropLoad) { v.carryLog.visible = v.carryStone.visible = false; v.dropLoad = false; } }
@@ -744,7 +744,7 @@ function updateWorker(v, dt, now) {
     if ((v.digT -= dt) <= 0) {
       v.digT = DEF.mine.dig[W.tier - 1] * (.9 + Math.random() * .2) / prodK(W);
       if (PH.kind === 'day') {
-        const c = center(W); res.stone++; stats.stone++; stats.mined++; floatRes('stone', 1, c.x, W.group.position.y + 2.2, c.z); W.cartT = 2.4; sfx('pick', c, .6);
+        const c = center(W); res.stone++; stats.stone++; stats.mined++; achAdd('stone'); floatRes('stone', 1, c.x, W.group.position.y + 2.2, c.z); W.cartT = 2.4; sfx('pick', c, .6);
         if (!W.hauler && Math.random() < .4) mineHaul(v, W);          // now and then one comes up to tip the cart's stone onto the heap
       }
     }

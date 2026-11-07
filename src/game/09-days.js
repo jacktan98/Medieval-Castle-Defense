@@ -6,10 +6,10 @@ function econTick() {
     const c = center(B), T = DEF[B.type];
     if (T.field) {                    // food by farmers at work: a Manor farm with 1 of its 2 farmers makes half
       const k = B.tier - 1, raw = T.food[k] * farmersAt(B) / T.workers[k] * prodK(B), f = Math.floor(raw) + (Math.random() < raw % 1 ? 1 : 0);
-      if (f) { res.food += f; stats.food += f; floatRes('food', f, c.x, B.group.position.y + 1.6, c.z); }
+      if (f) { res.food += f; stats.food += f; achAdd('food', f); floatRes('food', f, c.x, B.group.position.y + 1.6, c.z); }
     }
     if (B.type === 'castle') {
-      const g = T.gold[B.tier - 1], f = T.food[B.tier - 1]; res.gold += g; stats.gold += g; res.food += f; stats.food += f;
+      const g = T.gold[B.tier - 1], f = T.food[B.tier - 1]; res.gold += g; stats.gold += g; res.food += f; stats.food += f; achAdd('food', f);
       floatRes('gold', g, c.x, B.group.position.y + 7.2, c.z); floatRes('food', f, c.x, B.group.position.y + 6.4, c.z); coinFly(c.x, B.group.position.y + 5, c.z, 3);
     }
     if (B.type === 'house') {
@@ -334,6 +334,8 @@ function endGame(won) {
     unlockNext = won && !hardOn && st >= 0 && st + 1 < CAMPAIGN.length && !(STARS[MAP] > 0) ? st + 1 : null; }
   if (!hardOn && n > (STARS[MAP] || 0)) { STARS[MAP] = n; try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {} }
   if (won && hardOn && !CROWNS[MAP]) { CROWNS[MAP] = 1; try { localStorage.setItem('mtd-crowns', JSON.stringify(CROWNS)); } catch (e) {} }
+  // achievements of the win itself, then the ones the stars and crowns now earn
+  if (won) { if (!stats.lostB) achFlag('flawless'); if (C && C.hp < C.max * .1) achFlag('laststand'); } achCheck();
   if (won && hardOn) $('#sumText').innerHTML = `All ${NIGHTS} waves held · <b class="hardTag">Hard</b>`;
   if (won && stats.playT && !(BEST[MAP] <= stats.playT)) { BEST[MAP] = Math.round(stats.playT); try { localStorage.setItem('mtd-best', JSON.stringify(BEST)); } catch (e) {} }
   // Jack: not straight to the summary; a pause on the field first, then the stars pop in one at a time (a sound per star: SND.star, Star_sound.mp3)

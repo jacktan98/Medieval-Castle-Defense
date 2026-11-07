@@ -382,7 +382,7 @@ const volleyLine = makeLine('#8fc1db', 1);
 // with nobody on the posts it comes from the castle top
 const volleyFigs = C => (C.figs || []).filter((f, a) => f && C.manned && C.manned[a]);
 function castVolley(pt) {
-  stats.volleys = (stats.volleys || 0) + 1;
+  stats.volleys = (stats.volleys || 0) + 1; achAdd('volleys');
   const C = castleB(); if (!C) return;
   const k = C.tier - 1, n = VOLLEY.n[k], R = VOLLEY.r[k], per = VOLLEY.dmg[k] / n, m = Math.max(1, volleyFigs(C).length), each = Math.ceil(n / m), gap = VOLLEY.spread / each;
   for (let i = 0; i < n; i++) volleyQ.push({ t: .35 + Math.floor(i / m) * gap + (i % m) * .05 + Math.random() * .05, fig: i % m, x: pt.x, z: pt.z, per, R });
@@ -479,6 +479,8 @@ function hurtEnemy(e, d, by) {
   if (e.dead) return; e.hp -= d; e.flashT = .14;
   if (e.hp <= 0) {
     e.dead = true; e.bar.grp.visible = false; stats.slain++; const y = walkY(e.x, e.z);
+    // achievements (campaign only): every raider slain, burning ones, those a rider struck down, engines and the two bosses
+    achAdd('kills'); if (e.burnT > 0) achAdd('burns'); if (by && by.horse) achAdd('riders'); if (ENEMY[e.kind].engine) achAdd('engines'); if (e.kind === 'chief' || e.kind === 'warlord') achFlag(e.kind);
     // a bounty for every raider slain (Kingdom Rush style): its tier in gold, a rider one more, an engine 4; bosses none (Jack)
     const bounty = ENEMY[e.kind].boss ? 0 : ENEMY[e.kind].engine ? 4 : (e.tier || 1) + (ENEMY[e.kind].mounted ? 1 : 0);
     if (bounty) { res.gold += bounty; stats.gold += bounty; floatRes('gold', bounty, e.x, y + 1.6, e.z); }
@@ -940,7 +942,7 @@ function updateSoldier(v, dt) {
     // their first blow on it hits twice as hard, with a burst of dust
     const charge = v.cav && v.charged !== foe && (v.summoned || UPK.lance);
     if (d > reach) { walkTo(v, foe.x, foe.z, dt, 1, reach * .9, 1.25 * ride * (charge ? 1.35 : 1)); if (v.noProg > 4) { v.skip = { e: foe, t: 4 }; v.foe = null; } }    // can't reach that one
-    else { turnTo(v, Math.atan2(foe.x - v.x, foe.z - v.z), dt); if (v.cool <= 0) { v.cool = S.rate * (1 - decorFx(v.x, v.z, 'troopRate')); v.attackT = v.toolKind === 'spear' ? SPEAR_T : SWORD_T; hurtEnemy(foe, S.dmg[k] * (1 + decorFx(v.x, v.z, 'troopDmg')) * (charge ? 2 : 1));
+    else { turnTo(v, Math.atan2(foe.x - v.x, foe.z - v.z), dt); if (v.cool <= 0) { v.cool = S.rate * (1 - decorFx(v.x, v.z, 'troopRate')); v.attackT = v.toolKind === 'spear' ? SPEAR_T : SWORD_T; hurtEnemy(foe, S.dmg[k] * (1 + decorFx(v.x, v.z, 'troopDmg')) * (charge ? 2 : 1), v);
       if (charge) { const y = walkY(foe.x, foe.z); for (let n = 0; n < 3; n++) dustAt(foe.x + (Math.random() - .5) * .6, y, foe.z + (Math.random() - .5) * .6); shake(.03, foe, 'charge', .8); }
       v.charged = foe; sfx('clash', v); } }
   } else if (Math.hypot(hx - v.x, hz - v.z) > .35) walkTo(v, hx, hz, dt, 1, .3, 1.3 * ride);

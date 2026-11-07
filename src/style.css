@@ -265,7 +265,7 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
    darken it, more than the title does, so the cards and text stay clear */
 body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 45%, rgba(8,9,6,.45) 0%, rgba(8,9,6,.62) 60%, rgba(5,6,4,.9) 100%)!important}
 /* buttons stand out on the dark: a bronze plate with a gold rim, light gold text and a soft glow; the main action stays solid gold */
-.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw):not(.setBtn):not(.upTab):not(.upNode),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
+.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw):not(.setBtn):not(.upTab):not(.upNode):not(.achNode),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
   box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 12px rgba(212,168,78,.18),inset 0 1px 0 rgba(255,230,160,.25)!important;font-weight:500}
 .modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw):not(.setBtn):hover{filter:brightness(1.15)}
 .cArrow{background:linear-gradient(180deg,#4a3c22,#2e2515)!important;border:2px solid #c9a03e!important;box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 14px rgba(212,168,78,.25)!important}
@@ -681,7 +681,7 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 /* the campaign screen's round buttons, on the left just above the progress bar (Jack): Upgrades (a hammer, with the stars still to spend), Achievements later beside it; no height of their own, so the deck and the bar don't move */
 .cDotsWrap{position:relative;width:min(380px,100%)} .cDotsWrap .cDots{width:100%}
 .campSide{position:absolute;left:0;bottom:100%;margin-bottom:10px;z-index:5;display:flex;gap:10px}
-.modal.tome .campSide .campCirc{position:relative;width:48px;height:48px;min-height:0!important;padding:0!important;border-radius:50%!important;display:grid!important;place-items:center;background:radial-gradient(circle at 50% 35%,#5a4426,#241a0c)!important;border:2px solid #d9b04e!important;box-shadow:0 2px 8px rgba(0,0,0,.6),0 0 10px rgba(240,201,90,.25)!important}
+.modal.tome .campSide .campCirc,.modal.tome .campAch .campCirc{position:relative;width:48px;height:48px;min-height:0!important;padding:0!important;border-radius:50%!important;display:grid!important;place-items:center;background:radial-gradient(circle at 50% 35%,#5a4426,#241a0c)!important;border:2px solid #d9b04e!important;box-shadow:0 2px 8px rgba(0,0,0,.6),0 0 10px rgba(240,201,90,.25)!important}
 .campCirc > svg{width:30px;height:30px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.7))}
 .campBadge{position:absolute;top:-5px;right:-14px;padding:0 5px;border-radius:9px;background:#f0c95a;color:#2a1d0a;font-size:11px;font-weight:700;line-height:16px;border:1.5px solid #fff1c4;box-shadow:0 1px 3px rgba(0,0,0,.6);animation:badgePulse 1.6s ease-in-out infinite}
 /* stars still to spend: the badge pulses and glows so players see there are upgrades to buy (Jack); hidden at none */
@@ -745,4 +745,26 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
   .ldGrid .lb{display:inline}
   .loadSheet > .ldBtns{margin-top:2px} .loadSheet > .ldBtns button{min-height:30px;padding:3px 18px}
 }
-}
+
+/* ---- achievements (Jack): the trophy beside the Upgrades hammer upright; on a phone held sideways at the progress bar's right end ---- */
+.campAch{position:absolute;left:58px;bottom:100%;margin-bottom:10px;z-index:5}
+@media (max-height:520px){ .campAch{left:100%;bottom:0;margin:0 0 0 12px} }
+#achPick{display:flex;justify-content:center;align-items:flex-start;overflow:auto} #achPick .upSheet{margin:auto}
+body.showcase #achPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 20%, rgba(42,32,18,.9) 0%, rgba(14,11,6,.95) 55%, rgba(6,5,3,.98) 100%)!important}
+.achSheet .upBank{gap:5px;font-size:14px} .achSheet .upBank b{font-size:18px}
+.achGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 8px;width:100%}
+.achItem{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.modal.tome .achNode{position:relative;width:62px;height:62px;min-height:0!important;padding:0!important;border-radius:10px!important;display:grid;place-items:center;border:2px solid #5a4a2a!important;background:linear-gradient(#2c2213,#130e07)!important;box-shadow:none!important}
+.achNode > svg:first-child{width:38px;height:38px;opacity:.42;filter:grayscale(1)}
+.modal.tome .achNode.done{border-color:#f7d77a!important;background:radial-gradient(circle at 50% 35%,#a07a32,#4a3410)!important;box-shadow:0 0 12px rgba(255,205,90,.55),inset 0 0 0 2px rgba(255,241,196,.25)!important}
+.achNode.done > svg:first-child{opacity:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+.modal.tome .achNode.sel{outline:2.5px solid #fff1c4;outline-offset:3px}
+.achName{font-size:10.5px;font-weight:700;color:#e8d6a6;text-align:center;line-height:1.15;margin-top:4px}
+.achBar{width:54px;height:4px;border-radius:2px;background:rgba(0,0,0,.55);overflow:hidden} .achBar u{display:block;height:100%;background:linear-gradient(90deg,#d9a12e,#fff0b0)}
+.achDet{margin-top:auto} .upSheet .achDet{margin-top:16px}
+.achP{margin-top:3px;font-size:12px;font-weight:700;color:#bfae80} .achP.ok{color:#f0c95a}
+#achToast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 74px);transform:translate(-50%,-14px);z-index:60;display:flex;align-items:center;gap:9px;padding:6px 14px 6px 6px;border-radius:30px;border:2px solid #f0c95a;background:linear-gradient(#5a4428,#2a1f0e);box-shadow:0 4px 16px rgba(0,0,0,.6),0 0 14px rgba(240,201,90,.45);opacity:0;transition:opacity .35s,transform .35s;pointer-events:none}
+#achToast.show{opacity:1;transform:translate(-50%,0)}
+#achToast .atIco{width:40px;height:40px;border-radius:50%;border:2px solid #f7d77a;background:radial-gradient(circle at 50% 35%,#a07a32,#4a3410);display:grid;place-items:center} #achToast .atIco svg{width:26px;height:26px}
+#achToast .atTx{display:flex;flex-direction:column;line-height:1.1} #achToast small{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#d9c08a} #achToast b{font-family:var(--display);font-weight:400;font-size:17px;color:#ffe2a0}
+@media (max-height:520px){ .achGrid{grid-template-columns:repeat(8,1fr);gap:8px 6px} .modal.tome .achNode{width:52px;height:52px} .achNode > svg:first-child{width:32px;height:32px} .upSheet .achDet{margin-top:10px;max-width:520px;align-self:center} #achToast{top:12px} }

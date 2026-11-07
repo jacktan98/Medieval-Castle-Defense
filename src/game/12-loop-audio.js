@@ -580,9 +580,9 @@ function adaptResolution(raw) {
 }
 // a title screen, map or town picker, campaign or stage preview, or the new-building cards is up: the game underneath stands still
 // (setPaused(false) at startup used to set it running under the title screen, paying out gold)
-const MENUS = ['#mapPick', '#loadPick', '#campaign', '#newCards', '#upPick'].map(q => $(q));
+const MENUS = ['#mapPick', '#loadPick', '#campaign', '#newCards', '#upPick', '#achPick'].map(q => $(q));
 const menuOn = () => MENUS.some(m => !m.hidden);
-const mapPickEl = $('#mapPick'), campEl = $('#campaign'), loadEl = $('#loadPick'), upEl = $('#upPick'); let liteN = 0;
+const mapPickEl = $('#mapPick'), campEl = $('#campaign'), loadEl = $('#loadPick'), upEl = $('#upPick'), achEl = $('#achPick'); let liteN = 0;
 mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button') && !e.target.closest('#colCard')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
 // one step of the game itself (no camera, no drawing): frame runs it every animation frame; tools/test runs it in a loop to play fast
 function tick(dt, now) {
@@ -623,7 +623,7 @@ function frame(now) {
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   keyCamera(dt);
   if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now); updateWeather(dt, !paused && !menuOn() && !gameOver);
-  const sc = showcaseBuilt && (!mapPickEl.hidden || !campEl.hidden || !loadEl.hidden || !upEl.hidden); if (sc !== document.body.classList.contains('showcase')) document.body.classList.toggle('showcase', sc);
+  const sc = showcaseBuilt && (!mapPickEl.hidden || !campEl.hidden || !loadEl.hidden || !upEl.hidden || !achEl.hidden); if (sc !== document.body.classList.contains('showcase')) document.body.classList.toggle('showcase', sc);
   // the title's showcase town: the camera circles slowly. It looks a little beyond the town, so the town sits low on the screen,
   // under the cards (an off-centre lens did that before and skewed the picture: Jack found it squeezed); on a wide screen the view
   // is narrowed to about 64 degrees across (45 degrees up and down gave nearly 90 across a laptop: wide-angle smear at the sides)
@@ -639,7 +639,7 @@ function frame(now) {
   } else if (camera.fov !== 45) { camera.fov = 45; camera.updateProjectionMatrix(); }
   // behind the campaign and the town picker the scene is darkened under panels: drawn at 1x pixels and every other frame, so the
   // phone keeps its time for the cards (Jack found the carousel slow to answer); full detail again on the title and in the game
-  const lite = sc && (!campEl.hidden || !loadEl.hidden || !upEl.hidden), pr = lite ? Math.min(pixelK, 1) : pixelK;
+  const lite = sc && (!campEl.hidden || !loadEl.hidden || !upEl.hidden || !achEl.hidden), pr = lite ? Math.min(pixelK, 1) : pixelK;
   // (a resize clears the canvas, so that frame is always drawn: a skipped one showed a blank canvas for a moment)
   let fresh = false; if (renderer.getPixelRatio() !== pr) { renderer.setPixelRatio(pr); resize(); fresh = true; }
   if (paused || menuOn()) { if (!lite || fresh || (liteN = (liteN + 1) % 2) === 0) renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }
