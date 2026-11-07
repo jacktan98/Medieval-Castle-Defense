@@ -394,18 +394,19 @@ function volleyPose(f, draw) {
   const [l, r] = f.arms; l.rotation.set(-2.35, 0, .6);
   if (draw) r.rotation.set(-2.2, 0, -.62); else r.rotation.set(-1.7, 0, .2);
 }
-// the castle's second ability (Jack): two of the town's riders, of the castle's tier, ride out of the castle for the night; the button
+// the castle's second ability (Jack): one of the town's riders (two with the Second rider upgrade; three were too strong), of the castle's tier, ride out of the castle for the night; the button
 // then rallies them (tap it, then a spot); once both have fallen it waits SUMMON.cd s of game time before it can call two more; at dawn
 // they ride back in and are gone. They are villagers marked summoned, posted to the castle (post.summon), never counted as the town's
 // people (housing, idle, food), never respawned, and they hold the castle's rally flag
-const SUMMON = { n: 2, cd: 20 }, HORSE_ICO = '<g transform="translate(12 0) scale(-1.3 1) translate(-12.6 0)"><path d="M10.6 4.3 L12 1.2 L12.4 4.2"/><path d="M14 4 L15.8 1.6 L15.4 5.7"/><path d="M10.6 4.3 C7.6 6.4 6.2 10 6.3 14.3 C6.4 18.4 9.2 21.4 12.6 22.9"/><path d="M15.4 5.7 C16.6 7.5 17.6 10.4 18 13.1 C18.3 14.2 19.3 14.6 18.9 15.8 C18.4 17.1 16.8 17.4 15.1 16.6"/><path d="M10 9.7 C10.8 12.6 12.6 15.2 15.1 16.6"/><path d="M12.9 14.9 C13.4 17.6 13.2 20.4 12.6 22.9"/></g>';
+const SUMMON = { n: 1, cd: 20 }, HORSE_ICO = '<g transform="translate(12 0) scale(-1.3 1) translate(-12.6 0)"><path d="M10.6 4.3 L12 1.2 L12.4 4.2"/><path d="M14 4 L15.8 1.6 L15.4 5.7"/><path d="M10.6 4.3 C7.6 6.4 6.2 10 6.3 14.3 C6.4 18.4 9.2 21.4 12.6 22.9"/><path d="M15.4 5.7 C16.6 7.5 17.6 10.4 18 13.1 C18.3 14.2 19.3 14.6 18.9 15.8 C18.4 17.1 16.8 17.4 15.1 16.6"/><path d="M10 9.7 C10.8 12.6 12.6 15.2 15.1 16.6"/><path d="M12.9 14.9 C13.4 17.6 13.2 20.4 12.6 22.9"/></g>';
 var summonCd = 0, summonOut = false;
 const summoned = () => villagers.filter(v => v.summoned && !v.gone);
 // the way the castle's door looks out; the riders' places either side in front of it
 const faceAngle = B => { const [fx, fz] = faceRot(B.face || 0, 0, 1); return Math.atan2(fx, fz); };
 // the keep's own door inside the courtyard (tiers 2-3); at tier 1 the hall door is the castle's inner door already
 const keepDoor = B => { if (B.tier === 1) return null; const c = center(B), [x, z] = faceRot(B.face || 0, 0, .9 * CASTLE_K[B.tier - 1]); return { x: c.x + x, z: c.z + z }; };
-const summonSpot = (B, a) => faceRot(B.face || 0, a === 1 ? -.75 : .75, .9);
+// one rider stands in the middle; with Second rider bought, two side by side (Jack: three were too strong)
+const summonSpot = (B, a) => faceRot(B.face || 0, SUMMON.n < 2 ? 0 : a === 1 ? -.75 : .75, .9);
 function summonRiders() {
   const K = castleB(); if (!K) return;
   for (let a = 0; a < SUMMON.n; a++) {
@@ -418,7 +419,7 @@ function summonRiders() {
     v.x = v.rx = v.tx = p.x; v.z = v.rz = v.tz = p.z; v.g.visible = a === 0; v.g.rotation.y = faceAngle(K);
     v.doorWalk = { x: p.x, z: p.z, hold: a * 1.1, on: u => { u.g.visible = true; }, next: p === g ? out : { x: g.x, z: g.z, next: out } };
   }
-  summonOut = true; sfx('neigh'); log(`<b>${RIDER.names[K.tier - 1]}s</b> ride out`, 'good');
+  summonOut = true; sfx('neigh'); log(`<b>${RIDER.names[K.tier - 1]}${SUMMON.n > 1 ? 's</b> ride' : '</b> rides'} out`, 'good');
 }
 // dawn: back to the castle door at a trot, and gone
 // dawn: back to the castle's door and in the way they came out: through the gate (or the hall door), then the keep's door, and gone
