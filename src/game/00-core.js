@@ -11,7 +11,7 @@ let N = 28, SIZE = N * CELL, V = SIZE + 1;
 const F = 3, TICK = 20;
 let KX = 19, KZ = 27;                  // castle site: Meadow cells 8–10, 12–14; River isle 12–14, 12–14 (set per map in startGame)
 // MAP: 'meadow' (the original map) or 'isle' (the castle on an island ringed by a river, three fixed bridges); ?map=isle skips the picker
-var MAP = (location.search.match(/[?&]map=(meadow|isle|pass|vale|bridge|cross|watch|dune|bend|crag|ford|mere|plains|keep|hold)\b/) || [])[1] || (() => { try { const m = localStorage.getItem('mtd-map'); return /^(meadow|isle|pass)$/.test(m) ? m : null; } catch (e) { return null; } })() || 'meadow';
+var MAP = (location.search.match(/[?&]map=(meadow|isle|pass|vale|bridge|cross|watch|dune|bend|crag|ford|mere|plains|keep|hold)\b/) || [])[1] || 'vale';
 // river isle: the river's centre line wobbles round the castle; ISLE.r is its mean radius in metres
 const ISLE = { r: 16.6 }, ISLE_BRIDGES = [-90, 30, 150], ISLE_ROCKS = [-30, 90, 210], MEADOW_BRIDGES = [0];   // Meadow: one bridge east from the castle over its river
 const isleOutN = z => 41 + 2.5 * Math.sin(z * .22 + .5), isleOutS = z => 18 + 2.5 * Math.sin(z * .2 + 2);   // the isle's two outflows: centre x by z
@@ -130,15 +130,8 @@ DEF.well.charm = .25; DEF.torch.charm = .1; DEF.flowers.charm = .15; DEF.statue.
 const PATH_COST = { gold: 1 }, PATH_SPEED = 1.6, PATH_CHARM = .02, CHARM_R = 8, WALK = { farm: 1, forester: 1, farmhouse: 1, torch: 1, flowers: 1 };
 const CATS = { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'stables', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'banner'] };
 const WALLY = { wall: 1, gate: 1 };   // walls join only walls and gates
-// each wave: how many of each raider kind come, by tier ([tier 1, tier 2, tier 3]); spearmen are the basic raider and come
-// first, the rest join wave by wave, tiers climb, siege engines come last in the column
-const WAVES_STD = [
-  { spear: [7], archer: [2] },
-  { spear: [7, 2], sword: [4], archer: [3], ram: [1] },
-  { spear: [6, 4], sword: [4, 2], archer: [3, 2], xbow: [3], lancer: [2], ballista: [1] },
-  { spear: [4, 6, 2], sword: [3, 4, 2], archer: [2, 4, 1], xbow: [2, 2], lancer: [1, 2], rider: [2], catapult: [1], ram: [0, 1] },
-  { spear: [2, 6, 6], sword: [2, 4, 6], archer: [2, 4, 4], xbow: [0, 3, 2], lancer: [0, 2, 1], rider: [0, 2, 2], ballista: [0, 1], catapult: [0, 0, 1], ram: [0, 1, 1] },
-];
+// each stage's waves (MAP_RULES): how many of each raider kind come, by tier ([tier 1, tier 2, tier 3]); spearmen are the basic
+// raider, the rest join wave by wave, tiers climb
 // the bonus stages (Jack: the old free-play maps, made very hard, after the campaign; Hard only, a crown and no stars):
 // 13 Scorched Meadow (drought: no trees, hardly a rock), 14 Blighted Isle (crop blight: fields fail), 15 Frozen Pass (deep winter)
 // `plainMap` is set while the title's showcase builds them: their twisted look (Jack: the menu shows the bonus stages as they now
@@ -267,11 +260,11 @@ function goalTick() {
   renderGoals();
 }
 // the top panel's Goals (Jack; it was the town log): "Goals" and a gold tick per goal met, Show opens the three goals (Survive and
-// the stage's two; free play's three); on hard mode there are no goals, so it just reads "Hard Mode" with no Show
+// the stage's two); on hard mode (and the bonus stages, which are hard only) there are no goals, so it just reads "Hard Mode" with no Show
 var goalsKey = '';
 function renderGoals() {
-  const camp = stageGoals(MAP).length > 0, hard = !!hardOn;
-  const list = camp ? [[`Survive ${NIGHTS} nights`, false], ...stageGoals(MAP).map(g => [g[0], !!goalsMet[g[0]]])] : [[`Survive ${NIGHTS} nights`, false], ['No buildings lost', false], ['No soldiers lost', false], ['Castle above half', false]];
+  const hard = !!hardOn;
+  const list = [[`Survive ${NIGHTS} nights`, false], ...stageGoals(MAP).map(g => [g[0], !!goalsMet[g[0]]])];
   const key = hard + '|' + list.map(g => g[0] + g[1]).join(',');
   if (key === goalsKey) return; goalsKey = key;
   const L = $('#ledger'); L.classList.toggle('hard', hard); if (hard) L.open = false;
@@ -298,8 +291,9 @@ const CAMP_MAPS = {
   pass: { stop: 14, bonus: true, maxTier: 3, cats: { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'stables', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'] } },
   watch: { stop: 3, maxTier: 2, cats: { eco: ['house', 'farm', 'lodge', 'quarry', 'market'], def: ['tower', 'ballista', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire'] } },   // more decor than fits: the player picks four (stage picker)
 };
-var WAVES = WAVES_STD, NIGHTS = WAVES.length, DAYLEN = [300, 150, 150, 150, 150], SPAWN_GAP = 1.1;
-function mapRules() { const R = MAP_RULES[MAP]; WAVES = R ? R.waves : WAVES_STD; NIGHTS = WAVES.length; DAYLEN = R ? R.day : [300, 150, 150, 150, 150]; SPAWN_GAP = R ? R.spawnGap : 1.1; }
+// every map has its own rules (all fifteen are campaign stages)
+var WAVES = MAP_RULES.vale.waves, NIGHTS = WAVES.length, DAYLEN = MAP_RULES.vale.day, SPAWN_GAP = 1.1;
+function mapRules() { const R = MAP_RULES[MAP]; WAVES = R.waves; NIGHTS = WAVES.length; DAYLEN = R.day; SPAWN_GAP = R.spawnGap; }
 const ENEMY = {
   sword:   { hp: 50, speed: 1.5, range: .6, dmg: 6, rate: 1.0 },
   archer:  { hp: 32, speed: 1.3, range: 4.5, dmg: 6, rate: 1.8 },

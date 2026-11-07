@@ -4,14 +4,6 @@ const LOAD_SLOTS = {
   def: [['ranged', ['tower', 'crossbow']], ['siege', ['ballista', 'catapult']], ['barracks', ['barracks', 'stables']]],
 };
 const DECOR_ALL = ['flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'], DECOR_PICK = 4;   // plus the path, always there: five tools, one row in the dock
-const LOAD_DEFAULT = { food: 'farm', wood: 'lodge', stone: 'quarry', ranged: 'tower', siege: 'ballista', barracks: 'barracks', decor: ['flowers', 'torch', 'well', 'banner'] };
-var LOADOUT = { ...LOAD_DEFAULT, decor: LOAD_DEFAULT.decor.slice() };
-try {   // last game's picks; anything unknown falls back to the default
-  const L = JSON.parse(localStorage.getItem('mtd-loadout') || 'null');
-  if (L) { for (const k of ['eco', 'def']) for (const [slot, opts] of LOAD_SLOTS[k]) if (opts.includes(L[slot])) LOADOUT[slot] = L[slot];
-    const D = Array.isArray(L.decor) ? L.decor.filter(t => t !== 'road') : null;   // the path was a pick for a while: drop it from old picks
-    if (D && D.length === DECOR_PICK && D.every(t => DECOR_ALL.includes(t))) LOADOUT.decor = D; }
-} catch (e) {}
 const LOAD_TAG = { ranged: 'Ranged', siege: 'Siege', barracks: 'Troops' };
 // the defence rows' icons (Jack): archers' bow for ranged, a catapult for siege, a sword for troops
 const LOAD_ICO = { ranged: 'bow', siege: 'siege', barracks: 'sword' };
@@ -32,18 +24,16 @@ function stageDecor(m) {
   const all = stageDecorAll(m), d = STAGE_DECOR[m];
   return Array.isArray(d) && d.length === DECOR_PICK && d.every(t => all.includes(t)) ? d.slice() : all.slice(-DECOR_PICK);
 }
-var stagePick = null;   // the stage map whose picks the town picker is showing (null: free play's loadout)
+var stagePick = null;   // the stage whose picks the town picker is showing
 function applyLoadout() {
-  const CM = CAMP_MAPS[MAP], L = CM ? { ...LOADOUT, food: 'farm', wood: 'lodge', stone: 'quarry', ranged: 'tower' } : LOADOUT;
-  if (CM) {
-    Object.assign(CATS, JSON.parse(JSON.stringify(CM.cats)));
-    if (stageDecorAll(MAP).length > DECOR_PICK) { const d = stageDecor(MAP); CATS.decor = ['road', ...stageDecorAll(MAP).filter(t => d.includes(t))]; }
-    for (const [slot, opts] of stageBoth(MAP)) { const keep = stagePair(MAP, slot, opts); for (const k of ['eco', 'def']) CATS[k] = CATS[k].filter(t => !opts.includes(t) || t === keep); }
-  }
-  else { CATS.eco = ['house', L.food, L.wood, L.stone, 'market']; CATS.def = [L.ranged, L.siege, L.barracks, 'wall', 'gate']; CATS.decor = ['road', ...DECOR_ALL.filter(t => L.decor.includes(t))]; }
-  // the first day's guide follows the picks (a stage may have its own)
+  // every map is a campaign stage: its own buildings, the pairs and decor picked on the town picker
+  const CM = CAMP_MAPS[MAP], L = { food: 'farm', wood: 'lodge', stone: 'quarry', ranged: 'tower' };
+  Object.assign(CATS, JSON.parse(JSON.stringify(CM.cats)));
+  if (stageDecorAll(MAP).length > DECOR_PICK) { const d = stageDecor(MAP); CATS.decor = ['road', ...stageDecorAll(MAP).filter(t => d.includes(t))]; }
+  for (const [slot, opts] of stageBoth(MAP)) { const keep = stagePair(MAP, slot, opts); for (const k of ['eco', 'def']) CATS[k] = CATS[k].filter(t => !opts.includes(t) || t === keep); }
+  // the first day's guide (only Stage 1 runs it; a stage may have its own)
   GUIDE = [];
-  if (CM && CM.guide) { GUIDE = CM.guide(); return; }
+  if (CM.guide) { GUIDE = CM.guide(); return; }
   // each step says what to build and why, in the tips' style (Jack: more detail; no "·" or full stop)
   const STEP = { lodge: 'Build a <b>Lumber</b> near trees for wood', forester: 'Build a <b>Forester</b> for wood',
     farm: 'Build a <b>Fields</b> for food', farmhouse: 'Build a <b>Farmhouse</b> for food',
@@ -58,9 +48,9 @@ function applyLoadout() {
 const LOCK_ICO = '<svg class="lockIco" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V8 a4 4 0 0 1 8 0 V11"/></svg>';
 function renderLoadPick() {
   // on a stage: what it has unlocked is fixed (or, for decor, picked), everything else shows a lock
-  const SM = stagePick && CAMP_MAPS[stagePick], open = SM ? new Set([...SM.cats.eco, ...SM.cats.def, ...SM.cats.decor]) : null;
-  const L = SM ? { ...Object.fromEntries(SLOTS_ALL().map(([slot, opts]) => [slot, opts.every(t => open.has(t)) ? stagePair(stagePick, slot, opts) : opts.find(t => open.has(t))])), decor: STAGE_DECOR[stagePick] } : LOADOUT;
-  const lk = t => open && !open.has(t);
+  const SM = CAMP_MAPS[stagePick], open = new Set([...SM.cats.eco, ...SM.cats.def, ...SM.cats.decor]);
+  const L = { ...Object.fromEntries(SLOTS_ALL().map(([slot, opts]) => [slot, opts.every(t => open.has(t)) ? stagePair(stagePick, slot, opts) : opts.find(t => open.has(t))])), decor: STAGE_DECOR[stagePick] };
+  const lk = t => !open.has(t);
   // a locked option shows only a padlock: no name, no icon, no cost
   const opt = (t, on, slot) => lk(t) ? `<button class="ldOpt locked" data-slot="${slot}" data-t="${t}" aria-pressed="false" aria-label="Locked"><span class="tIco">${LOCK_ICO}</span></button>`
     : `<button class="ldOpt" data-slot="${slot}" data-t="${t}" aria-pressed="${on}"><span class="tIco">${TOOL_ICON[t]}</span><span><b>${DEF[t].name}</b><small>${costHTML(DEF[t].cost)}</small></span></button>`;
@@ -68,41 +58,33 @@ function renderLoadPick() {
     `<div class="ldRow"><span class="ldCat">${k === 'eco' ? `<span class="ico">${ICON[slot]}</span>` : `<span class="ico" title="${LOAD_TAG[slot]}">${ICON[LOAD_ICO[slot]]}</span>`}</span>${opts.map(t => opt(t, L[slot] === t, slot)).join('')}</div>`).join('');
   $('#ldDecor').innerHTML = DECOR_ALL.map(t => lk(t) ? `<button class="ldOpt locked" data-slot="decor" data-t="${t}" aria-pressed="false" aria-label="Locked"><span class="tIco">${LOCK_ICO}</span></button>`
     : `<button class="ldOpt" data-slot="decor" data-t="${t}" aria-pressed="${L.decor.includes(t)}"><span class="tIco">${TOOL_ICON[t]}</span><b>${(t === 'road' ? 'Path' : DEF[t].name).replace(' ', ' <br class="lb">')}</b></button>`).join('');
-  $('#ldBack').textContent = SM ? 'Back' : 'Maps';
   const n = (L.decor || []).length; $('#ldDecN').textContent = `${n}/${DECOR_PICK}`; $('#ldDecN').classList.toggle('short', n !== DECOR_PICK); $('#ldStart').disabled = n !== DECOR_PICK;
 }
 $('#loadPick').addEventListener('click', e => {
   const b = e.target.closest('.ldOpt'); if (!b) return;
-  if (stagePick && b.classList.contains('locked')) { sfx('nope'); return; }
-  if (stagePick && b.dataset.slot !== 'decor') {   // a stage's pair: pickable only when both are unlocked
+  if (b.classList.contains('locked')) { sfx('nope'); return; }
+  if (b.dataset.slot !== 'decor') {   // a stage's pair: pickable only when both are unlocked
     const pr = SLOTS_ALL().find(([slot]) => slot === b.dataset.slot);
     if (!stageBoth(stagePick).includes(pr)) return;
     (STAGE_PAIR[stagePick] = STAGE_PAIR[stagePick] || {})[b.dataset.slot] = b.dataset.t; sfx('click'); renderLoadPick(); return;
   }
-  const L = stagePick ? { decor: STAGE_DECOR[stagePick] } : LOADOUT, t = b.dataset.t;
-  if (b.dataset.slot !== 'decor') L[b.dataset.slot] = t;
-  else if (L.decor.includes(t)) L.decor = L.decor.filter(x => x !== t);
+  const L = { decor: STAGE_DECOR[stagePick] }, t = b.dataset.t;
+  if (L.decor.includes(t)) L.decor = L.decor.filter(x => x !== t);
   else if (L.decor.length < DECOR_PICK) L.decor.push(t);
   else { sfx('nope'); return; }
-  if (stagePick) STAGE_DECOR[stagePick] = L.decor;
+  STAGE_DECOR[stagePick] = L.decor;
   sfx('click'); renderLoadPick();
 });
 function showLoadPick(stage) {
-  stagePick = stage || null; if (stagePick) STAGE_DECOR[stagePick] = stageDecor(stagePick);
+  stagePick = stage; STAGE_DECOR[stagePick] = stageDecor(stagePick);
   renderLoadPick(); $('#loadPick').hidden = false; $('#loadPick').scrollTop = 0; }
-$('#ldBack').addEventListener('click', () => { sfx('click'); $('#loadPick').hidden = true; if (stagePick) { stagePick = null; openCampaign(CAMP_MAPS[MAP].stop); } else showMapPick(); });
+$('#ldBack').addEventListener('click', () => { sfx('click'); $('#loadPick').hidden = true; stagePick = null; openCampaign(CAMP_MAPS[MAP].stop); });
 $('#ldStart').addEventListener('click', () => {
   sfx('click');
-  if (stagePick) {
-    if (STAGE_DECOR[stagePick].length !== DECOR_PICK) return;
-    try { localStorage.setItem('mtd-stage-decor', JSON.stringify(STAGE_DECOR)); localStorage.setItem('mtd-stage-pair', JSON.stringify(STAGE_PAIR)); } catch (e) {}
-    stagePick = null; $('#loadPick').hidden = true; $('#campaign').hidden = true; paused = false; startGame(); return;
-  }
-  if (LOADOUT.decor.length !== DECOR_PICK) return;
-  try { localStorage.setItem('mtd-loadout', JSON.stringify(LOADOUT)); } catch (e) {}
-  $('#loadPick').hidden = true; paused = false; startGame();
+  if (STAGE_DECOR[stagePick].length !== DECOR_PICK) return;
+  try { localStorage.setItem('mtd-stage-decor', JSON.stringify(STAGE_DECOR)); localStorage.setItem('mtd-stage-pair', JSON.stringify(STAGE_PAIR)); } catch (e) {}
+  stagePick = null; $('#loadPick').hidden = true; $('#campaign').hidden = true; paused = false; startGame();
 });
-// map picker: shown on entry and on Restart / Play again; the game waits (paused) underneath
 // Stonebridge's half-built palisade along the town's bank: a line of wall cells from the west edge to the east edge just south of the
 // river, joined where it steps; left open at the bridge's southern end (for a gate), at the ford and in one stretch to the west, so a
 // new player closes it with a gate and a few walls. BANK_WALL lists every cell of the full line (gaps too), for the guide
@@ -539,56 +521,39 @@ function makeMarketCross() {
   g.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = true; });
   return g;
 }
-// back to where this game was chosen: the campaign for a campaign map, else the map picker
-function showStart() { if (CAMP_MAPS[MAP]) { showMapPick(); $('#mapPick').hidden = true; openCampaign(CAMP_MAPS[MAP].stop); } else showMapPick(); }
+// back to this stage on the campaign
+function showStart() { showMapPick(); $('#mapPick').hidden = true; openCampaign(CAMP_MAPS[MAP].stop); }
 function showMapPick() {
   $('#tipPill').hidden = true; tipT = 0;   // a tip still up when the game was left stayed over the menus
   hushSfx();
   if (paused && !$('#pausedTag').hidden) setPaused(false);
   clearSummary(); paused = true; hideGhost(); $('#mapPick').hidden = false;
   if (!showcaseBuilt) buildShowcase();
-  markMapStars(); syncResumeBtn();
+  syncResumeBtn();
 }
-function markMapStars() { document.querySelectorAll('.mapBtn').forEach(b => { b.classList.toggle('last', b.dataset.map === MAP); const st = b.querySelector('.stars'); if (st) st.remove(); b.insertAdjacentHTML('beforeend', starsHTML(STARS[b.dataset.map] || 0)); }); }
-// ---------- campaign: an overview map with twelve stops, each bringing in a few new buildings (only Greenvale, stop 1, is playable so far)
+// ---------- campaign: twelve stages, each bringing in a few new buildings, then three bonus stages
 const CAMPAIGN = [
-  { name: 'Greenvale', sub: 'Tutorial', map: 'vale', at: [140, 820], adds: ['house', 'farm', 'lodge', 'quarry', 'tower', 'road', 'flowers', 'torch'] },
-  { name: 'Stonebridge', map: 'bridge', at: [250, 700], land: 'A bridge town', adds: ['barracks', 'wall', 'gate', 'rack'] },
-  { name: 'Market Cross', map: 'cross', at: [420, 785], land: 'Old crossroads · little stone', adds: ['market', 'statue'] },
-  { name: 'Watchhill', map: 'watch', at: [580, 735], land: 'Dry hills', adds: ['ballista', 'campfire'] },
-  { name: 'Dunewell', map: 'dune', at: [668, 590], land: 'Desert · few trees', adds: ['forester', 'well'] },
-  { name: 'Riverbend', map: 'bend', at: [345, 600], land: 'Between two rivers', adds: ['crossbow', 'butts'] },
-  { name: 'Ironwood', map: 'crag', at: [160, 500], land: 'Deep woods · no stone', adds: ['mine', 'banner'] },
-  { name: 'Siegeford', map: 'ford', at: [320, 405], land: 'Highlands · little wood', adds: ['catapult', 'stores'] },
-  { name: 'Meadowmere', map: 'mere', at: [548, 470], land: 'Damp blight · crops fail', adds: ['farmhouse'] },
-  { name: 'Horsefields', map: 'plains', at: [668, 340], land: 'Open plains', adds: ['stables'] },
-  { name: 'Raider Keep', sub: 'Boss', map: 'keep', at: [475, 225], boss: true, land: 'Blighted land · crops fail', adds: [] },
-  { name: "Warlord's Hold", sub: 'Boss', map: 'hold', at: [290, 115], boss: true, adds: [] },
+  { name: 'Greenvale', sub: 'Tutorial', map: 'vale', adds: ['house', 'farm', 'lodge', 'quarry', 'tower', 'road', 'flowers', 'torch'] },
+  { name: 'Stonebridge', map: 'bridge', land: 'A bridge town', adds: ['barracks', 'wall', 'gate', 'rack'] },
+  { name: 'Market Cross', map: 'cross', land: 'Old crossroads · little stone', adds: ['market', 'statue'] },
+  { name: 'Watchhill', map: 'watch', land: 'Dry hills', adds: ['ballista', 'campfire'] },
+  { name: 'Dunewell', map: 'dune', land: 'Desert · few trees', adds: ['forester', 'well'] },
+  { name: 'Riverbend', map: 'bend', land: 'Between two rivers', adds: ['crossbow', 'butts'] },
+  { name: 'Ironwood', map: 'crag', land: 'Deep woods · no stone', adds: ['mine', 'banner'] },
+  { name: 'Siegeford', map: 'ford', land: 'Highlands · little wood', adds: ['catapult', 'stores'] },
+  { name: 'Meadowmere', map: 'mere', land: 'Damp blight · crops fail', adds: ['farmhouse'] },
+  { name: 'Horsefields', map: 'plains', land: 'Open plains', adds: ['stables'] },
+  { name: 'Raider Keep', sub: 'Boss', map: 'keep', boss: true, land: 'Blighted land · crops fail', adds: [] },
+  { name: "Warlord's Hold", sub: 'Boss', map: 'hold', boss: true, adds: [] },
   // the bonus stages (Jack): the old free-play maps made very hard, open once all twelve are won; Hard only, a crown and no stars
-  { name: 'Scorched Meadow', sub: 'Bonus', map: 'meadow', at: [140, 820], bonus: true, land: 'Drought · no trees or rocks', adds: [] },
-  { name: 'Blighted Isle', sub: 'Bonus', map: 'isle', at: [345, 600], bonus: true, land: 'Crop blight · fields fail', adds: [] },
-  { name: 'Frozen Pass', sub: 'Bonus', map: 'pass', at: [290, 115], bonus: true, land: 'Deep winter · huge waves', adds: [] },
+  { name: 'Scorched Meadow', sub: 'Bonus', map: 'meadow', bonus: true, land: 'Drought · no trees or rocks', adds: [] },
+  { name: 'Blighted Isle', sub: 'Bonus', map: 'isle', bonus: true, land: 'Crop blight · fields fail', adds: [] },
+  { name: 'Frozen Pass', sub: 'Bonus', map: 'pass', bonus: true, land: 'Deep winter · huge waves', adds: [] },
 ];
 const MAIN = CAMPAIGN.filter(c => !c.bonus);
 // Jack is testing every stage, so a locked stage can still be played; set false for release (a locked stage's Play is then refused)
 const TEST_OPEN = true;
 const mainWon = () => MAIN.every(c => STARS[c.map] > 0);
-// the lands of the overview, each a soft ellipse (centre, radii) that fades into the next; weights 0–1 by how deep inside a spot is
-const CAMP_LAND = {
-  woods:  { c: [160, 505], r: [125, 118], fill: '#33502c' },
-  dry:    { c: [655, 520], r: [165, 255], fill: '#8f8a50' },   // dry grass round the desert, out to the plains and Watchhill
-  desert: { c: [668, 585], r: [105, 92], fill: '#d1b97e' },
-  plains: { c: [668, 345], r: [125, 85], fill: '#87944e' },
-  high:   { c: [315, 395], r: [145, 88], fill: '#7c7458' },    // rocky highlands rising into the northern hills
-  marsh:  { c: [520, 455], r: [118, 70], fill: '#45695a' },
-};
-const CAMP_CY = 1.5;   // the overview is drawn half again as tall as its 800 × 900 plan (Jack wanted it longer; each stage's detail is in its preview)
-const landW = (k, x, y, a = .55, b = 1.15) => { const L = CAMP_LAND[k], d = Math.hypot((x - L.c[0]) / L.r[0], (y - L.c[1]) / L.r[1]); return 1 - sstep(a, b, d); };
-// the river (cubic segments): down from the north-east mountains, split round Riverbend, out at the west edge
-const CAMP_RIVER = [
-  [[718, 133], [690, 200, 655, 300, 616, 350], [590, 385, 565, 396, 540, 408], [505, 430, 480, 462, 451, 478], [410, 498, 365, 506, 335, 516], [300, 532, 288, 570, 284, 610], [280, 650, 252, 688, 210, 705], [160, 722, 110, 738, 32, 764]],
-  [[451, 478], [458, 520, 466, 560, 448, 592], [428, 625, 398, 642, 360, 655], [322, 668, 292, 676, 262, 686]],
-];
 // ---------- the campaign as a carousel (Jack's sketch; it replaced a scrolling road, which replaced the overview map): the stages are
 // cards in a 3D deck, the one in front large, the others angled away behind it on both sides; swipe, tap a side card, the arrows, the
 // arrow keys or the mouse wheel to turn it. Under it the progress bar (one segment per stage: gold = won, pulsing = where you are, red
@@ -689,7 +654,6 @@ $('#dHard').addEventListener('click', () => {
   addEventListener('resize', () => { if (!$('#campaign').hidden) layoutDeck(false); });
   if (window.ResizeObserver) new ResizeObserver(() => { if (!$('#campaign').hidden) layoutDeck(false); }).observe(deck);
 }
-markMapStars();
 function openCampaign(i) {
   $('#tipPill').hidden = true; tipT = 0;
   hushSfx();
@@ -755,13 +719,12 @@ document.addEventListener('click', e => {
 renderColours();
 $('#saveResume').addEventListener('click', () => { sfx('click'); resumeGame(); });
 $('#campBack').addEventListener('click', () => { sfx('click'); $('#campaign').hidden = true; $('#mapPick').hidden = false; });
-document.querySelectorAll('.mapBtn').forEach(b => b.addEventListener('click', () => {
-  sfx('click'); MAP = b.dataset.map; hardOn = false; try { localStorage.setItem('mtd-map', MAP); } catch (e) {}
-  $('#mapPick').hidden = true; showLoadPick();          // then the town's buildings, then the game
-}));
+
 addEventListener('keydown', e => {
   if (/^(w|a|s|d|q|e|arrow)/i.test(e.key)) { heldKeys.add(e.key.toLowerCase()); return; }
-  const L = LOADOUT, map = { v: 'select', V: 'select', 1: 'house', 2: L.food, 3: L.wood, 4: L.stone, 5: L.ranged, 6: 'wall', 7: 'gate', 8: L.barracks, 9: 'market', 0: L.siege, r: 'road', R: 'road' };
+  // number keys pick tools by slot: the stage's own pick of each pair (1 house, 2 food, 3 wood, 4 stone, 5 ranged, 0 siege, 8 troops, 9 market, 6/7 wall/gate)
+  const L = Object.fromEntries(SLOTS_ALL().map(([slot, opts]) => [slot, Object.values(CATS).flat().find(t => opts.includes(t))]));
+  const map = { v: 'select', V: 'select', 1: 'house', 2: L.food, 3: L.wood, 4: L.stone, 5: L.ranged, 6: 'wall', 7: 'gate', 8: L.barracks, 9: 'market', 0: L.siege, r: 'road', R: 'road' };
   if (map[e.key] && (map[e.key] === 'select' || Object.values(CATS).some(c => c.includes(map[e.key])))) setTool(map[e.key]);
   else if (e.key === 'g' || e.key === 'G') $('#gridBtn').click();
   else if (e.key === 'Escape') { deselect(); setTool('select'); }

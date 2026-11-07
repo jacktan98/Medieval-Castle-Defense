@@ -273,7 +273,7 @@ function completeSite(B) {
   }
   syncResidents(B); assignJobs(); if (WALLY[B.type]) refreshWalls(); refreshCard();
 }
-// the highest tier a stage allows (Stages 1–2 stay at tier 1, Stage 3 opens tier 2 (Jack: trading for stone makes sense with upgrades), Stage 7 tier 3); free play has all three
+// the highest tier a stage allows (Stages 1–2 stay at tier 1, Stage 3 opens tier 2 (Jack: trading for stone makes sense with upgrades), Stage 7 tier 3)
 const tierCap = () => (CAMP_MAPS[MAP] && CAMP_MAPS[MAP].maxTier) || 3;
 function upgrade(B) {
   const T = DEF[B.type];

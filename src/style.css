@@ -144,7 +144,6 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .stars{color:#5a5646;letter-spacing:.06em;white-space:nowrap} .stars .on{color:var(--gold)} .stars.big{font-size:34px;text-align:center;line-height:1}
 #sumGoals{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:14px}
 #sumGoals li{display:flex;align-items:center;gap:8px;color:var(--muted)} #sumGoals li.ok{color:var(--parch)} #sumGoals li b{width:18px;text-align:center;color:#6b6656} #sumGoals li.ok b{color:#8cc46e}
-.mapBtn .stars{font-size:13px}
 #campBtn{margin-top:4px;padding:9px 22px;font-family:var(--display);font-size:17px;color:var(--gold)}
 .modal.tome .setBtn .gearBody{fill:url(#gearG);stroke:#2b2721;stroke-width:1.1;stroke-linejoin:round} .modal.tome .setBtn .gearHole{fill:#2b2721;stroke:#2b2721;stroke-width:1}
 .modal.tome .setBtn{background:none!important;border:0!important;box-shadow:none!important}
@@ -195,17 +194,14 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .modal.tome .mapSub{display:flex;align-items:center;justify-content:center;gap:10px;width:min(320px,86%);align-self:center}
 .modal.tome .mapSub::before,.modal.tome .mapSub::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(212,168,78,0),rgba(212,168,78,.8))}
 .modal.tome .mapSub::after{background:linear-gradient(270deg,rgba(212,168,78,0),rgba(212,168,78,.8))}
-.modal.tome .mapBtn,.modal.tome .ldOpt{background:rgba(20,22,16,.78);border-color:rgba(201,160,62,.32)}
+.modal.tome .ldOpt{background:rgba(20,22,16,.78);border-color:rgba(201,160,62,.32)}
 .modal.tome .ldOpt[aria-pressed="true"]{background:rgba(52,44,22,.88);border-color:var(--gold)}
 .modal.tome .loadSheet,.modal.tome .stSide{background:rgba(14,16,11,.72);border:1px solid rgba(201,160,62,.28);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 .modal.tome .loadSheet{padding:12px 12px 14px}
 .modal.tome .stSide{padding:12px 16px 14px}
-.modal.tome button:not(.mapBtn):not(.ldOpt){background:rgba(20,22,16,.72)}
+.modal.tome button:not(.ldOpt){background:rgba(20,22,16,.72)}
 /* a plain gold frame (Jack: no corner pieces, a thicker edge): a 2 px gold border with a faint inner line */
-.modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide,
-.modal.tome .mapBtn img{border-radius:6px} .modal.tome .mapBtn,.modal.tome .loadSheet,.modal.tome .stSide{border-radius:10px}
-/* the three map cards line up: names get two lines' room, so Mountain pass's picture sits level with the others */
-.mapBtn{justify-content:flex-start;padding:13px 13px 12px;width:min(186px,29vw)} .mapBtn b{min-height:2.3em;display:flex;align-items:center;justify-content:center;line-height:1.1}
+.modal.tome .loadSheet,.modal.tome .stSide{border-radius:10px}
 /* campaign progress: stages won, a slim gold bar, stars (Jack) */
 .campProg{display:flex;align-items:center;justify-content:center;gap:10px;font-size:16px;color:#d9cfb3;letter-spacing:.03em;margin-top:-2px} .campProg b{color:var(--gold);font-weight:700} .campProg .sep{color:rgba(212,168,78,.6)}
 .campProg i{flex:1;height:5px;border-radius:3px;background:rgba(0,0,0,.45);box-shadow:inset 0 0 0 1px rgba(201,160,62,.35);overflow:hidden} .campProg i b{display:block;height:100%;background:linear-gradient(90deg,#9c7224,#f0c95a)}
@@ -225,8 +221,6 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 @media (min-width:900px) and (min-height:600px){
   #mapPick .mapSheet{width:min(1100px,92vw);gap:min(26px,2.6vh)}
   #mapPick .gameTitle{font-size:clamp(52px,5.2vw,92px)}
-  #mapPick .maps{gap:min(26px,1.8vw)}
-  #mapPick .mapBtn{width:clamp(200px,17vw,320px);padding:14px 14px 16px} #mapPick .mapBtn b{font-size:clamp(19px,1.5vw,26px)} #mapPick .mapBtn .stars{font-size:16px}
   #mapPick .mapSub{font-size:15px;width:min(460px,50vw)}
   #mapPick #campBtn{font-size:clamp(19px,1.5vw,25px);padding:12px 34px}
 }
@@ -265,9 +259,9 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
    darken it, more than the title does, so the cards and text stay clear */
 body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 45%, rgba(8,9,6,.45) 0%, rgba(8,9,6,.62) 60%, rgba(5,6,4,.9) 100%)!important}
 /* buttons stand out on the dark: a bronze plate with a gold rim, light gold text and a soft glow; the main action stays solid gold */
-.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw):not(.setBtn):not(.upTab):not(.upNode):not(.achNode),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
+.modal.tome button:not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw):not(.setBtn):not(.upTab):not(.upNode):not(.achNode),#newCards button:not(.primary){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%)!important;border:2px solid #c9a03e!important;color:#f4e3b2!important;
   box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 12px rgba(212,168,78,.18),inset 0 1px 0 rgba(255,230,160,.25)!important;font-weight:500}
-.modal.tome button:not(.mapBtn):not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw):not(.setBtn):hover{filter:brightness(1.15)}
+.modal.tome button:not(.ldOpt):not(.cCard):not(.cDot):not(.primary):not(.seg):not(.sw):not(.setBtn):hover{filter:brightness(1.15)}
 .cArrow{background:linear-gradient(180deg,#4a3c22,#2e2515)!important;border:2px solid #c9a03e!important;box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 14px rgba(212,168,78,.25)!important}
 .cArrow svg{stroke:#f4e3b2}
 /* the campaign's progress under the deck: one segment per stage, filled gold for each won, the stage you're at outlined and pulsing,
@@ -319,15 +313,6 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 @media (max-height:520px){ .cDetSlot{width:250px;justify-content:center;align-self:stretch;min-height:0!important} .modal.tome .cDet{width:100%!important} .cLeft{flex:1 1 0;min-width:0} }
 /* on a tall screen the progress bar and the details sit a little higher, into the spare room under the card (Jack: a small shift only) */
 @media (max-aspect-ratio:3/4){ .cDotsWrap{margin:-28px 0 6px} }
-/* the title's map cards in the bronze plaque look (Jack): bronze body, gold rim, the name on a lighter gold band, bigger outlined stars */
-.modal.tome .mapBtn{background:linear-gradient(180deg,rgba(40,31,16,.88),rgba(24,19,10,.9))!important;border:2px solid rgba(212,168,78,.8)!important;padding:8px 8px 10px!important;gap:8px}
-.modal.tome .mapBtn b{margin:0 -8px;padding:5px 4px;background:linear-gradient(90deg,rgba(150,112,52,.5),rgba(190,145,70,.62) 50%,rgba(150,112,52,.5));border-top:1px solid rgba(212,168,78,.55);border-bottom:1px solid rgba(212,168,78,.55);color:#ffe2a0!important;text-shadow:0 1px 2px rgba(0,0,0,.7)}
-.modal.tome .mapBtn.last{border-color:#f2d27a!important;box-shadow:0 0 16px rgba(255,205,90,.35),0 8px 26px rgba(0,0,0,.55)!important}
-.modal.tome .mapBtn .stars{font-size:22px!important;letter-spacing:.1em;line-height:1} .modal.tome .mapBtn .stars span{color:rgba(20,16,8,.55);-webkit-text-stroke:1px rgba(240,201,90,.75)}
-.modal.tome .mapBtn .stars .on{color:#f0c95a;-webkit-text-stroke:1px #fff1c4;text-shadow:0 0 10px rgba(255,205,90,.6)}
-@media (min-width:900px) and (min-height:600px){ .modal.tome .mapBtn .stars{font-size:28px!important} }
-/* the title's map cards: every name strip two lines tall, so the stars line up whether the name takes one line or two */
-.modal.tome .mapBtn b{min-height:calc(2.3em + 12px)!important;box-sizing:border-box}
 /* the game's own UI in the menus' bronze plaque look (Jack): bronze panels (--panel) with a gold rim and a soft shadow; title bands
    and headers on a lighter gold band; secondary buttons as bronze plates; the main action gold */
 /* top panel, dock and corner buttons: no gold rim (Jack: cleaner, less gold); the pop-up cards keep theirs */
@@ -424,10 +409,6 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 @media (max-height:520px){ .stSide{width:240px} }
 
 .mapSub{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
-.maps{display:flex;gap:min(12px,2vw);justify-content:center;flex-wrap:wrap}
-.mapBtn{display:flex;flex-direction:column;align-items:stretch;gap:7px;padding:6px 6px 8px;border-radius:12px;background:#24261f;border-color:#4a4838;width:min(170px,25vw)}
-.mapBtn img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;display:block;background:#2e3a2c}
-.mapBtn b{font-family:var(--display);font-weight:400;font-size:17px;color:var(--parch)} .mapBtn.last{border-color:var(--gold)} .mapBtn.last b{color:var(--gold)}
 .sheet p{margin:0;color:var(--muted)}
 .sheet dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:4px 16px;font-variant-numeric:tabular-nums}
 .sheet dt{color:var(--muted)} .sheet dd{margin:0;text-align:right;font-weight:700}
@@ -714,7 +695,6 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
   #mapPick .gameTitle{font-size:clamp(26px,8.5vh,38px)}
   #mapPick .mapSub{font-size:11px}
   /* the map cards at their upright size (Jack) */
-  #mapPick .mapBtn{width:96px}
   /* Resume beside Campaign (Jack) */
   .mapActs{flex-direction:row;align-items:flex-start;gap:12px}
   #mapPick #campBtn,#mapPick #saveResume{margin-top:0;padding:5px 20px;font-size:15px}

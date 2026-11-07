@@ -316,12 +316,11 @@ function endGame(won) {
   // only the numbers that tell the story (it listed twelve: built, standing, wood, stone, food... were noise)
   const rows = [['Raiders slain', stats.slain], ['Buildings lost', stats.lost], ['Soldiers lost', stats.fallen], ['Gold earned', stats.gold], ['Time', fmt(stats.playT || el)]];
   $('#sumStats').innerHTML = rows.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('');
-  // stars: one for holding out, two with some of the goals, three with all of them (kept per map, the best one; to be spent later)
-  // a campaign stage: a win is one star and each of its two goals one more (Jack); free play keeps its three goals (all = 3, some = 2)
-  const C = castleB(), camp = stageGoals(MAP).length > 0;
-  // a defeat meets no goals (a ✓ on "No buildings lost" read oddly with the castle fallen)
-  const goals = !won ? (camp ? stageGoals(MAP).map(g => [g[0], false]) : [['No buildings lost', false], ['No soldiers lost', false], ['Castle above half', false]]) : camp ? stageGoals(MAP).map(g => [g[0], goalOk(g)]) : [['No buildings lost', stats.lost === 0], ['No soldiers lost', stats.fallen === 0], ['Castle above half', !!C && C.hp >= C.max / 2]];
-  const got = goals.filter(g => g[1]).length, n = !won ? 0 : hardOn ? 1 : camp ? 1 + got : got === goals.length ? 3 : got ? 2 : 1;
+  // stars: a win is one star and each of the stage's two goals one more (Jack); hard mode (and the bonus stages) a crown instead
+  // a defeat meets no goals
+  const C = castleB();
+  const goals = stageGoals(MAP).map(g => [g[0], won && goalOk(g)]);
+  const got = goals.filter(g => g[1]).length, n = !won ? 0 : hardOn ? 1 : 1 + got;
   // hard mode: no stars, one crown that pops in on a win (Jack); hard has no goals, so only Survive is listed
   $('#sumStars').innerHTML = hardOn ? `<span class="stars"><span class="sumCrown">${CROWN_ICO}</span></span>` : starsHTML(0);
   const tip = won ? '' : defeatTip(); $('#sumTip').hidden = !tip; $('#sumTip').innerHTML = tip ? `<b>Tip:</b> ${tip}` : '';
@@ -370,7 +369,6 @@ function clearSummary() { (sumTimers || []).forEach(clearTimeout); sumTimers = [
 // best stars per map (localStorage 'mtd-stars'); the total is to be spent on upgrades later
 var STARS = {}; try { STARS = JSON.parse(localStorage.getItem('mtd-stars') || '{}') || {}; } catch (e) {}
 const starsHTML = n => '<span class="stars">' + [0, 1, 2].map(i => `<span class="${i < n ? 'on' : ''}">★</span>`).join('') + '</span>';
-const starTotal = () => Object.values(STARS).reduce((a, b) => a + (+b || 0), 0);
 function updatePhase(dt) {
   if (gameOver) return;
   if (PH.kind === 'day') {
