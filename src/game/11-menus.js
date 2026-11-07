@@ -693,7 +693,9 @@ function unlockCard(i) {
   setTimeout(() => {
     card.classList.remove('preUnlock');
     if ($('#campaign').hidden) { lock.remove(); return; }
-    lock.classList.add('opening'); card.classList.add('unlocking'); sfx('unlock');
+    lock.classList.add('opening'); card.classList.add('unlocking');
+    // the sound's sharp hit is about .5 s in: started .4 s late it meets the shackle springing open at .9 s
+    setTimeout(() => sfx('unlock'), 400);
     setTimeout(() => { card.classList.remove('unlocking'); lock.remove(); }, 3800);
   }, UNLOCK_WAIT);
   // the theme comes back softly (not if a game was started meanwhile: it set its own music)

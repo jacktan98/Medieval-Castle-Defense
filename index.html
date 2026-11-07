@@ -1176,7 +1176,8 @@ const upTo = (t, n) => buildings.some(B => B.type === t && !B.dead && B.tier >= 
 // boosted kills, measured in a simulated stage: 4 boosted crossbows about 49 kills by Riverbend's night 4, 2 about 35; 4 boosted catapults about 45 by Siegeford's night 3
 const GOAL_N = { felled: 100, mined: 120, folk: 40, xbowKills: 40, cataKills: 50 };
 const STAGE_GOALS = {
-  vale: [['Follow the tutorial', () => guideDone], ['Build 1 quarry', () => made('quarry') >= 1]],
+  vale: [['Follow the tutorial', () => guideDone || (GUIDE.length > 0 && GUIDE.every(S => S.tool === 'select' || made(S.tool) >= 1))],   // skipped but its buildings built still counts (Jack)
+    ['Build 1 quarry', () => made('quarry') >= 1]],
   bridge: [['Build 1 barracks', () => made('barracks') >= 1], ['Build 2 gates', () => made('gate') >= 2]],
   cross: [['Build 1 market', () => made('market') >= 1], ['Upgrade 1 building to tier 2', () => stats.upgrades >= 1]],
   watch: [['Build 2 ballistas', () => made('ballista') >= 2], ['Upgrade 1 ballista to tier 2', () => upTo('ballista', 2)]],
@@ -8267,7 +8268,9 @@ function unlockCard(i) {
   setTimeout(() => {
     card.classList.remove('preUnlock');
     if ($('#campaign').hidden) { lock.remove(); return; }
-    lock.classList.add('opening'); card.classList.add('unlocking'); sfx('unlock');
+    lock.classList.add('opening'); card.classList.add('unlocking');
+    // the sound's sharp hit is about .5 s in: started .4 s late it meets the shackle springing open at .9 s
+    setTimeout(() => sfx('unlock'), 400);
     setTimeout(() => { card.classList.remove('unlocking'); lock.remove(); }, 3800);
   }, UNLOCK_WAIT);
   // the theme comes back softly (not if a game was started meanwhile: it set its own music)
@@ -8961,7 +8964,7 @@ var LOOPS = {
   gallop: { file: 'sfx/Horse_gallop.mp3',          vol: .4, amb: true },   // horses on the move (loudest .3 s RMS .126)
 };
 // bump when a sound file is replaced, so phones fetch the new file instead of a cached copy
-var AUDIO_V = 5;
+var AUDIO_V = 6;
 var TARGET_LOUD = .09, LOUD_WINDOW = .3, GAIN_MIN = .1, GAIN_MAX = 6, MASTER = .9, PEAK_CEILING = .95 / MASTER;
 var SFX_GAP = { ramHit: .3, hen: 2, pig: 1.5, cow: 4, neigh: 3, bolt: .1, qbolt: .06, rockFire: .15, rockHit: .15, path: .12, clash: .12, arrowHit: .08, grunt: 3, yawn: 3, nope: .3, rooster: 2, chop: .15, pick: .15, hoe: .2, hammer: .12, arrow: .08, attack: .1, coins: .3, click: .05 };   // min seconds between repeats
 var STROKE_SFX = { axe: 'chop', pick: 'pick', hoe: 'hoe', hammer: 'hammer' };
