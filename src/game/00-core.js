@@ -153,13 +153,12 @@ const MAP_RULES = {
                     { spear: [5, 6, 2], sword: [3, 4, 2], archer: [4, 3], xbow: [3, 1], lancer: [3, 2], rider: [2, 1], ram: [1], catapult: [1] },
                     { spear: [4, 8, 4], sword: [3, 5, 3], archer: [3, 4, 2], xbow: [3, 3], lancer: [3, 3, 1], rider: [2, 3, 2], ram: [0, 1], catapult: [0, 1], ballista: [0, 1] }],
             day: [420, 120, 120, 120, 120], spawnGap: .9, res: { gold: 90, wood: 40, stone: 10, food: 30 } },
-  // Blighted Isle: six nights over the three bridges; fields hardly grow (food from farmhouses and the market)
+  // Blighted Isle: five nights over the three bridges after a 7-minute first day (Jack: it was six after eight); fields hardly grow (food from farmhouses and the market)
   isle: { waves: [{ spear: [8, 2], sword: [3], archer: [3] }, { spear: [8, 4], sword: [4, 2], archer: [3, 2], xbow: [2] },
                   { spear: [6, 6], sword: [4, 3], archer: [4, 2], xbow: [3], lancer: [3], ballista: [1] },
-                  { spear: [5, 7, 2], sword: [3, 5, 1], archer: [4, 3], xbow: [3, 2], lancer: [3, 2], rider: [2, 1], ram: [1] },
                   { spear: [4, 8, 4], sword: [3, 5, 3], archer: [3, 4, 2], xbow: [3, 3], lancer: [3, 3], rider: [2, 3, 1], catapult: [1], ram: [0, 1], ballista: [0, 1] },
                   { spear: [3, 8, 6], sword: [2, 5, 5], archer: [3, 4, 3], xbow: [2, 3, 3], lancer: [3, 3, 2], rider: [2, 3, 3], catapult: [0, 1, 1], ram: [0, 1, 1], ballista: [0, 1, 1] }],
-          day: [480, 120, 120, 120, 120, 120], spawnGap: .85, res: { gold: 70, wood: 50, stone: 0, food: 20 } },
+          day: [420, 120, 120, 120, 120], spawnGap: .85, res: { gold: 70, wood: 50, stone: 0, food: 20 } },
   // Frozen Pass (was Mountain pass): one day to prepare (10 minutes in deep winter, it was 15), then two huge nights
   pass: { waves: [{ spear: [30, 6], sword: [12, 4], archer: [10, 2], xbow: [4], lancer: [1], ram: [1] },
                   { spear: [10, 26, 10], sword: [4, 12, 8], archer: [4, 10, 6], xbow: [0, 4, 2], lancer: [0, 1], rider: [0, 0, 1], ballista: [0, 1], catapult: [0, 1] }],
