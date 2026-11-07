@@ -18,6 +18,9 @@ const SHOW_SCENES = [{ map: 'meadow', green: true, wx: [null, 'rain'] }, { map: 
   { map: 'pass', green: true, wx: [null, 'rain'], ...PASS_CAM }, { map: 'pass', wx: ['snow'], ...PASS_CAM }], SHOW_T = 28;
 const SHOW_TIMES = ['day', 'dusk', 'night'];
 let showScene = 0, showT = 0, showFading = false, showYaw0 = 0, showPh = 0, showDist = 40;
+// how far back the showcase's camera stands by the screen's shape, worked out every frame so turning the phone follows at once:
+// upright 1.35; a phone held sideways .62 (Jack: zoomed in like upright; it showed the whole map round a small town); a laptop 1
+const showZoom = () => innerWidth < innerHeight ? 1.35 : innerHeight < 600 ? .62 : 1;
 const showC = new THREE.Vector3();
 function nextShowcase() {
   if (showFading) return; showFading = true; canvas.style.transition = 'opacity .7s'; canvas.style.opacity = '0';
@@ -41,7 +44,7 @@ function buildShowcase(n = Math.floor(Math.random() * SHOW_SCENES.length)) {
   if (time === 'dusk') { PH.t = DUSK * .45; light = .25 + .75 * sstep(0, DUSK, PH.t); }   // low warm light, the torches and fires lit
   else if (time === 'night') { PH.kind = 'night'; light = 0; }                              // moonlight, every torch and fire burning
   const c = center(K); target.set(c.x, 1.5, c.z); showYaw0 = S.yaw !== undefined ? S.yaw : Math.random() * Math.PI * 2; showPh = 0; yaw = showYaw0;
-  pitch = S.pitch || .62; showC.copy(target); showDist = (S.dist || 40) * (innerWidth < innerHeight ? 1.35 : 1); dist = showDist; updateCam();
+  pitch = S.pitch || .62; showC.copy(target); showDist = S.dist || 40; dist = showDist * showZoom(); updateCam();
   $('#log').innerHTML = ''; $('#banner').className = 'banner';
   showcaseBuilt = true;
   lampT = 0;   // the night lights find their torches and fires on the first frame (they waited up to half a second)
@@ -657,7 +660,7 @@ function frame(now) {
     showPh += dt * .03; const S = SHOW_SCENES[showScene]; yaw = S.swing ? showYaw0 + Math.sin(showPh * 2) * S.swing : showYaw0 + showPh;
     const asp = innerWidth / innerHeight, fov = clamp(2 * Math.atan(Math.tan(.56) / asp) * 180 / Math.PI, 30, 45);
     if (Math.abs(camera.fov - fov) > .01) { camera.fov = fov; camera.updateProjectionMatrix(); }
-    dist = showDist * Math.tan(Math.PI / 8) / Math.tan(fov * Math.PI / 360);
+    dist = showDist * showZoom() * Math.tan(Math.PI / 8) / Math.tan(fov * Math.PI / 360);
     const ahead = dist * (asp < 1 ? .3 : .12);
     target.set(showC.x - Math.sin(yaw) * ahead, showC.y, showC.z - Math.cos(yaw) * ahead);
     updateCam(); updateTrees(now); emitSmoke(dt); updateBirds(dt); if ((showT += dt) > SHOW_T) nextShowcase();
