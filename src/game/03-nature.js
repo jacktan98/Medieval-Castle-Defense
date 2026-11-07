@@ -164,13 +164,20 @@ function genTrees() {
       continue;
     }
     if (dk < 7.5 || (z > KZ && Math.abs(x - KX) < 3 && dk < 16) || nearBridge(x, z, 3)) continue;
+    // Scorched Meadow: no living trees, only a few dead ones out of reach (wood from foresters or the market)
+    if (bonusOn()) { if (dk > 10 && hash(x * 2.1, z * 1.7) < .012) trees.push({ x, z, s: .7 + hash(z, x) * .4, k: 1, bare: true, deco: true }); continue; }
     const mask = fbm(x * .08 + 20, z * .08 + 11), h = hAt(x, z);
     const lone = hash(x * 2.1, z * 1.7) < .07, forest = dk > 12 && mask > .5 && hash(x * 1.3, z * .7) < (mask - .45) * 3 * sstep(12, 18, dk);
     if (h > 1 && (dk < 12 ? lone : (forest || (dk < 16 && lone)))) trees.push({ x, z, s: .75 + hash(z, x) * .5, k: 1 });
   }
   trunks.count = crowns.count = trees.length;
   const tc = new THREE.Color();
-  trees.forEach((t, n) => { const r = hash(t.x * 3.3, t.z * 1.1); tc.setHSL(.27 + (r - .5) * .07, .3 + r * .15, .16 + hash(t.z, t.x * 2) * .09); if (r < .05) tc.setHSL(.08, .35, .24); crowns.setColorAt(n, tc); });
+  const sick = bonusOn() && MAP === 'isle', frost = bonusOn() && MAP === 'pass';
+  trees.forEach((t, n) => { const r = hash(t.x * 3.3, t.z * 1.1); tc.setHSL(.27 + (r - .5) * .07, .3 + r * .15, .16 + hash(t.z, t.x * 2) * .09); if (r < .05) tc.setHSL(.08, .35, .24);
+    if (sick) tc.setHSL(.13 + (r - .5) * .06, .25 + r * .1, .17 + hash(t.z, t.x * 2) * .08);   // Blighted Isle: sickly yellow-brown crowns
+    // Frozen Pass: snow on the boughs
+    if (frost) tc.lerp(SNOW_C, .45 + r * .15);
+    crowns.setColorAt(n, tc); });
   if (crowns.instanceColor) crowns.instanceColor.needsUpdate = true;
 }
 const dummy = new THREE.Object3D();
@@ -325,6 +332,15 @@ function genRocks() {
     }
     return;
   }
+  // Scorched Meadow: hardly a rock, five scattered far from the castle (stone from mines or the market)
+  if (bonusOn() && MAP === 'meadow') {
+    for (let n = 0, k = 0; n < 4000 && k < 5; n++) {
+      const x = 2 + Math.random() * (SIZE - 4), z = 2 + Math.random() * (SIZE - 4);
+      if (Math.hypot(x - KX, z - KZ) < 16 || hAt(x, z) < 1.2 || Math.abs(x - meadowRiverX(z)) < 6 || rocks.some(q => Math.hypot(q.x - x, q.z - z) < 8)) continue;
+      addRock(x, z, .8 + Math.random() * .4, [Math.random() * 3, Math.random() * 3, Math.random() * 3]); k++;
+    }
+    return;
+  }
   // Meadow: a stony patch between the castle and the river, north of the bridge
   for (let n = 0, k = 0; n < 400 && k < 8; n++) {
     const x = 32 + (Math.random() - .5) * 8, z = 17 + (Math.random() - .5) * 8;
@@ -369,12 +385,15 @@ function genClutter() {
       // Dunewell's sand: few bushes and tufts past the oasis (Jack found it too bushy), and the tufts there dry
       const sand = MAP === 'dune' && oasisD(x, z) > .95;
       if (sand && ((c.kind === 'bush' && Math.random() > .1) || (c.kind === 'tuft' && Math.random() > .35))) continue;
+      // the bonus stages: Scorched Meadow and the Blighted Isle few bushes, their tufts withered; Frozen Pass's tufts frosted
+      const bx = bonusOn() && MAP !== 'pass';
+      if (bx && c.kind === 'bush' && Math.random() > (MAP === 'meadow' ? .08 : .4)) continue;
       const reed = MAP === 'mere' && marshW(x / MK, z / MK) > .5;   // Meadowmere's marsh: reed tufts, few bushes
       if (reed && c.kind === 'bush' && Math.random() > .3) continue;
       const n = counts[ci]++;
       clutter.push({ ci, n, x, z, s: .7 + Math.random() * .7, rot: Math.random() * 6.28 });
       // Meadowmere: most tufts withered, like the sand's
-      if (c.kind === 'tuft') { if (reed) col.setHSL(.13 + Math.random() * .03, .38, .3 + Math.random() * .08); else if (sand || (MAP === 'mere' && Math.random() < .65)) col.setHSL(.11 + Math.random() * .03, .32, .33 + Math.random() * .08); else col.setHSL(.21 + Math.random() * .05, .3 + Math.random() * .12, .2 + Math.random() * .07); }
+      if (c.kind === 'tuft') { if (reed) col.setHSL(.13 + Math.random() * .03, .38, .3 + Math.random() * .08); else if (bonusOn() && MAP === 'pass') col.setHSL(.58, .08, .78 + Math.random() * .1); else if (sand || bx || (MAP === 'mere' && Math.random() < .65)) col.setHSL(.11 + Math.random() * .03, .32, .33 + Math.random() * .08); else col.setHSL(.21 + Math.random() * .05, .3 + Math.random() * .12, .2 + Math.random() * .07); }
       else if (c.kind === 'bush') col.setHSL(.24 + Math.random() * .05, .33, .15 + Math.random() * .08);
       else col.setHSL(.1, .06, .4 + Math.random() * .15);
       c.mesh.setColorAt(n, col);
@@ -424,7 +443,7 @@ const PATH_STYLE = {
   scree:  { top: [.5, .48, .44], base: '#47443d', set: [.56, .55, .53], kerb: [.6, .59, .56] },
   sand:   { top: [.73, .6, .41], base: '#a98b5a', set: [.62, .55, .44], kerb: [.6, .53, .42], bare: true },   // trodden sand: a little darker than the dunes, no stones
 };
-const pathStyle = () => PATH_STYLE[MAP === 'watch' ? 'gravel' : MAP === 'pass' ? 'scree' : MAP === 'dune' ? 'sand' : 'earth'];
+const pathStyle = () => PATH_STYLE[MAP === 'watch' ? 'gravel' : MAP === 'pass' ? 'scree' : MAP === 'dune' || (MAP === 'meadow' && bonusOn()) ? 'sand' : 'earth'];
 const lin = (sc, c, h, k) => sc.setRGB(((c[0] + k * h) ** 2.2), ((c[1] + k * .85 * h) ** 2.2), ((c[2] + k * .7 * h) ** 2.2));
 // packed earth: smooth, low-contrast colour drift by position (no per-square checker), lighter where feet wear it
 const pathTmp = new THREE.Color();

@@ -333,6 +333,8 @@ function genHeight(x, z) {
   }
   h = lerp(3.0 + (h - 3.0) * .4, h, sstep(6, 13, dk));
   const rx = meadowRiverX(z);
+  // Scorched Meadow: the river has dried up; its bed is a shallow cracked hollow anyone can walk across (no bridge)
+  if (bonusOn()) return lerp(.75 + fbm(x * .3, z * .3) * .2, h, sstep(2.2, 7.5, Math.abs(x - rx)));
   return lerp(-1.4, h, sstep(2.2, 7.5, Math.abs(x - rx)));
 }
 // a stage's map size in cells (default 28: 56 m; the boss stages 40: 80 m); everything sized by it is rebuilt when it changes
@@ -374,7 +376,8 @@ function bridgeRays() {
     return [{ ox: BRIDGE_X - dx * 10, oz: stoneRiverZ(BRIDGE_X) - dz * 10, dx, dz, stone: true }];
   }
   if (MAP === 'isle') return ISLE_BRIDGES.map(deg => { const a = deg * Math.PI / 180, r = isleR(a); return { ox: KX + Math.cos(a) * (r - 7), oz: KZ + Math.sin(a) * (r - 7), dx: Math.cos(a), dz: Math.sin(a) }; });
-  // Meadow: square across its river where it passes the castle's row
+  // Meadow: square across its river where it passes the castle's row (Scorched Meadow: dry, no bridge)
+  if (bonusOn()) return [];
   const zc = KZ, drx = .6 * Math.cos(zc * .12) + .15 * Math.cos(zc * .05 + 1), m = Math.hypot(1, drx), dx = 1 / m, dz = -drx / m;
   return [{ ox: meadowRiverX(zc) - dx * 10, oz: zc - dz * 10, dx, dz }];
 }

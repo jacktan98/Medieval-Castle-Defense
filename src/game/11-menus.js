@@ -560,11 +560,19 @@ const CAMPAIGN = [
   { name: 'Riverbend', map: 'bend', at: [345, 600], land: 'Between two rivers', adds: ['crossbow', 'butts'] },
   { name: 'Ironwood', map: 'crag', at: [160, 500], land: 'Deep woods · no stone', adds: ['mine', 'banner'] },
   { name: 'Siegeford', map: 'ford', at: [320, 405], land: 'Highlands · little wood', adds: ['catapult', 'stores'] },
-  { name: 'Meadowmere', map: 'mere', at: [548, 470], land: 'Sodden ground · poor fields', adds: ['farmhouse'] },
+  { name: 'Meadowmere', map: 'mere', at: [548, 470], land: 'Damp blight · crops fail', adds: ['farmhouse'] },
   { name: 'Horsefields', map: 'plains', at: [668, 340], land: 'Open plains', adds: ['stables'] },
   { name: 'Raider Keep', sub: 'Boss', map: 'keep', at: [475, 225], boss: true, adds: [] },
   { name: "Warlord's Hold", sub: 'Boss', map: 'hold', at: [290, 115], boss: true, adds: [] },
+  // the bonus stages (Jack): the old free-play maps made very hard, open once all twelve are won; Hard only, a crown and no stars
+  { name: 'Scorched Meadow', sub: 'Bonus', map: 'meadow', at: [140, 820], bonus: true, land: 'Drought · no trees or rocks', adds: [] },
+  { name: 'Blighted Isle', sub: 'Bonus', map: 'isle', at: [345, 600], bonus: true, land: 'Crop blight · fields fail', adds: [] },
+  { name: 'Frozen Pass', sub: 'Bonus', map: 'pass', at: [290, 115], bonus: true, land: 'Deep winter · huge waves', adds: [] },
 ];
+const MAIN = CAMPAIGN.filter(c => !c.bonus);
+// Jack is testing every stage, so a locked stage can still be played; set false for release (a locked stage's Play is then refused)
+const TEST_OPEN = true;
+const mainWon = () => MAIN.every(c => STARS[c.map] > 0);
 // the lands of the overview, each a soft ellipse (centre, radii) that fades into the next; weights 0–1 by how deep inside a spot is
 const CAMP_LAND = {
   woods:  { c: [160, 505], r: [125, 118], fill: '#33502c' },
@@ -587,14 +595,21 @@ const CAMP_RIVER = [
 // edge = boss; tap one to jump there), then the front stage's details and Play. Behind it the title's scene keeps running.
 const LOCK_SVG = '<svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5 V8 a4 4 0 0 1 8 0 V10.5"/></svg>';
 let cSel = 0, cCur = 0, cDrag = 0;
-function campState() { const won = CAMPAIGN.map(c => !!(c.map && STARS[c.map] > 0)); let cur = won.indexOf(false); if (cur < 0) cur = CAMPAIGN.length - 1; return { won, cur }; }
+// won: a main stage with stars, a bonus stage with its crown; cur: the first main stage not won, then the first bonus one;
+// locked: a main stage past cur, every bonus stage until all twelve are won
+function campState() {
+  const won = CAMPAIGN.map(c => !!(c.map && (c.bonus ? CROWNS[c.map] : STARS[c.map] > 0))), all = mainWon();
+  let cur = won.findIndex((w, i) => !w && (all || !CAMPAIGN[i].bonus)); if (cur < 0) cur = all ? CAMPAIGN.length - 1 : MAIN.length - 1;
+  const locked = CAMPAIGN.map((c, i) => c.bonus ? !all : i > cur);
+  return { won, cur, locked };
+}
 function buildDeck() {
-  const { won, cur } = campState(); cCur = cur;
-  $('#cCards').innerHTML = CAMPAIGN.map((c, i) => { const st = won[i] ? 'won' : i === cur ? 'cur' : i > cur ? 'locked' : '';
-    const mark = i > cur ? `<i class="jLock">${LOCK_SVG}</i>` : '';
-    return `<button class="cCard ${st}${c.boss ? ' boss' : ''}" data-i="${i}" tabindex="-1"><span class="cPic" style="background-image:url(maps/thumb/${c.map}.jpg)"></span>
-      <span class="cName"><small>${c.boss ? 'Boss · ' : ''}Stage ${i + 1}${won[i] ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}</button>`; }).join('');
-  $('#cDots').innerHTML = CAMPAIGN.map((c, i) => `<button class="cDot${c.boss ? ' boss' : ''}${won[i] ? ' won' : i === cur ? ' cur' : ''}" data-i="${i}" aria-label="Stage ${i + 1}"></button>`).join('');
+  const { won, cur, locked } = campState(); cCur = cur;
+  $('#cCards').innerHTML = CAMPAIGN.map((c, i) => { const st = won[i] ? 'won' : i === cur ? 'cur' : locked[i] ? 'locked' : '';
+    const mark = locked[i] ? `<i class="jLock">${LOCK_SVG}</i>` : '';
+    return `<button class="cCard ${st}${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}" data-i="${i}" tabindex="-1"><span class="cPic" style="background-image:url(maps/thumb/${c.map}.jpg)"></span>
+      <span class="cName"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}${won[i] && !c.bonus ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}</button>`; }).join('');
+  $('#cDots').innerHTML = CAMPAIGN.map((c, i) => `<button class="cDot${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}${won[i] ? ' won' : i === cur ? ' cur' : ''}" data-i="${i}" aria-label="Stage ${i + 1}"></button>`).join('');
 }
 // place every card for the front index cSel plus the live drag (in cards); the card's size follows the room the deck has
 function layoutDeck(anim = true) {
@@ -620,10 +635,13 @@ function openStage(i) {
   $('#stName').textContent = `Stage ${i + 1} · ${c.name}`;
   $('#stSub').textContent = [c.sub, c.land].filter(Boolean).join(' · ');
   $('#stNew').innerHTML = c.adds.map(t => `<span>${TOOL_ICON[t] || ''}<b>${t === 'road' ? 'Path' : DEF[t].name}</b></span>`).join('');
-  $('#stStars').innerHTML = starsHTML(c.map ? STARS[c.map] || 0 : 0) + (c.map && CROWNS[c.map] ? `<span class="crown" title="Won on hard">${CROWN_ICO}</span>` : c.map && (STARS[c.map] || 0) >= 3 ? `<span class="crown empty" title="Win on hard">${CROWN_ICO}</span>` : '');
+  // a bonus stage has no stars, only its crown (outlined until won)
+  $('#stStars').innerHTML = c.bonus ? `<span class="crown${CROWNS[c.map] ? '' : ' empty'}" title="Win on hard">${CROWN_ICO}</span>` : starsHTML(c.map ? STARS[c.map] || 0 : 0) + (c.map && CROWNS[c.map] ? `<span class="crown" title="Won on hard">${CROWN_ICO}</span>` : c.map && (STARS[c.map] || 0) >= 3 ? `<span class="crown empty" title="Win on hard">${CROWN_ICO}</span>` : '');
   // hard mode: open once the stage has 3 stars (raiders a tier up, 30% less gold and wood to start; a win earns the crown)
   // a Difficulty switch, Normal | Hard (Jack): Hard shows a padlock until the stage has 3 stars, and a tap on it then says so
-  const canHard = !!c.map && (STARS[c.map] || 0) >= 3; if (!canHard) hardSel = false; $('#stDiff').hidden = !c.map; syncDiff(canHard);
+  // a bonus stage is Hard only (Jack): just the Hard side, picked
+  const canHard = !!c.map && (c.bonus || (STARS[c.map] || 0) >= 3); if (!canHard) hardSel = false; $('#stDiff').hidden = !c.map;
+  $('#stDiff').classList.toggle('only', !!c.bonus); $('#dNormal').hidden = !!c.bonus; if (c.bonus) hardSel = true; else if ($('#stDiff')._bonus) hardSel = false; $('#stDiff')._bonus = !!c.bonus; syncDiff(canHard);
   // how many waves, how long to prepare before the first, and the quickest win so far
   const R = c.map && MAP_RULES[c.map];
   $('#stInfo').innerHTML = R ? `<span>Day 1: <b>${Math.round(R.day[0] / 60)}</b> min${Math.round(R.day[0] / 60) === 1 ? '' : 's'}</span><span>Waves: <b>${R.waves.length}</b></span>${BEST[c.map] ? `<span>Best: <b>${fmt(BEST[c.map])}</b></span>` : ''}` : '';
@@ -632,10 +650,13 @@ function openStage(i) {
     const full = det.offsetHeight + (rows === 1 ? ch : 0);
     if (getComputedStyle($('.cMain')).flexDirection === 'row') { slot.style.minHeight = ''; return; }
     if (full > (slot._h || 0) || slot._w !== innerWidth) { slot._h = Math.max(full, slot._w === innerWidth ? slot._h || 0 : 0); slot._w = innerWidth; slot.style.minHeight = slot._h + 'px'; } });
-  $('#stPlay').innerHTML = c.map ? '<button class="primary" id="campPlay">Play</button>' : '';
+  // a locked stage can't be played once TEST_OPEN is off (release); Jack is testing every stage for now
+  const shut = !TEST_OPEN && campState().locked[i];
+  $('#stPlay').innerHTML = c.map ? `<button class="primary${shut ? ' shut' : ''}" id="campPlay">${shut ? LOCK_ICO : 'Play'}</button>` : '';
   if (c.map) $('#campPlay').addEventListener('click', () => {
+    if (shut) { sfx('nope'); return; }
     sfx('click');
-    MAP = c.map; $('#mapPick').hidden = true; hardOn = hardSel && (STARS[c.map] || 0) >= 3;
+    MAP = c.map; $('#mapPick').hidden = true; hardOn = c.bonus || (hardSel && (STARS[c.map] || 0) >= 3);
     if (stagePicks(MAP)) { $('#campaign').hidden = true; showLoadPick(MAP); return; }   // more decor than fits: choose four first
     $('#campaign').hidden = true; paused = false; startGame();
   });
@@ -645,8 +666,8 @@ function syncDiff(can) {
   const h = $('#dHard'); h.classList.toggle('locked', !can); h.innerHTML = can ? 'Hard' : LOCK_ICO;   // locked: only the padlock (Jack)
   h.classList.toggle('on', hardSel); $('#dNormal').classList.toggle('on', !hardSel);
 }
-const stageCanHard = () => { const c = CAMPAIGN[cSel]; return !!(c && c.map) && (STARS[c.map] || 0) >= 3; };
-$('#dNormal').addEventListener('click', () => { hardSel = false; syncDiff(stageCanHard()); });
+const stageCanHard = () => { const c = CAMPAIGN[cSel]; return !!(c && c.map) && (c.bonus || (STARS[c.map] || 0) >= 3); };
+$('#dNormal').addEventListener('click', () => { if (CAMPAIGN[cSel].bonus) return; hardSel = false; syncDiff(stageCanHard()); });
 $('#dHard').addEventListener('click', () => {
   if (!stageCanHard()) { sfx('nope'); const p = $('#diffLock'); p.hidden = true; void p.offsetWidth; p.hidden = false; clearTimeout(p._t); p._t = setTimeout(() => p.hidden = true, 1800); return; }
   hardSel = true; syncDiff(true);
@@ -673,7 +694,7 @@ function openCampaign(i) {
   $('#tipPill').hidden = true; tipT = 0;
   hushSfx();
   buildDeck(); $('#mapPick').hidden = true; $('#campaign').hidden = false;
-  { const st = CAMPAIGN.filter(c => c.map), won = st.filter(c => STARS[c.map] > 0).length, stars = starTotal(), max = st.length * 3;
+  { const st = MAIN, won = st.filter(c => STARS[c.map] > 0).length, stars = campStarsN(), max = st.length * 3;
     $('#campStars').innerHTML = `<span><b>${won}</b> / ${st.length} stages</span><span class="sep">·</span><span><b>★ ${stars}</b> / ${max}</span>`;
     $('#campUpN').hidden = !upLeft(); $('#campUpN').textContent = '★' + upLeft(); }
   achCheck();
@@ -685,22 +706,31 @@ $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); })
 // picture's colour comes back slowly, with the unlock sound (Unlock_stage.mp3)
 // Jack: the campaign shows first with the card still grey and locked, and the unlock (and its sound) comes after UNLOCK_WAIT;
 // the menus' theme stays silent all the while and fades in slowly once the unlock is over (UNLOCK_WAIT + 3.4 s, over 4 s)
-const UNLOCK_WAIT = 1500;
-function unlockCard(i) {
-  const card = document.querySelector(`.cCard[data-i="${i}"]`); if (!card) return;
+const UNLOCK_WAIT = 1500, UNLOCK_STEP = 4000;
+// several in a row (winning the last of the twelve opens the three bonus stages, Jack): all start locked, the first opens, then the
+// deck turns to the next (UNLOCK_STEP later) and it opens, and so on
+function unlockCard(list) {
+  list = [].concat(list);
+  const L = list.map(i => { const card = document.querySelector(`.cCard[data-i="${i}"]`); if (!card) return null;
+    card.querySelector('.jLock')?.remove();
+    const lock = document.createElement('i'); lock.className = 'jLock'; lock.innerHTML = LOCK_SVG; card.appendChild(lock);
+    card.classList.add('preUnlock'); return { i, card, lock }; }).filter(Boolean);
+  if (!L.length) return;
   setMusic('none'); musicFade(0);
-  const lock = document.createElement('i'); lock.className = 'jLock'; lock.innerHTML = LOCK_SVG; card.appendChild(lock);
-  card.classList.add('preUnlock');
-  setTimeout(() => {
-    card.classList.remove('preUnlock');
-    if ($('#campaign').hidden) { lock.remove(); return; }
-    lock.classList.add('opening'); card.classList.add('unlocking');
-    // the sound's sharp hit is about .5 s in: started .4 s late it meets the shackle springing open at .9 s
-    setTimeout(() => sfx('unlock'), 400);
-    setTimeout(() => { card.classList.remove('unlocking'); lock.remove(); }, 3800);
-  }, UNLOCK_WAIT);
-  // the theme comes back softly (not if a game was started meanwhile: it set its own music)
-  setTimeout(() => { if (musicWant === 'none') { musicFadeIn(4); setMusic('day'); } }, UNLOCK_WAIT + 3400);
+  const clear = () => L.forEach(o => { o.card.classList.remove('preUnlock'); o.lock.remove(); });
+  L.forEach((o, k) => {
+    // the next card: the deck turns to it first, then it opens a moment later
+    if (k) setTimeout(() => { if (!$('#campaign').hidden) selectStage(o.i); }, UNLOCK_WAIT + k * UNLOCK_STEP - 700);
+    setTimeout(() => {
+      if ($('#campaign').hidden) { clear(); return; }
+      o.card.classList.remove('preUnlock'); o.lock.classList.add('opening'); o.card.classList.add('unlocking');
+      // the sound's sharp hit is about .5 s in: started .4 s late it meets the shackle springing open at .9 s
+      setTimeout(() => sfx('unlock'), 400);
+      setTimeout(() => { o.card.classList.remove('unlocking'); o.lock.remove(); }, 3800);
+    }, UNLOCK_WAIT + k * UNLOCK_STEP);
+  });
+  // the theme comes back softly after the last (not if a game was started meanwhile: it set its own music)
+  setTimeout(() => { if (musicWant === 'none') { musicFadeIn(4); setMusic('day'); } }, UNLOCK_WAIT + (L.length - 1) * UNLOCK_STEP + 3400);
 }
 // ---------- Colours (Jack): the town's and the raiders' colours, five each, in the title's Settings (gear); a colour one side
 // has is greyed out for the other; a tap recolours at once (the title's town shows it) and is kept ('mtd-colours')

@@ -775,3 +775,9 @@ body.showcase #achPick.modal.tome{background-color:transparent!important;backgro
 #achToast .atIco{width:40px;height:40px;border-radius:50%;border:2px solid #f7d77a;background:radial-gradient(circle at 50% 35%,#a07a32,#4a3410);display:grid;place-items:center} #achToast .atIco svg{width:26px;height:26px}
 #achToast .atTx{display:flex;flex-direction:column;line-height:1.1} #achToast small{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#d9c08a} #achToast b{font-family:var(--display);font-weight:400;font-size:17px;color:#ffe2a0}
 @media (max-height:520px){ .achSheet .achGrid{grid-template-columns:none;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:78px;gap:8px 6px;overflow-x:auto;overflow-y:hidden;padding:6px 4px 18px;flex:0 0 auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin} .achSheet{max-width:none} .achSheet .upTop{margin-bottom:6px;padding-bottom:6px} .modal.tome .achNode{width:52px;height:52px} .achNode > svg:first-child{width:32px;height:32px} .upSheet .achDet{margin-top:10px;max-width:520px;align-self:center} #achToast{top:12px} }
+/* the bonus stages (Jack): a violet edge and label, like the bosses' red; the progress bar's three bonus segments too; their switch
+   shows only Hard; a locked stage's Play (release only, TEST_OPEN off) is a padlock */
+.cCard.bonus{border-color:rgba(176,132,232,.9)} .cCard.bonus .cName small{color:#c7a6f2}
+.cDot.bonus{border-color:#b084e8!important} .cDot.bonus.won{background:linear-gradient(180deg,#c7a6f2,#6d47a8)!important}
+.modal.tome #stDiff.only #dHard{border-radius:999px}
+#campPlay.shut svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;display:block;margin:auto}

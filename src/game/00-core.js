@@ -139,11 +139,29 @@ const WAVES_STD = [
   { spear: [4, 6, 2], sword: [3, 4, 2], archer: [2, 4, 1], xbow: [2, 2], lancer: [1, 2], rider: [2], catapult: [1], ram: [0, 1] },
   { spear: [2, 6, 6], sword: [2, 4, 6], archer: [2, 4, 4], xbow: [0, 3, 2], lancer: [0, 2, 1], rider: [0, 2, 2], ballista: [0, 1], catapult: [0, 0, 1], ram: [0, 1, 1] },
 ];
-// Mountain pass: one long day to prepare, then two huge nights
+// the bonus stages (Jack: the old free-play maps, made very hard, after the campaign; Hard only, a crown and no stars):
+// 13 Scorched Meadow (drought: no trees, hardly a rock), 14 Blighted Isle (crop blight: fields fail), 15 Frozen Pass (deep winter)
+// `plainMap` is set while the title's showcase builds them, so it keeps their old green look and none of the campaign's cards
+var plainMap = false;
+const bonusOn = () => !plainMap && !!(CAMP_MAPS[MAP] && CAMP_MAPS[MAP].bonus);
 const MAP_RULES = {
+  // Scorched Meadow: five nights from any side (the river is dry, no bridge to hold); little to start with and nothing to gather
+  meadow: { waves: [{ spear: [8], sword: [3], archer: [3] }, { spear: [8, 3], sword: [4, 1], archer: [3, 1], lancer: [2] },
+                    { spear: [6, 5], sword: [4, 3], archer: [4, 2], xbow: [3], lancer: [3], ballista: [1] },
+                    { spear: [5, 6, 2], sword: [3, 4, 2], archer: [4, 3], xbow: [3, 1], lancer: [3, 2], rider: [2, 1], ram: [1], catapult: [1] },
+                    { spear: [4, 8, 4], sword: [3, 5, 3], archer: [3, 4, 2], xbow: [3, 3], lancer: [3, 3, 1], rider: [2, 3, 2], ram: [0, 1], catapult: [0, 1], ballista: [0, 1] }],
+            day: [420, 120, 120, 120, 120], spawnGap: .9, res: { gold: 90, wood: 40, stone: 10, food: 30 } },
+  // Blighted Isle: six nights over the three bridges; fields hardly grow (food from farmhouses and the market)
+  isle: { waves: [{ spear: [8, 2], sword: [3], archer: [3] }, { spear: [8, 4], sword: [4, 2], archer: [3, 2], xbow: [2] },
+                  { spear: [6, 6], sword: [4, 3], archer: [4, 2], xbow: [3], lancer: [3], ballista: [1] },
+                  { spear: [5, 7, 2], sword: [3, 5, 1], archer: [4, 3], xbow: [3, 2], lancer: [3, 2], rider: [2, 1], ram: [1] },
+                  { spear: [4, 8, 4], sword: [3, 5, 3], archer: [3, 4, 2], xbow: [3, 3], lancer: [3, 3], rider: [2, 3, 1], catapult: [1], ram: [0, 1], ballista: [0, 1] },
+                  { spear: [3, 8, 6], sword: [2, 5, 5], archer: [3, 4, 3], xbow: [2, 3, 3], lancer: [3, 3, 2], rider: [2, 3, 3], catapult: [0, 1, 1], ram: [0, 1, 1], ballista: [0, 1, 1] }],
+          day: [480, 120, 120, 120, 120, 120], spawnGap: .85, res: { gold: 70, wood: 50, stone: 0, food: 20 } },
+  // Frozen Pass (was Mountain pass): one day to prepare (10 minutes in deep winter, it was 15), then two huge nights
   pass: { waves: [{ spear: [30, 6], sword: [12, 4], archer: [10, 2], xbow: [4], lancer: [1], ram: [1] },
                   { spear: [10, 26, 10], sword: [4, 12, 8], archer: [4, 10, 6], xbow: [0, 4, 2], lancer: [0, 1], rider: [0, 0, 1], ballista: [0, 1], catapult: [0, 1] }],
-          day: [900, 150], spawnGap: .5 },
+          day: [600, 120], spawnGap: .5, res: { gold: 70, wood: 60, stone: 0, food: 40 } },
   // Greenvale, the campaign's first stop and its tutorial: three short nights of tier-1 spearmen and archers, from the north-east
   vale: { waves: [{ spear: [4] }, { spear: [6], archer: [2] }, { spear: [8], archer: [3] }], day: [180, 120, 120], spawnGap: 1.6,
           res: { gold: 60, wood: 45, stone: 0, food: 30 } },
@@ -273,6 +291,10 @@ const CAMP_MAPS = {
   plains: { stop: 9, maxTier: 3, prefer: { barracks: 'stables' }, cats: { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'stables', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'] } },
   keep: { stop: 10, maxTier: 3, cats: { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'stables', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'] } },
   hold: { stop: 11, maxTier: 3, cats: { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'stables', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'] } },
+  // the bonus stages: every building and decor, tier 3 (the player picks on the town picker)
+  meadow: { stop: 12, bonus: true, maxTier: 3, cats: { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'stables', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'] } },
+  isle: { stop: 13, bonus: true, maxTier: 3, prefer: { food: 'farmhouse' }, cats: { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'stables', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'] } },
+  pass: { stop: 14, bonus: true, maxTier: 3, cats: { eco: ['house', 'farm', 'farmhouse', 'lodge', 'forester', 'quarry', 'mine', 'market'], def: ['tower', 'crossbow', 'ballista', 'catapult', 'barracks', 'stables', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'] } },
   watch: { stop: 3, maxTier: 2, cats: { eco: ['house', 'farm', 'lodge', 'quarry', 'market'], def: ['tower', 'ballista', 'barracks', 'wall', 'gate'], decor: ['road', 'flowers', 'torch', 'rack', 'statue', 'campfire'] } },   // more decor than fits: the player picks four (stage picker)
 };
 var WAVES = WAVES_STD, NIGHTS = WAVES.length, DAYLEN = [300, 150, 150, 150, 150], SPAWN_GAP = 1.1;

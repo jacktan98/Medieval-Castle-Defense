@@ -39,9 +39,9 @@ const UP_ALL = UP_TABS.flatMap(([, rows]) => rows.flatMap(r => r[2].map(u => u[0
 // fields' fences show only once bought), so a bought one carries over
 var UPG = new Set(); try { UPG = new Set((JSON.parse(localStorage.getItem('mtd-upg') || '[]') || []).map(id => id === 'saplings' ? 'woodcut' : id === 'granary' ? 'fences' : id).filter(id => UP_ALL.includes(id))); } catch (e) {}
 const saveUpg = () => { try { localStorage.setItem('mtd-upg', JSON.stringify([...UPG])); } catch (e) {} };
-const campStarsN = () => CAMPAIGN.filter(c => c.map).reduce((n, c) => n + (+STARS[c.map] || 0), 0);
+const campStarsN = () => MAIN.reduce((n, c) => n + (+STARS[c.map] || 0), 0);
 const upLeft = () => Math.max(0, campStarsN() - UPG.size);
-const upOn = id => !!CAMP_MAPS[MAP] && UPG.has(id);
+const upOn = id => !!CAMP_MAPS[MAP] && !plainMap && UPG.has(id);
 // effects the numbers can't carry: a multiplier on chop and dig times, extra stone a trip, the riders' charge, burning hits
 // and what the town shows for them: chimneys (Bigger homes), the fields' fences (Fences); log bundles and wheelbarrows follow LUMBER_LOAD and stoneTrip
 const UPK = { chop: 1, dig: 1, stoneTrip: 0, lance: false, cataBurn: false, volleyBurn: false, chimney: false, fences: false, lanterns: false };

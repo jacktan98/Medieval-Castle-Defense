@@ -86,7 +86,7 @@ function syncWaterTex() {
   for (let j = 0; j < V; j++) for (let i = 0; i < V; i++) hData[(j * V_MAX + i) * 4] = clamp(Math.round((H[idx(i, j)] + 3) / 6 * 255), 0, 255);
   hTex.needsUpdate = true; waterU.uIsle.value = MAP === 'isle' ? 1 : MAP === 'bridge' || MAP === 'bend' || MAP === 'ford' || MAP === 'hold' ? 2 : 0; waterU.uC.value.set(KX, KZ);
   // Meadowmere's water is foul (Jack: show why fields do badly there): murky olive with a scum of algae, yellowish froth
-  const foul = MAP === 'mere'; waterU.uFoul.value = foul ? 1 : 0; edgeWater.material.color.set(foul ? '#3f6560' : '#3d6e86');
+  const foul = MAP === 'mere' || (bonusOn() && MAP === 'isle'); waterU.uFoul.value = foul ? 1 : 0; edgeWater.material.color.set(foul ? '#3f6560' : '#3d6e86');
 }
 waterMat.onBeforeCompile = sh => {
   sh.uniforms.uTime = windU; sh.uniforms.uH = { value: hTex }; sh.uniforms.uIsle = waterU.uIsle; sh.uniforms.uC = waterU.uC; sh.uniforms.uFoul = waterU.uFoul;
@@ -121,7 +121,7 @@ waterMat.customProgramCacheKey = () => 'flowing-water';
 const C = { grass: new THREE.Color('#5a7338'), grass2: new THREE.Color('#3b5127'), dirt: new THREE.Color('#7b5d3c'),
   rock: new THREE.Color('#77736a'), sand: new THREE.Color('#9d906b'), bed: new THREE.Color('#45432f'), dry: new THREE.Color('#7f7948') };
 const tmpC = new THREE.Color();
-const SNOW_C = new THREE.Color('#e4e6ea');
+const SNOW_C = new THREE.Color('#e4e6ea'), SCORCH_MUD = new THREE.Color('#8f7556'), BLIGHT_C = new THREE.Color('#6c6a5c');
 function recolor() {
   for (let j = 0; j < V; j++) for (let i = 0; i < V; i++) {
     const k = idx(i, j), h = H[k];
@@ -139,6 +139,18 @@ function recolor() {
       tmpC.lerp(MERE_C, marshW(i / MK, j / MK) * (.7 + .3 * fbm(i * .3, j * .3)));
       const wf = sstep(.36, .56, fbm(i / MK * .09 + 3.7, j / MK * .09 + 1.3)) * (.55 + .45 * fbm(i * .4, j * .4));
       tmpC.lerp(MERE_DEAD, Math.max(wf * .85, marshW(i / MK, j / MK) * .45) * (.6 + .4 * sstep(5, 10, Math.hypot(i - KX, j - KZ))));
+    }
+    if (bonusOn()) {
+      if (MAP === 'meadow') {
+        // Scorched Meadow: parched yellow-brown grass, bare sandy patches, the dry river bed cracked mud
+        tmpC.lerp(C.dry, .8); tmpC.lerp(DUNE_SAND, sstep(.45, .7, fbm(i * .08 + 5, j * .08 + 9)) * .6);
+        const bed = 1 - sstep(2.5, 6, Math.abs(i - meadowRiverX(j))), crack = 1 - sstep(0, .035, Math.abs(fbm(i * .7 + 2, j * .7 + 8) - .5));
+        tmpC.lerp(SCORCH_MUD, bed * .9); tmpC.multiplyScalar(1 - bed * crack * .35);
+      } else if (MAP === 'isle') {
+        // Blighted Isle: sickly olive and withered brown in broad patches, the blight's grey rot here and there
+        tmpC.lerp(MERE_C, .45); tmpC.lerp(MERE_DEAD, sstep(.38, .58, fbm(i * .09 + 3.7, j * .09 + 1.3)) * .75);
+        tmpC.lerp(BLIGHT_C, sstep(.6, .75, fbm(i * .17 + 11, j * .17 + 4)) * .6);
+      } else if (MAP === 'pass') tmpC.lerp(SNOW_C, .62 + .25 * fbm(i * .2 + 7, j * .2 + 3));   // Frozen Pass: snow over the open ground
     }
     if (MAP === 'plains') tmpC.lerp(PLAINS_C, .35);              // the plains: a fresh, lighter green
     if (MAP === 'crag') tmpC.lerp(C.rock, (1 - sstep(.75, 1.05, blobD(i / MK, j / MK, CRAG_ROCK, 2))) * .85);   // the grey crag

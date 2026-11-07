@@ -20,7 +20,7 @@ const ok = (cond, what, more) => { if (!cond) fails++; console.log(`${cond ? '  
     const g = await openGame('index.html', { title: true, viewport: { width: 390, height: 844 }, settle: 1500 }), p = g.page;
     ok(await p.evaluate(() => !document.getElementById('mapPick').hidden), 'title screen shows');
     await p.click('#campBtn'); await p.waitForTimeout(800);
-    ok(await p.evaluate(() => !document.getElementById('campaign').hidden && document.querySelectorAll('.cCard').length === 12), 'campaign opens with 12 stages');
+    ok(await p.evaluate(() => !document.getElementById('campaign').hidden && document.querySelectorAll('.cCard').length === 15), 'campaign opens with 15 stages (12 and 3 bonus)');
     await p.click('#campUpBtn', { force: true }).catch(() => {}); await p.waitForTimeout(600);
     ok(await p.evaluate(() => !document.getElementById('upPick').hidden), 'upgrades screen opens');
     ok(!g.errors.length, 'no page errors', g.errors.join(' | ')); await g.close();

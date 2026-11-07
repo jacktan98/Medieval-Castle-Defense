@@ -330,8 +330,11 @@ function endGame(won) {
   // Restart, and Continue after a win (to the next stage's preview) or Main menu after a defeat (Jack); a stage's first win unlocks
   // the next, which Continue shows unlocking (unlockNext)
   $('#sumNext').textContent = won ? 'Continue' : 'Main menu';
-  { const st = CAMP_MAPS[MAP] ? CAMP_MAPS[MAP].stop : -1; nextStage = won && st >= 0 ? Math.min(st + 1, CAMPAIGN.length - 1) : st;
-    unlockNext = won && !hardOn && st >= 0 && st + 1 < CAMPAIGN.length && !(STARS[MAP] > 0) ? st + 1 : null; }
+  // winning the last of the twelve (whichever it is) opens the three bonus stages, one after another (Jack)
+  { const st = CAMP_MAPS[MAP] ? CAMP_MAPS[MAP].stop : -1, wasAll = mainWon(), nx = st + 1 < CAMPAIGN.length ? CAMPAIGN[st + 1] : null;
+    unlockNext = won && !hardOn && st >= 0 && nx && !nx.bonus && !(STARS[MAP] > 0) ? [st + 1] : null;
+    if (won && !hardOn && !wasAll && MAIN.every(c => c.map === MAP || STARS[c.map] > 0)) unlockNext = CAMPAIGN.map((c, i) => c.bonus ? i : -1).filter(i => i >= 0);
+    nextStage = won && st >= 0 ? (unlockNext ? unlockNext[0] : Math.min(st + 1, CAMPAIGN.length - 1)) : st; }
   if (!hardOn && n > (STARS[MAP] || 0)) { STARS[MAP] = n; try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {} }
   if (won && hardOn && !CROWNS[MAP]) { CROWNS[MAP] = 1; try { localStorage.setItem('mtd-crowns', JSON.stringify(CROWNS)); } catch (e) {} }
   // achievements of the win itself, then the ones the stars and crowns now earn

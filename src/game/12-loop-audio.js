@@ -23,7 +23,7 @@ function nextShowcase() {
 }
 function buildShowcase(n = 0) {
   const S = SHOW_SCENES[n]; showScene = n; showT = 0;
-  const keep = MAP; MAP = S.map; startGame(); MAP = keep;
+  const keep = MAP; MAP = S.map; plainMap = true; try { startGame(); } finally { plainMap = false; } MAP = keep;
   const K = buildings.find(B => B.type === 'castle');
   const setTier = (B, t) => { if (!B || t < 2) return; B.tier = t; B.max = DEF[B.type].hp[t - 1]; B.hp = B.max; swapModel(B); };
   setTier(K, 3);
@@ -62,7 +62,10 @@ function startGame() {
   for (const a of arrows) scene.remove(a.m); arrows.length = 0; volleyQ = []; volleyCd = 0; volleyAim = false; summonCd = 0; summonOut = false; volleyLine.visible = false;
   for (const f of floats) scene.remove(f.sp); floats.length = 0;
   for (const p of puffs) scene.remove(p.sp); puffs.length = 0;
+  if (bonusOn()) hardOn = true;   // a bonus stage is Hard only (also from ?map= or a resumed save)
   mapRules(); applyUpgrades();
+  // Frozen Pass: deep winter, villagers eat more (a meal every 14 s of daylight, not 20)
+  if (bonusOn() && MAP === 'pass') MEAL = Math.round(MEAL * .7);
   PH = { kind: 'day', wave: 1, t: DAYLEN[0] }; nextPts = null; econT = TICK; gameOver = false; endCheer = 0; endDawn = false; musicFade(0); light = 1; if (paused) setPaused(false); setMusic('day');
   if (MAP === 'isle') { KX = 27; KZ = 27; } else if (MAP === 'pass') { KX = 27; KZ = 21; } else if (MAP === 'vale') { KX = 25; KZ = 33; } else if (MAP === 'bridge') { KX = 29; KZ = 37; } else if (MAP === 'cross') { KX = 17; KZ = 39; } else if (MAP === 'watch') { KX = 17; KZ = 29; } else if (MAP === 'dune') { KX = 15; KZ = 26; } else if (MAP === 'bend') { KX = 21; KZ = 28; } else if (MAP === 'crag') { KX = 25; KZ = 33; } else if (MAP === 'ford') { KX = 29; KZ = 43; } else if (MAP === 'mere') { KX = 15; KZ = 43; } else if (MAP === 'plains') { KX = 28; KZ = 28; } else if (MAP === 'keep') { KX = 41; KZ = 67; } else if (MAP === 'hold') { KX = 39; KZ = 65; } else { KX = 19; KZ = 27; }
   // a medium map (Stages 7-10) is its 56 m layout scaled up: the castle's site too
@@ -101,7 +104,7 @@ function startGame() {
   else if (CAMP_MAPS[MAP]) { guideOn = false; guideMark(); }
   // a campaign stage: its new buildings, one card each (from Stage 2), then its goals (Jack: the goals only on this card)
   // none on hard mode: the stage has been won with 3 stars already (Jack)
-  if (CAMP_MAPS[MAP] && !hardOn) showNewCards((CAMP_MAPS[MAP].stop > 0 ? CAMPAIGN[CAMP_MAPS[MAP].stop].adds.concat(CAMP_MAPS[MAP].newTier ? ['tier' + CAMP_MAPS[MAP].newTier] : []) : []).concat(stageGoals(MAP).length ? ['goals'] : []));   // a later stage: its new buildings, one card each, before play
+  if (CAMP_MAPS[MAP] && !hardOn && !plainMap) showNewCards((CAMP_MAPS[MAP].stop > 0 ? CAMPAIGN[CAMP_MAPS[MAP].stop].adds.concat(CAMP_MAPS[MAP].newTier ? ['tier' + CAMP_MAPS[MAP].newTier] : []) : []).concat(stageGoals(MAP).length ? ['goals'] : []));   // a later stage: its new buildings, one card each, before play
   updateCam();
   log('Drag · twist · pinch');
   log(`Survive <b>${NIGHTS} nights</b>`); if (hardOn) log('<b>Hard:</b> raiders a tier up', 'warn');
@@ -155,6 +158,14 @@ $('#adFinish').addEventListener('click', () => { buildings.forEach(B => { if (B.
 $('#adInstant').addEventListener('change', e => { instantBuild = e.target.checked; if (instantBuild) buildings.forEach(B => { if (B.site) B.site.progress = 1; }); });
 $('#adPop').addEventListener('click', () => { const k = castleB(); if (k) { for (let n = 0; n < 5; n++) makeVillager(k); assignJobs(); } });
 $('#adDay').addEventListener('click', () => { if (PH.kind === 'day' && !gameOver) PH.t = 0; });
+// Jack, for testing: win this stage at once, every goal met (3 stars; on hard or a bonus stage the crown), raiders cleared
+$('#adWin').addEventListener('click', () => {
+  if (gameOver) return;
+  for (const g of stageGoals(MAP)) goalsMet[g[0]] = true;
+  for (const e of enemies) { scene.remove(e.g); scene.remove(e.bar.grp); burnOff(e); } enemies.length = 0; spawnQueue = [];
+  $('#admin').hidden = true; $('#adminBtn').setAttribute('aria-pressed', 'false'); if (paused) setPaused(false);
+  PH.wave = NIGHTS + 1; endGame(true);
+});
 // admin raiders dashboard: every raider kind by tier; a tap sends that many of it. By day it brings on a test night that ends
 // back in the same day (the wave isn't used up)
 const RD_NAME = { ballista: 'Ballista', catapult: 'Catapult', ram: 'Ram' };

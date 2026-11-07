@@ -230,6 +230,9 @@ const WEATHER = {
   keep: { kind: 'ash', always: true },
   hold: { kind: 'snow', always: true },
   pass: { kind: 'snow', always: true },
+  // the bonus stages: hot dust over the Scorched Meadow, damp drizzle over the Blighted Isle (Frozen Pass keeps its snow)
+  meadowX: { kind: 'dust', on: [50, 90], off: [40, 80], first: [10, 40] },
+  isleX: { kind: 'drizzle', on: [60, 110], off: [40, 80], first: [0, 20] },
 };
 const WX_KIND = {
   rain: { lines: true, n: 2400, fall: 15, len: .9, wind: 1.6, col: '#c3d0dc', op: .6, dark: .38, fogK: .35, tint: '#8d96a0', tintK: .55 },
@@ -252,7 +255,7 @@ scene.add(wxLines, wxPts);
 const WX = { cfg: null, K: null, w: 0, goal: 0, timer: 0 };
 const wxTint = new THREE.Color(), wxRnd = ([a, b]) => a + Math.random() * (b - a);
 function weatherReset() {
-  const cfg = WEATHER[MAP] || null; WX.cfg = cfg; WX.K = cfg && WX_KIND[cfg.kind]; WX.w = 0;
+  const cfg = (bonusOn() && WEATHER[MAP + 'X']) || WEATHER[MAP] || null; WX.cfg = cfg; WX.K = cfg && WX_KIND[cfg.kind]; WX.w = 0;
   WX.goal = cfg && cfg.always ? 1 : 0; WX.timer = cfg && !cfg.always ? wxRnd(cfg.first) : 0;
   if (cfg && cfg.always) WX.w = 1;
   if (!WX.K) { wxLines.visible = wxPts.visible = false; return; }

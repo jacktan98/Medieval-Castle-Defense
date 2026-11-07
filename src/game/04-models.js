@@ -374,8 +374,11 @@ function makeQuarry(tier, plinth) {
   }
   return g;
 }
+// blighted crops (Meadowmere's damp blight, the Blighted Isle): brown, wilted, spotted, so the fields show they do badly
+const BLIGHT_M = { crop1: mat('#6e6436'), crop2: mat('#7a6a3a'), wheat: mat('#8c7442') };
+const blightMap = () => MAP === 'mere' || (bonusOn() && MAP === 'isle');
 function makeFarm(tier) {
-  const g = new THREE.Group();
+  const g = new THREE.Group(), CM = blightMap() ? BLIGHT_M : M;
   g.add(box(3.5, .08, 3.5, M.soil, 0, .06, 0));
   const rows = tier === 1 ? 4 : 7, per = tier === 1 ? 4 : 9;
   for (let r = 0; r < rows; r++) {
@@ -384,7 +387,7 @@ function makeFarm(tier) {
       for (let c = 0; c < 12; c++) {
         const x = -1.45 + c * .27 + (hash(r, c) - .5) * .08, h = .5 + hash(c, r * 3) * .14;
         if (x < -.45 && z < -.45) continue;                                          // keep the barn's front clear: the wheat hid its door
-        const st = cone(.075, h, 4, M.wheat, x, h / 2 + .08, z + (hash(c + 7, r) - .5) * .06);
+        const st = cone(.075, h * (CM === M ? 1 : .8), 4, CM.wheat, x, h / 2 + .08, z + (hash(c + 7, r) - .5) * .06);
         st.rotation.z = (hash(c, r + 9) - .5) * .25; st.rotation.x = (hash(r + 3, c) - .5) * .2; g.add(st);
       }
       continue;
@@ -393,7 +396,7 @@ function makeFarm(tier) {
       if (tier === 1 && hash(r, c) < .25) continue;
       if (tier === 2 && c < 4 && r < 3) continue;                                     // the croft's hut stands here
       const x = (tier === 1 ? -1.5 : -1.5) + c * ((tier === 1 ? 3.0 : 3.0) / (per - 1)), h = tier === 1 ? .28 + hash(c, r) * .15 : .4;
-      g.add(cone(.13, h, 4, tier === 1 ? M.crop1 : M.crop2, x, h / 2 + .08, z));
+      g.add(cone(.13, h * (CM === M ? 1 : .75), 4, tier === 1 ? CM.crop1 : CM.crop2, x, h / 2 + .08, z));
     }
   }
   if (UPK.fences) for (let s = -1.75; s <= 1.76; s += .5) for (const [x, z] of [[s, -1.75], [s, 1.75], [-1.75, s], [1.75, s]]) {
