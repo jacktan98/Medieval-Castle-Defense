@@ -783,6 +783,8 @@ body.showcase #achPick.modal.tome{background-color:transparent!important;backgro
 #achPick{overflow:hidden} #achPick .achSheet{height:100%;min-height:0;margin:0 auto}
 .achSheet .upTop{flex:0 0 auto}
 .achSheet .achGrid{flex:1 1 auto;min-height:0;overflow-y:auto;align-content:start;padding:4px 2px 10px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+/* upright the scrollbar runs in the sheet's right margin, clear of the tiles (Jack) */
+@media (min-height:521px){ .achSheet .achGrid{width:auto;align-self:stretch;margin-right:-9px;padding-right:11px} }
 .achSheet .upTop{margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #d9b04e}
 .achP{margin-top:3px;font-size:12px;font-weight:700;color:#bfae80} .achP.ok{color:#f0c95a}
 #achToast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 74px);transform:translate(-50%,-14px);z-index:60;display:flex;align-items:center;gap:9px;padding:6px 14px 6px 6px;border-radius:30px;border:2px solid #f0c95a;background:linear-gradient(#5a4428,#2a1f0e);box-shadow:0 4px 16px rgba(0,0,0,.6),0 0 14px rgba(240,201,90,.45);opacity:0;transition:opacity .35s,transform .35s;pointer-events:none}
