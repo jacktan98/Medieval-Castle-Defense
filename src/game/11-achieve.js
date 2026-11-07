@@ -75,7 +75,7 @@ function renderAchievements() {
   let sh = el.querySelector('.upSheet'); if (!sh) { sh = document.createElement('div'); sh.className = 'upSheet achSheet'; el.replaceChildren(sh); }
   sh.innerHTML = `<div class="upTop"><button class="upBack campBack" id="achBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Achievements</h2><div class="upBank"><b>${got}</b>/ ${ACH_ALL.length}</div></div>
     <div class="achGrid">${all.map(a => { const d = achIsDone(a), f = Math.min(1, achVal(a) / a.of);
-      return `<div class="achItem"><button class="achNode${d ? ' done' : ''}${a.id === achSel ? ' sel' : ''}" data-ach="${a.id}" aria-label="${a.name}">${achIco(a)}${d ? '<span class="upTick">✓</span>' : ''}</button><div class="achName">${a.name}</div>${!d && a.of > 1 ? `<div class="achBar"><u style="width:${Math.max(3, f * 100)}%"></u></div>` : ''}</div>`; }).join('')}</div>
+      return `<div class="achItem"><button class="achNode${d ? ' done' : ''}${a.id === achSel ? ' sel' : ''}" data-ach="${a.id}" aria-label="${a.name}">${achIco(a)}${d ? '<span class="upTick">✓</span>' : ''}</button><div class="achName">${a.name}</div>${!d && a.of > 1 ? `<div class="achBar"><u style="width:${f > 0 ? Math.max(3, f * 100) : 0}%"></u></div>` : ''}</div>`; }).join('')}</div>
     <div class="upDet achDet"><div class="upBig"></div><div class="upTx"><div class="upOf"></div><h3></h3><p></p><div class="achP"></div></div></div>`;
   selectAch(achSel);
 }
