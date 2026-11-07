@@ -8,11 +8,15 @@ const SHOWCASE = [   // type, cells from the castle's centre (x, z; the castle's
   ['market', 1, 4, 3], ['tower', -3, -4, 3], ['tower', 3, -4, 2], ['tower', 5, 3, 2], ['farm', -7, -1, 2], ['barracks', 0, -5, 2],
   ['lodge', -6, 4, 2], ['torch', -1, 2, 1], ['torch', 1, 2, 1], ['torch', -3, 5, 1], ['campfire', -1, 6, 1], ['banner', 2, -3, 1],
   ['flowers', -4, 0, 1], ['flowers', 4, 0, 1], ['well', 4, 5, 1], ['statue', -2, -3, 1]];
-// the scenes it moves between (Jack): it opens on the Meadow at dusk, then every SHOW_T seconds fades to another one at random
+// the scenes it moves between (Jack): the three bonus stages' maps each in two looks, lush and green (`green`: their old look, the
+// prettier one) and as the bonus stage now is, each at day, dusk or night at random, with a weather that suits it (`wx`: picked at
+// random, null = clear); it opens on one at random, then every SHOW_T seconds fades to another
 // (the pass is ringed by mountains: its camera looks up the pass from the open south and only sways, `swing` rad either way)
-// the three bonus stages as they now are, one each by day, at dusk and at night (Jack): the Scorched Meadow in the midday sun, the
-// Blighted Isle at dusk, the Frozen Pass at night
-const SHOW_SCENES = [{ map: 'meadow', time: 'day' }, { map: 'isle', time: 'dusk' }, { map: 'pass', time: 'night', yaw: 0, swing: .45, pitch: .78, dist: 50 }], SHOW_T = 28;
+const PASS_CAM = { yaw: 0, swing: .45, pitch: .78, dist: 50 };
+const SHOW_SCENES = [{ map: 'meadow', green: true, wx: [null, 'rain'] }, { map: 'meadow', wx: ['dust', null] },
+  { map: 'isle', green: true, wx: [null, 'drizzle'] }, { map: 'isle', wx: ['drizzle'] },
+  { map: 'pass', green: true, wx: [null, 'rain'], ...PASS_CAM }, { map: 'pass', wx: ['snow'], ...PASS_CAM }], SHOW_T = 28;
+const SHOW_TIMES = ['day', 'dusk', 'night'];
 let showScene = 0, showT = 0, showFading = false, showYaw0 = 0, showPh = 0, showDist = 40;
 const showC = new THREE.Vector3();
 function nextShowcase() {
@@ -23,21 +27,25 @@ function nextShowcase() {
     canvas.style.opacity = '1';
   }, 750);
 }
-function buildShowcase(n = 0) {
-  const S = SHOW_SCENES[n]; showScene = n; showT = 0;
-  const keep = MAP; MAP = S.map; plainMap = true; try { startGame(); } finally { plainMap = false; } MAP = keep;
+function buildShowcase(n = Math.floor(Math.random() * SHOW_SCENES.length)) {
+  const S = SHOW_SCENES[n], time = SHOW_TIMES[Math.floor(Math.random() * 3)]; showScene = n; showT = 0;
+  // greenLook stays set until the next game (startGame clears it), as the showcase's own buildings are placed after the map
+  const keep = MAP; MAP = S.map; plainMap = true; greenLook = !!S.green; try { startGame(); } finally { plainMap = false; }
+  { const kind = S.wx[Math.floor(Math.random() * S.wx.length)]; weatherReset(kind); if (kind) WX.w = WX.goal = kind === 'snow' ? .7 : .55; }
   const K = buildings.find(B => B.type === 'castle');
   const setTier = (B, t) => { if (!B || t < 2) return; B.tier = t; B.max = DEF[B.type].hp[t - 1]; B.hp = B.max; swapModel(B); };
   setTier(K, 3);
   const ci = Math.floor((K.ev.x0 + K.ev.x1) / 2 / CELL), cj = Math.floor((K.ev.z0 + K.ev.z1) / 2 / CELL);
   for (const [type, dx, dz, t] of SHOWCASE) { const ev = findValid(type, ci + dx, cj + dz, { free: true }); if (ev) setTier(place(type, ev.ci, ev.cj, { instant: true, free: true, quiet: true }), t); }
   for (const v of villagers) v.g.visible = false;                           // everyone indoors at dusk: the town doesn't move under the menu
-  if (S.time === 'dusk') { PH.t = DUSK * .45; light = .25 + .75 * sstep(0, DUSK, PH.t); }   // low warm light, the torches and fires lit
-  else if (S.time === 'night') { PH.kind = 'night'; light = 0; }                              // moonlight, every torch and fire burning
+  if (time === 'dusk') { PH.t = DUSK * .45; light = .25 + .75 * sstep(0, DUSK, PH.t); }   // low warm light, the torches and fires lit
+  else if (time === 'night') { PH.kind = 'night'; light = 0; }                              // moonlight, every torch and fire burning
   const c = center(K); target.set(c.x, 1.5, c.z); showYaw0 = S.yaw !== undefined ? S.yaw : Math.random() * Math.PI * 2; showPh = 0; yaw = showYaw0;
   pitch = S.pitch || .62; showC.copy(target); showDist = (S.dist || 40) * (innerWidth < innerHeight ? 1.35 : 1); dist = showDist; updateCam();
   $('#log').innerHTML = ''; $('#banner').className = 'banner';
   showcaseBuilt = true;
+  // MAP goes back only now: placing the showcase's buildings re-colours the ground by MAP (put back earlier, the pass took the Meadow's colours)
+  MAP = keep;
 }
 function findValid(type, ci0, cj0, opts = {}) {
   for (let r = 0; r < 24; r++) for (let dj = -r; dj <= r; dj++) for (let di = -r; di <= r; di++) {
@@ -51,6 +59,7 @@ function findValid(type, ci0, cj0, opts = {}) {
 var gameSeed = 0, nextSeed = null, hardOn = false;
 function seededRandom(a) { return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function startGame() {
+  if (!plainMap) greenLook = false;
   $('#nightBtn').classList.remove('skipGlow');
   gameSeed = nextSeed != null ? nextSeed : (Math.random() * 2147483647) | 0; nextSeed = null;
   showcaseBuilt = false; campsJoined = false; canvas.style.opacity = '1';

@@ -254,8 +254,9 @@ wxLines.frustumCulled = wxPts.frustumCulled = false; wxLines.visible = wxPts.vis
 scene.add(wxLines, wxPts);
 const WX = { cfg: null, K: null, w: 0, goal: 0, timer: 0 };
 const wxTint = new THREE.Color(), wxRnd = ([a, b]) => a + Math.random() * (b - a);
-function weatherReset() {
-  const cfg = (bonusOn() && WEATHER[MAP + 'X']) || WEATHER[MAP] || null; WX.cfg = cfg; WX.K = cfg && WX_KIND[cfg.kind]; WX.w = 0;
+// force: the title's showcase picks its own weather (a kind, or null for clear), held all the while
+function weatherReset(force) {
+  const cfg = force !== undefined ? (force ? { kind: force, always: true } : null) : (bonusOn() && WEATHER[MAP + 'X']) || WEATHER[MAP] || null; WX.cfg = cfg; WX.K = cfg && WX_KIND[cfg.kind]; WX.w = 0;
   WX.goal = cfg && cfg.always ? 1 : 0; WX.timer = cfg && !cfg.always ? wxRnd(cfg.first) : 0;
   if (cfg && cfg.always) WX.w = 1;
   if (!WX.K) { wxLines.visible = wxPts.visible = false; return; }
@@ -271,7 +272,7 @@ function weatherReset() {
 // the sky and fog colour lean toward the weather's tint (called from updateLight before the fog copies the sky)
 function weatherSky(c) { if (WX.K && WX.w > 0) c.lerp(wxTint.set(WX.K.tint).multiplyScalar(.35 + .65 * light), WX.K.tintK * WX.w); }
 function updateWeather(dt, live) {
-  const K = WX.K, off = showcaseBuilt || !K;
+  const K = WX.K, off = !K;
   if (off) { wxLines.visible = wxPts.visible = false; return; }
   if (live && !WX.cfg.always && (WX.timer -= dt) <= 0) { WX.goal = WX.goal ? 0 : 1; WX.timer = wxRnd(WX.goal ? WX.cfg.on : WX.cfg.off); }
   if (live) WX.w += (WX.goal - WX.w) * Math.min(1, dt * .12);
@@ -285,7 +286,7 @@ function updateWeather(dt, live) {
   if (!n) return;
   // spread over the whole map (Jack: a box round the camera showed as a box or a line from above), wrapped at its edges
   const top = 26, wrap = v => ((v % SIZE) + SIZE) % SIZE, t = performance.now() / 1000;
-  const sdt = live ? Math.min(dt, .05) : 0, night = .45 + .55 * light;
+  const sdt = live || showcaseBuilt ? Math.min(dt, .05) : 0, night = .45 + .55 * light;
   if (K.lines) {
     const a = wxLineGeo.attributes.position.array, dx = K.wind / K.fall * K.len;
     for (let i = 0; i < n; i++) {
