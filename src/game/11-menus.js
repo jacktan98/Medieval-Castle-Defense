@@ -682,12 +682,22 @@ function openCampaign(i) {
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
 // a stage just unlocked by the last win (Jack): its card starts grey with the padlock, the padlock springs open and fades, and the
 // picture's colour comes back slowly, with the unlock sound (Unlock_stage.mp3)
+// Jack: the campaign shows first with the card still grey and locked, and the unlock (and its sound) comes after UNLOCK_WAIT;
+// the menus' theme stays silent all the while and fades in slowly once the unlock is over (UNLOCK_WAIT + 3.4 s, over 4 s)
+const UNLOCK_WAIT = 1500;
 function unlockCard(i) {
   const card = document.querySelector(`.cCard[data-i="${i}"]`); if (!card) return;
-  const lock = document.createElement('i'); lock.className = 'jLock opening'; lock.innerHTML = LOCK_SVG; card.appendChild(lock);
-  card.classList.add('unlocking');
-  sfx('unlock');
-  setTimeout(() => { card.classList.remove('unlocking'); lock.remove(); }, 3800);
+  setMusic('none'); musicFade(0);
+  const lock = document.createElement('i'); lock.className = 'jLock'; lock.innerHTML = LOCK_SVG; card.appendChild(lock);
+  card.classList.add('preUnlock');
+  setTimeout(() => {
+    card.classList.remove('preUnlock');
+    if ($('#campaign').hidden) { lock.remove(); return; }
+    lock.classList.add('opening'); card.classList.add('unlocking'); sfx('unlock');
+    setTimeout(() => { card.classList.remove('unlocking'); lock.remove(); }, 3800);
+  }, UNLOCK_WAIT);
+  // the theme comes back softly (not if a game was started meanwhile: it set its own music)
+  setTimeout(() => { if (musicWant === 'none') { musicFadeIn(4); setMusic('day'); } }, UNLOCK_WAIT + 3400);
 }
 // ---------- Colours (Jack): the town's and the raiders' colours, five each, in the title's Settings (gear); a colour one side
 // has is greyed out for the other; a tap recolours at once (the title's town shows it) and is kept ('mtd-colours')

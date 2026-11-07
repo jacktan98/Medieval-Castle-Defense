@@ -380,6 +380,10 @@ function updateAmbience(dt) {
 // the theme loops day and night with birdsong under it by day; victory and defeat stop it and play once
 function setMusic(name) { musicWant = name; syncMusic(); }
 // fade the music bus out over s seconds (0: back to the set loudness at once): the night theme fades as a won game's last raider falls
+function musicFadeIn(s) {
+  if (!musicBus || !actx) return; const g = musicBus.gain, t = actx.currentTime;
+  g.cancelScheduledValues(t); g.setValueAtTime(0, t); g.linearRampToValueAtTime(musicVol, t + s);
+}
 function musicFade(s) {
   if (!musicBus || !actx) return; const g = musicBus.gain, t = actx.currentTime;
   g.cancelScheduledValues(t); g.setValueAtTime(s ? g.value : musicVol, t); if (s) g.linearRampToValueAtTime(0, t + s);
