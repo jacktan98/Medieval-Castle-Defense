@@ -61,20 +61,19 @@ const achToastQ = []; let achToastOn = false;
 function achToastNext() {
   if (achToastOn || !achToastQ.length) return; const a = achToastQ.shift(), el = $('#achToast'); achToastOn = true;
   el.innerHTML = `<span class="atIco">${achIco(a)}</span><span class="atTx"><small>Achievement</small><b>${a.name}</b></span>`; el.hidden = false;
-  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); sfx('star');
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); sfx('achieve');
   setTimeout(() => { el.classList.remove('show'); setTimeout(() => { el.hidden = true; achToastOn = false; achToastNext(); }, 400); }, 3200);
 }
-// ---- the Achievements screen (from the campaign screen), laid out like Upgrades ----
-let achTab = 0, achSel = null;
+// ---- the Achievements screen (from the campaign screen), laid out like Upgrades but the whole list at once, no tabs (Jack):
+// upright it scrolls down, on a phone held sideways two rows scroll right ----
+let achSel = null;
 function openAchievements() { sfx('click'); $('#achPick').replaceChildren(); $('#campaign').hidden = true; $('#achPick').hidden = false; achSel = null; renderAchievements(); }
 const achProg = a => { const v = Math.min(achVal(a), a.of); return achIsDone(a) ? 'Done' : a.of > 1 ? `${v.toLocaleString()} / ${a.of.toLocaleString()}` : 'Not yet'; };
 function renderAchievements() {
-  const [, list] = ACH_TABS[achTab], all = ACH_ALL.filter(a => a.tab === ACH_TABS[achTab][0]);
-  if (!achSel || !all.some(a => a.id === achSel)) achSel = all[0].id;
+  const all = ACH_ALL; if (!achSel) achSel = all[0].id;
   const el = $('#achPick'), got = ACH_ALL.filter(achIsDone).length;
   let sh = el.querySelector('.upSheet'); if (!sh) { sh = document.createElement('div'); sh.className = 'upSheet achSheet'; el.replaceChildren(sh); }
   sh.innerHTML = `<div class="upTop"><button class="upBack campBack" id="achBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Achievements</h2><div class="upBank"><b>${got}</b>/ ${ACH_ALL.length}</div></div>
-    <div class="upTabs">${ACH_TABS.map(([t], i) => `<button class="upTab${i === achTab ? ' on' : ''}" data-tab="${i}">${t}</button>`).join('')}</div>
     <div class="achGrid">${all.map(a => { const d = achIsDone(a), f = Math.min(1, achVal(a) / a.of);
       return `<div class="achItem"><button class="achNode${d ? ' done' : ''}${a.id === achSel ? ' sel' : ''}" data-ach="${a.id}" aria-label="${a.name}">${achIco(a)}${d ? '<span class="upTick">✓</span>' : ''}</button><div class="achName">${a.name}</div>${!d && a.of > 1 ? `<div class="achBar"><u style="width:${Math.max(3, f * 100)}%"></u></div>` : ''}</div>`; }).join('')}</div>
     <div class="upDet achDet"><div class="upBig"></div><div class="upTx"><div class="upOf"></div><h3></h3><p></p><div class="achP"></div></div></div>`;
@@ -90,7 +89,6 @@ function selectAch(id) {
 $('#achPick').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.id === 'achBack') { sfx('click'); $('#achPick').hidden = true; openCampaign(cSel); return; }
-  if (b.dataset.tab) { sfx('click'); achTab = +b.dataset.tab; achSel = null; renderAchievements(); return; }
   if (b.dataset.ach) { sfx('click'); selectAch(b.dataset.ach); }
 });
 document.addEventListener('click', e => { if (e.target.closest('#campAchBtn')) openAchievements(); });
