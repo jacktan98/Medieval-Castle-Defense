@@ -263,6 +263,9 @@ var SND = {   // game event -> file in audio/sfx (or audio/music) and its trim a
 // Re-measure if replaced.
 var LOOPS = {
   music: { file: 'music/Medieval_theme_music.mp3', vol: .18 },
+  // the second day theme (Jack): the two take turns, each played through once, then the other (`dayTrack`); measured with ffmpeg
+  // 1.25 × as loud as the first (loudest .3 s RMS .433 against .347), so a little lower
+  music2: { file: 'music/Medieval_theme_music_2.mp3', vol: .144 },
   night: { file: 'music/Night_theme_music.mp3', vol: .27 },
   birds: { file: 'sfx/Bird_chirping.mp3',          vol: .09 },
   // world ambience: their level follows the camera (updateAmbience), louder the nearer it looks and the further it zooms in;
@@ -283,7 +286,7 @@ var musicVol = 1, sfxVol = 1, musicOff = false, sfxOff = false, musicBus = null,
 try { const m = localStorage.getItem('mtd-music'), f = localStorage.getItem('mtd-sfx'); if (m !== null) musicVol = clamp(+m || 0, 0, 1); if (f !== null) sfxVol = clamp(+f || 0, 0, 1); } catch (e) {}
 musicOff = musicVol === 0; sfxOff = sfxVol === 0;
 // var: sfx()/setMusic() can run during the startup reset, before this block executes
-var loopWanted = {}, loopNode = {}, ambK = { fire: 0, river: 0, gallop: 0 }, actx = null, master = null, audioUnlocked = false, musicWant = 'day', clips = {}, sfxLast = {}, lastPick = {}, loopEl = {}, stinger = null;
+var loopWanted = {}, loopNode = {}, ambK = { fire: 0, river: 0, gallop: 0 }, actx = null, master = null, audioUnlocked = false, musicWant = 'day', dayTrack = 'music', clips = {}, sfxLast = {}, lastPick = {}, loopEl = {}, stinger = null;
 try { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = MASTER; master.connect(actx.destination);
   musicBus = actx.createGain(); musicBus.gain.value = musicVol; musicBus.connect(master); sfxBus = actx.createGain(); sfxBus.gain.value = sfxVol; sfxBus.connect(master); } catch (e) { actx = null; }
 // loudness = RMS of the loudest LOUD_WINDOW; the gain brings it to TARGET_LOUD x trim without the peak passing the ceiling
@@ -320,9 +323,12 @@ if (actx) for (const k in SND) {
   }, () => {})).catch(() => {});
 }
 for (const k in LOOPS) {
-  const el = new Audio('audio/' + LOOPS[k].file); el.loop = true; el.preload = k === 'music' ? 'auto' : 'none'; el.crossOrigin = 'anonymous';
+  const day = k === 'music' || k === 'music2';
+  const el = new Audio('audio/' + LOOPS[k].file); el.loop = !day; el.preload = k === 'music' ? 'auto' : 'none'; el.crossOrigin = 'anonymous';
+  // a day theme played to its end hands over to the other one
+  if (day) el.addEventListener('ended', () => { dayTrack = k === 'music' ? 'music2' : 'music'; el.currentTime = 0; syncMusic(); });
   let node = null;
-  if (actx) try { node = actx.createGain(); node.gain.value = LOOPS[k].amb ? 0 : LOOPS[k].vol; actx.createMediaElementSource(el).connect(node); node.connect(k === 'music' || k === 'night' ? musicBus : sfxBus); } catch (e) { node = null; }
+  if (actx) try { node = actx.createGain(); node.gain.value = LOOPS[k].amb ? 0 : LOOPS[k].vol; actx.createMediaElementSource(el).connect(node); node.connect(k === 'music' || k === 'music2' || k === 'night' ? musicBus : sfxBus); } catch (e) { node = null; }
   if (!node) el.volume = LOOPS[k].amb ? 0 : Math.min(1, LOOPS[k].vol);
   loopNode[k] = node;                     // no Web Audio: plain element volume (ignored on iOS, but that path has no Web Audio anyway)
   // phones only start downloading after the first tap, so a compact AAC copy (.m4a, ~60% smaller) is tried first;
@@ -421,7 +427,9 @@ function syncMusic() {
   const on = !muted && audioUnlocked && !document.hidden, end = musicWant === 'victory' || musicWant === 'defeat';
   const nightOn = on && musicWant === 'night' && loopEl.night;   // falls back to the day theme if the night track is missing
   const mu = on && !musicOff, fx = on && !sfxOff;   // the pause card's Music and Sounds toggles
-  const want = { music: mu && !end && !nightOn && musicWant !== 'none', night: mu && !!nightOn, birds: fx && musicWant === 'day', fire: fx && !end && ambK.fire > .01, river: fx && !end && ambK.river > .01, gallop: fx && !end && ambK.gallop > .01 };
+  // the day theme playing now (it falls back to the first if the second is missing)
+  const dayK = loopEl[dayTrack] ? dayTrack : 'music', dayOn = mu && !end && !nightOn && musicWant !== 'none';
+  const want = { music: dayOn && dayK === 'music', music2: dayOn && dayK === 'music2', night: mu && !!nightOn, birds: fx && musicWant === 'day', fire: fx && !end && ambK.fire > .01, river: fx && !end && ambK.river > .01, gallop: fx && !end && ambK.gallop > .01 };
   loopWanted = want;
   for (const k in loopEl) { const el = loopEl[k]; if (want[k] && el.paused) el.play().catch(() => {}); else if (!want[k] && !el.paused) el.pause(); }
   if (on && end && !stinger) stinger = sfx(musicWant) || 1;
