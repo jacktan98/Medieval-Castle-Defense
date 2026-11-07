@@ -19,6 +19,9 @@ self.addEventListener('install', e => e.waitUntil((async () => {
     await Promise.all([...css.matchAll(/url\((https:[^)]+)\)/g)].map(m => fetch(m[1]).then(f => f.ok && c.put(m[1], f)).catch(() => {}))); } } catch (err) {}
   // files dropped from the game are dropped from the phone too
   for (const p of Object.keys(old)) if (!(p in now)) await c.delete(p);
+  // and any copy kept under an address with a ?v= on it: a lookup that ignores the ?v= could find that old copy before the
+  // fresh one, so a replaced sound kept playing its old recording (Jack heard the old unlock sound)
+  for (const k of await c.keys()) if (same(k.url) && new URL(k.url).search) await c.delete(k);
   await c.put(HASHES, new Response(JSON.stringify(now)));
   await self.skipWaiting();
 })()));
@@ -48,11 +51,15 @@ self.addEventListener('fetch', e => {
   const own = same(req.url);
   if (req.mode === 'navigate' && own) return e.respondWith(page(req));
   if (!own && !KEEP.test(req.url)) return;
-  const opt = { ignoreSearch: own, ignoreVary: !own };   // the sounds are asked for with ?v=N; the fonts' answers vary by browser
+  // the sounds are asked for with ?v=N: the game's own files are looked up by their plain address, the one the install keeps
+  // fresh (a lookup ignoring the ?v= could find an old copy kept under another ?v=: Jack heard the old unlock sound);
+  // the fonts' answers vary by browser
+  const key = own ? req.url.split('?')[0] : req, opt = { ignoreVary: !own };
   const range = req.headers.get('range');
-  if (range) return e.respondWith(caches.match(req, opt).then(hit => hit ? ranged(hit, range) : fetch(req)));
-  e.respondWith(caches.match(req, opt).then(hit => hit || fetch(req).then(r => {
-    if (r.ok || r.type === 'opaque') { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)); }
+  if (range) return e.respondWith(caches.match(key, opt).then(hit => hit ? ranged(hit, range) : fetch(req)));
+  e.respondWith(caches.match(key, opt).then(hit => hit || fetch(req).then(r => {
+    // the game's own files are kept under their plain address (no ?v=), the one the install refreshes
+    if (r.ok || r.type === 'opaque') { const cp = r.clone(); caches.open(CACHE).then(c => c.put(key, cp)); }
     return r;
   })));
 });
