@@ -80,23 +80,25 @@ function startGame() {
   stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, lostB: 0, felled: 0, mined: 0, boostKills: {}, t0: performance.now() }; guideDone = false; goalsMet = {};
   clearSummary(); $('#log').innerHTML = '';
   const ev = MAP === 'isle' ? findValid('castle', 12, 12, { free: true }) : MAP === 'pass' ? findValid('castle', 12, 9, { free: true }) : MAP === 'vale' ? findValid('castle', 11, 15, { free: true }) : MAP === 'bridge' ? findValid('castle', 13, 17, { free: true }) : MAP === 'cross' ? findValid('castle', 7, 18, { free: true }) : MAP === 'watch' ? findValid('castle', 7, 13, { free: true }) : MAP === 'dune' ? findValid('castle', 6, 11, { free: true }) : MAP === 'bend' ? findValid('castle', 9, 12, { free: true }) : MAP === 'crag' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'ford' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'mere' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'plains' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'keep' ? findValid('castle', 19, 32, { free: true }) : MAP === 'hold' ? findValid('castle', 18, 31, { free: true }) : findValid('castle', 8, 12, { free: true });
-  if (ev) { const B = place('castle', ev.ci, ev.cj, { instant: true, free: true, quiet: true }); const c = center(B); target.set(c.x, 2, c.z); }
-  if (MAP === 'pass') { yaw = 0; target.z += 4.5; }   // looking up the pass at the castle
-  if (MAP === 'vale') { yaw = -Math.PI / 4; target.x += 2; target.z -= 2; }   // from the south-west, the way in (north-east) at the top of the screen
-  if (MAP === 'bridge') { yaw = 0; target.z -= 4; bankWall(); }   // from the south, the river and the raiders' bank at the top
-  if (MAP === 'cross') { yaw = 0; target.x += 4; target.z -= 5; crossTown(); }
+  // the camera starts square on the castle's front (Jack: some stages started at an angle, kept from the last game or the title's
+  // circling camera): the turn from its facing (0 = +z front, the camera on that side), the usual pitch and zoom
+  if (ev) { const B = place('castle', ev.ci, ev.cj, { instant: true, free: true, quiet: true }); const c = center(B); target.set(c.x, 2, c.z); yaw = (B.face || 0) * Math.PI / 2; pitch = .9; dist = 46; }
+  if (MAP === 'pass') { target.z += 4.5; }   // looking up the pass at the castle
+  if (MAP === 'vale') { target.x += 2; target.z -= 2; }   // from the south, square on the castle (it was from the south-west: Jack wants every stage square on)
+  if (MAP === 'bridge') { target.z -= 4; bankWall(); }   // from the south, the river and the raiders' bank at the top
+  if (MAP === 'cross') { target.x += 4; target.z -= 5; crossTown(); }
   if (ruinMesh && MAP !== 'watch') { scene.remove(ruinMesh); ruinMesh = null; }
-  if (MAP === 'dune') { yaw = 0; target.x += 6; target.z += 2; layRoads([DUNE_ROAD]); rebuildRoads(); }   // from the south: the oasis ahead, the dunes behind
-  if (MAP === 'bend') { yaw = 0; target.z -= 1; layRoads(BEND_ROADS); rebuildRoads(); }
-  if (MAP === 'crag') { yaw = 0; target.x += 3; target.z -= 4; layRoads(CRAG_ROADS.map(scalePts)); rebuildRoads(); }   // from the south: the crag up on the right
-  if (MAP === 'ford') { yaw = 0; target.z -= 9; layRoads([scalePts(FORD_ROAD)]); rebuildRoads(); fordWall(); }
-  if (MAP === 'mere') { yaw = 0; target.x += 8; target.z -= 8; layRoads(MERE_ROADS.map(scalePts)); rebuildRoads(); }   // from the south: the marsh ahead
-  if (MAP === 'plains') { yaw = 0; target.z -= 2; layRoads(PLAINS_ROADS.map(scalePts)); rebuildRoads(); }
+  if (MAP === 'dune') { target.x += 6; target.z += 2; layRoads([DUNE_ROAD]); rebuildRoads(); }   // from the south: the oasis ahead, the dunes behind
+  if (MAP === 'bend') { target.z -= 1; layRoads(BEND_ROADS); rebuildRoads(); }
+  if (MAP === 'crag') { target.x += 3; target.z -= 4; layRoads(CRAG_ROADS.map(scalePts)); rebuildRoads(); }   // from the south: the crag up on the right
+  if (MAP === 'ford') { target.z -= 9; layRoads([scalePts(FORD_ROAD)]); rebuildRoads(); fordWall(); }
+  if (MAP === 'mere') { target.x += 8; target.z -= 8; layRoads(MERE_ROADS.map(scalePts)); rebuildRoads(); }   // from the south: the marsh ahead
+  if (MAP === 'plains') { target.z -= 2; layRoads(PLAINS_ROADS.map(scalePts)); rebuildRoads(); }
   placeBossScenery();
-  if (MAP === 'keep') { yaw = 0; target.z -= 10; layRoads(KEEP_ROADS); rebuildRoads(); }   // from the south, looking up at the keep
-  if (MAP === 'hold') { yaw = 0; target.z -= 10; layRoads(HOLD_ROADS); rebuildRoads();
+  if (MAP === 'keep') { target.z -= 10; layRoads(KEEP_ROADS); rebuildRoads(); }   // from the south, looking up at the keep
+  if (MAP === 'hold') { target.z -= 10; layRoads(HOLD_ROADS); rebuildRoads();
   }                   // from the south: the fords ahead                   // from the south: the north bridge at the top
-  if (MAP === 'watch') { yaw = 0; target.x += 7; target.z -= 4; layRoads(WATCH_ROADS); rebuildRoads(); placeRuin(); }   // from the south: Watch hill ahead, the gully on the right   // from the south, the cross and the north road ahead
+  if (MAP === 'watch') { target.x += 7; target.z -= 4; layRoads(WATCH_ROADS); rebuildRoads(); placeRuin(); }   // from the south: Watch hill ahead, the gully on the right   // from the south, the cross and the north road ahead
   BANK_WALL = MAP === 'bridge' ? BANK_WALL : [];
   } finally { Math.random = rnd0; }
   // the tutorial stage: the guided first day every time (Skip ends it), except on hard mode (Jack: no tutorial there)
