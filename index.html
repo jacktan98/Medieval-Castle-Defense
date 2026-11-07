@@ -192,7 +192,8 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .gfxSeg button.seg{min-height:0!important;min-width:0!important;padding:3px 15px!important;border:0!important;border-radius:13px!important;background:none!important;box-shadow:none!important;font-size:13px!important;font-weight:700;color:#b9a77d!important;cursor:pointer}
 .gfxSeg button.seg.on{background:linear-gradient(180deg,#6a5432,#3e3019)!important;color:#fff1c4!important;box-shadow:inset 0 0 0 1px rgba(255,226,160,.35)!important}
 .volRow .gfxSeg{width:auto;margin:0 auto}
-#adReset.armed{background:#8e2a20!important;border-color:#e0705a!important;color:#fff!important}
+.colCard #setReset{align-self:center;margin-top:4px;min-height:32px!important;padding:4px 16px!important;font-size:13px!important}
+#adReset.armed,.modal.tome #setReset.armed{background:#8e2a20!important;border-color:#e0705a!important;color:#fff!important}
 #saveResume{padding:9px 30px;font-family:var(--display);font-size:17px;letter-spacing:.06em;-webkit-text-stroke:.35px currentColor}
 .mapActs{display:flex;flex-direction:column;align-items:center;gap:14px} .resumeBox{display:flex;flex-direction:column;align-items:center;gap:5px} .resumeBox:has(#saveResume[hidden]){display:none}
 .saveInfo{margin-top:0;font-size:12px;font-weight:600;color:#f4e3b2;letter-spacing:.02em;text-shadow:0 1px 3px rgba(0,0,0,.85)}
@@ -802,7 +803,7 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
       <label class="adminTog"><input type="checkbox" id="adInstant"> Instant build and upgrades</label>
       <div class="adminRow"><button id="adPop">+5 villagers</button><button id="adDay">Skip to night</button></div>
       <div class="adminRow"><button id="adRaid">Raiders</button><button id="adGallery">Gallery</button></div>
-      <div class="adminRow"><button id="adReset">Reset campaign</button></div>
+      <div class="adminRow"><button id="adReset" class="campReset">Reset campaign</button></div>
     </div>
     <div class="admin" id="raidDash" hidden>
       <div class="adminHead"><b>Raiders</b><button class="iconBtn" id="rdClose" aria-label="Close" title="Close"><svg viewBox="0 0 24 24"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button></div>
@@ -878,7 +879,8 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
       <div class="setVols"><label class="volRow"><span>Music</span><input type="range" id="setMusic" min="0" max="100" step="1" aria-label="Music loudness"></label>
       <label class="volRow"><span>Sounds</span><input type="range" id="setSfx" min="0" max="100" step="1" aria-label="Sound loudness"></label></div>
       <div class="setSub">Graphics</div>
-      <div class="gfxRow"><span class="gfxSeg"><button class="seg" data-gfx="low">Low</button><button class="seg" data-gfx="high">High</button></span></div></div></div>
+      <div class="gfxRow"><span class="gfxSeg"><button class="seg" data-gfx="low">Low</button><button class="seg" data-gfx="high">High</button></span></div>
+      <button class="campReset" id="setReset">Reset campaign</button></div></div>
       <button class="primary" id="colDone">Done</button>
     </div>
   </div>
@@ -7056,7 +7058,7 @@ function endGame(won) {
   sumTimers.push(setTimeout(() => {
     $('#summary').hidden = false; if (won) { musicFade(0); setMusic('victory'); }
     const el = [...$('#sumStars').querySelectorAll('span span')];
-    for (let i = 0; i < n; i++) sumTimers.push(setTimeout(() => { el[i].classList.add('on', 'pop'); sfx('star'); }, 650 + i * 650));
+    for (let i = 0; i < n; i++) sumTimers.push(setTimeout(() => { el[i].classList.add('on', 'pop'); sfx('star'); }, 900 + i * 950));
   }, won ? 6400 : 2600));
 }
 var sumTimers = [];
@@ -8475,9 +8477,9 @@ function updateGallery(dt, now) {
 $('#adGallery').addEventListener('click', openGallery);
 // Reset campaign (Jack): tap twice within 3 s; clears stars, best times, crowns, the save, the tutorial and tips seen and the
 // stages' town picks (sound settings, the free-play loadout and the last map stay), then reloads
+// the same button sits in the admin panel and in Settings (the gear; Jack)
 let campResetT = 0;
-$('#adReset').addEventListener('click', () => {
-  const b = $('#adReset');
+for (const b of document.querySelectorAll('.campReset')) b.addEventListener('click', () => {
   if (performance.now() > campResetT) { campResetT = performance.now() + 3000; b.classList.add('armed'); b.textContent = 'Tap again to reset'; setTimeout(() => { if (performance.now() > campResetT) { b.classList.remove('armed'); b.textContent = 'Reset campaign'; } }, 3100); return; }
   try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor', 'upg']) localStorage.removeItem('mtd-' + k); } catch (e) {}
   location.reload();

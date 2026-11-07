@@ -337,7 +337,7 @@ function endGame(won) {
   sumTimers.push(setTimeout(() => {
     $('#summary').hidden = false; if (won) { musicFade(0); setMusic('victory'); }
     const el = [...$('#sumStars').querySelectorAll('span span')];
-    for (let i = 0; i < n; i++) sumTimers.push(setTimeout(() => { el[i].classList.add('on', 'pop'); sfx('star'); }, 650 + i * 650));
+    for (let i = 0; i < n; i++) sumTimers.push(setTimeout(() => { el[i].classList.add('on', 'pop'); sfx('star'); }, 900 + i * 950));
   }, won ? 6400 : 2600));
 }
 var sumTimers = [];

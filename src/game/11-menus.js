@@ -900,9 +900,9 @@ function updateGallery(dt, now) {
 $('#adGallery').addEventListener('click', openGallery);
 // Reset campaign (Jack): tap twice within 3 s; clears stars, best times, crowns, the save, the tutorial and tips seen and the
 // stages' town picks (sound settings, the free-play loadout and the last map stay), then reloads
+// the same button sits in the admin panel and in Settings (the gear; Jack)
 let campResetT = 0;
-$('#adReset').addEventListener('click', () => {
-  const b = $('#adReset');
+for (const b of document.querySelectorAll('.campReset')) b.addEventListener('click', () => {
   if (performance.now() > campResetT) { campResetT = performance.now() + 3000; b.classList.add('armed'); b.textContent = 'Tap again to reset'; setTimeout(() => { if (performance.now() > campResetT) { b.classList.remove('armed'); b.textContent = 'Reset campaign'; } }, 3100); return; }
   try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor', 'upg']) localStorage.removeItem('mtd-' + k); } catch (e) {}
   location.reload();
