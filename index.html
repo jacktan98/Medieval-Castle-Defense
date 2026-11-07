@@ -379,6 +379,8 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .volRow input::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffe9a8,#c9962f);border:2px solid #5a4422;box-shadow:0 1px 4px rgba(0,0,0,.6)}
 .volRow input::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffe9a8,#c9962f);border:2px solid #5a4422}
 #summary .sheet{background:var(--panel)!important;max-height:calc(100% - 8px);overflow-y:auto}
+/* the summary fades in over the field and its card rises a little (it used to snap on) */
+#summary:not([hidden]){animation:sumIn .7s ease-out both} #summary:not([hidden]) .sheet{animation:sumRise .7s ease-out both} @keyframes sumIn{from{opacity:0}} @keyframes sumRise{from{transform:translateY(18px) scale(.97)}}
 .sumTip{margin:0;font-size:13px;color:#f4e3b2;text-align:center} .sumTip b{color:#f0c95a}
 /* a phone held sideways: two columns (title, stars, play again | goals, numbers, tip) so it all fits without scrolling */
 @media (max-height:520px){ #summary .sheet{width:min(640px,100%);display:grid;grid-template-columns:1fr 1fr;grid-template-areas:'t n' 's n' 'x n' 'g p' 'g b';column-gap:22px;row-gap:8px;padding:14px 18px;align-items:start}
@@ -7012,10 +7014,15 @@ function startDay() {
 function endGame(won) {
   if (gameOver) return; gameOver = true; clearSave();
   $('#summary .sheet').classList.toggle('hard', !!hardOn);
-  // a win: dawn breaks, everyone comes out and cheers (`endCheer` keeps the villagers moving in `frame`), and the victory
-  // music waits for the summary (Jack); a defeat sounds at once
-  if (won) { PH.kind = 'day'; PH.t = DAYLEN[PH.wave - 1] || 120; standDown(); for (const v of villagers) v.cheerT = 3.4; endCheer = 3.6; setMusic('none'); sfx('rooster'); }
-  else setMusic('defeat');
+  // a win (Jack found the old one abrupt: dawn, rooster and summary all at once): the night music fades out over 1.8 s, a quiet beat,
+  // then at 1.2 s the sky starts to lighten slowly (`endDawn`, about 5 s) while the camera drifts to the castle and everyone comes off
+  // their posts; at 2.6 s the rooster crows, the town cheers and "Dawn" shows; the summary fades in at 6.4 s with the victory music.
+  // `endCheer` keeps villagers, the fallen and the doors moving in `tick` meanwhile. A defeat sounds at once
+  if (won) {
+    endCheer = 7.5; musicFade(1.8); sumTimers.push(setTimeout(() => setMusic('none'), 1900));
+    sumTimers.push(setTimeout(() => { endDawn = true; PH.kind = 'day'; PH.t = DAYLEN[PH.wave - 1] || 120; standDown(); }, 1200));
+    sumTimers.push(setTimeout(() => { sfx('rooster'); banner('Dawn', 'The raiders are beaten'); for (const v of villagers) v.cheerT = 3.4; }, 2600));
+  } else setMusic('defeat');
   const el = (performance.now() - stats.t0) / 1000;
   $('#sumTitle').textContent = won ? 'The town holds' : 'The castle has fallen';
   $('#sumTitle').className = won ? '' : 'lost';
@@ -7045,10 +7052,10 @@ function endGame(won) {
   if (won && stats.playT && !(BEST[MAP] <= stats.playT)) { BEST[MAP] = Math.round(stats.playT); try { localStorage.setItem('mtd-best', JSON.stringify(BEST)); } catch (e) {} }
   // Jack: not straight to the summary; a pause on the field first, then the stars pop in one at a time (a sound per star: SND.star, Star_sound.mp3)
   sumTimers.push(setTimeout(() => {
-    $('#summary').hidden = false; if (won) setMusic('victory');
+    $('#summary').hidden = false; if (won) { musicFade(0); setMusic('victory'); }
     const el = [...$('#sumStars').querySelectorAll('span span')];
     for (let i = 0; i < n; i++) sumTimers.push(setTimeout(() => { el[i].classList.add('on', 'pop'); sfx('star'); }, 650 + i * 650));
-  }, won ? 3600 : 2600));
+  }, won ? 6400 : 2600));
 }
 var sumTimers = [];
 // a crown per stage won on hard (localStorage 'mtd-crowns')
@@ -7067,7 +7074,7 @@ function defeatTip() {
 }
 // the quickest win per map, in seconds of play (localStorage 'mtd-best'), shown on the stage's details
 var BEST = {}; try { BEST = JSON.parse(localStorage.getItem('mtd-best') || '{}') || {}; } catch (e) {}
-var nextStage = -1, unlockNext = null;
+var nextStage = -1, unlockNext = null, endDawn = false;
 function clearSummary() { (sumTimers || []).forEach(clearTimeout); sumTimers = []; $('#summary').hidden = true; }
 // best stars per map (localStorage 'mtd-stars'); the total is to be spent on upgrades later
 var STARS = {}; try { STARS = JSON.parse(localStorage.getItem('mtd-stars') || '{}') || {}; } catch (e) {}
@@ -7090,7 +7097,7 @@ let skyT = 0;
 const DUSK = 40;   // the last 40 s of each day fade slowly to night
 function updateLight(dt, now) {
   const target = PH.kind === 'day' ? (PH.t < DUSK ? .25 + .75 * sstep(0, DUSK, PH.t) : 1) : 0;
-  light += (target - light) * Math.min(1, dt * 1.2);
+  light += (target - light) * Math.min(1, dt * (endDawn ? .45 : 1.2));   // the win's dawn comes up slowly
   const dusk = PH.kind === 'day' ? clamp(sstep(DUSK, 0, PH.t) * (1 - Math.abs(light - .55) * 1.1), 0, 1) : 0;
   skyHorizon.copy(SKY_NIGHT).lerp(SKY_DAY, light).lerp(SKY_DUSK, Math.min(dusk, .6)); weatherSky(skyHorizon); scene.fog.color.copy(skyHorizon);
   if ((skyT -= dt) <= 0) { skyT = .15; paintSky(); } sky.position.copy(camera.position);
@@ -7164,7 +7171,7 @@ const PH_ICON = {
 let phIcoKind = '';
 function updateHud() {
   const pt = $('#phaseText'), sub = $('#phaseSub');
-  if (PH.kind === 'day') { pt.textContent = `Day ${PH.wave} of ${NIGHTS}`; pt.className = ''; sub.textContent = `Night in ${fmt(Math.max(0, PH.t))}`; $('#nightBtn').hidden = gameOver || (MAP === 'vale' && guideOn); }
+  if (PH.kind === 'day') { pt.textContent = `Day ${PH.wave} of ${NIGHTS}`; pt.className = ''; sub.textContent = gameOver ? 'Victory' : `Night in ${fmt(Math.max(0, PH.t))}`; $('#nightBtn').hidden = gameOver || (MAP === 'vale' && guideOn); }
   else { const left = spawnQueue.length + enemies.filter(e => !e.dead && !e.dormant).length; pt.textContent = `Night ${PH.wave} of ${NIGHTS}`; pt.className = 'night'; sub.textContent = `${left} raider${left === 1 ? '' : 's'} left`; $('#nightBtn').hidden = true; }
   const kind = PH.kind === 'day' ? 'sun' : 'moon'; if (phIcoKind !== kind) { phIcoKind = kind; $('#phIco').innerHTML = PH_ICON[kind]; }
   $('#tickRing').style.strokeDashoffset = (94.25 * (1 - econT / TICK)).toFixed(1); $('#tickN').textContent = Math.ceil(econT);
@@ -8762,7 +8769,7 @@ function startGame() {
   for (const f of floats) scene.remove(f.sp); floats.length = 0;
   for (const p of puffs) scene.remove(p.sp); puffs.length = 0;
   mapRules(); applyUpgrades();
-  PH = { kind: 'day', wave: 1, t: DAYLEN[0] }; nextPts = null; econT = TICK; gameOver = false; endCheer = 0; light = 1; if (paused) setPaused(false); setMusic('day');
+  PH = { kind: 'day', wave: 1, t: DAYLEN[0] }; nextPts = null; econT = TICK; gameOver = false; endCheer = 0; endDawn = false; musicFade(0); light = 1; if (paused) setPaused(false); setMusic('day');
   if (MAP === 'isle') { KX = 27; KZ = 27; } else if (MAP === 'pass') { KX = 27; KZ = 21; } else if (MAP === 'vale') { KX = 25; KZ = 33; } else if (MAP === 'bridge') { KX = 29; KZ = 37; } else if (MAP === 'cross') { KX = 17; KZ = 39; } else if (MAP === 'watch') { KX = 17; KZ = 29; } else if (MAP === 'dune') { KX = 15; KZ = 26; } else if (MAP === 'bend') { KX = 21; KZ = 28; } else if (MAP === 'crag') { KX = 25; KZ = 33; } else if (MAP === 'ford') { KX = 29; KZ = 43; } else if (MAP === 'mere') { KX = 15; KZ = 43; } else if (MAP === 'plains') { KX = 28; KZ = 28; } else if (MAP === 'keep') { KX = 41; KZ = 67; } else if (MAP === 'hold') { KX = 39; KZ = 65; } else { KX = 19; KZ = 27; }
   // a medium map (Stages 7-10) is its 56 m layout scaled up: the castle's site too
   MK = MED[MAP] ? MAP_N[MAP] * CELL / 56 : 1; if (MED[MAP]) { KX *= MK; KZ *= MK; }
@@ -9078,6 +9085,11 @@ function updateAmbience(dt) {
 }
 // the theme loops day and night with birdsong under it by day; victory and defeat stop it and play once
 function setMusic(name) { musicWant = name; syncMusic(); }
+// fade the music bus out over s seconds (0: back to the set loudness at once): the night theme fades as a won game's last raider falls
+function musicFade(s) {
+  if (!musicBus || !actx) return; const g = musicBus.gain, t = actx.currentTime;
+  g.cancelScheduledValues(t); g.setValueAtTime(s ? g.value : musicVol, t); if (s) g.linearRampToValueAtTime(0, t + s);
+}
 function syncMusic() {
   if (!loopEl) return;
   const on = !muted && audioUnlocked && !document.hidden, end = musicWant === 'victory' || musicWant === 'defeat';
@@ -9278,7 +9290,11 @@ mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closes
 function tick(dt, now) {
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not
   if (!gameOver) stats.playT = (stats.playT || 0) + dt;   // time spent playing (never paused or under a menu): a stage's best win time
-  if (gameOver && endCheer > 0) { endCheer -= gdt; updateVillagers(gdt, now); separateUnits(gdt); updateDoors(gdt); }   // the town's cheer before the summary
+  if (gameOver && endCheer > 0) {
+    endCheer -= gdt; updateVillagers(gdt, now); updateEnemies(gdt); updateFallen(gdt); separateUnits(gdt); updateDoors(gdt);
+    // a win: the camera drifts to the castle to watch the town come out (the last raider may have fallen anywhere)
+    const C = endDawn && castleB(); if (C) { const c = center(C), k = 1 - Math.exp(-gdt * .6); target.x += (c.x - target.x) * k; target.z += (c.z - target.z) * k; updateCam(); }
+  }   // the town's cheer before the summary
   if (!gameOver) { updatePhase(gdt); updateVillagers(gdt, now); updateEco(gdt); updateMoves(gdt); updateEnemies(gdt); updateDefense(gdt); separateUnits(gdt); updateDoors(gdt); updateFallen(gdt); updateChips(gdt); updateSplashes(gdt); }
   updateArrows(gdt); updateAmbience(dt); updateVolley(gdt); updateTrees(now); emitSmoke(gdt); updateBirds(gdt); if (holdRiders.length) { animHoldRiders(now / 1000, gdt); updateHoldTrebs(gdt); }
   if (anims.length) {

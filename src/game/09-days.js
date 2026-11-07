@@ -297,10 +297,15 @@ function startDay() {
 function endGame(won) {
   if (gameOver) return; gameOver = true; clearSave();
   $('#summary .sheet').classList.toggle('hard', !!hardOn);
-  // a win: dawn breaks, everyone comes out and cheers (`endCheer` keeps the villagers moving in `frame`), and the victory
-  // music waits for the summary (Jack); a defeat sounds at once
-  if (won) { PH.kind = 'day'; PH.t = DAYLEN[PH.wave - 1] || 120; standDown(); for (const v of villagers) v.cheerT = 3.4; endCheer = 3.6; setMusic('none'); sfx('rooster'); }
-  else setMusic('defeat');
+  // a win (Jack found the old one abrupt: dawn, rooster and summary all at once): the night music fades out over 1.8 s, a quiet beat,
+  // then at 1.2 s the sky starts to lighten slowly (`endDawn`, about 5 s) while the camera drifts to the castle and everyone comes off
+  // their posts; at 2.6 s the rooster crows, the town cheers and "Dawn" shows; the summary fades in at 6.4 s with the victory music.
+  // `endCheer` keeps villagers, the fallen and the doors moving in `tick` meanwhile. A defeat sounds at once
+  if (won) {
+    endCheer = 7.5; musicFade(1.8); sumTimers.push(setTimeout(() => setMusic('none'), 1900));
+    sumTimers.push(setTimeout(() => { endDawn = true; PH.kind = 'day'; PH.t = DAYLEN[PH.wave - 1] || 120; standDown(); }, 1200));
+    sumTimers.push(setTimeout(() => { sfx('rooster'); banner('Dawn', 'The raiders are beaten'); for (const v of villagers) v.cheerT = 3.4; }, 2600));
+  } else setMusic('defeat');
   const el = (performance.now() - stats.t0) / 1000;
   $('#sumTitle').textContent = won ? 'The town holds' : 'The castle has fallen';
   $('#sumTitle').className = won ? '' : 'lost';
@@ -330,10 +335,10 @@ function endGame(won) {
   if (won && stats.playT && !(BEST[MAP] <= stats.playT)) { BEST[MAP] = Math.round(stats.playT); try { localStorage.setItem('mtd-best', JSON.stringify(BEST)); } catch (e) {} }
   // Jack: not straight to the summary; a pause on the field first, then the stars pop in one at a time (a sound per star: SND.star, Star_sound.mp3)
   sumTimers.push(setTimeout(() => {
-    $('#summary').hidden = false; if (won) setMusic('victory');
+    $('#summary').hidden = false; if (won) { musicFade(0); setMusic('victory'); }
     const el = [...$('#sumStars').querySelectorAll('span span')];
     for (let i = 0; i < n; i++) sumTimers.push(setTimeout(() => { el[i].classList.add('on', 'pop'); sfx('star'); }, 650 + i * 650));
-  }, won ? 3600 : 2600));
+  }, won ? 6400 : 2600));
 }
 var sumTimers = [];
 // a crown per stage won on hard (localStorage 'mtd-crowns')
@@ -352,7 +357,7 @@ function defeatTip() {
 }
 // the quickest win per map, in seconds of play (localStorage 'mtd-best'), shown on the stage's details
 var BEST = {}; try { BEST = JSON.parse(localStorage.getItem('mtd-best') || '{}') || {}; } catch (e) {}
-var nextStage = -1, unlockNext = null;
+var nextStage = -1, unlockNext = null, endDawn = false;
 function clearSummary() { (sumTimers || []).forEach(clearTimeout); sumTimers = []; $('#summary').hidden = true; }
 // best stars per map (localStorage 'mtd-stars'); the total is to be spent on upgrades later
 var STARS = {}; try { STARS = JSON.parse(localStorage.getItem('mtd-stars') || '{}') || {}; } catch (e) {}
@@ -375,7 +380,7 @@ let skyT = 0;
 const DUSK = 40;   // the last 40 s of each day fade slowly to night
 function updateLight(dt, now) {
   const target = PH.kind === 'day' ? (PH.t < DUSK ? .25 + .75 * sstep(0, DUSK, PH.t) : 1) : 0;
-  light += (target - light) * Math.min(1, dt * 1.2);
+  light += (target - light) * Math.min(1, dt * (endDawn ? .45 : 1.2));   // the win's dawn comes up slowly
   const dusk = PH.kind === 'day' ? clamp(sstep(DUSK, 0, PH.t) * (1 - Math.abs(light - .55) * 1.1), 0, 1) : 0;
   skyHorizon.copy(SKY_NIGHT).lerp(SKY_DAY, light).lerp(SKY_DUSK, Math.min(dusk, .6)); weatherSky(skyHorizon); scene.fog.color.copy(skyHorizon);
   if ((skyT -= dt) <= 0) { skyT = .15; paintSky(); } sky.position.copy(camera.position);

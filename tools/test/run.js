@@ -69,7 +69,7 @@ const ok = (cond, what, more) => { if (!cond) fails++; console.log(`${cond ? '  
     const a = await G(`window.TOWN = () => buildings.filter(B => !B.dead).map(B => B.type + '@' + B.ev.ci + ',' + B.ev.cj + 't' + B.tier).sort().join(' '); saveGame(); TOWN()`);
     await G(`resumeGame(); 0`); const b = await G(`TOWN()`);
     ok(a === b, 'save and resume give back the same buildings', a === b ? '' : `\n      saved   ${a}\n      resumed ${b}`);
-    await G(`endGame(true); 0`); await p.waitForTimeout(4500);
+    await G(`endGame(true); 0`); await p.waitForTimeout(8000);
     ok(await p.evaluate(() => !document.getElementById('summary').hidden), 'the summary opens after a win');
     await G(`setGfx(true); setGfx(false); 0`); ok(true, 'graphics Low and High switch');
   } catch (e) { ok(false, 'ran without throwing', e.message.split('\n')[0]); }

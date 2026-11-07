@@ -362,6 +362,8 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .volRow input::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffe9a8,#c9962f);border:2px solid #5a4422;box-shadow:0 1px 4px rgba(0,0,0,.6)}
 .volRow input::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffe9a8,#c9962f);border:2px solid #5a4422}
 #summary .sheet{background:var(--panel)!important;max-height:calc(100% - 8px);overflow-y:auto}
+/* the summary fades in over the field and its card rises a little (it used to snap on) */
+#summary:not([hidden]){animation:sumIn .7s ease-out both} #summary:not([hidden]) .sheet{animation:sumRise .7s ease-out both} @keyframes sumIn{from{opacity:0}} @keyframes sumRise{from{transform:translateY(18px) scale(.97)}}
 .sumTip{margin:0;font-size:13px;color:#f4e3b2;text-align:center} .sumTip b{color:#f0c95a}
 /* a phone held sideways: two columns (title, stars, play again | goals, numbers, tip) so it all fits without scrolling */
 @media (max-height:520px){ #summary .sheet{width:min(640px,100%);display:grid;grid-template-columns:1fr 1fr;grid-template-areas:'t n' 's n' 'x n' 'g p' 'g b';column-gap:22px;row-gap:8px;padding:14px 18px;align-items:start}

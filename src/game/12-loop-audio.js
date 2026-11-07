@@ -63,7 +63,7 @@ function startGame() {
   for (const f of floats) scene.remove(f.sp); floats.length = 0;
   for (const p of puffs) scene.remove(p.sp); puffs.length = 0;
   mapRules(); applyUpgrades();
-  PH = { kind: 'day', wave: 1, t: DAYLEN[0] }; nextPts = null; econT = TICK; gameOver = false; endCheer = 0; light = 1; if (paused) setPaused(false); setMusic('day');
+  PH = { kind: 'day', wave: 1, t: DAYLEN[0] }; nextPts = null; econT = TICK; gameOver = false; endCheer = 0; endDawn = false; musicFade(0); light = 1; if (paused) setPaused(false); setMusic('day');
   if (MAP === 'isle') { KX = 27; KZ = 27; } else if (MAP === 'pass') { KX = 27; KZ = 21; } else if (MAP === 'vale') { KX = 25; KZ = 33; } else if (MAP === 'bridge') { KX = 29; KZ = 37; } else if (MAP === 'cross') { KX = 17; KZ = 39; } else if (MAP === 'watch') { KX = 17; KZ = 29; } else if (MAP === 'dune') { KX = 15; KZ = 26; } else if (MAP === 'bend') { KX = 21; KZ = 28; } else if (MAP === 'crag') { KX = 25; KZ = 33; } else if (MAP === 'ford') { KX = 29; KZ = 43; } else if (MAP === 'mere') { KX = 15; KZ = 43; } else if (MAP === 'plains') { KX = 28; KZ = 28; } else if (MAP === 'keep') { KX = 41; KZ = 67; } else if (MAP === 'hold') { KX = 39; KZ = 65; } else { KX = 19; KZ = 27; }
   // a medium map (Stages 7-10) is its 56 m layout scaled up: the castle's site too
   MK = MED[MAP] ? MAP_N[MAP] * CELL / 56 : 1; if (MED[MAP]) { KX *= MK; KZ *= MK; }
@@ -379,6 +379,11 @@ function updateAmbience(dt) {
 }
 // the theme loops day and night with birdsong under it by day; victory and defeat stop it and play once
 function setMusic(name) { musicWant = name; syncMusic(); }
+// fade the music bus out over s seconds (0: back to the set loudness at once): the night theme fades as a won game's last raider falls
+function musicFade(s) {
+  if (!musicBus || !actx) return; const g = musicBus.gain, t = actx.currentTime;
+  g.cancelScheduledValues(t); g.setValueAtTime(s ? g.value : musicVol, t); if (s) g.linearRampToValueAtTime(0, t + s);
+}
 function syncMusic() {
   if (!loopEl) return;
   const on = !muted && audioUnlocked && !document.hidden, end = musicWant === 'victory' || musicWant === 'defeat';
@@ -579,7 +584,11 @@ mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closes
 function tick(dt, now) {
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not
   if (!gameOver) stats.playT = (stats.playT || 0) + dt;   // time spent playing (never paused or under a menu): a stage's best win time
-  if (gameOver && endCheer > 0) { endCheer -= gdt; updateVillagers(gdt, now); separateUnits(gdt); updateDoors(gdt); }   // the town's cheer before the summary
+  if (gameOver && endCheer > 0) {
+    endCheer -= gdt; updateVillagers(gdt, now); updateEnemies(gdt); updateFallen(gdt); separateUnits(gdt); updateDoors(gdt);
+    // a win: the camera drifts to the castle to watch the town come out (the last raider may have fallen anywhere)
+    const C = endDawn && castleB(); if (C) { const c = center(C), k = 1 - Math.exp(-gdt * .6); target.x += (c.x - target.x) * k; target.z += (c.z - target.z) * k; updateCam(); }
+  }   // the town's cheer before the summary
   if (!gameOver) { updatePhase(gdt); updateVillagers(gdt, now); updateEco(gdt); updateMoves(gdt); updateEnemies(gdt); updateDefense(gdt); separateUnits(gdt); updateDoors(gdt); updateFallen(gdt); updateChips(gdt); updateSplashes(gdt); }
   updateArrows(gdt); updateAmbience(dt); updateVolley(gdt); updateTrees(now); emitSmoke(gdt); updateBirds(gdt); if (holdRiders.length) { animHoldRiders(now / 1000, gdt); updateHoldTrebs(gdt); }
   if (anims.length) {
