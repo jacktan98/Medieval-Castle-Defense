@@ -10,7 +10,9 @@ const SHOWCASE = [   // type, cells from the castle's centre (x, z; the castle's
   ['flowers', -4, 0, 1], ['flowers', 4, 0, 1], ['well', 4, 5, 1], ['statue', -2, -3, 1]];
 // the scenes it moves between (Jack): it opens on the Meadow at dusk, then every SHOW_T seconds fades to another one at random
 // (the pass is ringed by mountains: its camera looks up the pass from the open south and only sways, `swing` rad either way)
-const SHOW_SCENES = [{ map: 'meadow', time: 'dusk' }, { map: 'isle', time: 'day' }, { map: 'pass', time: 'night', yaw: 0, swing: .45, pitch: .78, dist: 50 }], SHOW_T = 28;
+// the three bonus stages as they now are, one each by day, at dusk and at night (Jack): the Scorched Meadow in the midday sun, the
+// Blighted Isle at dusk, the Frozen Pass at night
+const SHOW_SCENES = [{ map: 'meadow', time: 'day' }, { map: 'isle', time: 'dusk' }, { map: 'pass', time: 'night', yaw: 0, swing: .45, pitch: .78, dist: 50 }], SHOW_T = 28;
 let showScene = 0, showT = 0, showFading = false, showYaw0 = 0, showPh = 0, showDist = 40;
 const showC = new THREE.Vector3();
 function nextShowcase() {
@@ -62,7 +64,7 @@ function startGame() {
   for (const a of arrows) scene.remove(a.m); arrows.length = 0; volleyQ = []; volleyCd = 0; volleyAim = false; summonCd = 0; summonOut = false; volleyLine.visible = false;
   for (const f of floats) scene.remove(f.sp); floats.length = 0;
   for (const p of puffs) scene.remove(p.sp); puffs.length = 0;
-  if (bonusOn()) hardOn = true;   // a bonus stage is Hard only (also from ?map= or a resumed save)
+  if (bonusOn() && !plainMap) hardOn = true;   // a bonus stage is Hard only (also from ?map= or a resumed save)
   mapRules(); applyUpgrades();
   // Frozen Pass: deep winter, villagers eat more (a meal every 14 s of daylight, not 20)
   if (bonusOn() && MAP === 'pass') MEAL = Math.round(MEAL * .7);

@@ -755,7 +755,8 @@ body.showcase #achPick.modal.tome{background-color:transparent!important;backgro
 .achGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 8px;width:100%}
 .achItem{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
 .modal.tome .achNode{position:relative;width:62px;height:62px;min-height:0!important;padding:0!important;border-radius:10px!important;display:grid;place-items:center;border:2px solid #5a4a2a!important;background:linear-gradient(#2c2213,#130e07)!important;box-shadow:none!important}
-.achNode > svg:first-child{width:38px;height:38px;opacity:.42;filter:grayscale(1)}
+/* a little smaller and raised so the done tick never covers the picture (Jack: as the upgrades' pictures) */
+.achNode > svg:first-child{width:34px;height:34px;transform:translateY(-4px);opacity:.42;filter:grayscale(1)}
 .modal.tome .achNode.done{border-color:#f7d77a!important;background:radial-gradient(circle at 50% 35%,#a07a32,#4a3410)!important;box-shadow:0 0 12px rgba(255,205,90,.55),inset 0 0 0 2px rgba(255,241,196,.25)!important}
 .achNode.done > svg:first-child{opacity:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
 .modal.tome .achNode.sel{outline:2.5px solid #fff1c4;outline-offset:3px}
@@ -774,7 +775,7 @@ body.showcase #achPick.modal.tome{background-color:transparent!important;backgro
 #achToast.show{opacity:1;transform:translate(-50%,0)}
 #achToast .atIco{width:40px;height:40px;border-radius:50%;border:2px solid #f7d77a;background:radial-gradient(circle at 50% 35%,#a07a32,#4a3410);display:grid;place-items:center} #achToast .atIco svg{width:26px;height:26px}
 #achToast .atTx{display:flex;flex-direction:column;line-height:1.1} #achToast small{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#d9c08a} #achToast b{font-family:var(--display);font-weight:400;font-size:17px;color:#ffe2a0}
-@media (max-height:520px){ .achSheet .achGrid{grid-template-columns:none;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:78px;gap:8px 6px;overflow-x:auto;overflow-y:hidden;padding:6px 4px 18px;flex:0 0 auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin} .achSheet{max-width:none} .achSheet .upTop{margin-bottom:6px;padding-bottom:6px} .modal.tome .achNode{width:52px;height:52px} .achNode > svg:first-child{width:32px;height:32px} .upSheet .achDet{margin-top:10px;max-width:520px;align-self:center} #achToast{top:12px} }
+@media (max-height:520px){ .achSheet .achGrid{grid-template-columns:none;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:78px;gap:8px 6px;overflow-x:auto;overflow-y:hidden;padding:6px 4px 18px;flex:0 0 auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin} .achSheet{max-width:none} .achSheet .upTop{margin-bottom:6px;padding-bottom:6px} .modal.tome .achNode{width:52px;height:52px} .achNode > svg:first-child{width:28px;height:28px;transform:translateY(-4px)} .upSheet .achDet{margin-top:10px;max-width:520px;align-self:center} #achToast{top:12px} }
 /* the bonus stages (Jack): a violet edge and label, like the bosses' red; the progress bar's three bonus segments too; their switch
    shows only Hard; a locked stage's Play (release only, TEST_OPEN off) is a padlock */
 .cCard.bonus{border-color:rgba(176,132,232,.9)} .cCard.bonus .cName small{color:#c7a6f2}

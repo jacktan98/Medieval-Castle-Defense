@@ -141,9 +141,10 @@ const WAVES_STD = [
 ];
 // the bonus stages (Jack: the old free-play maps, made very hard, after the campaign; Hard only, a crown and no stars):
 // 13 Scorched Meadow (drought: no trees, hardly a rock), 14 Blighted Isle (crop blight: fields fail), 15 Frozen Pass (deep winter)
-// `plainMap` is set while the title's showcase builds them, so it keeps their old green look and none of the campaign's cards
+// `plainMap` is set while the title's showcase builds them: their twisted look (Jack: the menu shows the bonus stages as they now
+// are) but none of the campaign's cards, upgrades, achievements or hard mode
 var plainMap = false;
-const bonusOn = () => !plainMap && !!(CAMP_MAPS[MAP] && CAMP_MAPS[MAP].bonus);
+const bonusOn = () => !!(CAMP_MAPS[MAP] && CAMP_MAPS[MAP].bonus);
 const MAP_RULES = {
   // Scorched Meadow: five nights from any side (the river is dry, no bridge to hold); little to start with and nothing to gather
   meadow: { waves: [{ spear: [8], sword: [3], archer: [3] }, { spear: [8, 3], sword: [4, 1], archer: [3, 1], lancer: [2] },
