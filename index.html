@@ -4008,7 +4008,10 @@ function updateLamps(dt, now) {
       else if (B.type === 'house' && B.tier > 1) lampSpots.push({ x: c.x, y: y + 1, z: B.ev.z1 + .3, k: .5 });
     }
     if (dark > .05) for (const F of sceneFires) lampSpots.push({ x: F.x, y: F.y + .4, z: F.z, k: F.k });
-    lampSpots.sort((a, b) => Math.hypot(a.x - target.x, a.z - target.z) - Math.hypot(b.x - target.x, b.z - target.z));
+    // the 4 nearest the camera's aim; on the title's showcase the nearest the town's middle (showC), as its circling camera aims past
+    // the town and the lights jumped from the castle to other torches half a second in (Jack saw the castle's light change)
+    const ref = showcaseBuilt ? showC : target;
+    lampSpots.sort((a, b) => Math.hypot(a.x - ref.x, a.z - ref.z) - Math.hypot(b.x - ref.x, b.z - ref.z));
   }
   LAMPS.forEach((l, n) => {
     const sp = lampSpots[n];
