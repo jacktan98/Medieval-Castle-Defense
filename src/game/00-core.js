@@ -251,20 +251,23 @@ const upTo = (t, n) => buildings.some(B => B.type === t && !B.dead && B.tier >= 
 // measured: two tier-1 foresters fell about 12 trees a minute, two tier-1 mines dig about 11.5 stone (Dunewell has ~13 min of daylight, Ironwood ~15)
 // boosted kills, measured in a simulated stage: 4 boosted crossbows about 49 kills by Riverbend's night 4, 2 about 35; 4 boosted catapults about 45 by Siegeford's night 3
 const GOAL_N = { felled: 100, mined: 120, folk: 40, xbowKills: 40, cataKills: 50 };
+// cg: a counted goal, with its progress (have / need) shown beside it in the top panel's Goals (Jack: "36 / 100")
+const cg = (t, have, n) => [t, () => have() >= n, false, () => [Math.min(have(), n), n]];
 const STAGE_GOALS = {
-  vale: [['Follow the tutorial', () => guideDone || (GUIDE.length > 0 && GUIDE.every(S => S.tool === 'select' || made(S.tool) >= 1))],   // skipped but its buildings built still counts (Jack)
-    ['Build 1 quarry', () => made('quarry') >= 1]],
-  bridge: [['Build 1 barracks', () => made('barracks') >= 1], ['Build 2 gates', () => made('gate') >= 2]],
-  cross: [['Build 1 market', () => made('market') >= 1], ['Upgrade 1 building to tier 2', () => stats.upgrades >= 1]],
-  watch: [['Build 2 ballistas', () => made('ballista') >= 2], ['Upgrade 1 ballista to tier 2', () => upTo('ballista', 2)]],
-  dune: [['Build 2 foresters', () => made('forester') >= 2], [`Fell ${GOAL_N.felled} forester trees`, () => stats.felled >= GOAL_N.felled]],
-  bend: [['Build 2 crossbows', () => made('crossbow') >= 2], [`Boosted crossbows slay ${GOAL_N.xbowKills} raiders`, () => (stats.boostKills.crossbow || 0) >= GOAL_N.xbowKills]],
-  crag: [['Build 2 mines', () => made('mine') >= 2], [`Mine ${GOAL_N.mined} stones`, () => stats.mined >= GOAL_N.mined]],
-  ford: [['Build 2 catapults', () => made('catapult') >= 2], [`Boosted catapults slay ${GOAL_N.cataKills} raiders`, () => (stats.boostKills.catapult || 0) >= GOAL_N.cataKills]],
-  mere: [['Build 2 farmhouses', () => made('farmhouse') >= 2], ['Upgrade 1 farmhouse to tier 3', () => upTo('farmhouse', 3)]],
-  plains: [['Build 2 stables', () => made('stables') >= 2], ['Upgrade 1 stables to tier 3', () => upTo('stables', 3)]],
-  keep: [['Upgrade to Castle', () => upTo('castle', 3)], [`Reach ${GOAL_N.folk} villagers`, () => townsfolk().length >= GOAL_N.folk]],
-  hold: [['Upgrade to Castle', () => upTo('castle', 3)], [`Reach ${GOAL_N.folk} villagers`, () => townsfolk().length >= GOAL_N.folk]],
+  // skipped but its buildings built still counts (Jack)
+  vale: [['Follow the tutorial', () => guideDone || (GUIDE.length > 0 && GUIDE.every(S => S.tool === 'select' || made(S.tool) >= 1))],
+    cg('Build 1 quarry', () => made('quarry'), 1)],
+  bridge: [cg('Build 1 barracks', () => made('barracks'), 1), cg('Build 2 gates', () => made('gate'), 2)],
+  cross: [cg('Build 1 market', () => made('market'), 1), ['Upgrade 1 building to tier 2', () => stats.upgrades >= 1]],
+  watch: [cg('Build 2 ballistas', () => made('ballista'), 2), ['Upgrade 1 ballista to tier 2', () => upTo('ballista', 2)]],
+  dune: [cg('Build 2 foresters', () => made('forester'), 2), cg(`Fell ${GOAL_N.felled} forester trees`, () => stats.felled, GOAL_N.felled)],
+  bend: [cg('Build 2 crossbows', () => made('crossbow'), 2), cg(`Boosted crossbows slay ${GOAL_N.xbowKills} raiders`, () => stats.boostKills.crossbow || 0, GOAL_N.xbowKills)],
+  crag: [cg('Build 2 mines', () => made('mine'), 2), cg(`Mine ${GOAL_N.mined} stones`, () => stats.mined, GOAL_N.mined)],
+  ford: [cg('Build 2 catapults', () => made('catapult'), 2), cg(`Boosted catapults slay ${GOAL_N.cataKills} raiders`, () => stats.boostKills.catapult || 0, GOAL_N.cataKills)],
+  mere: [cg('Build 2 farmhouses', () => made('farmhouse'), 2), ['Upgrade 1 farmhouse to tier 3', () => upTo('farmhouse', 3)]],
+  plains: [cg('Build 2 stables', () => made('stables'), 2), ['Upgrade 1 stables to tier 3', () => upTo('stables', 3)]],
+  keep: [['Upgrade to Castle', () => upTo('castle', 3)], cg(`Reach ${GOAL_N.folk} villagers`, () => townsfolk().length, GOAL_N.folk)],
+  hold: [['Upgrade to Castle', () => upTo('castle', 3)], cg(`Reach ${GOAL_N.folk} villagers`, () => townsfolk().length, GOAL_N.folk)],
 };
 const stageGoals = m => STAGE_GOALS[m] || [];
 const goalOk = ([t, ok]) => !!goalsMet[t] || !!ok();
@@ -280,13 +283,15 @@ function goalTick() {
 var goalsKey = '';
 function renderGoals() {
   const hard = !!hardOn;
-  const list = [[`Survive ${NIGHTS} nights`, false], ...stageGoals(MAP).map(g => [g[0], !!goalsMet[g[0]]])];
-  const key = hard + '|' + list.map(g => g[0] + g[1]).join(',');
+  // each goal's progress beside it (a met goal shows its full count): nights survived, and the counted goals' have / need
+  const prog = g => { if (!g[3]) return ''; const [h, n] = g[3](); return `${goalsMet[g[0]] ? n : h} / ${n}`; };
+  const list = [[`Survive ${NIGHTS} nights`, false, `${Math.max(0, PH.wave - 1)} / ${NIGHTS}`], ...stageGoals(MAP).map(g => [g[0], !!goalsMet[g[0]], prog(g)])];
+  const key = hard + '|' + list.map(g => g[0] + g[1] + g[2]).join(',');
   if (key === goalsKey) return; goalsKey = key;
   const L = $('#ledger'); L.classList.toggle('hard', hard); if (hard) L.open = false;
   $('#goalHead').textContent = hard ? 'Hard Mode' : 'Goals';
   $('#goalTicks').textContent = hard ? '' : '✓'.repeat(list.filter(g => g[1]).length);
-  $('#goalList').innerHTML = list.map(([t, ok]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b>${t}</li>`).join('');
+  $('#goalList').innerHTML = list.map(([t, ok, p]) => `<li class="${ok ? 'ok' : ''}"><b>${ok ? '✓' : '–'}</b><span>${t}</span>${p ? `<i>${p}</i>` : ''}</li>`).join('');
 }
 // campaign stops' own maps: the buildings each one has (the stop's and every earlier stop's), and where it sits on the overview
 const CAMP_MAPS = {

@@ -9,7 +9,7 @@ const UPG_ICO = {"Tax": "<svg viewBox=\"0 0 512 512\"><defs><linearGradient id=\
 const UP_TABS = [
   ['Economy', [
     ['House', 'house', [['tax', 'Tax', '+1 gold per house'], ['homes', 'Bigger homes', '+1 villager per house']]],
-    ['Fields', 'farm', [['seed', 'Good seed', '+20% food'], ['fences', 'Fences', '+15% food']]],
+    ['Fields', 'farm', [['seed', 'Good seed', '+20% food'], ['fences', 'Fences', '+30% food']]],
     ['Lumber', 'lodge', [['axes', 'Sharp axes', 'Chop 20% faster'], ['carts', 'Carts', '+1 wood a trip']]],
     ['Quarry', 'quarry', [['picks', 'Iron picks', 'Dig 20% faster'], ['barrows', 'Wheelbarrows', '+1 stone a trip']]],
     ['Market', 'market', [['fair', 'Fair trade', '+2 when buying'], ['haggle', 'Haggling', '+2 gold when selling']]],
@@ -58,7 +58,7 @@ function applyUpgrades() {
   if (upOn('tax')) add(DEF.house, 'gold', 1);
   if (upOn('homes')) { add(DEF.house, 'residents', 1); UPK.chimney = true; }
   if (upOn('seed')) mul(DEF.farm, 'food', 1.2);
-  if (upOn('fences')) { mul(DEF.farm, 'food', 1.15); UPK.fences = true; }
+  if (upOn('fences')) { mul(DEF.farm, 'food', 1.3); UPK.fences = true; }
   if (upOn('axes')) UPK.chop = .8;
   if (upOn('carts')) LUMBER_LOAD = 3;
   if (upOn('picks')) UPK.dig = .8;
