@@ -216,8 +216,8 @@ const MAP_RULES = {
   plains: { waves: [{ spear: [11, 4], sword: [4, 1], archer: [4], lancer: [5], rider: [1] },
                    { spear: [11, 5], sword: [5, 4], archer: [5, 1], lancer: [7, 1], rider: [4] },
                    { spear: [8, 7], sword: [5, 5], archer: [5, 4], xbow: [4], lancer: [7, 4], rider: [5, 1] },
-                   { spear: [7, 8, 4], sword: [4, 7, 2], archer: [6, 6], xbow: [4, 1], lancer: [7, 6], rider: [6, 4, 1], ram: [2], ballista: [2] },
-                   { spear: [7, 11, 6], sword: [4, 7, 4], archer: [6, 6, 1], xbow: [4, 4], lancer: [7, 6, 4], rider: [6, 5, 4], catapult: [0, 2], ram: [0, 2] }],
+                   { spear: [6, 7, 4], sword: [4, 6, 2], archer: [6, 5], xbow: [4, 1], lancer: [6, 5], rider: [5, 4, 1], ram: [2], ballista: [2] },
+                   { spear: [6, 10, 5], sword: [4, 6, 4], archer: [5, 5, 1], xbow: [4, 4], lancer: [6, 5, 4], rider: [5, 5, 4], catapult: [0, 2], ram: [0, 2] }],
             day: [300, 120, 120, 120, 120], spawnGap: .8, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
   // Raider Keep (stage 11, boss, an 80 m map): seven nights after a 10-minute first day (Jack); round both sides of the keep and out of its gate;
   // the Raider Chief at the tail of night 7
