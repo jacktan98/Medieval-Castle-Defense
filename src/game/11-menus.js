@@ -555,6 +555,20 @@ const MAIN = CAMPAIGN.filter(c => !c.bonus);
 // a young prince wins back his father's kingdom from the Warlord, light in tone; no short forms (Jack: "will", not "'ll")
 // the flip button's icon (Jack picked a rolled scroll): a sheet with a curl at each end and two lines of writing (lucide's scroll, ISC)
 const SCROLL_ICO = '<svg viewBox="0 0 24 24"><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/><path d="M15 8h-5M15 12h-5"/></svg>';
+// the story's red wax seal in the back's bottom-right corner (Jack): an uneven wax blob, a pressed ring and the family's crown
+const SEAL_ICO = (() => { const P = [];
+  for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2, r = 45 + [3, -2, 4, 0, -3, 2, 5, -1, 1, -4, 3, 0, -2, 4][k];
+    P.push([50 + Math.cos(a) * r, 50 + Math.sin(a) * r]); }
+  let d = '';
+  P.forEach((p, k) => { const q = P[(k + 1) % P.length], m = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+    d += (k ? ' Q' : `M${((P[13][0] + p[0]) / 2).toFixed(1)} ${((P[13][1] + p[1]) / 2).toFixed(1)} Q`) + `${p[0].toFixed(1)} ${p[1].toFixed(1)} ${m[0].toFixed(1)} ${m[1].toFixed(1)}`; });
+  return `<svg viewBox="0 0 100 100"><defs><radialGradient id="sealG" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#d23a2c"/><stop offset=".6" stop-color="#a51f17"/><stop offset="1" stop-color="#6e120c"/></radialGradient></defs>`
+    + `<path d="${d} Z" fill="url(#sealG)"/><circle cx="50" cy="50" r="31" fill="#9a1c14" stroke="#6a100a" stroke-width="3"/><circle cx="50" cy="50" r="31" fill="none" stroke="#e0584a" stroke-width="1.2" stroke-dasharray="2 3" opacity=".6"/>`
+    + `<path d="M33 60 L30 40 L40 48 L50 34 L60 48 L70 40 L67 60 Z" fill="#c9372a" stroke="#6a100a" stroke-width="2.4" stroke-linejoin="round"/><path d="M33 64 H67" stroke="#6a100a" stroke-width="3" stroke-linecap="round"/>`
+    + `<circle cx="30" cy="40" r="2.6" fill="#e0584a"/><circle cx="50" cy="34" r="2.6" fill="#e0584a"/><circle cx="70" cy="40" r="2.6" fill="#e0584a"/>`
+    + `<ellipse cx="36" cy="28" rx="10" ry="5" fill="#fff" opacity=".18" transform="rotate(-30 36 28)"/></svg>`; })();
+// a stage's story not yet read: its scroll glows on the current stage's card with the card's own glow, until the card is flipped (Jack)
+var STORY_READ = {}; try { STORY_READ = JSON.parse(localStorage.getItem('mtd-story') || '{}'); } catch (e) {}
 const STORY = {
   vale: 'Long ago your family ruled these lands in peace, until the Warlord came with his raiders. The King, your father, fell defending the castle, and you escaped as a boy. Years of training later, you are back. Greenvale is a quiet valley at the edge of the old kingdom, and its people still remember your family. Build them a home worth defending.',
   bridge: 'Stonebridge guards the only crossing on the great river. The townsfolk started a wall to keep the raiders out, but lost their nerve halfway through. When the young prince rides in with a plan, the blacksmith grins and hands out spears. Finish the wall, train some soldiers, and hold the bridge.',
@@ -594,7 +608,7 @@ function buildDeck() {
   $('#cCards').innerHTML = CAMPAIGN.map((c, i) => { const st = won[i] ? 'won' : i === cur ? 'cur' : locked[i] ? 'locked' : '';
     const mark = locked[i] ? `<i class="jLock">${LOCK_SVG}</i>` : '';
     return `<button class="cCard ${st}${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}" data-i="${i}" tabindex="-1"><span class="cPic" style="background-image:url(maps/thumb/${c.map}.jpg)"></span>
-      <span class="cName"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}${won[i] && !c.bonus ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}${STORY[c.map] ? `<i class="cInfo" aria-label="Story">${SCROLL_ICO}</i><span class="cBack"><span class="cStory">${STORY[c.map]}</span></span>` : ''}</button>`; }).join('');
+      <span class="cName"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}${won[i] && !c.bonus ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}${STORY[c.map] ? `<i class="cInfo${STORY_READ[c.map] ? '' : ' unread'}" aria-label="Story">${SCROLL_ICO}</i><span class="cBack"><span class="cStory"><i class="cSp1"></i><i class="cSp2"></i>${STORY[c.map]}</span><i class="cSeal">${SEAL_ICO}</i></span>` : ''}</button>`; }).join('');
   $('#cDots').innerHTML = CAMPAIGN.map((c, i) => `<button class="cDot${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}${won[i] ? ' won' : i === cur ? ' cur' : ''}" data-i="${i}" aria-label="Stage ${i + 1}"></button>`).join('');
 }
 // place every card for the front index cSel plus the live drag (in cards); the card's size follows the room the deck has
@@ -628,7 +642,8 @@ function layoutDeck(anim = true) {
 function flipCard(card, on) {
   if (!card || card.classList.contains('flipped') === on || card._flipping) return;
   card._flipping = true; card.style.transition = 'transform .16s ease-in'; card.style.setProperty('--fl', '90deg');
-  setTimeout(() => { card.classList.toggle('flipped', on); if (on) fitStory(card); card.style.transition = 'transform .2s ease-out'; card.style.setProperty('--fl', '0deg');
+  setTimeout(() => { card.classList.toggle('flipped', on); if (on) { fitStory(card); const m = CAMPAIGN[+card.dataset.i].map;
+      if (!STORY_READ[m]) { STORY_READ[m] = 1; try { localStorage.setItem('mtd-story', JSON.stringify(STORY_READ)); } catch (e) {} } card.querySelector('.cInfo')?.classList.remove('unread'); } card.style.transition = 'transform .2s ease-out'; card.style.setProperty('--fl', '0deg');
     setTimeout(() => { card._flipping = false; card.style.transition = ''; }, 220); }, 160);
 }
 // the story's text shrinks until it fits the card (a phone held sideways has a small card), from its CSS size down to 9 px
@@ -950,7 +965,7 @@ $('#adGallery').addEventListener('click', openGallery);
 let campResetT = 0;
 for (const b of document.querySelectorAll('.campReset')) b.addEventListener('click', () => {
   if (performance.now() > campResetT) { campResetT = performance.now() + 3000; b.style.minWidth = b.offsetWidth + 'px'; b.classList.add('armed'); b.innerHTML = PICO.tick.replace('<svg ', '<svg class="bIco" '); setTimeout(() => { if (performance.now() > campResetT) { b.classList.remove('armed'); b.textContent = 'Reset campaign'; b.style.minWidth = ''; } }, 3100); return; }
-  try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor', 'upg', 'ach', 'codex']) localStorage.removeItem('mtd-' + k); } catch (e) {}
+  try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor', 'upg', 'ach', 'codex', 'story']) localStorage.removeItem('mtd-' + k); } catch (e) {}
   location.reload();
 });
 $('#moveBtn').addEventListener('click', () => { if (paused) return setHint('Paused', 'bad'); if (!selected) return; moveFor = moveFor === selected ? null : selected; setHint(moveFor ? 'Tap a tile' : 'Select a building'); refreshCard(); });
