@@ -132,12 +132,17 @@ const upRowIco = k => k === 'VOL' ? UP_VOL : k === 'HORSE' ? `<svg viewBox="0 0 
 // the knight's cloth follows the town's colour
 const upIco = name => { const c = new THREE.Color(); c.setStyle(TEAM_PAL[TEAM.town]); const lt = '#' + c.clone().lerp(new THREE.Color(1, 1, 1), .45).getHexString();
   return (UPG_ICO[name] || '').replace(/#9cc5ff/g, lt).replace(/#2f5faf/g, TEAM_PAL[TEAM.town]); };
+// an upgrade can only be bought once the stage that brings in its building is open (Jack: locked like the stages); the castle's
+// are open from the start. upStage gives that stage's index (-1: always open), upShut whether it is still locked
+const upStage = id => { for (const [, rows] of UP_TABS) for (const [, ic, ups] of rows) if (ups.some(u => u[0] === id)) return CAMPAIGN.findIndex(c => !c.bonus && c.adds.includes(ic)); return -1; };
+const upShut = id => { const k = upStage(id); return k > 0 && campState().locked[k]; };
+const upBuyLabel = (id, s) => upShut(id) ? `<span class="upLk">${LOCK_ICO}Stage ${upStage(id) + 1}</span>` : s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1';
 const upFind = id => { for (const [, rows] of UP_TABS) for (const [row, , ups] of rows) { const k = ups.findIndex(u => u[0] === id); if (k >= 0) return { row, u: ups[k], prev: k ? ups[k - 1][0] : null }; } };
 function openUpgrades() { sfx('click'); $('#upPick').replaceChildren(); $('#campaign').hidden = true; $('#upPick').hidden = false; upSel = null; renderUpgrades(); }
 function renderUpgrades() {
   const [, rows] = UP_TABS[upTab], left = upLeft(), tc = TEAM_PAL[TEAM.town], dk = new THREE.Color(); dk.setStyle(tc); dk.multiplyScalar(.45);
   if (!upSel || !rows.some(r => r[2].some(u => u[0] === upSel))) upSel = rows[0][2][0][0];
-  const st = id => UPG.has(id) ? 2 : (!upFind(id).prev || UPG.has(upFind(id).prev)) ? 1 : 0;
+  const st = id => UPG.has(id) ? 2 : upShut(id) ? 0 : (!upFind(id).prev || UPG.has(upFind(id).prev)) ? 1 : 0;
   const sel = upFind(upSel), s = st(upSel), spent = rows.flatMap(r => r[2]).filter(u => UPG.has(u[0])).length;
   const el = $('#upPick'); el.style.setProperty('--tc', tc); el.style.setProperty('--td', '#' + dk.getHexString());
   // the sheet stays put (a new one replayed the menus' rise animation and the whole screen flickered on every tap: Jack)
@@ -148,7 +153,7 @@ function renderUpgrades() {
       const sj = st(id); return `${j ? `<div class="upChain${st(ups[j - 1][0]) === 2 ? ' on' : ''}"></div>` : ''}<button class="upNode s${sj}${id === upSel ? ' sel' : ''}" data-up="${id}" aria-label="${name}">${upIco(name)}${sj === 2 ? '<span class="upTick">✓</span>' : '<span class="upCost">★1</span>'}</button>`; }).join('')}</div>`).join('')}</div>`).join('')}</div>
     <div class="upRs"><button id="upReset" ${spent ? '' : 'disabled'}>${UP_RESET}Reset ${UP_TABS[upTab][0]}</button></div>
     <div class="upDet"><div class="upBig${s === 2 ? '' : ' dim'}">${upIco(sel.u[1])}</div><div class="upTx"><div class="upOf">${sel.row}</div><h3>${sel.u[1]}</h3><p>${sel.u[2]}</p></div>
-      <button class="primary upBuy" id="upBuy" ${s === 1 && left > 0 ? '' : 'disabled'}>${s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1'}</button></div>`;
+      <button class="primary upBuy" id="upBuy" ${s === 1 && left > 0 && !upShut(upSel) ? '' : 'disabled'}>${upBuyLabel(upSel, s)}</button></div>`;
 }
 // picking another upgrade only moves the highlight and refills the details; the tiles stay as they are
 function selectUpgrade(id) {
@@ -157,7 +162,7 @@ function selectUpgrade(id) {
   const f = upFind(id), s = UPG.has(id) ? 2 : (!f.prev || UPG.has(f.prev)) ? 1 : 0, b = el.querySelector('#upBuy');
   el.querySelector('.upBig').innerHTML = upIco(f.u[1]); el.querySelector('.upBig').classList.toggle('dim', s !== 2); el.querySelector('.upOf').textContent = f.row;
   el.querySelector('.upTx h3').textContent = f.u[1]; el.querySelector('.upTx p').textContent = f.u[2];
-  b.disabled = !(s === 1 && upLeft() > 0); b.textContent = s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1';
+  b.disabled = !(s === 1 && upLeft() > 0 && !upShut(id)); b.innerHTML = upBuyLabel(id, s);
 }
 $('#upPick').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
@@ -165,7 +170,7 @@ $('#upPick').addEventListener('click', e => {
   if (b.dataset.tab) { sfx('click'); upTab = +b.dataset.tab; upSel = null; renderUpgrades(); return; }
   if (b.dataset.up) { sfx('click'); selectUpgrade(b.dataset.up); return; }
   if (b.id === 'upBuy') {
-    const f = upFind(upSel); if (UPG.has(upSel) || (f.prev && !UPG.has(f.prev)) || upLeft() < 1) { sfx('nope'); return; }
+    const f = upFind(upSel); if (UPG.has(upSel) || (f.prev && !UPG.has(f.prev)) || upLeft() < 1 || upShut(upSel)) { sfx('nope'); return; }
     UPG.add(upSel); saveUpg(); sfx('upgrade');
     // the building's second upgrade is picked next, so two taps on Buy get both (Jack)
     for (const [, rows] of UP_TABS) for (const [, , ups] of rows) { const i = ups.findIndex(u => u[0] === upSel); if (i >= 0 && ups[i + 1] && !UPG.has(ups[i + 1][0])) { upSel = ups[i + 1][0]; break; } }

@@ -623,8 +623,8 @@ const STORY = {
   isle: 'A blight has crept onto the river isle and the fields are failing. Hungry raiders are circling the island, hoping the King\'s town is too weak to fight. Show them that a full henhouse and a sharp arrow beat a blight any day.',
   pass: 'The longest winter in memory has buried the mountain pass in snow. The Warlord\'s last loyal captains have gathered every raider they could find for one final march. Hold the pass, keep the fires burning, and the kingdom will see spring.',
 };
-// Jack is testing every stage, so a locked stage can still be played; set false for release (a locked stage's Play is then refused)
-const TEST_OPEN = true;
+// locked stages can't be played (Jack: win the one before first); set true to let a tester play every stage
+const TEST_OPEN = false;
 const mainWon = () => MAIN.every(c => STARS[c.map] > 0);
 // ---------- the campaign as a carousel (Jack's sketch; it replaced a scrolling road, which replaced the overview map): the stages are
 // cards in a 3D deck, the one in front large, the others angled away behind it on both sides; swipe, tap a side card, the arrows, the
@@ -714,7 +714,7 @@ function openStage(i) {
     const full = det.offsetHeight + (rows === 1 ? ch : 0);
     if (getComputedStyle($('.cMain')).flexDirection === 'row') { slot.style.minHeight = ''; return; }
     if (full > (slot._h || 0) || slot._w !== innerWidth) { slot._h = Math.max(full, slot._w === innerWidth ? slot._h || 0 : 0); slot._w = innerWidth; slot.style.minHeight = slot._h + 'px'; } });
-  // a locked stage can't be played once TEST_OPEN is off (release); Jack is testing every stage for now
+  // a locked stage can't be played (TEST_OPEN off): Play is a padlock that refuses
   const shut = !TEST_OPEN && campState().locked[i];
   $('#stPlay').innerHTML = c.map ? `<button class="primary${shut ? ' shut' : ''}" id="campPlay">${shut ? LOCK_ICO : 'Play'}</button>` : '';
   if (c.map) $('#campPlay').addEventListener('click', () => {
@@ -745,7 +745,8 @@ $('#dHard').addEventListener('click', () => {
     if (moved > 6) selectStage(Math.round(cSel + cDrag));
     else { const hit = document.elementFromPoint(e.clientX, e.clientY), card = hit?.closest('.cCard'); if (!card) return;
       // the ! (or anywhere on a card showing its story) flips the front card; on a side card the ! brings it forward and flips it
-      if (hit.closest('.cInfo') || card.classList.contains('flipped')) { const i = +card.dataset.i; if (i !== cSel) selectStage(i);
+      if (card.classList.contains('locked') || card.classList.contains('preUnlock')) { if (+card.dataset.i !== cSel) selectStage(+card.dataset.i); }
+      else if (hit.closest('.cInfo') || card.classList.contains('flipped')) { const i = +card.dataset.i; if (i !== cSel) selectStage(i);
         sfx('click'); flipCard(card, !card.classList.contains('flipped')); }
       else selectStage(+card.dataset.i); } };
   deck.addEventListener('pointerup', up); deck.addEventListener('pointercancel', () => { x0 = null; cDrag = 0; layoutDeck(); });
