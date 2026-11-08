@@ -1104,12 +1104,9 @@ function makeRack() {
 const MODELS = { butts: makeButts, stores: makeStores, banner: makeBanner, campfire: makeCampfire, rack: makeRack, stables: makeStables, crossbow: makeCrossbowTower, ballista: makeBallista, catapult: makeCatapult, forester: makeForester, mine: makeMine, farmhouse: makeFarmhouse, market: makeMarket, barracks: makeBarracks, house: makeHouse, tower: makeTower, castle: makeCastle, lodge: makeLodge, quarry: makeQuarry, farm: makeFarm,
   wall: makeWall, gate: makeGate, well: makeWell, torch: makeTorch, flowers: makeFlowers, statue: makeStatue };
 // grit: every mesh gets a slightly different, weathered copy of its material; tier 1 is dirtier and duller
-const aoTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
-  const g = x.createRadialGradient(64, 64, 20, 64, 64, 64); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(.55, 'rgba(0,0,0,.75)'); g.addColorStop(1, 'rgba(0,0,0,0)');
-  x.fillStyle = g; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
-const aoMat = new THREE.MeshBasicMaterial({ color: '#000000', map: aoTex, transparent: true, opacity: .42, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
-const NO_AO = { butts: 1, stores: 1, farm: 1, forester: 1, farmhouse: 1, flowers: 1, torch: 1, wall: 1 };
-const tintCache = new Map(), NO_TINT = new Set([M.glow, M.flame, M.flameMid, M.flameCore, M.water, aoMat, M.flag, M.banner, M.drape]);
+// (a soft dark patch was laid under every building, a stand-in for contact shadow from before the sun cast real shadows; Jack had it
+// removed: it read as an oval and the real shadows already ground the buildings)
+const tintCache = new Map(), NO_TINT = new Set([M.glow, M.flame, M.flameMid, M.flameCore, M.water, M.flag, M.banner, M.drape]);
 function tintColor(col, tier, n) {
   const grime = tier === 1 ? .8 : tier === 2 ? .9 : .97, hsl = {};
   col.multiplyScalar(grime * (.88 + .2 * hash(n + 1, tier * 3.3))); col.convertLinearToSRGB(); col.getHSL(hsl);
@@ -1130,12 +1127,11 @@ function tinted(m, tier, n) {
 const makeModel = (type, tier, plinth, mask, rot = 0, fixed = false) => {
   const g = MODELS[type](tier, plinth && tier >= 2 && !DEF[type].plot && !DEF[type].decor && !DEF[type].noPlinth, mask, rot, fixed), tt = DEF[type].decor ? 2 : tier;
   if (plinth && tier === 1 && SLAB[type]) { const w = DEF[type].size * CELL; g.add(box(w, 1.0, w, M.court, 0, SLAB_TOP - .5, 0)); }   // a metre deep: ground lowered by a neighbour never opens a gap
-  if (!NO_AO[type]) { const w = DEF[type].size * CELL + 1.3, ao = new THREE.Mesh(new THREE.PlaneGeometry(w, w).rotateX(-Math.PI / 2), aoMat); ao.position.y = .04; ao.userData.ao = true; g.add(ao); }
   let n = 0;
   // every part gets a slightly different shade, except the base (slab or plinth: footprint-wide, below ground level), which has one
   // shade per tier so neighbouring bases join without a seam
   const fp = DEF[type].size * CELL, isBase = o => o.geometry.parameters && Math.abs(o.geometry.parameters.width - fp) < .01 && o.position.y < 0;
-  g.traverse(o => { if (o.userData.ao) return; if (o.isMesh) { o.castShadow = o.receiveShadow = !o.userData.noShadow; if (!NO_TINT.has(o.material)) o.material = tinted(o.material, tt, isBase(o) ? 0 : (n++ * 5 + Math.floor(Math.random() * 3)) % 6); } });
+  g.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = !o.userData.noShadow; if (!NO_TINT.has(o.material)) o.material = tinted(o.material, tt, isBase(o) ? 0 : (n++ * 5 + Math.floor(Math.random() * 3)) % 6); } });
   return g;
 };
 

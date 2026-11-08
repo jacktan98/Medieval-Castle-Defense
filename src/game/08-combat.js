@@ -3,9 +3,8 @@ const raiderRed = teamMat(mat('#a32a22'), 'foe', '#a32a22');   // every raider w
 // mounted raiders (and the stables' riders) ride: a horse under the rider, who sits astride with legs to either side
 const horseM = mat('#5a3a22'), maneM = mat('#2a1d14'), saddleM = mat('#3a2418'), blanketM = teamMat(mat('#8a221c'), 'foe', '#8a221c'), hoofM = mat('#1f1a16');
 const SADDLE = .72;   // lifts the rider's body so the hips sit on the saddle
-// a rider's legs: out to the sides and a little forward, down the horse's flanks (Jack: at -1.2 forward and .55 out they went
-// through the saddle and blanket)
-const RIDE_X = -.85, RIDE_Z = 1.0;
+// a rider's legs: forward and a little out (the red flank cloths hang low enough that the legs pass over them, Jack)
+const RIDE_X = -1.2, RIDE_Z = .55;
 function mountHorse(p, cloth = blanketM) {
   const h = new THREE.Group(); p.g.add(h);
   h.add(box(.34, .36, .92, horseM, 0, .78, 0));                                   // barrel

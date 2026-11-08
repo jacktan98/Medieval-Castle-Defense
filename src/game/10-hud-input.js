@@ -306,7 +306,6 @@ function pick(e) { setRay(e); const hit = ray.intersectObject(terrain)[0]; retur
 function pickBuilding(e, strict) {
   setRay(e);
   for (const hit of ray.intersectObjects(buildings.map(B => B.group), true)) {
-    if (hit.object.userData.ao) continue;
     let o = hit.object; while (o && !o.userData.B) o = o.parent;
     const B = o && o.userData.B; if (!B) continue;
     if (!strict) return B;

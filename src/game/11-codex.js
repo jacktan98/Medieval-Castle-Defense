@@ -57,8 +57,6 @@ function codexRenderer() {
 function codexModel(side, id, tier) {
   if (side === 'b') {
     const g = makeModel(id, tier, true, id === 'wall' || id === 'gate' ? 10 : 0, 0); galPreview(g, id, tier);
-    // the soft dark patch drawn under buildings on the map shows as an oval on the round grass here (Jack): hidden
-    g.traverse(o => { if (o.userData.ao) o.visible = false; });
     return { g, cat: DEF[id].decor ? 'decor' : id === 'catapult' ? 'siege' : 'b' + (DEF[id].size || 1), foot: id === 'catapult' ? 0 : (DEF[id].size || 1) * CELL };
   }
   const E = ENEMY[id], p = makeRaider(id, E.boss ? 3 : tier);
@@ -125,7 +123,7 @@ function renderCodex() {
     if (!cxThumb[key]) cxQueue.push([side, id, t]);
     return `<div class="achItem"><button class="achNode cxNode${top ? ' done' : ' locked'}${id === cxSel ? ' sel' : ''}" data-cx="${id}" aria-label="${top ? cxName(side, id, t) : 'Locked'}"><img data-k="${key}" alt="" src="${cxThumb[key] || 'data:image/gif;base64,R0lGODlhAQABAAAAACw='}">${top ? '' : `<span class="cxLock">${LOCK_ICO}</span>`}</button><div class="achName">${top ? cxName(side, id, t) : '???'}</div></div>`;
   }).join('');
-  sh.innerHTML = `<div class="upTop"><button class="upBack campBack" id="cxBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Codex</h2><div class="upBank"><b>${got}</b>/${all}</div></div>
+  sh.innerHTML = `<div class="upTop"><button class="upBack campBack" id="cxBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Almanac</h2><div class="upBank"><b>${got}</b>/ ${all}</div></div>
     <div class="upTabs"><button class="upTab${cxTab === 'b' ? ' on' : ''}" data-cxtab="b">Buildings</button><button class="upTab${cxTab === 'r' ? ' on' : ''}" data-cxtab="r">Raiders</button></div>
     <div class="achGrid cxGrid">${tiles}</div>
     <div class="upDet cxDet"><canvas class="cxView" width="${CX_PX}" height="${CX_PX}"></canvas><div class="upTx"><div class="upOf"></div><h3></h3><p></p><div class="cxTiers"></div><div class="cxStats"></div></div></div>`;

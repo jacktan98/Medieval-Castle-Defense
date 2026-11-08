@@ -625,6 +625,8 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .upTop h2{margin:0;font-family:var(--display);font-weight:400;color:#f0c95a;font-size:28px;text-shadow:0 2px 0 #000}
 .upBank{display:flex;align-items:center;gap:4px;padding:0 11px 0 8px;height:30px;border-radius:16px;border:2px solid #d9b04e;background:linear-gradient(#4a3820,#1c150a);font-weight:700;font-size:16px;color:#fff1c4}
 .upBank b{font-size:20px;line-height:1;color:#f0c95a;text-shadow:0 0 8px rgba(255,205,90,.7)}
+/* the pill's numbers sat low (the fonts' digits ride below the line's middle): lifted to the middle (Jack) */
+.upBank{line-height:1;padding-bottom:3px;box-sizing:border-box}
 .upTabs{display:flex;gap:4px;width:100%;border-bottom:2px solid #d9b04e;margin-bottom:12px}
 .modal.tome .upTabs .upTab{flex:1;min-height:0!important;padding:8px 0 6px!important;border-radius:10px 10px 0 0!important;border:2px solid rgba(217,176,78,.4)!important;border-bottom:none!important;background:#1a140a!important;font-family:var(--display);font-weight:400;font-size:15px;letter-spacing:.06em;-webkit-text-stroke:.35px currentColor;color:#8f8160!important;box-shadow:none!important}
 /* the tab in use is lit: gold like the main buttons, dark text, a glow; the others stay dark and dim (Jack: it didn't stand out) */
