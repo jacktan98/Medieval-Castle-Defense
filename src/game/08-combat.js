@@ -163,8 +163,10 @@ function makeEngine(kind, tier) {
     for (const z of [-.3, .55]) { m.add(box(.86, .1, .12, fm, 0, .42, z)); const ax = cyl(.03, .03, 1.0, 6, M.iron, 0, .26, z); ax.rotation.z = Math.PI / 2; m.add(ax); for (const sx of [-1, 1]) wheel(m, .26, sx * .5, .26, z, iron); }
     m.add(box(.84, .06, .87, M.wood, 0, .5, .215));
     if (tier === 3) for (const sx of [-1, 1]) m.add(box(.04, .04, 1.52, M.iron, sx * .38, .49, 0));
-    if (tier >= 2) { const sh = box(1.0, .32, .06, M.wood, 0, .53 + .155, .65 + .04); sh.rotation.x = .25; m.add(sh); }   // the mantlet stands on the deck's front edge, leaning out       // a timber mantlet at the front
-    const t = ballistaTurret(BALLISTA_K[tier - 1] * .9); t.position.y = .53 - .18 * BALLISTA_K[tier - 1] * .9; m.add(t); P.turret = t;   // a short stand: its post runs down through the deck, the crank within the crew's reach
+    // a timber mantlet on the deck's front edge, leaning out: low (.16 m), so it never stands in the bolt's way (Jack)
+    if (tier >= 2) { const sh = box(1.0, .16, .06, M.wood, 0, .53 + .075, .65 + .02); sh.rotation.x = .25; m.add(sh); }
+    // a short stand: its post runs down through the deck, so only .12 of it shows and the crank is within the loader's reach (Jack)
+    const t = ballistaTurret(BALLISTA_K[tier - 1] * .9); t.position.y = .53 - .33 * BALLISTA_K[tier - 1] * .9; m.add(t); P.turret = t;
     P.rig = { statics: [], k: BALLISTA_K[tier - 1] * .9 };
     t.traverse(o => { const u = o.userData; if (u.bolt) P.bolt = o; for (const key of ['slider', 'bsL', 'bsR', 'prope', 'trope', 'crank']) if (u[key]) P.rig[key] = o; if (u.staticString) P.rig.statics.push(o); });
   } else if (kind === 'catapult') {
