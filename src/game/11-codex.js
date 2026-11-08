@@ -2,8 +2,8 @@
 // round book button. Every entry stays locked (a dark shape) until the player builds that building or meets that raider, and each
 // tier only once reached (built up to, or met at); kept in localStorage['mtd-codex'] as { b: { type: top tier }, r: { kind: top tier } }.
 // Each entry shows the real model turning slowly, drawn by a small renderer of its own (the game's renderer keeps the title scene) ----------
-const CODEX_B = ['castle', 'house', 'farm', 'lodge', 'quarry', 'tower', 'barracks', 'wall', 'gate', 'market', 'ballista', 'forester', 'crossbow',
-  'mine', 'catapult', 'farmhouse', 'stables', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'];
+const CODEX_B = ['castle', 'house', 'farm', 'lodge', 'quarry', 'market', 'farmhouse', 'forester', 'mine', 'tower', 'ballista', 'barracks', 'crossbow', 'catapult', 'stables', 'wall', 'gate',
+  'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'];
 const CODEX_R = ['spear', 'sword', 'archer', 'xbow', 'lancer', 'rider', 'ram', 'ballista', 'catapult', 'chief', 'warlord'];
 // one short line each (Jack's style: a few plain words, no full stop)
 const CODEX_TXT = {
