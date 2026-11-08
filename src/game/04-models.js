@@ -524,6 +524,10 @@ function makeStatue() {
   const hd = new THREE.Mesh(new THREE.SphereGeometry(.15, 8, 6), M.stone2); hd.position.set(0, 2.0, 0); g.add(hd);
   const arm = box(.1, .55, .1, M.stone2, .22, 1.95, 0); arm.rotation.z = -.4; g.add(arm);
   g.add(box(.05, .8, .05, M.stone2, .38, 2.5, 0));
+  // the other arm (Jack): down at its side, its hand on a sword's hilt, the blade point-down on the plinth
+  const arm2 = box(.1, .5, .1, M.stone2, -.25, 1.62, .06); arm2.rotation.z = -.22; g.add(arm2);
+  // the hand ends at (-.31, 1.38): the grip under it, then the crossguard, the blade down to the plinth's top (.95)
+  g.add(box(.04, .1, .04, M.stone2, -.31, 1.36, .08)); g.add(box(.16, .03, .05, M.stone2, -.31, 1.3, .08)); g.add(box(.05, .34, .025, M.stone2, -.31, 1.12, .08));
   return g;
 }
 // a timber footbridge over the river: planks across a gentle arch, two log stringers, trestles standing in the water,
@@ -1048,14 +1052,23 @@ function makeButts() {
   const g = new THREE.Group();
   g.add(box(1.5, .04, 1.1, M.court, 0, .02, 0));
   for (const [x, z, r, a] of [[-.32, -.1, .38, .25], [.45, .2, .28, -.3]]) {
-    const t = new THREE.Group(); t.position.set(x, r + .32, z); t.rotation.y = a; t.rotation.x = -.18; g.add(t);
+    // each target and its stand turn together (Jack: the posts stood apart from the targets): two posts just behind the straw,
+    // leaning back with it, and a prop down to the ground behind
+    const S = new THREE.Group(); S.position.set(x, 0, z); S.rotation.y = a; g.add(S);
+    const t = new THREE.Group(); t.position.set(0, r + .32, 0); t.rotation.x = -.18; S.add(t);
+    const L = r * 2 + .42;
+    for (const sx of [-1, 1]) { const l = box(.05, L, .05, M.timber, sx * r * .62, L / 2 * Math.cos(.18) , -.13 - L / 2 * Math.sin(.18)); l.rotation.x = -.18; S.add(l); }
+    const pr = box(.045, L * .95, .045, M.timber, 0, L * .42, -.42); pr.rotation.x = .42; S.add(pr);
     const face = cyl(r, r, .2, 14, M.hay, 0, 0, 0); face.rotation.x = Math.PI / 2; t.add(face);
     // painted rings, each a little proud of the one behind (at one depth they fought for the same pixels and showed in patches)
     [[r * .78, M.canvas], [r * .58, kiteM], [r * .36, M.canvas], [r * .16, kiteM]].forEach(([rr, m], i) => { const ring = cyl(rr, rr, .012, 20, m, 0, 0, .106 + i * .008); ring.rotation.x = Math.PI / 2; t.add(ring); });
     for (let n = 0; n < 3; n++) { const ar = box(.012, .012, .32, M.dark, (hash(n, x * 7) - .5) * r, (hash(n + 3, z * 5) - .5) * r, .26); ar.rotation.x = (hash(n, 9) - .5) * .3; t.add(ar); }
-    for (const sx of [-1, 1]) { const l = box(.05, r * 2 + .4, .05, M.timber, x + sx * r * .7, (r * 2 + .4) / 2, z - .14); l.rotation.x = .2; g.add(l); }
   }
-  for (let n = 0; n < 4; n++) { const a = box(.012, .012, .32, M.dark, -.1 + n * .06, .05, .42 + n * .03); a.rotation.y = .3 + n * .2; g.add(a); }   // spent arrows in the grass
+  // spent arrows that missed, scattered over the ground in front: some stuck in at a slant, some lying flat
+  for (let n = 0; n < 6; n++) {
+    const ax = -.62 + hash(n, 3.1) * 1.25, az = .3 + hash(n, 7.7) * .22, stuck = n % 3 !== 2;
+    const a = box(.012, .012, .32, M.dark, ax, stuck ? .1 : .05, az); a.rotation.order = 'YXZ'; a.rotation.y = (hash(n, 5.3) - .5) * 2.4; a.rotation.x = stuck ? -.7 - hash(n, 2.2) * .3 : 0; g.add(a);
+  }
   return g;
 }
 // siege stores: crates of ballista bolts, a crate of round shot and barrels, under a lean-to of planks
@@ -1064,7 +1077,12 @@ function makeStores() {
   g.add(box(1.5, .04, 1.2, M.court, 0, .02, 0));
   const crate = (x, z, w, d, h, r = 0) => { const c = box(w, h, d, M.wood, x, h / 2 + .04, z); c.rotation.y = r; g.add(c); for (const sy of [.2, .8]) { const b = box(w + .01, .03, d + .01, M.timber, x, h * sy + .04, z); b.rotation.y = r; g.add(b); } };
   crate(-.35, -.2, .6, .45, .35, .1);
-  for (let n = 0; n < 6; n++) { const b = box(.035, .035, .75, M.timber, -.52 + (n % 3) * .14, .44 + Math.floor(n / 3) * .05, -.2 + (n % 2 ? .06 : -.06)); b.rotation.y = .1 + Math.PI / 2; g.add(b); const t = cone(.03, .1, 4, M.iron, -.52 + (n % 3) * .14 + .42, .44 + Math.floor(n / 3) * .05, -.2 + (n % 2 ? .06 : -.06)); t.rotation.z = -Math.PI / 2; g.add(t); }   // bolts, iron heads out
+  // bolts, iron heads out: shaft and head built together and turned as one (Jack: the heads sat off the shafts' ends)
+  for (let n = 0; n < 6; n++) {
+    const b = new THREE.Group(); b.position.set(-.52 + (n % 3) * .14, .44 + Math.floor(n / 3) * .05, -.2 + (n % 2 ? .06 : -.06)); b.rotation.y = .1 + Math.PI / 2; g.add(b);
+    b.add(box(.035, .035, .75, M.timber, 0, 0, 0)); const t = cone(.03, .1, 4, M.iron, 0, 0, .42); t.rotation.x = Math.PI / 2; b.add(t);
+    for (const s of [-1, 1]) { const f = box(.005, .05, .09, M.canvas, s * .02, 0, -.33); f.rotation.z = s * .5; b.add(f); }
+  }
   crate(.4, -.25, .45, .45, .3, -.2);
   for (const [x, z] of [[.33, -.33], [.47, -.33], [.33, -.17], [.47, -.17], [.4, -.25]]) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(.075, 0), M.stone2); st.position.set(x, .4 + (x === .4 ? .08 : 0), z); st.castShadow = true; g.add(st); }   // round shot
   for (const [x, z] of [[.15, .35], [.5, .3]]) { g.add(cyl(.16, .14, .42, 10, M.wood, x, .25, z)); for (const y of [.12, .38]) g.add(cyl(.165, .165, .03, 10, M.iron, x, y, z)); }

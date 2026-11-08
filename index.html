@@ -3300,6 +3300,10 @@ function makeStatue() {
   const hd = new THREE.Mesh(new THREE.SphereGeometry(.15, 8, 6), M.stone2); hd.position.set(0, 2.0, 0); g.add(hd);
   const arm = box(.1, .55, .1, M.stone2, .22, 1.95, 0); arm.rotation.z = -.4; g.add(arm);
   g.add(box(.05, .8, .05, M.stone2, .38, 2.5, 0));
+  // the other arm (Jack): down at its side, its hand on a sword's hilt, the blade point-down on the plinth
+  const arm2 = box(.1, .5, .1, M.stone2, -.25, 1.62, .06); arm2.rotation.z = -.22; g.add(arm2);
+  // the hand ends at (-.31, 1.38): the grip under it, then the crossguard, the blade down to the plinth's top (.95)
+  g.add(box(.04, .1, .04, M.stone2, -.31, 1.36, .08)); g.add(box(.16, .03, .05, M.stone2, -.31, 1.3, .08)); g.add(box(.05, .34, .025, M.stone2, -.31, 1.12, .08));
   return g;
 }
 // a timber footbridge over the river: planks across a gentle arch, two log stringers, trestles standing in the water,
@@ -3824,14 +3828,23 @@ function makeButts() {
   const g = new THREE.Group();
   g.add(box(1.5, .04, 1.1, M.court, 0, .02, 0));
   for (const [x, z, r, a] of [[-.32, -.1, .38, .25], [.45, .2, .28, -.3]]) {
-    const t = new THREE.Group(); t.position.set(x, r + .32, z); t.rotation.y = a; t.rotation.x = -.18; g.add(t);
+    // each target and its stand turn together (Jack: the posts stood apart from the targets): two posts just behind the straw,
+    // leaning back with it, and a prop down to the ground behind
+    const S = new THREE.Group(); S.position.set(x, 0, z); S.rotation.y = a; g.add(S);
+    const t = new THREE.Group(); t.position.set(0, r + .32, 0); t.rotation.x = -.18; S.add(t);
+    const L = r * 2 + .42;
+    for (const sx of [-1, 1]) { const l = box(.05, L, .05, M.timber, sx * r * .62, L / 2 * Math.cos(.18) , -.13 - L / 2 * Math.sin(.18)); l.rotation.x = -.18; S.add(l); }
+    const pr = box(.045, L * .95, .045, M.timber, 0, L * .42, -.42); pr.rotation.x = .42; S.add(pr);
     const face = cyl(r, r, .2, 14, M.hay, 0, 0, 0); face.rotation.x = Math.PI / 2; t.add(face);
     // painted rings, each a little proud of the one behind (at one depth they fought for the same pixels and showed in patches)
     [[r * .78, M.canvas], [r * .58, kiteM], [r * .36, M.canvas], [r * .16, kiteM]].forEach(([rr, m], i) => { const ring = cyl(rr, rr, .012, 20, m, 0, 0, .106 + i * .008); ring.rotation.x = Math.PI / 2; t.add(ring); });
     for (let n = 0; n < 3; n++) { const ar = box(.012, .012, .32, M.dark, (hash(n, x * 7) - .5) * r, (hash(n + 3, z * 5) - .5) * r, .26); ar.rotation.x = (hash(n, 9) - .5) * .3; t.add(ar); }
-    for (const sx of [-1, 1]) { const l = box(.05, r * 2 + .4, .05, M.timber, x + sx * r * .7, (r * 2 + .4) / 2, z - .14); l.rotation.x = .2; g.add(l); }
   }
-  for (let n = 0; n < 4; n++) { const a = box(.012, .012, .32, M.dark, -.1 + n * .06, .05, .42 + n * .03); a.rotation.y = .3 + n * .2; g.add(a); }   // spent arrows in the grass
+  // spent arrows that missed, scattered over the ground in front: some stuck in at a slant, some lying flat
+  for (let n = 0; n < 6; n++) {
+    const ax = -.62 + hash(n, 3.1) * 1.25, az = .3 + hash(n, 7.7) * .22, stuck = n % 3 !== 2;
+    const a = box(.012, .012, .32, M.dark, ax, stuck ? .1 : .05, az); a.rotation.order = 'YXZ'; a.rotation.y = (hash(n, 5.3) - .5) * 2.4; a.rotation.x = stuck ? -.7 - hash(n, 2.2) * .3 : 0; g.add(a);
+  }
   return g;
 }
 // siege stores: crates of ballista bolts, a crate of round shot and barrels, under a lean-to of planks
@@ -3840,7 +3853,12 @@ function makeStores() {
   g.add(box(1.5, .04, 1.2, M.court, 0, .02, 0));
   const crate = (x, z, w, d, h, r = 0) => { const c = box(w, h, d, M.wood, x, h / 2 + .04, z); c.rotation.y = r; g.add(c); for (const sy of [.2, .8]) { const b = box(w + .01, .03, d + .01, M.timber, x, h * sy + .04, z); b.rotation.y = r; g.add(b); } };
   crate(-.35, -.2, .6, .45, .35, .1);
-  for (let n = 0; n < 6; n++) { const b = box(.035, .035, .75, M.timber, -.52 + (n % 3) * .14, .44 + Math.floor(n / 3) * .05, -.2 + (n % 2 ? .06 : -.06)); b.rotation.y = .1 + Math.PI / 2; g.add(b); const t = cone(.03, .1, 4, M.iron, -.52 + (n % 3) * .14 + .42, .44 + Math.floor(n / 3) * .05, -.2 + (n % 2 ? .06 : -.06)); t.rotation.z = -Math.PI / 2; g.add(t); }   // bolts, iron heads out
+  // bolts, iron heads out: shaft and head built together and turned as one (Jack: the heads sat off the shafts' ends)
+  for (let n = 0; n < 6; n++) {
+    const b = new THREE.Group(); b.position.set(-.52 + (n % 3) * .14, .44 + Math.floor(n / 3) * .05, -.2 + (n % 2 ? .06 : -.06)); b.rotation.y = .1 + Math.PI / 2; g.add(b);
+    b.add(box(.035, .035, .75, M.timber, 0, 0, 0)); const t = cone(.03, .1, 4, M.iron, 0, 0, .42); t.rotation.x = Math.PI / 2; b.add(t);
+    for (const s of [-1, 1]) { const f = box(.005, .05, .09, M.canvas, s * .02, 0, -.33); f.rotation.z = s * .5; b.add(f); }
+  }
   crate(.4, -.25, .45, .45, .3, -.2);
   for (const [x, z] of [[.33, -.33], [.47, -.33], [.33, -.17], [.47, -.17], [.4, -.25]]) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(.075, 0), M.stone2); st.position.set(x, .4 + (x === .4 ? .08 : 0), z); st.castShadow = true; g.add(st); }   // round shot
   for (const [x, z] of [[.15, .35], [.5, .3]]) { g.add(cyl(.16, .14, .42, 10, M.wood, x, .25, z)); for (const y of [.12, .38]) g.add(cyl(.165, .165, .03, 10, M.iron, x, y, z)); }
@@ -5458,7 +5476,7 @@ function updateVillagers(dt, now) {
     if (!v.doorWalk && (v.inside || v.hideT > 0 || (v.posted && !v.soldier) || v.sleeping || !v.g.visible || v.climb)) continue;   // a climber is drawn by updateClimb
     const amp = stride(v, dt, 9), swing = Math.sin(v.phase) * .6 * amp;
     if (v.horse) {                                                    // a rider: legs astride, the horse's diagonal pairs stride
-      v.legs[0].rotation.set(-1.2, 0, -.55); v.legs[1].rotation.set(-1.2, 0, .55); v.body.position.y = SADDLE + Math.abs(Math.sin(v.phase * 1.4)) * .04 * amp;
+      v.legs[0].rotation.set(RIDE_X, 0, -RIDE_Z); v.legs[1].rotation.set(RIDE_X, 0, RIDE_Z); v.body.position.y = SADDLE + Math.abs(Math.sin(v.phase * 1.4)) * .04 * amp;
       horseGait(v.horseLegs, v.phase * 1.4, amp);
     } else {
       v.legs[0].rotation.x = swing; v.legs[1].rotation.x = -swing;
@@ -5519,6 +5537,9 @@ const raiderRed = teamMat(mat('#a32a22'), 'foe', '#a32a22');   // every raider w
 // mounted raiders (and the stables' riders) ride: a horse under the rider, who sits astride with legs to either side
 const horseM = mat('#5a3a22'), maneM = mat('#2a1d14'), saddleM = mat('#3a2418'), blanketM = teamMat(mat('#8a221c'), 'foe', '#8a221c'), hoofM = mat('#1f1a16');
 const SADDLE = .72;   // lifts the rider's body so the hips sit on the saddle
+// a rider's legs: out to the sides and a little forward, down the horse's flanks (Jack: at -1.2 forward and .55 out they went
+// through the saddle and blanket)
+const RIDE_X = -.85, RIDE_Z = .85;
 function mountHorse(p, cloth = blanketM) {
   const h = new THREE.Group(); p.g.add(h);
   h.add(box(.34, .36, .92, horseM, 0, .78, 0));                                   // barrel
@@ -5537,7 +5558,7 @@ function mountHorse(p, cloth = blanketM) {
     return pv;
   });
   p.body.position.y = SADDLE;
-  for (const [n, sx] of [[0, -1], [1, 1]]) { p.legs[n].rotation.x = -1.2; p.legs[n].rotation.z = sx * .55; }
+  for (const [n, sx] of [[0, -1], [1, 1]]) { p.legs[n].rotation.x = RIDE_X; p.legs[n].rotation.z = sx * RIDE_Z; }
   p.horse = h;
 }
 // a horse's gallop: each leg on its own beat (hind left, hind right, then fore left, fore right), swinging from the hip; while a leg
@@ -5624,9 +5645,17 @@ function makeRaider(kind, tier = 1) {
 // the bosses' own gear over the tier-3 armour: a long red cloak from the shoulders, a gold band on the helm and, for the Chief, a
 // pair of horns and a red round shield; for the Warlord a gold crown of points, a tall red plume, a red heater shield and a horse
 // in dark barding. The whole figure is drawn at ENEMY[kind].boss (spawnEnemy)
+// the bosses' cloaks ripple, a wave running down the strips, and stream back further at a run
+function capeWave(p, t, k) {
+  if (!p.cape) return;
+  p.cape.forEach((h, i) => { h.rotation.x = (i ? .05 + .06 * k : .1 + .3 * k) + Math.sin(t * (3 + 3 * k) - i * .9) * (.05 + .05 * i) * (.5 + k); });
+}
 function bossGear(p, kind) {
   const put = o => { o.castShadow = true; p.body.add(o); return o; };
-  const cl = put(box(.42, .66, .03, cloakM, 0, .55, -.19)); cl.rotation.x = .1;
+  // the cloak (Jack: make it wave): four strips hinged one under the other from the shoulders, rippling (capeWave)
+  let hinge = new THREE.Group(); hinge.position.set(0, .88, -.19); p.body.add(hinge); p.cape = [];
+  for (let i = 0; i < 4; i++) { if (i) { const h2 = new THREE.Group(); h2.position.y = -.165; hinge.add(h2); hinge = h2; }
+    const s = box(.42 + i * .02, .17, .03, cloakM, 0, -.0825, 0); s.castShadow = true; hinge.add(s); p.cape.push(hinge); }
   put(box(.46, .05, .1, cloakM, 0, .88, -.13));
   put(cyl(.165, .165, .03, 12, bossGoldM, 0, 1.16, 0));
   if (kind === 'chief') {
@@ -6291,6 +6320,7 @@ function updateEnemies(dt) {
     if (E.engine) animEngine(e, dt, sw);
     else {
       e.body.rotation.x = e.running && e.walking ? .22 : 0;      // leaning into the charge
+      if (e.cape) capeWave(e, performance.now() / 1000, e.walking ? (e.running ? 1 : .55) : .15);
       if (e.horse) horseGait(e.horseLegs, e.phase, e.amp || 0);
       else { e.legs[0].rotation.x = sw; e.legs[1].rotation.x = -sw; }
       if (e.kind === 'archer') bowPose(e, e.aiming && !(e.attackT > 0) && e.cool < DRAW, e.attackT > 0, -.35 - sw * .3, -sw * .6);
@@ -7861,6 +7891,8 @@ function codexMeet(kind, tier) { if (!achOn() || !ENEMY[kind] || (CODEX.r[kind] 
 
 // ---- the little renderer: one fixed square canvas, copied to the live view each frame and snapped for the list's thumbnails ----
 const CX_PX = 320;
+// each kind's zoom: [fit (metres), how high the camera aims (× fit), the grass patch's radius for figures and engines]
+const CX_FIT = { build: [4.6, .36], decor: [2.1, .4], foot: [.78, .48, .45], horse: [1.15, .5, .7], siege: [2.05, .36, 1.5] };
 let cxR = null, cxScene = null, cxCam = null, cxModel = null, cxRaf = 0, cxT0 = 0, cxLast = 0;
 function codexRenderer() {
   if (cxR) return;
@@ -7875,32 +7907,34 @@ function codexRenderer() {
   const s = new THREE.DirectionalLight('#ffe7c4', 1.1); s.position.set(-6, 14, 8); s.castShadow = true; s.shadow.mapSize.set(1024, 1024);
   Object.assign(s.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6, near: 1, far: 40 }); s.shadow.bias = -.0008; cxScene.add(s, s.target);
   // a round patch of grass under each model, so it stands on something
-  const g = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.04, .12, 40), mat('#4f9a2e')); g.position.y = -.06; g.receiveShadow = true; g.name = 'lawn'; cxScene.add(g);
+  const g = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.04, .12, 40), mat('#24521a')); g.position.y = -.06; g.receiveShadow = true; g.name = 'lawn'; cxScene.add(g);
   cxCam = new THREE.PerspectiveCamera(30, 1, .1, 200);
 }
 // a model for an entry at a tier: the building as built, the raider as it fights (posed by the gallery's own poses)
 function codexModel(side, id, tier) {
   if (side === 'b') {
-    const g = makeModel(id, tier, true, id === 'wall' || id === 'gate' ? 10 : 0, 0); galPreview(g, id, tier); return { g };
+    const g = makeModel(id, tier, true, id === 'wall' || id === 'gate' ? 10 : 0, 0); galPreview(g, id, tier);
+    return { g, cat: DEF[id].decor ? 'decor' : 'build', foot: (DEF[id].size || 1) * CELL };
   }
   const E = ENEMY[id], p = makeRaider(id, E.boss ? 3 : tier);
   Object.assign(p, E.engine ? { kind: id, tier, rate: E.rate, seed: 0 } : { raider: id, rt: tier, seed: 0 });
   if (!E.engine) p.g.scale.setScalar(UNIT_K * (E.boss || 1));
-  return { g: p.g, p };
+  return { g: p.g, p, cat: E.engine ? 'siege' : E.mounted ? 'horse' : 'foot' };
 }
 // frame the model: the camera backs off to fit its bounding box, a little from above and to the side
 function codexFrame(m) {
   cxScene.add(m.g); m.g.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(m.g), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
-  // only what stands above the grass counts for the framing
+  // only what stands above the grass counts
   box.min.y = Math.max(box.min.y, 0); box.getSize(size); box.getCenter(c);
-  // a floor on the framing (Jack): small or thin models (a torch, a spearman) stand smaller in the view, not stretched to fill it,
-  // though still bigger than to true scale
-  const fit = Math.max(size.length() * .47, size.y * .62, .95), d = fit / Math.tan(cxCam.fov * Math.PI / 360) * 1.02;
-  // the grass reaches past a building's corners (half its diagonal), and is a fair patch under a lone figure
-  const r = m.p && !m.p.engine ? fit * .45 : Math.max(Math.hypot(size.x, size.z) / 2 + .2, fit * .42), lawn = cxScene.getObjectByName('lawn');
-  lawn.scale.set(r, 1, r); lawn.position.set(c.x, -.06, c.z);
-  m.look = new THREE.Vector3(c.x, c.y * .92, c.z); m.d = d;
+  // one zoom per kind (Jack: models of a kind in proportion to each other): the economy and defence buildings share one, decor
+  // another, raiders on foot, mounted raiders and siege engines one each; each fits the biggest of its kind (the stone castle, the
+  // banner, the Raider Chief, the Warlord, the trebuchet), and the ground sits at the same height in the view for all of a kind
+  const F = CX_FIT[m.cat], fit = F[0], d = fit / Math.tan(cxCam.fov * Math.PI / 360) * 1.02;
+  // the grass: past a building's corners (half its footprint's diagonal), a set patch under figures and engines
+  const r = m.foot ? m.foot * .71 + .25 : F[2], lawn = cxScene.getObjectByName('lawn');
+  lawn.scale.set(r, 1, r); lawn.position.set(0, -.06, 0);
+  m.look = new THREE.Vector3(0, fit * F[1], 0); m.d = d;
   const sl = cxScene.children.find(o => o.isDirectionalLight); const k = Math.max(2, fit * 1.6);
   Object.assign(sl.shadow.camera, { left: -k, right: k, top: k, bottom: -k }); sl.shadow.camera.updateProjectionMatrix();
   sl.position.set(c.x - k * .8, c.y + k * 2.2, c.z + k); sl.target.position.copy(c);
@@ -8850,6 +8884,7 @@ function galleryTap(e) {
   if (it && it.turns) it.g.userData.turn++;
 }
 function galPose(p, t, dt) {
+  capeWave(p, t, gWalk ? .55 : .15);
   if (p.engine) {                                                 // engines: roll with Walk, else shoot (or swing the ram) on their own clock
     p.walking = gWalk; p.aiming = !gWalk; p.phase = t * 6 + p.seed; p.attackT = gWalk ? 0 : Math.max(0, RAM_T - (t + p.seed) % 2.4);
     if (ENG_LOAD[p.kind] && p.crewReady && p.load >= 1) { p.load = 0; p.fireT = .35; }   // loose as soon as it is wound

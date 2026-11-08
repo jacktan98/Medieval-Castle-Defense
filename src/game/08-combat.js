@@ -3,6 +3,9 @@ const raiderRed = teamMat(mat('#a32a22'), 'foe', '#a32a22');   // every raider w
 // mounted raiders (and the stables' riders) ride: a horse under the rider, who sits astride with legs to either side
 const horseM = mat('#5a3a22'), maneM = mat('#2a1d14'), saddleM = mat('#3a2418'), blanketM = teamMat(mat('#8a221c'), 'foe', '#8a221c'), hoofM = mat('#1f1a16');
 const SADDLE = .72;   // lifts the rider's body so the hips sit on the saddle
+// a rider's legs: out to the sides and a little forward, down the horse's flanks (Jack: at -1.2 forward and .55 out they went
+// through the saddle and blanket)
+const RIDE_X = -.85, RIDE_Z = .85;
 function mountHorse(p, cloth = blanketM) {
   const h = new THREE.Group(); p.g.add(h);
   h.add(box(.34, .36, .92, horseM, 0, .78, 0));                                   // barrel
@@ -21,7 +24,7 @@ function mountHorse(p, cloth = blanketM) {
     return pv;
   });
   p.body.position.y = SADDLE;
-  for (const [n, sx] of [[0, -1], [1, 1]]) { p.legs[n].rotation.x = -1.2; p.legs[n].rotation.z = sx * .55; }
+  for (const [n, sx] of [[0, -1], [1, 1]]) { p.legs[n].rotation.x = RIDE_X; p.legs[n].rotation.z = sx * RIDE_Z; }
   p.horse = h;
 }
 // a horse's gallop: each leg on its own beat (hind left, hind right, then fore left, fore right), swinging from the hip; while a leg
@@ -108,9 +111,17 @@ function makeRaider(kind, tier = 1) {
 // the bosses' own gear over the tier-3 armour: a long red cloak from the shoulders, a gold band on the helm and, for the Chief, a
 // pair of horns and a red round shield; for the Warlord a gold crown of points, a tall red plume, a red heater shield and a horse
 // in dark barding. The whole figure is drawn at ENEMY[kind].boss (spawnEnemy)
+// the bosses' cloaks ripple, a wave running down the strips, and stream back further at a run
+function capeWave(p, t, k) {
+  if (!p.cape) return;
+  p.cape.forEach((h, i) => { h.rotation.x = (i ? .05 + .06 * k : .1 + .3 * k) + Math.sin(t * (3 + 3 * k) - i * .9) * (.05 + .05 * i) * (.5 + k); });
+}
 function bossGear(p, kind) {
   const put = o => { o.castShadow = true; p.body.add(o); return o; };
-  const cl = put(box(.42, .66, .03, cloakM, 0, .55, -.19)); cl.rotation.x = .1;
+  // the cloak (Jack: make it wave): four strips hinged one under the other from the shoulders, rippling (capeWave)
+  let hinge = new THREE.Group(); hinge.position.set(0, .88, -.19); p.body.add(hinge); p.cape = [];
+  for (let i = 0; i < 4; i++) { if (i) { const h2 = new THREE.Group(); h2.position.y = -.165; hinge.add(h2); hinge = h2; }
+    const s = box(.42 + i * .02, .17, .03, cloakM, 0, -.0825, 0); s.castShadow = true; hinge.add(s); p.cape.push(hinge); }
   put(box(.46, .05, .1, cloakM, 0, .88, -.13));
   put(cyl(.165, .165, .03, 12, bossGoldM, 0, 1.16, 0));
   if (kind === 'chief') {
@@ -775,6 +786,7 @@ function updateEnemies(dt) {
     if (E.engine) animEngine(e, dt, sw);
     else {
       e.body.rotation.x = e.running && e.walking ? .22 : 0;      // leaning into the charge
+      if (e.cape) capeWave(e, performance.now() / 1000, e.walking ? (e.running ? 1 : .55) : .15);
       if (e.horse) horseGait(e.horseLegs, e.phase, e.amp || 0);
       else { e.legs[0].rotation.x = sw; e.legs[1].rotation.x = -sw; }
       if (e.kind === 'archer') bowPose(e, e.aiming && !(e.attackT > 0) && e.cool < DRAW, e.attackT > 0, -.35 - sw * .3, -sw * .6);

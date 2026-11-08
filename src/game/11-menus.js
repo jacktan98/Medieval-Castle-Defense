@@ -855,6 +855,7 @@ function galleryTap(e) {
   if (it && it.turns) it.g.userData.turn++;
 }
 function galPose(p, t, dt) {
+  capeWave(p, t, gWalk ? .55 : .15);
   if (p.engine) {                                                 // engines: roll with Walk, else shoot (or swing the ram) on their own clock
     p.walking = gWalk; p.aiming = !gWalk; p.phase = t * 6 + p.seed; p.attackT = gWalk ? 0 : Math.max(0, RAM_T - (t + p.seed) % 2.4);
     if (ENG_LOAD[p.kind] && p.crewReady && p.load >= 1) { p.load = 0; p.fireT = .35; }   // loose as soon as it is wound

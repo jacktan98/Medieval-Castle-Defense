@@ -867,7 +867,7 @@ function updateVillagers(dt, now) {
     if (!v.doorWalk && (v.inside || v.hideT > 0 || (v.posted && !v.soldier) || v.sleeping || !v.g.visible || v.climb)) continue;   // a climber is drawn by updateClimb
     const amp = stride(v, dt, 9), swing = Math.sin(v.phase) * .6 * amp;
     if (v.horse) {                                                    // a rider: legs astride, the horse's diagonal pairs stride
-      v.legs[0].rotation.set(-1.2, 0, -.55); v.legs[1].rotation.set(-1.2, 0, .55); v.body.position.y = SADDLE + Math.abs(Math.sin(v.phase * 1.4)) * .04 * amp;
+      v.legs[0].rotation.set(RIDE_X, 0, -RIDE_Z); v.legs[1].rotation.set(RIDE_X, 0, RIDE_Z); v.body.position.y = SADDLE + Math.abs(Math.sin(v.phase * 1.4)) * .04 * amp;
       horseGait(v.horseLegs, v.phase * 1.4, amp);
     } else {
       v.legs[0].rotation.x = swing; v.legs[1].rotation.x = -swing;

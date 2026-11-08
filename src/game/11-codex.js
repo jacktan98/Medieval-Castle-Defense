@@ -30,6 +30,8 @@ function codexMeet(kind, tier) { if (!achOn() || !ENEMY[kind] || (CODEX.r[kind] 
 
 // ---- the little renderer: one fixed square canvas, copied to the live view each frame and snapped for the list's thumbnails ----
 const CX_PX = 320;
+// each kind's zoom: [fit (metres), how high the camera aims (× fit), the grass patch's radius for figures and engines]
+const CX_FIT = { build: [4.6, .36], decor: [2.1, .4], foot: [.78, .48, .45], horse: [1.15, .5, .7], siege: [2.05, .36, 1.5] };
 let cxR = null, cxScene = null, cxCam = null, cxModel = null, cxRaf = 0, cxT0 = 0, cxLast = 0;
 function codexRenderer() {
   if (cxR) return;
@@ -44,32 +46,34 @@ function codexRenderer() {
   const s = new THREE.DirectionalLight('#ffe7c4', 1.1); s.position.set(-6, 14, 8); s.castShadow = true; s.shadow.mapSize.set(1024, 1024);
   Object.assign(s.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6, near: 1, far: 40 }); s.shadow.bias = -.0008; cxScene.add(s, s.target);
   // a round patch of grass under each model, so it stands on something
-  const g = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.04, .12, 40), mat('#4f9a2e')); g.position.y = -.06; g.receiveShadow = true; g.name = 'lawn'; cxScene.add(g);
+  const g = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.04, .12, 40), mat('#24521a')); g.position.y = -.06; g.receiveShadow = true; g.name = 'lawn'; cxScene.add(g);
   cxCam = new THREE.PerspectiveCamera(30, 1, .1, 200);
 }
 // a model for an entry at a tier: the building as built, the raider as it fights (posed by the gallery's own poses)
 function codexModel(side, id, tier) {
   if (side === 'b') {
-    const g = makeModel(id, tier, true, id === 'wall' || id === 'gate' ? 10 : 0, 0); galPreview(g, id, tier); return { g };
+    const g = makeModel(id, tier, true, id === 'wall' || id === 'gate' ? 10 : 0, 0); galPreview(g, id, tier);
+    return { g, cat: DEF[id].decor ? 'decor' : 'build', foot: (DEF[id].size || 1) * CELL };
   }
   const E = ENEMY[id], p = makeRaider(id, E.boss ? 3 : tier);
   Object.assign(p, E.engine ? { kind: id, tier, rate: E.rate, seed: 0 } : { raider: id, rt: tier, seed: 0 });
   if (!E.engine) p.g.scale.setScalar(UNIT_K * (E.boss || 1));
-  return { g: p.g, p };
+  return { g: p.g, p, cat: E.engine ? 'siege' : E.mounted ? 'horse' : 'foot' };
 }
 // frame the model: the camera backs off to fit its bounding box, a little from above and to the side
 function codexFrame(m) {
   cxScene.add(m.g); m.g.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(m.g), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
-  // only what stands above the grass counts for the framing
+  // only what stands above the grass counts
   box.min.y = Math.max(box.min.y, 0); box.getSize(size); box.getCenter(c);
-  // a floor on the framing (Jack): small or thin models (a torch, a spearman) stand smaller in the view, not stretched to fill it,
-  // though still bigger than to true scale
-  const fit = Math.max(size.length() * .47, size.y * .62, .95), d = fit / Math.tan(cxCam.fov * Math.PI / 360) * 1.02;
-  // the grass reaches past a building's corners (half its diagonal), and is a fair patch under a lone figure
-  const r = m.p && !m.p.engine ? fit * .45 : Math.max(Math.hypot(size.x, size.z) / 2 + .2, fit * .42), lawn = cxScene.getObjectByName('lawn');
-  lawn.scale.set(r, 1, r); lawn.position.set(c.x, -.06, c.z);
-  m.look = new THREE.Vector3(c.x, c.y * .92, c.z); m.d = d;
+  // one zoom per kind (Jack: models of a kind in proportion to each other): the economy and defence buildings share one, decor
+  // another, raiders on foot, mounted raiders and siege engines one each; each fits the biggest of its kind (the stone castle, the
+  // banner, the Raider Chief, the Warlord, the trebuchet), and the ground sits at the same height in the view for all of a kind
+  const F = CX_FIT[m.cat], fit = F[0], d = fit / Math.tan(cxCam.fov * Math.PI / 360) * 1.02;
+  // the grass: past a building's corners (half its footprint's diagonal), a set patch under figures and engines
+  const r = m.foot ? m.foot * .71 + .25 : F[2], lawn = cxScene.getObjectByName('lawn');
+  lawn.scale.set(r, 1, r); lawn.position.set(0, -.06, 0);
+  m.look = new THREE.Vector3(0, fit * F[1], 0); m.d = d;
   const sl = cxScene.children.find(o => o.isDirectionalLight); const k = Math.max(2, fit * 1.6);
   Object.assign(sl.shadow.camera, { left: -k, right: k, top: k, bottom: -k }); sl.shadow.camera.updateProjectionMatrix();
   sl.position.set(c.x - k * .8, c.y + k * 2.2, c.z + k); sl.target.position.copy(c);
