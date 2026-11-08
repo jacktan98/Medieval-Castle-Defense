@@ -262,11 +262,9 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 .cCard.boss{border-color:rgba(226,113,91,.85)} .cCard.boss .cName small{color:#e2715b}
 /* the story (Jack): a round ! in the card's bottom-right corner flips it to the story on its back (bronze, the stage on a gold band) */
 .cInfo{position:absolute;right:9px;bottom:9px;width:28px;height:28px;border-radius:50%;background:rgba(14,12,6,.82);border:1.5px solid #c9a03e;color:#f2d27a;font:700 17px/25px Georgia,serif;font-style:normal;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.6);z-index:2}
-.cBack{display:none;position:absolute;inset:0;border-radius:10px;overflow:hidden;flex-direction:column;background:linear-gradient(180deg,#3a2e19 0%,#22190d 100%);z-index:3}
+.cBack{display:none;position:absolute;inset:0;border-radius:10px;overflow:hidden;flex-direction:column;background:linear-gradient(180deg,#8a6a40 0%,#6b5030 100%);z-index:3}
 .cCard.flipped .cBack{display:flex} .cCard.flipped .cInfo,.cCard.flipped .jLock{display:none}
-.cBackT{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 10px 6px;background:linear-gradient(180deg,#e8c56a 0%,#b98d33 100%);color:#2a1d08;text-align:center}
-.cBackT small{font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:#5a3f12} .cBackT b{font-family:var(--display);font-weight:400;font-size:calc(var(--cw,240px) * .075);line-height:1.1}
-.cStory{flex:1;min-height:0;display:flex;align-items:center;padding:4% 7%;font-size:clamp(11px,calc(var(--cw,240px) * .051),16px);line-height:1.42;color:#f1e4c2;text-align:left;text-wrap:pretty}
+.cStory{flex:1;min-height:0;display:flex;align-items:center;padding:6% 8%;font-size:clamp(12px,calc(var(--cw,240px) * .056),17px);line-height:1.45;color:#fff6df;text-shadow:0 1px 2px rgba(40,24,8,.55);text-align:left;text-wrap:pretty}
 .cCard.locked .cPic{filter:grayscale(.75) brightness(.7)}
 .cCard.cur.front{border-color:#f2d27a;animation:jGlow 1.8s ease-in-out infinite alternate}
 @keyframes jGlow{from{box-shadow:0 0 0 1px rgba(255,215,106,.4),0 0 16px rgba(255,200,80,.35),0 14px 34px rgba(0,0,0,.65)}to{box-shadow:0 0 0 2px rgba(255,215,106,.8),0 0 34px rgba(255,200,80,.7),0 14px 34px rgba(0,0,0,.65)}}
@@ -8657,7 +8655,7 @@ function buildDeck() {
   $('#cCards').innerHTML = CAMPAIGN.map((c, i) => { const st = won[i] ? 'won' : i === cur ? 'cur' : locked[i] ? 'locked' : '';
     const mark = locked[i] ? `<i class="jLock">${LOCK_SVG}</i>` : '';
     return `<button class="cCard ${st}${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}" data-i="${i}" tabindex="-1"><span class="cPic" style="background-image:url(maps/thumb/${c.map}.jpg)"></span>
-      <span class="cName"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}${won[i] && !c.bonus ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}${STORY[c.map] ? `<i class="cInfo" aria-label="Story">!</i><span class="cBack"><span class="cBackT"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}</small><b>${c.name}</b></span><span class="cStory">${STORY[c.map]}</span></span>` : ''}</button>`; }).join('');
+      <span class="cName"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}${won[i] && !c.bonus ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}${STORY[c.map] ? `<i class="cInfo" aria-label="Story">!</i><span class="cBack"><span class="cStory">${STORY[c.map]}</span></span>` : ''}</button>`; }).join('');
   $('#cDots').innerHTML = CAMPAIGN.map((c, i) => `<button class="cDot${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}${won[i] ? ' won' : i === cur ? ' cur' : ''}" data-i="${i}" aria-label="Stage ${i + 1}"></button>`).join('');
 }
 // place every card for the front index cSel plus the live drag (in cards); the card's size follows the room the deck has
