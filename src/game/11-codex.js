@@ -37,12 +37,14 @@ function codexRenderer() {
   cxR.setPixelRatio(1); cxR.setSize(CX_PX, CX_PX, false);
   cxR.outputEncoding = THREE.sRGBEncoding; cxR.toneMapping = THREE.ACESFilmicToneMapping; cxR.toneMappingExposure = 1.1;
   cxR.shadowMap.enabled = true; cxR.shadowMap.type = THREE.PCFSoftShadowMap; cxR.setClearColor(0x000000, 0);
+  // nothing below the grass is drawn: bases run a metre underground and poked through the patch (Jack)
+  cxR.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, 1, 0), .005)];
   cxScene = new THREE.Scene();
   cxScene.add(new THREE.HemisphereLight('#d6e6ff', '#4a3d28', .75));
   const s = new THREE.DirectionalLight('#ffe7c4', 1.1); s.position.set(-6, 14, 8); s.castShadow = true; s.shadow.mapSize.set(1024, 1024);
   Object.assign(s.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6, near: 1, far: 40 }); s.shadow.bias = -.0008; cxScene.add(s, s.target);
   // a round patch of grass under each model, so it stands on something
-  const g = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.04, .12, 40), mat('#6f8a45')); g.position.y = -.06; g.receiveShadow = true; g.name = 'lawn'; cxScene.add(g);
+  const g = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.04, .12, 40), mat('#4f9a2e')); g.position.y = -.06; g.receiveShadow = true; g.name = 'lawn'; cxScene.add(g);
   cxCam = new THREE.PerspectiveCamera(30, 1, .1, 200);
 }
 // a model for an entry at a tier: the building as built, the raider as it fights (posed by the gallery's own poses)
@@ -59,9 +61,14 @@ function codexModel(side, id, tier) {
 function codexFrame(m) {
   cxScene.add(m.g); m.g.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(m.g), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
-  const r = Math.max(size.x, size.z) * .62, lawn = cxScene.getObjectByName('lawn');
-  lawn.scale.set(r + .25, 1, r + .25); lawn.position.set(c.x, -.06, c.z);
-  const fit = Math.max(size.length() * .47, .5), d = fit / Math.tan(cxCam.fov * Math.PI / 360) * 1.02;
+  // only what stands above the grass counts for the framing
+  box.min.y = Math.max(box.min.y, 0); box.getSize(size); box.getCenter(c);
+  // a floor on the framing (Jack): small or thin models (a torch, a spearman) stand smaller in the view, not stretched to fill it,
+  // though still bigger than to true scale
+  const fit = Math.max(size.length() * .47, size.y * .62, .95), d = fit / Math.tan(cxCam.fov * Math.PI / 360) * 1.02;
+  // the grass reaches past a building's corners (half its diagonal), and is a fair patch under a lone figure
+  const r = m.p && !m.p.engine ? fit * .45 : Math.max(Math.hypot(size.x, size.z) / 2 + .2, fit * .42), lawn = cxScene.getObjectByName('lawn');
+  lawn.scale.set(r, 1, r); lawn.position.set(c.x, -.06, c.z);
   m.look = new THREE.Vector3(c.x, c.y * .92, c.z); m.d = d;
   const sl = cxScene.children.find(o => o.isDirectionalLight); const k = Math.max(2, fit * 1.6);
   Object.assign(sl.shadow.camera, { left: -k, right: k, top: k, bottom: -k }); sl.shadow.camera.updateProjectionMatrix();
@@ -123,7 +130,7 @@ function cxStatsHTML(side, id, tier) {
 }
 function selectCodex(id, tier) {
   cxSel = id; const el = $('#codexPick'), side = cxTab, top = codexTop(side, id), n = cxTiers(side, id);
-  cxTier = top ? Math.min(top, tier || top) : 1;
+  cxTier = top ? Math.min(top, n, tier || top) : 1;
   for (const b of el.querySelectorAll('.cxNode')) b.classList.toggle('sel', b.dataset.cx === id);
   const det = el.querySelector('.cxDet'); det.classList.toggle('locked', !top);
   el.querySelector('.upOf').textContent = !top ? (side === 'b' ? 'Building' : 'Raider') : side === 'b' ? (DEF[id].decor ? 'Decor' : DEF[id].tiers[cxTier - 1]) : ENEMY[id].boss ? 'Boss' : `Raider · Tier ${cxTier}`;
