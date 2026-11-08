@@ -173,12 +173,12 @@ const MAP_RULES = {
            day: [240, 120, 120, 120], spawnGap: 1.2, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
   // Dunewell (stage 5): over the dunes from the south, from night 3 along the caravan road from the east too
   dune: { waves: [{ spear: [6], archer: [3] }, { spear: [8], sword: [4], archer: [3] }, { spear: [6, 2], sword: [4], archer: [3], lancer: [4], ballista: [1] },
-                  { spear: [6, 3], sword: [4, 2], archer: [4, 1], xbow: [2], lancer: [3], rider: [3], ballista: [1] }, { spear: [6, 4], sword: [4, 3], archer: [4, 2], xbow: [3], lancer: [4], rider: [3], ballista: [2], catapult: [1] }],
+                  { spear: [6, 3], sword: [4, 2], archer: [4, 1], xbow: [2], lancer: [3], rider: [3], ballista: [1] }, { spear: [6, 4], sword: [4, 3], archer: [4, 2], xbow: [3], lancer: [4], rider: [3], ballista: [2] }],
           day: [300, 120, 120, 120, 120], spawnGap: 1.1, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
   // Riverbend (stage 6): over the north bridge, from night 3 over the south bridge too; raider siege from night 3 (Jack: more siege on stages 5–6)
   bend: { waves: [{ spear: [6], sword: [2], archer: [3] }, { spear: [8], sword: [4], archer: [3], xbow: [2] }, { spear: [6, 3], sword: [4, 1], archer: [3], xbow: [3], lancer: [3], ballista: [1] },
                   { spear: [6, 4], sword: [4, 2], archer: [4, 1], xbow: [3, 1], lancer: [3], rider: [3], ram: [1], ballista: [1] },
-                  { spear: [6, 5], sword: [4, 3, 1], archer: [4, 2], xbow: [3, 2], lancer: [4], rider: [3, 1], ram: [1], ballista: [2], catapult: [1] }],
+                  { spear: [6, 5], sword: [4, 3, 1], archer: [4, 2], xbow: [3, 2], lancer: [4], rider: [3, 1], ram: [1], ballista: [2] }],
           day: [300, 120, 120, 120, 120], spawnGap: 1.0, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
   // stages 7–10: a 7-minute first day (Jack) and waves about 30% bigger to match
   // Ironcrag (stage 7, tier 3 opens): down the forest trail from the north-west, from night 3 along the stream trail from the east too
