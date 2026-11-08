@@ -7868,18 +7868,18 @@ const CODEX_B = ['castle', 'house', 'farm', 'lodge', 'quarry', 'tower', 'barrack
 const CODEX_R = ['spear', 'sword', 'archer', 'xbow', 'lancer', 'rider', 'ram', 'ballista', 'catapult', 'chief', 'warlord'];
 // one short line each (Jack's style: a few plain words, no full stop)
 const CODEX_TXT = {
-  castle: 'The heart of your town', house: 'Homes for villagers and a little gold', farm: 'Fields of grain that feed the town',
-  lodge: 'Woodcutters fell the trees nearby', quarry: 'Masons cut stone from the rocks nearby', tower: 'Archers shoot raiders from above',
-  barracks: 'Soldiers hold the door or a rally flag', wall: 'Holds raiders back', gate: 'Lets villagers through the wall',
-  market: 'Trade one resource for another', ballista: 'Heavy bolts that pierce a line of raiders', forester: 'Grows its own trees for wood',
-  crossbow: 'Fast bolts at close range', mine: 'Digs stone with no rocks needed', catapult: 'Hurls stones that crush crowds',
-  farmhouse: 'Livestock that feed the town', stables: 'Riders that run raiders down', flowers: 'Charm that lifts nearby houses\' gold',
-  torch: 'Lights the night and adds range', rack: 'Nearby soldiers hit harder', statue: 'Much charm for nearby houses', campfire: 'Adds more range to towers nearby',
-  well: 'Nearby workers work faster', butts: 'Archers and crossbows nearby reach further', banner: 'Nearby soldiers strike and move faster', stores: 'Siege engines nearby reload faster',
+  castle: 'Rules over your town', house: 'Houses villagers who pay taxes in gold', farm: 'Grows grain to feed the town',
+  lodge: 'Fells the trees nearby', quarry: 'Cuts stone from the rocks nearby', tower: 'Shoots raiders from above',
+  barracks: 'Trains soldiers to defend the town', wall: 'Holds raiders back', gate: 'Lets villagers through the wall',
+  market: 'Trades one resource for another', ballista: 'Fires heavy bolts through a line of raiders', forester: 'Grows its own trees for wood',
+  crossbow: 'Fires fast bolts at close range', mine: 'Digs stone with no rocks needed', catapult: 'Hurls stones that crush crowds',
+  farmhouse: 'Raises livestock to feed the town', stables: 'Sends riders to run raiders down', flowers: 'Lifts the taxes of nearby houses',
+  torch: 'Lights the night and adds range', rack: 'Makes nearby soldiers hit harder', statue: 'Lifts the taxes of nearby houses even more', campfire: 'Adds more range to towers nearby',
+  well: 'Speeds up nearby workers', butts: 'Extends nearby archers\' and crossbows\' reach', banner: 'Speeds up nearby soldiers', stores: 'Speeds up nearby siege engines\' reload',
   spear: 'Goes for the nearest building', sword: 'Hunts your towers and siege engines', archer: 'Shoots from range',
-  xbow: 'Shoots fast from range', lancer: 'A rider that hunts your towers', rider: 'A rider that charges the castle',
+  xbow: 'Shoots fast from range', lancer: 'Rides down your towers', rider: 'Charges the castle',
   ram: 'Batters down walls and gates', r_ballista: 'Shoots bolts at your buildings', r_catapult: 'Lobs stones at your defences',
-  chief: 'The raiders\' leader', warlord: 'The mounted lord of the raiders',
+  chief: 'Leads the raiders', warlord: 'Rules the raiders from horseback',
 };
 var CODEX = { b: {}, r: {} }; try { const o = JSON.parse(localStorage.getItem('mtd-codex') || '{}'); CODEX = { b: o.b || {}, r: o.r || {} }; } catch (e) {}
 const codexSave = () => { try { localStorage.setItem('mtd-codex', JSON.stringify(CODEX)); } catch (e) {} };
