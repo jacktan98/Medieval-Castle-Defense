@@ -1137,21 +1137,31 @@ const MAP_RULES = {
   bridge: { waves: [{ spear: [5] }, { spear: [6], sword: [3] }, { spear: [10], sword: [6], archer: [3] }],   // no ram yet (Jack: later stages)
             day: [180, 120, 120], spawnGap: 1.4, res: { gold: 60, wood: 45, stone: 0, food: 30 } },
   // Market Cross (stage 3): down the north road, from night 3 along the east road too; horsemen on nights 3 and 4 (Jack: more horses)
-  cross: { waves: [{ spear: [6] }, { spear: [6], sword: [4] }, { spear: [6], sword: [4], archer: [3], lancer: [3] }, { spear: [8], sword: [5], archer: [4], lancer: [4], rider: [2] }],
+  cross: { waves: [{ spear: [7] },
+                  { spear: [7], sword: [4] },
+                  { spear: [7], sword: [5], archer: [3], lancer: [3] },
+                  { spear: [10], sword: [6], archer: [5], lancer: [5], rider: [2] }],
            day: [240, 120, 120, 120], spawnGap: 1.3, res: { gold: 60, wood: 45, stone: 0, food: 30 } },
   // Watchhill (stage 4): five nights up the dry gully from the east, from night 3 down the ridge track from the north too; a raider ballista on night 5 (no ram: Jack)
   // four nights after a 4-minute first day (Jack)
-  watch: { waves: [{ spear: [6], archer: [2] }, { spear: [8], sword: [4], archer: [2] },
-                   { spear: [8, 2], sword: [4, 1], archer: [4], lancer: [3], rider: [2] }, { spear: [8, 3], sword: [5, 2], archer: [4, 1], xbow: [2], lancer: [4], rider: [2], ballista: [1] }],
+  watch: { waves: [{ spear: [7], archer: [2] },
+                  { spear: [9], sword: [4], archer: [2] },
+                  { spear: [9, 2], sword: [5, 1], archer: [4], lancer: [3], rider: [2] },
+                  { spear: [10, 4], sword: [6, 2], archer: [5, 1], xbow: [2], lancer: [5], rider: [2], ballista: [1] }],
            day: [240, 120, 120, 120], spawnGap: 1.2, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
   // Dunewell (stage 5): over the dunes from the south, from night 3 along the caravan road from the east too
-  dune: { waves: [{ spear: [6], archer: [3] }, { spear: [8], sword: [4], archer: [3] }, { spear: [6, 2], sword: [4], archer: [3], lancer: [4], ballista: [1] },
-                  { spear: [6, 3], sword: [4, 2], archer: [4, 1], xbow: [2], lancer: [3], rider: [3], ballista: [1] }, { spear: [6, 4], sword: [4, 3], archer: [4, 2], xbow: [3], lancer: [4], rider: [3], ballista: [2] }],
+  dune: { waves: [{ spear: [7], archer: [4] },
+                 { spear: [10], sword: [5], archer: [3] },
+                 { spear: [7, 2], sword: [5], archer: [4], lancer: [5], ballista: [1] },
+                 { spear: [8, 4], sword: [5, 3], archer: [5, 1], xbow: [2], lancer: [4], rider: [4], ballista: [1] },
+                 { spear: [8, 5], sword: [5, 4], archer: [5, 3], xbow: [4], lancer: [5], rider: [4], ballista: [2] }],
           day: [300, 120, 120, 120, 120], spawnGap: 1.1, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
   // Riverbend (stage 6): over the north bridge, from night 3 over the south bridge too; raider siege from night 3 (Jack: more siege on stages 5–6)
-  bend: { waves: [{ spear: [6], sword: [2], archer: [3] }, { spear: [8], sword: [4], archer: [3], xbow: [2] }, { spear: [6, 3], sword: [4, 1], archer: [3], xbow: [3], lancer: [3], ballista: [1] },
-                  { spear: [6, 4], sword: [4, 2], archer: [4, 1], xbow: [3, 1], lancer: [3], rider: [3], ram: [1], ballista: [1] },
-                  { spear: [6, 5], sword: [4, 3, 1], archer: [4, 2], xbow: [3, 2], lancer: [4], rider: [3, 1], ram: [1], ballista: [2] }],
+  bend: { waves: [{ spear: [7], sword: [2], archer: [4] },
+                 { spear: [10], sword: [5], archer: [3], xbow: [2] },
+                 { spear: [7, 4], sword: [5, 1], archer: [4], xbow: [4], lancer: [3], ballista: [1] },
+                 { spear: [8, 5], sword: [5, 3], archer: [5, 1], xbow: [4, 1], lancer: [4], rider: [4], ram: [1], ballista: [1] },
+                 { spear: [8, 6], sword: [5, 4, 1], archer: [5, 3], xbow: [4, 3], lancer: [5], rider: [4, 1], ram: [1], ballista: [2] }],
           day: [300, 120, 120, 120, 120], spawnGap: 1.0, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
   // stages 7–10: a 7-minute first day (Jack) and waves about 30% bigger to match
   // Ironcrag (stage 7, tier 3 opens): down the forest trail from the north-west, from night 3 along the stream trail from the east too
