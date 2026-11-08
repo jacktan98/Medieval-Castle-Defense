@@ -8626,18 +8626,55 @@ const MAIN = CAMPAIGN.filter(c => !c.bonus);
 // a young prince wins back his father's kingdom from the Warlord, light in tone; no short forms (Jack: "will", not "'ll")
 // the flip button's icon (Jack picked a rolled scroll): a sheet with a curl at each end and two lines of writing (lucide's scroll, ISC)
 const SCROLL_ICO = '<svg viewBox="0 0 24 24"><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/><path d="M15 8h-5M15 12h-5"/></svg>';
-// the story's red wax seal in the back's bottom-right corner (Jack): an uneven wax blob, a pressed ring and the family's crown
-const SEAL_ICO = (() => { const P = [];
-  for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2, r = 45 + [3, -2, 4, 0, -3, 2, 5, -1, 1, -4, 3, 0, -2, 4][k];
+// the story's red wax seal in the back's bottom-right corner (Jack: made realistic, the crown with depth): an uneven blob with two
+// spills, a lit raised lip and a fine grain, a pressed hollow (its wall dark up-left, lit down-right), a ring of raised beads and the
+// crown in relief (shadow down-right, light edge up-left, a sheen), and the wax's gloss. sealIco(i) gives each card its own gradient
+// names: a card hidden with display:none holding the first copy of a name would leave every other card's seal unfilled
+const SEAL_ICO = (() => {
+  // an uneven blob of wax: a wobbling edge with a couple of spills where it ran out under the stamp
+  const N = 30, P = [];
+  for (let k = 0; k < N; k++) { const a = k / N * Math.PI * 2;
+    const r = 44 + 2.2 * Math.sin(a * 3 + 1) + 1.6 * Math.sin(a * 7 + 2) + 1.1 * Math.sin(a * 11) + 4.5 * Math.exp(-((a - 2.2) ** 2) * 18) + 3.2 * Math.exp(-((a - 5.4) ** 2) * 25);
     P.push([50 + Math.cos(a) * r, 50 + Math.sin(a) * r]); }
-  let d = '';
-  P.forEach((p, k) => { const q = P[(k + 1) % P.length], m = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
-    d += (k ? ' Q' : `M${((P[13][0] + p[0]) / 2).toFixed(1)} ${((P[13][1] + p[1]) / 2).toFixed(1)} Q`) + `${p[0].toFixed(1)} ${p[1].toFixed(1)} ${m[0].toFixed(1)} ${m[1].toFixed(1)}`; });
-  return `<svg viewBox="0 0 100 100"><defs><radialGradient id="sealG" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#d23a2c"/><stop offset=".6" stop-color="#a51f17"/><stop offset="1" stop-color="#6e120c"/></radialGradient></defs>`
-    + `<path d="${d} Z" fill="url(#sealG)"/><circle cx="50" cy="50" r="31" fill="#9a1c14" stroke="#6a100a" stroke-width="3"/><circle cx="50" cy="50" r="31" fill="none" stroke="#e0584a" stroke-width="1.2" stroke-dasharray="2 3" opacity=".6"/>`
-    + `<path d="M33 60 L30 40 L40 48 L50 34 L60 48 L70 40 L67 60 Z" fill="#c9372a" stroke="#6a100a" stroke-width="2.4" stroke-linejoin="round"/><path d="M33 64 H67" stroke="#6a100a" stroke-width="3" stroke-linecap="round"/>`
-    + `<circle cx="30" cy="40" r="2.6" fill="#e0584a"/><circle cx="50" cy="34" r="2.6" fill="#e0584a"/><circle cx="70" cy="40" r="2.6" fill="#e0584a"/>`
-    + `<ellipse cx="36" cy="28" rx="10" ry="5" fill="#fff" opacity=".18" transform="rotate(-30 36 28)"/></svg>`; })();
+  const blob = (s) => { let d = ''; P.forEach((p, k) => { const q = P[(k + 1) % N], x = 50 + (p[0] - 50) * s, y = 50 + (p[1] - 50) * s, mx = 50 + ((p[0] + q[0]) / 2 - 50) * s, my = 50 + ((p[1] + q[1]) / 2 - 50) * s;
+    if (!k) { const z = P[N - 1]; d += `M${(50 + ((z[0] + p[0]) / 2 - 50) * s).toFixed(1)} ${(50 + ((z[1] + p[1]) / 2 - 50) * s).toFixed(1)}`; }
+    d += ` Q${x.toFixed(1)} ${y.toFixed(1)} ${mx.toFixed(1)} ${my.toFixed(1)}`; }); return d + ' Z'; };
+  // the crown: a band with three points topped by balls, jewels on the band
+  const crown = 'M31 61 L28 39 Q34 46 39 49 L44 38 Q47 42 50 31 Q53 42 56 38 L61 49 Q66 46 72 39 L69 61 Z M30 64 H70 V69 Q50 71.5 30 69 Z';
+  const balls = [[28, 37.5, 2.8], [50, 29.5, 3.1], [72, 37.5, 2.8]], jewels = [[40, 66.5], [50, 66.8], [60, 66.5]];
+  const ballsSvg = (dx, dy, f) => balls.map(([x, y, r]) => `<circle cx="${x + dx}" cy="${y + dy}" r="${r}" fill="${f}"/>`).join('');
+  const beads = Array.from({ length: 28 }, (_, k) => { const a = k / 28 * Math.PI * 2; return [50 + Math.cos(a) * 25.2, 50 + Math.sin(a) * 25.2]; });
+  return `<svg viewBox="0 0 100 100"><defs>`
+    + `<radialGradient id="swx" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#e2493b"/><stop offset=".45" stop-color="#b3231a"/><stop offset=".85" stop-color="#7e130d"/><stop offset="1" stop-color="#5c0b07"/></radialGradient>`
+    + `<linearGradient id="swall" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a0a06"/><stop offset=".5" stop-color="#8e1810"/><stop offset="1" stop-color="#e46a58"/></linearGradient>`
+    + `<radialGradient id="sface" cx="45%" cy="40%" r="65%"><stop offset="0" stop-color="#b42319"/><stop offset="1" stop-color="#8a160f"/></radialGradient>`
+    + `<linearGradient id="scrown" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d23a2d"/><stop offset="1" stop-color="#a01c14"/></linearGradient>`
+    + `<radialGradient id="sgloss" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>`
+    + `<linearGradient id="slip" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb4a2" stop-opacity=".7"/><stop offset=".42" stop-color="#ffb4a2" stop-opacity="0"/></linearGradient>`
+    + `<linearGradient id="sedge" x1="0" y1="0" x2="1" y2="1"><stop offset=".55" stop-color="#3a0503" stop-opacity="0"/><stop offset="1" stop-color="#3a0503" stop-opacity=".6"/></linearGradient>`
+    + `<filter id="sgrain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 .2  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.1"/><feComposite in2="SourceGraphic" operator="in"/></filter>`
+    + `</defs>`
+    // the wax, its raised lip lit on the upper left, and a fine grain
+    + `<path d="${blob(1)}" fill="url(#swx)"/>`
+    + `<path d="${blob(.9)}" fill="none" stroke="url(#slip)" stroke-width="2.6"/><path d="${blob(.985)}" fill="none" stroke="url(#sedge)" stroke-width="2"/>`
+    + `<path d="${blob(1)}" fill="#000" opacity=".5" filter="url(#sgrain)"/>`
+    // the pressed hollow: its wall dark where the light can't reach (upper left) and lit on the far side, then a flat floor
+    + `<circle cx="50" cy="50" r="31" fill="url(#swall)"/><circle cx="50.8" cy="50.8" r="28.6" fill="url(#sface)"/>`
+    // a ring of raised beads round the edge
+    + beads.map(([x, y]) => `<circle cx="${(x + .5).toFixed(1)}" cy="${(y + .6).toFixed(1)}" r="1.25" fill="#5e0b07"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.15" fill="#d8493b"/><circle cx="${(x - .3).toFixed(1)}" cy="${(y - .35).toFixed(1)}" r=".45" fill="#ff9c8a"/>`).join('')
+    // the crown in relief: its shadow down-right, a light edge up-left, the crown, a sheen on its upper half
+    + `<g transform="translate(50 51.5) scale(.8) translate(-50 -50)">`
+    + `<path d="${crown}" fill="#4f0905" transform="translate(1.6 1.9)"/>${ballsSvg(1.6, 1.9, '#4f0905')}`
+    + `<path d="${crown}" fill="#f2826f" transform="translate(-.8 -.9)"/>${ballsSvg(-.8, -.9, '#f2826f')}`
+    + `<path d="${crown}" fill="url(#scrown)"/>${ballsSvg(0, 0, '#c9332a')}`
+    + balls.map(([x, y, r]) => `<circle cx="${x - r * .35}" cy="${y - r * .35}" r="${r * .38}" fill="#ffb3a3" opacity=".85"/>`).join('')
+    + jewels.map(([x, y]) => `<circle cx="${x + .6}" cy="${y + .7}" r="2" fill="#5a0a06"/><circle cx="${x}" cy="${y}" r="1.8" fill="#7d1009"/><circle cx="${x - .55}" cy="${y - .6}" r=".6" fill="#ff9c8a"/>`).join('')
+    + `<path d="M33 60.2 H67" stroke="#5a0a06" stroke-width="1" opacity=".6"/></g>`
+    // the wax's gloss: a soft sheen up-left and a couple of small bright glints
+    + `<ellipse cx="31" cy="22" rx="17" ry="8" fill="url(#sgloss)" transform="rotate(-35 31 22)"/>`
+    + `<ellipse cx="24" cy="30" rx="2.6" ry="1.4" fill="#fff" opacity=".55" transform="rotate(-50 24 30)"/><circle cx="77" cy="74" r="1.1" fill="#fff" opacity=".35"/>`
+    + `</svg>`; })();
+const sealIco = i => SEAL_ICO.replace(/(id="|url\(#)(s[a-z]+)/g, `$1$2${i}`);
 // a stage's story not yet read: its scroll glows on the current stage's card with the card's own glow, until the card is flipped (Jack)
 var STORY_READ = {}; try { STORY_READ = JSON.parse(localStorage.getItem('mtd-story') || '{}'); } catch (e) {}
 const STORY = {
@@ -8679,7 +8716,7 @@ function buildDeck() {
   $('#cCards').innerHTML = CAMPAIGN.map((c, i) => { const st = won[i] ? 'won' : i === cur ? 'cur' : locked[i] ? 'locked' : '';
     const mark = locked[i] ? `<i class="jLock">${LOCK_SVG}</i>` : '';
     return `<button class="cCard ${st}${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}" data-i="${i}" tabindex="-1"><span class="cPic" style="background-image:url(maps/thumb/${c.map}.jpg)"></span>
-      <span class="cName"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}${won[i] && !c.bonus ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}${STORY[c.map] ? `<i class="cInfo${STORY_READ[c.map] ? '' : ' unread'}" aria-label="Story">${SCROLL_ICO}</i><span class="cBack"><span class="cStory"><i class="cSp1"></i><i class="cSp2"></i>${STORY[c.map]}</span><i class="cSeal">${SEAL_ICO}</i></span>` : ''}</button>`; }).join('');
+      <span class="cName"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}${won[i] && !c.bonus ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}${STORY[c.map] ? `<i class="cInfo${STORY_READ[c.map] ? '' : ' unread'}" aria-label="Story">${SCROLL_ICO}</i><span class="cBack"><span class="cStory"><i class="cSp1"></i><i class="cSp2"></i>${STORY[c.map]}</span><i class="cSeal">${sealIco(i)}</i></span>` : ''}</button>`; }).join('');
   $('#cDots').innerHTML = CAMPAIGN.map((c, i) => `<button class="cDot${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}${won[i] ? ' won' : i === cur ? ' cur' : ''}" data-i="${i}" aria-label="Stage ${i + 1}"></button>`).join('');
 }
 // place every card for the front index cSel plus the live drag (in cards); the card's size follows the room the deck has
