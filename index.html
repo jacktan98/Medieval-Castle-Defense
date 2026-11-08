@@ -3832,9 +3832,11 @@ function makeButts() {
     // leaning back with it, and a prop down to the ground behind
     const S = new THREE.Group(); S.position.set(x, 0, z); S.rotation.y = a; g.add(S);
     const t = new THREE.Group(); t.position.set(0, r + .32, 0); t.rotation.x = -.18; S.add(t);
-    const L = r * 2 + .42;
-    for (const sx of [-1, 1]) { const l = box(.05, L, .05, M.timber, sx * r * .62, L / 2 * Math.cos(.18) , -.13 - L / 2 * Math.sin(.18)); l.rotation.x = -.18; S.add(l); }
-    const pr = box(.045, L * .95, .045, M.timber, 0, L * .42, -.42); pr.rotation.x = .42; S.add(pr);
+    // the two posts in the target's own (tilted) frame, flat against the straw's back face, from the ground to just over its top,
+    // and a rail across them behind the straw (Jack: the straw stood apart from its posts)
+    const bot = -(r + .32) / Math.cos(.18) - .05, top = r + .08;
+    for (const sx of [-1, 1]) t.add(box(.055, top - bot, .05, M.timber, sx * r * .62, (top + bot) / 2, -.126));
+    t.add(box(r * 1.5, .05, .04, M.timber, 0, -r * .45, -.17));
     const face = cyl(r, r, .2, 14, M.hay, 0, 0, 0); face.rotation.x = Math.PI / 2; t.add(face);
     // painted rings, each a little proud of the one behind (at one depth they fought for the same pixels and showed in patches)
     [[r * .78, M.canvas], [r * .58, kiteM], [r * .36, M.canvas], [r * .16, kiteM]].forEach(([rr, m], i) => { const ring = cyl(rr, rr, .012, 20, m, 0, 0, .106 + i * .008); ring.rotation.x = Math.PI / 2; t.add(ring); });
@@ -3853,11 +3855,10 @@ function makeStores() {
   g.add(box(1.5, .04, 1.2, M.court, 0, .02, 0));
   const crate = (x, z, w, d, h, r = 0) => { const c = box(w, h, d, M.wood, x, h / 2 + .04, z); c.rotation.y = r; g.add(c); for (const sy of [.2, .8]) { const b = box(w + .01, .03, d + .01, M.timber, x, h * sy + .04, z); b.rotation.y = r; g.add(b); } };
   crate(-.35, -.2, .6, .45, .35, .1);
-  // bolts, iron heads out: shaft and head built together and turned as one (Jack: the heads sat off the shafts' ends)
+  // bolts, iron heads out: shaft and head built together and turned as one (Jack: the heads sat off the shafts' ends; no fletching)
   for (let n = 0; n < 6; n++) {
     const b = new THREE.Group(); b.position.set(-.52 + (n % 3) * .14, .44 + Math.floor(n / 3) * .05, -.2 + (n % 2 ? .06 : -.06)); b.rotation.y = .1 + Math.PI / 2; g.add(b);
     b.add(box(.035, .035, .75, M.timber, 0, 0, 0)); const t = cone(.03, .1, 4, M.iron, 0, 0, .42); t.rotation.x = Math.PI / 2; b.add(t);
-    for (const s of [-1, 1]) { const f = box(.005, .05, .09, M.canvas, s * .02, 0, -.33); f.rotation.z = s * .5; b.add(f); }
   }
   crate(.4, -.25, .45, .45, .3, -.2);
   for (const [x, z] of [[.33, -.33], [.47, -.33], [.33, -.17], [.47, -.17], [.4, -.25]]) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(.075, 0), M.stone2); st.position.set(x, .4 + (x === .4 ? .08 : 0), z); st.castShadow = true; g.add(st); }   // round shot
@@ -5539,7 +5540,7 @@ const horseM = mat('#5a3a22'), maneM = mat('#2a1d14'), saddleM = mat('#3a2418'),
 const SADDLE = .72;   // lifts the rider's body so the hips sit on the saddle
 // a rider's legs: out to the sides and a little forward, down the horse's flanks (Jack: at -1.2 forward and .55 out they went
 // through the saddle and blanket)
-const RIDE_X = -.85, RIDE_Z = .85;
+const RIDE_X = -.85, RIDE_Z = 1.0;
 function mountHorse(p, cloth = blanketM) {
   const h = new THREE.Group(); p.g.add(h);
   h.add(box(.34, .36, .92, horseM, 0, .78, 0));                                   // barrel
@@ -5638,7 +5639,7 @@ function makeRaider(kind, tier = 1) {
   if (ENEMY[kind].mounted) {
     mountHorse(p);
     if (tier === 3) { const ch = box(.17, .06, .34, darkIronM, 0, 1.3, .72); ch.rotation.x = .35; p.horse.add(ch); }   // an iron plate down the horse's face
-    if (tier >= 2) for (const sx of [-1, 1]) p.horse.add(box(.02, .3, .5, raiderRed, sx * .185, .9, -.05));               // a red cloth down its flanks
+    if (tier >= 2) for (const sx of [-1, 1]) p.horse.add(box(.02, .26, .5, raiderRed, sx * .185, .8, -.05));               // a red cloth down its flanks
   }
   return p;
 }
@@ -5667,7 +5668,7 @@ function bossGear(p, kind) {
     armShield(p, heaterShield(.3, .38, raiderShieldM, bossGoldM));
     if (p.horse) {
       p.horse.add(box(.4, .34, .96, bardM, 0, .74, 0));                          // dark barding over the barrel
-      for (const sx of [-1, 1]) p.horse.add(box(.02, .36, .7, cloakM, sx * .205, .78, -.02));   // red cloth on both flanks
+      for (const sx of [-1, 1]) p.horse.add(box(.02, .32, .7, cloakM, sx * .205, .72, -.02));   // red cloth on both flanks
       const ch = box(.17, .06, .34, bossGoldM, 0, 1.3, .72); ch.rotation.x = .35; p.horse.add(ch);  // a gilded plate down its face
     }
   }
@@ -7892,7 +7893,11 @@ function codexMeet(kind, tier) { if (!achOn() || !ENEMY[kind] || (CODEX.r[kind] 
 // ---- the little renderer: one fixed square canvas, copied to the live view each frame and snapped for the list's thumbnails ----
 const CX_PX = 320;
 // each kind's zoom: [fit (metres), how high the camera aims (× fit), the grass patch's radius for figures and engines]
-const CX_FIT = { build: [4.6, .36], decor: [2.1, .4], foot: [.78, .48, .45], horse: [1.15, .5, .7], siege: [2.05, .36, 1.5] };
+// buildings by footprint (Jack): the 3×3 ones (castle, forester) in proportion to each other, the 2×2 ones smaller and the 1×1 ones
+// smaller again, though each a little bigger than to true scale; the town's catapult at the raiders' siege zoom; bosses on their own
+// (smaller than the figures they stand among); a tall building backs the camera off a little more so its top shows
+const CX_FIT = { b3: [5.6, .36], b2: [4.4, .36], b1: [3.3, .38], decor: [2.1, .4], foot: [.78, .48, .45], horse: [1.15, .5, .7], siege: [2.7, .38, 1.5],
+  bossFoot: [1.08, .5, .5], bossHorse: [1.6, .5, .8] };
 let cxR = null, cxScene = null, cxCam = null, cxModel = null, cxRaf = 0, cxT0 = 0, cxLast = 0;
 function codexRenderer() {
   if (cxR) return;
@@ -7914,12 +7919,14 @@ function codexRenderer() {
 function codexModel(side, id, tier) {
   if (side === 'b') {
     const g = makeModel(id, tier, true, id === 'wall' || id === 'gate' ? 10 : 0, 0); galPreview(g, id, tier);
-    return { g, cat: DEF[id].decor ? 'decor' : 'build', foot: (DEF[id].size || 1) * CELL };
+    // the soft dark patch drawn under buildings on the map shows as an oval on the round grass here (Jack): hidden
+    g.traverse(o => { if (o.userData.ao) o.visible = false; });
+    return { g, cat: DEF[id].decor ? 'decor' : id === 'catapult' ? 'siege' : 'b' + (DEF[id].size || 1), foot: id === 'catapult' ? 0 : (DEF[id].size || 1) * CELL };
   }
   const E = ENEMY[id], p = makeRaider(id, E.boss ? 3 : tier);
   Object.assign(p, E.engine ? { kind: id, tier, rate: E.rate, seed: 0 } : { raider: id, rt: tier, seed: 0 });
   if (!E.engine) p.g.scale.setScalar(UNIT_K * (E.boss || 1));
-  return { g: p.g, p, cat: E.engine ? 'siege' : E.mounted ? 'horse' : 'foot' };
+  return { g: p.g, p, cat: E.engine ? 'siege' : E.boss ? (E.mounted ? 'bossHorse' : 'bossFoot') : E.mounted ? 'horse' : 'foot' };
 }
 // frame the model: the camera backs off to fit its bounding box, a little from above and to the side
 function codexFrame(m) {
@@ -7930,7 +7937,7 @@ function codexFrame(m) {
   // one zoom per kind (Jack: models of a kind in proportion to each other): the economy and defence buildings share one, decor
   // another, raiders on foot, mounted raiders and siege engines one each; each fits the biggest of its kind (the stone castle, the
   // banner, the Raider Chief, the Warlord, the trebuchet), and the ground sits at the same height in the view for all of a kind
-  const F = CX_FIT[m.cat], fit = F[0], d = fit / Math.tan(cxCam.fov * Math.PI / 360) * 1.02;
+  const F = CX_FIT[m.cat], fit = m.cat[0] === 'b' && m.cat !== 'bossFoot' && m.cat !== 'bossHorse' ? Math.max(F[0], size.y * .62) : F[0], d = fit / Math.tan(cxCam.fov * Math.PI / 360) * 1.02;
   // the grass: past a building's corners (half its footprint's diagonal), a set patch under figures and engines
   const r = m.foot ? m.foot * .71 + .25 : F[2], lawn = cxScene.getObjectByName('lawn');
   lawn.scale.set(r, 1, r); lawn.position.set(0, -.06, 0);

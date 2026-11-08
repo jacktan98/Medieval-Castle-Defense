@@ -5,7 +5,7 @@ const horseM = mat('#5a3a22'), maneM = mat('#2a1d14'), saddleM = mat('#3a2418'),
 const SADDLE = .72;   // lifts the rider's body so the hips sit on the saddle
 // a rider's legs: out to the sides and a little forward, down the horse's flanks (Jack: at -1.2 forward and .55 out they went
 // through the saddle and blanket)
-const RIDE_X = -.85, RIDE_Z = .85;
+const RIDE_X = -.85, RIDE_Z = 1.0;
 function mountHorse(p, cloth = blanketM) {
   const h = new THREE.Group(); p.g.add(h);
   h.add(box(.34, .36, .92, horseM, 0, .78, 0));                                   // barrel
@@ -104,7 +104,7 @@ function makeRaider(kind, tier = 1) {
   if (ENEMY[kind].mounted) {
     mountHorse(p);
     if (tier === 3) { const ch = box(.17, .06, .34, darkIronM, 0, 1.3, .72); ch.rotation.x = .35; p.horse.add(ch); }   // an iron plate down the horse's face
-    if (tier >= 2) for (const sx of [-1, 1]) p.horse.add(box(.02, .3, .5, raiderRed, sx * .185, .9, -.05));               // a red cloth down its flanks
+    if (tier >= 2) for (const sx of [-1, 1]) p.horse.add(box(.02, .26, .5, raiderRed, sx * .185, .8, -.05));               // a red cloth down its flanks
   }
   return p;
 }
@@ -133,7 +133,7 @@ function bossGear(p, kind) {
     armShield(p, heaterShield(.3, .38, raiderShieldM, bossGoldM));
     if (p.horse) {
       p.horse.add(box(.4, .34, .96, bardM, 0, .74, 0));                          // dark barding over the barrel
-      for (const sx of [-1, 1]) p.horse.add(box(.02, .36, .7, cloakM, sx * .205, .78, -.02));   // red cloth on both flanks
+      for (const sx of [-1, 1]) p.horse.add(box(.02, .32, .7, cloakM, sx * .205, .72, -.02));   // red cloth on both flanks
       const ch = box(.17, .06, .34, bossGoldM, 0, 1.3, .72); ch.rotation.x = .35; p.horse.add(ch);  // a gilded plate down its face
     }
   }

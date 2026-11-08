@@ -1056,9 +1056,11 @@ function makeButts() {
     // leaning back with it, and a prop down to the ground behind
     const S = new THREE.Group(); S.position.set(x, 0, z); S.rotation.y = a; g.add(S);
     const t = new THREE.Group(); t.position.set(0, r + .32, 0); t.rotation.x = -.18; S.add(t);
-    const L = r * 2 + .42;
-    for (const sx of [-1, 1]) { const l = box(.05, L, .05, M.timber, sx * r * .62, L / 2 * Math.cos(.18) , -.13 - L / 2 * Math.sin(.18)); l.rotation.x = -.18; S.add(l); }
-    const pr = box(.045, L * .95, .045, M.timber, 0, L * .42, -.42); pr.rotation.x = .42; S.add(pr);
+    // the two posts in the target's own (tilted) frame, flat against the straw's back face, from the ground to just over its top,
+    // and a rail across them behind the straw (Jack: the straw stood apart from its posts)
+    const bot = -(r + .32) / Math.cos(.18) - .05, top = r + .08;
+    for (const sx of [-1, 1]) t.add(box(.055, top - bot, .05, M.timber, sx * r * .62, (top + bot) / 2, -.126));
+    t.add(box(r * 1.5, .05, .04, M.timber, 0, -r * .45, -.17));
     const face = cyl(r, r, .2, 14, M.hay, 0, 0, 0); face.rotation.x = Math.PI / 2; t.add(face);
     // painted rings, each a little proud of the one behind (at one depth they fought for the same pixels and showed in patches)
     [[r * .78, M.canvas], [r * .58, kiteM], [r * .36, M.canvas], [r * .16, kiteM]].forEach(([rr, m], i) => { const ring = cyl(rr, rr, .012, 20, m, 0, 0, .106 + i * .008); ring.rotation.x = Math.PI / 2; t.add(ring); });
@@ -1077,11 +1079,10 @@ function makeStores() {
   g.add(box(1.5, .04, 1.2, M.court, 0, .02, 0));
   const crate = (x, z, w, d, h, r = 0) => { const c = box(w, h, d, M.wood, x, h / 2 + .04, z); c.rotation.y = r; g.add(c); for (const sy of [.2, .8]) { const b = box(w + .01, .03, d + .01, M.timber, x, h * sy + .04, z); b.rotation.y = r; g.add(b); } };
   crate(-.35, -.2, .6, .45, .35, .1);
-  // bolts, iron heads out: shaft and head built together and turned as one (Jack: the heads sat off the shafts' ends)
+  // bolts, iron heads out: shaft and head built together and turned as one (Jack: the heads sat off the shafts' ends; no fletching)
   for (let n = 0; n < 6; n++) {
     const b = new THREE.Group(); b.position.set(-.52 + (n % 3) * .14, .44 + Math.floor(n / 3) * .05, -.2 + (n % 2 ? .06 : -.06)); b.rotation.y = .1 + Math.PI / 2; g.add(b);
     b.add(box(.035, .035, .75, M.timber, 0, 0, 0)); const t = cone(.03, .1, 4, M.iron, 0, 0, .42); t.rotation.x = Math.PI / 2; b.add(t);
-    for (const s of [-1, 1]) { const f = box(.005, .05, .09, M.canvas, s * .02, 0, -.33); f.rotation.z = s * .5; b.add(f); }
   }
   crate(.4, -.25, .45, .45, .3, -.2);
   for (const [x, z] of [[.33, -.33], [.47, -.33], [.33, -.17], [.47, -.17], [.4, -.25]]) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(.075, 0), M.stone2); st.position.set(x, .4 + (x === .4 ? .08 : 0), z); st.castShadow = true; g.add(st); }   // round shot

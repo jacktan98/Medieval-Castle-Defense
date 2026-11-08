@@ -31,7 +31,11 @@ function codexMeet(kind, tier) { if (!achOn() || !ENEMY[kind] || (CODEX.r[kind] 
 // ---- the little renderer: one fixed square canvas, copied to the live view each frame and snapped for the list's thumbnails ----
 const CX_PX = 320;
 // each kind's zoom: [fit (metres), how high the camera aims (× fit), the grass patch's radius for figures and engines]
-const CX_FIT = { build: [4.6, .36], decor: [2.1, .4], foot: [.78, .48, .45], horse: [1.15, .5, .7], siege: [2.05, .36, 1.5] };
+// buildings by footprint (Jack): the 3×3 ones (castle, forester) in proportion to each other, the 2×2 ones smaller and the 1×1 ones
+// smaller again, though each a little bigger than to true scale; the town's catapult at the raiders' siege zoom; bosses on their own
+// (smaller than the figures they stand among); a tall building backs the camera off a little more so its top shows
+const CX_FIT = { b3: [5.6, .36], b2: [4.4, .36], b1: [3.3, .38], decor: [2.1, .4], foot: [.78, .48, .45], horse: [1.15, .5, .7], siege: [2.7, .38, 1.5],
+  bossFoot: [1.08, .5, .5], bossHorse: [1.6, .5, .8] };
 let cxR = null, cxScene = null, cxCam = null, cxModel = null, cxRaf = 0, cxT0 = 0, cxLast = 0;
 function codexRenderer() {
   if (cxR) return;
@@ -53,12 +57,14 @@ function codexRenderer() {
 function codexModel(side, id, tier) {
   if (side === 'b') {
     const g = makeModel(id, tier, true, id === 'wall' || id === 'gate' ? 10 : 0, 0); galPreview(g, id, tier);
-    return { g, cat: DEF[id].decor ? 'decor' : 'build', foot: (DEF[id].size || 1) * CELL };
+    // the soft dark patch drawn under buildings on the map shows as an oval on the round grass here (Jack): hidden
+    g.traverse(o => { if (o.userData.ao) o.visible = false; });
+    return { g, cat: DEF[id].decor ? 'decor' : id === 'catapult' ? 'siege' : 'b' + (DEF[id].size || 1), foot: id === 'catapult' ? 0 : (DEF[id].size || 1) * CELL };
   }
   const E = ENEMY[id], p = makeRaider(id, E.boss ? 3 : tier);
   Object.assign(p, E.engine ? { kind: id, tier, rate: E.rate, seed: 0 } : { raider: id, rt: tier, seed: 0 });
   if (!E.engine) p.g.scale.setScalar(UNIT_K * (E.boss || 1));
-  return { g: p.g, p, cat: E.engine ? 'siege' : E.mounted ? 'horse' : 'foot' };
+  return { g: p.g, p, cat: E.engine ? 'siege' : E.boss ? (E.mounted ? 'bossHorse' : 'bossFoot') : E.mounted ? 'horse' : 'foot' };
 }
 // frame the model: the camera backs off to fit its bounding box, a little from above and to the side
 function codexFrame(m) {
@@ -69,7 +75,7 @@ function codexFrame(m) {
   // one zoom per kind (Jack: models of a kind in proportion to each other): the economy and defence buildings share one, decor
   // another, raiders on foot, mounted raiders and siege engines one each; each fits the biggest of its kind (the stone castle, the
   // banner, the Raider Chief, the Warlord, the trebuchet), and the ground sits at the same height in the view for all of a kind
-  const F = CX_FIT[m.cat], fit = F[0], d = fit / Math.tan(cxCam.fov * Math.PI / 360) * 1.02;
+  const F = CX_FIT[m.cat], fit = m.cat[0] === 'b' && m.cat !== 'bossFoot' && m.cat !== 'bossHorse' ? Math.max(F[0], size.y * .62) : F[0], d = fit / Math.tan(cxCam.fov * Math.PI / 360) * 1.02;
   // the grass: past a building's corners (half its footprint's diagonal), a set patch under figures and engines
   const r = m.foot ? m.foot * .71 + .25 : F[2], lawn = cxScene.getObjectByName('lawn');
   lawn.scale.set(r, 1, r); lawn.position.set(0, -.06, 0);
