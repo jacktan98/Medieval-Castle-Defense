@@ -211,14 +211,14 @@ const MAP_RULES = {
                  { spear: [7, 7, 2], sword: [5, 5, 1], archer: [6, 4], xbow: [5, 1], lancer: [5, 1], ballista: [2] },
                  { spear: [6, 10, 4], sword: [6, 6, 1], archer: [6, 6], xbow: [6, 4], lancer: [6, 4], rider: [4, 1], catapult: [2], ram: [2] },
                  { spear: [7, 10, 6], sword: [4, 6, 6], archer: [6, 6, 2], xbow: [6, 4, 1], lancer: [6, 4, 1], rider: [4, 4], catapult: [0, 2], ballista: [0, 2], ram: [0, 2] }],
-          day: [300, 120, 120, 120, 120], spawnGap: .85, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
+          day: [300, 120, 120, 120, 120], spawnGap: .85, res: { gold: 80, wood: 50, stone: 0, food: 30 } },
   // Horsefields (stage 10): open on three sides, horsemen in numbers: the north road, from night 2 the west, from night 3 the east too
   plains: { waves: [{ spear: [10, 4], sword: [4, 1], archer: [4], lancer: [4], rider: [1] },
                    { spear: [10, 5], sword: [5, 4], archer: [5, 1], lancer: [6, 1], rider: [4] },
                    { spear: [7, 6], sword: [5, 5], archer: [5, 4], xbow: [4], lancer: [6, 4], rider: [5, 1] },
                    { spear: [6, 6, 4], sword: [4, 6, 2], archer: [5, 5], xbow: [4, 1], lancer: [5, 5], rider: [5, 4, 1], ram: [2], ballista: [2] },
                    { spear: [5, 9, 5], sword: [4, 5, 4], archer: [5, 5, 1], xbow: [4, 4], lancer: [5, 5, 4], rider: [5, 5, 4], catapult: [0, 2], ram: [0, 2] }],
-            day: [300, 120, 120, 120, 120], spawnGap: .8, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
+            day: [300, 120, 120, 120, 120], spawnGap: .8, res: { gold: 80, wood: 50, stone: 0, food: 30 } },
   // Raider Keep (stage 11, boss, an 80 m map): seven nights after a 10-minute first day (Jack); round both sides of the keep and out of its gate;
   // the Raider Chief at the tail of night 7
   keep: { waves: [{ spear: [11, 5], sword: [5, 3], archer: [5, 1], lancer: [4] },
@@ -228,7 +228,7 @@ const MAP_RULES = {
                  { spear: [6, 11, 7], sword: [4, 7, 6], archer: [4, 6, 4], xbow: [4, 4, 3], lancer: [6, 4, 3], rider: [4, 4, 3], catapult: [0, 2], ram: [0, 2], ballista: [0, 0, 2] },
                  { spear: [5, 12, 9], sword: [3, 8, 8], archer: [5, 6, 6], xbow: [3, 5, 5], lancer: [4, 4, 4], rider: [3, 4, 4], catapult: [0, 2, 2], ram: [0, 2, 2], ballista: [0, 2, 2] },
                  { spear: [3, 12, 12], sword: [3, 8, 9], archer: [3, 6, 8], xbow: [3, 5, 6], lancer: [3, 4, 6], rider: [3, 4, 6], catapult: [0, 2, 2], ram: [0, 2, 2], ballista: [0, 2, 2], chief: [0, 0, 1] }],
-          day: [420, 120, 120, 120, 120, 120, 120], spawnGap: .8, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
+          day: [420, 120, 120, 120, 120, 120, 120], spawnGap: .8, res: { gold: 80, wood: 50, stone: 0, food: 30 } },
   // Warlord's Hold (stage 12, final boss, 80 m): out of the hold's gate, from night 3 the west pass, from night 4 the east pass;
   // seven nights after a 10-minute first day (Jack); the Warlord and his mounted guard (tier-3 horse swords) on night 7
   hold: { waves: [{ spear: [10, 7], sword: [5, 4], archer: [5, 3], xbow: [3], lancer: [4, 1] },
@@ -238,7 +238,7 @@ const MAP_RULES = {
                  { spear: [6, 11, 8], sword: [4, 8, 7], archer: [4, 7, 4], xbow: [4, 4, 3], lancer: [6, 6, 3], rider: [3, 4, 3], catapult: [0, 2, 2], ram: [0, 0, 2], ballista: [0, 0, 2] },
                  { spear: [5, 12, 12], sword: [3, 9, 9], archer: [5, 8, 6], xbow: [3, 5, 5], lancer: [4, 6, 4], rider: [3, 4, 4], catapult: [0, 2, 2], ram: [0, 2, 2], ballista: [0, 2, 2] },
                  { spear: [3, 12, 15], sword: [3, 9, 11], archer: [3, 8, 8], xbow: [3, 4, 6], lancer: [3, 6, 6], rider: [3, 4, 12], catapult: [0, 2, 4], ram: [0, 2, 2], ballista: [0, 2, 2], warlord: [0, 0, 1] }],
-          day: [420, 120, 120, 120, 120, 120, 120], spawnGap: .75, res: { gold: 50, wood: 30, stone: 0, food: 30 } },
+          day: [420, 120, 120, 120, 120, 120, 120], spawnGap: .75, res: { gold: 80, wood: 50, stone: 0, food: 30 } },
 };
 // a stage's own goals (Jack), listed on its details and the summary and counted with the usual three for the stars;
 // done() is read during play (a log line when met) and at the end. Built counts are ever finished (stats.made), not still standing
