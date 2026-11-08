@@ -8567,9 +8567,11 @@ function buildDeck() {
 // place every card for the front index cSel plus the live drag (in cards); the card's size follows the room the deck has
 function layoutDeck(anim = true) {
   // a phone held sideways: the card leaves room under it for the round buttons above the progress bar (Jack)
-  const side = innerHeight <= 520 ? 64 : 0;
+  // smaller still (Jack: it looked squeezed), and never closer than 38 px to the deck's top, where the deck's edge fade (its mask)
+  // would cut the front card's gold glow into a hard line (Jack saw it)
+  const side = innerHeight <= 520 ? 110 : 0;
   const deck = $('#campMap'), W = Math.min(deck.clientWidth * (deck.clientWidth > deck.clientHeight * 1.2 ? .48 : .62), deck.clientHeight - 16 - side, 480), f = cSel + cDrag;
-  deck.style.setProperty('--cy', -side / 2 + 'px');
+  deck.style.setProperty('--cy', -(side ? 25 : 0) + 'px');
   deck.style.setProperty('--cw', Math.max(120, W) + 'px');
   document.querySelectorAll('#cCards .cCard').forEach(el => {
     const d = +el.dataset.i - f, a = Math.abs(d), sg = Math.sign(d), x = sg * (Math.min(a, 1) * .62 + Math.max(0, a - 1) * .2) * W;
