@@ -553,6 +553,8 @@ const CAMPAIGN = [
 const MAIN = CAMPAIGN.filter(c => !c.bonus);
 // the storyline (Jack): read only on the back of each stage's card in the campaign (its ! button flips it), never in the game;
 // a young prince wins back his father's kingdom from the Warlord, light in tone; no short forms (Jack: "will", not "'ll")
+// the flip button's icon (Jack picked a rolled scroll): a sheet with a curl at each end and two lines of writing (lucide's scroll, ISC)
+const SCROLL_ICO = '<svg viewBox="0 0 24 24"><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/><path d="M15 8h-5M15 12h-5"/></svg>';
 const STORY = {
   vale: 'Long ago your family ruled these lands in peace, until the Warlord came with his raiders. The King, your father, fell defending the castle, and you escaped as a boy. Years of training later, you are back. Greenvale is a quiet valley at the edge of the old kingdom, and its people still remember your family. Build them a home worth defending.',
   bridge: 'Stonebridge guards the only crossing on the great river. The townsfolk started a wall to keep the raiders out, but lost their nerve halfway through. When the young prince rides in with a plan, the blacksmith grins and hands out spears. Finish the wall, train some soldiers, and hold the bridge.',
@@ -592,7 +594,7 @@ function buildDeck() {
   $('#cCards').innerHTML = CAMPAIGN.map((c, i) => { const st = won[i] ? 'won' : i === cur ? 'cur' : locked[i] ? 'locked' : '';
     const mark = locked[i] ? `<i class="jLock">${LOCK_SVG}</i>` : '';
     return `<button class="cCard ${st}${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}" data-i="${i}" tabindex="-1"><span class="cPic" style="background-image:url(maps/thumb/${c.map}.jpg)"></span>
-      <span class="cName"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}${won[i] && !c.bonus ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}${STORY[c.map] ? `<i class="cInfo" aria-label="Story">!</i><span class="cBack"><span class="cStory">${STORY[c.map]}</span></span>` : ''}</button>`; }).join('');
+      <span class="cName"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}${won[i] && !c.bonus ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}${STORY[c.map] ? `<i class="cInfo" aria-label="Story">${SCROLL_ICO}</i><span class="cBack"><span class="cStory">${STORY[c.map]}</span></span>` : ''}</button>`; }).join('');
   $('#cDots').innerHTML = CAMPAIGN.map((c, i) => `<button class="cDot${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}${won[i] ? ' won' : i === cur ? ' cur' : ''}" data-i="${i}" aria-label="Stage ${i + 1}"></button>`).join('');
 }
 // place every card for the front index cSel plus the live drag (in cards); the card's size follows the room the deck has
@@ -600,9 +602,14 @@ function layoutDeck(anim = true) {
   // a phone held sideways: the card leaves room under it for the round buttons above the progress bar (Jack)
   // smaller still (Jack: it looked squeezed), and never closer than 38 px to the deck's top, where the deck's edge fade (its mask)
   // would cut the front card's gold glow into a hard line (Jack saw it)
-  const side = innerHeight <= 520 ? 110 : 0;
-  const deck = $('#campMap'), W = Math.min(deck.clientWidth * (deck.clientWidth > deck.clientHeight * 1.2 ? .48 : .62), deck.clientHeight - 16 - side, 480), f = cSel + cDrag;
-  deck.style.setProperty('--cy', -(side ? 25 : 0) + 'px');
+  // sideways (Jack: bigger cards, the arrows level with their middle) the card takes all the height from GAP_TOP under the deck's top
+  // down to just above the round buttons, and the arrows follow it (--cy on the deck's wrapper); its gold glow is smaller there
+  const sideways = innerHeight <= 520, deck = $('#campMap'), GAP_TOP = 22;
+  let room = deck.clientHeight - 16, cy = 0;
+  if (sideways) { const dr = deck.getBoundingClientRect(), sr = $('.campSide').getBoundingClientRect(); room = sr.top - dr.top - 8 - GAP_TOP; }
+  const W = Math.min(deck.clientWidth * (deck.clientWidth > deck.clientHeight * 1.2 ? .48 : .62), room, 480), f = cSel + cDrag;
+  if (sideways) cy = GAP_TOP + Math.max(120, W) / 2 - deck.clientHeight / 2;
+  deck.parentElement.style.setProperty('--cy', cy.toFixed(1) + 'px');
   deck.style.setProperty('--cw', Math.max(120, W) + 'px');
   document.querySelectorAll('#cCards .cCard').forEach(el => {
     const d = +el.dataset.i - f, a = Math.abs(d), sg = Math.sign(d), x = sg * (Math.min(a, 1) * .62 + Math.max(0, a - 1) * .2) * W;
