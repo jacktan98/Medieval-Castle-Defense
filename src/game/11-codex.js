@@ -41,7 +41,7 @@ const CX_SPEAR = -2.8, CX_SPEAR_Y = -.33;
 // buildings by footprint (Jack): the 3×3 ones (castle, forester) in proportion to each other, the 2×2 ones smaller and the 1×1 ones
 // smaller again, though each a little bigger than to true scale; the town's catapult at the raiders' siege zoom; bosses on their own
 // (smaller than the figures they stand among); a tall building backs the camera off a little more so its top shows
-const CX_FIT = { b3: [5.6, .36], b2: [4.4, .36], b1: [4.7, .6], decor: [2.8, .46], foot: [.78, .48, .45], horse: [1.15, .5, .7], siege: [2.7, .38, 1.5],
+const CX_FIT = { b3: [5.6, .36], b2: [4.4, .36], b1: [3.8, .56], tower: [4.7, .6], decor: [2.8, .46], foot: [.78, .48, .45], horse: [1.15, .5, .7], siege: [2.7, .38, 1.5],
   bossFoot: [1.08, .5, .5], bossHorse: [1.6, .5, .8] };
 let cxR = null, cxScene = null, cxCam = null, cxModel = null, cxRaf = 0, cxT0 = 0, cxLast = 0;
 function codexRenderer() {
@@ -64,7 +64,7 @@ function codexRenderer() {
 function codexModel(side, id, tier) {
   if (side === 'b') {
     const g = makeModel(id, tier, true, id === 'wall' || id === 'gate' ? 10 : 0, 0); galPreview(g, id, tier);
-    return { g, cat: DEF[id].decor ? 'decor' : id === 'catapult' ? 'siege' : 'b' + (DEF[id].size || 1), foot: id === 'catapult' ? 0 : (DEF[id].size || 1) * CELL };
+    return { g, cat: DEF[id].decor ? 'decor' : id === 'catapult' ? 'siege' : id === 'tower' ? 'tower' : 'b' + (DEF[id].size || 1), foot: id === 'catapult' ? 0 : (DEF[id].size || 1) * CELL };
   }
   const E = ENEMY[id], p = makeRaider(id, E.boss ? 3 : tier);
   Object.assign(p, E.engine ? { kind: id, tier, rate: E.rate, seed: 0 } : { raider: id, rt: tier, seed: 0 });

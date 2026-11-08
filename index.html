@@ -644,6 +644,7 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .upBank b{font-size:20px;line-height:1;color:#f0c95a;text-shadow:0 0 8px rgba(255,205,90,.7)}
 /* the pill's numbers sat low (the fonts' digits ride below the line's middle): lifted to the middle (Jack) */
 .upBank{line-height:1;padding-bottom:3px;box-sizing:border-box}
+.upStar{font-style:normal;position:relative;top:2.5px}
 .upTabs{display:flex;gap:4px;width:100%;border-bottom:2px solid #d9b04e;margin-bottom:12px}
 .modal.tome .upTabs .upTab{flex:1;min-height:0!important;padding:8px 0 6px!important;border-radius:10px 10px 0 0!important;border:2px solid rgba(217,176,78,.4)!important;border-bottom:none!important;background:#1a140a!important;font-family:var(--display);font-weight:400;font-size:15px;letter-spacing:.06em;-webkit-text-stroke:.35px currentColor;color:#8f8160!important;box-shadow:none!important}
 /* the tab in use is lit: gold like the main buttons, dark text, a glow; the others stay dark and dim (Jack: it didn't stand out) */
@@ -7899,7 +7900,7 @@ const CX_SPEAR = -2.8, CX_SPEAR_Y = -.33;
 // buildings by footprint (Jack): the 3×3 ones (castle, forester) in proportion to each other, the 2×2 ones smaller and the 1×1 ones
 // smaller again, though each a little bigger than to true scale; the town's catapult at the raiders' siege zoom; bosses on their own
 // (smaller than the figures they stand among); a tall building backs the camera off a little more so its top shows
-const CX_FIT = { b3: [5.6, .36], b2: [4.4, .36], b1: [4.7, .6], decor: [2.8, .46], foot: [.78, .48, .45], horse: [1.15, .5, .7], siege: [2.7, .38, 1.5],
+const CX_FIT = { b3: [5.6, .36], b2: [4.4, .36], b1: [3.8, .56], tower: [4.7, .6], decor: [2.8, .46], foot: [.78, .48, .45], horse: [1.15, .5, .7], siege: [2.7, .38, 1.5],
   bossFoot: [1.08, .5, .5], bossHorse: [1.6, .5, .8] };
 let cxR = null, cxScene = null, cxCam = null, cxModel = null, cxRaf = 0, cxT0 = 0, cxLast = 0;
 function codexRenderer() {
@@ -7922,7 +7923,7 @@ function codexRenderer() {
 function codexModel(side, id, tier) {
   if (side === 'b') {
     const g = makeModel(id, tier, true, id === 'wall' || id === 'gate' ? 10 : 0, 0); galPreview(g, id, tier);
-    return { g, cat: DEF[id].decor ? 'decor' : id === 'catapult' ? 'siege' : 'b' + (DEF[id].size || 1), foot: id === 'catapult' ? 0 : (DEF[id].size || 1) * CELL };
+    return { g, cat: DEF[id].decor ? 'decor' : id === 'catapult' ? 'siege' : id === 'tower' ? 'tower' : 'b' + (DEF[id].size || 1), foot: id === 'catapult' ? 0 : (DEF[id].size || 1) * CELL };
   }
   const E = ENEMY[id], p = makeRaider(id, E.boss ? 3 : tier);
   Object.assign(p, E.engine ? { kind: id, tier, rate: E.rate, seed: 0 } : { raider: id, rt: tier, seed: 0 });
@@ -9147,7 +9148,7 @@ function renderUpgrades() {
   const el = $('#upPick'); el.style.setProperty('--tc', tc); el.style.setProperty('--td', '#' + dk.getHexString());
   // the sheet stays put (a new one replayed the menus' rise animation and the whole screen flickered on every tap: Jack)
   let sh = el.querySelector('.upSheet'); if (!sh) { sh = document.createElement('div'); sh.className = 'upSheet'; el.replaceChildren(sh); }
-  sh.innerHTML = `<div class="upTop"><button class="upBack campBack" id="upBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Upgrades</h2><div class="upBank">★<b>${left}</b></div></div>
+  sh.innerHTML = `<div class="upTop"><button class="upBack campBack" id="upBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Upgrades</h2><div class="upBank"><i class="upStar">★</i><b>${left}</b></div></div>
     <div class="upTabs">${UP_TABS.map(([t], i) => `<button class="upTab${i === upTab ? ' on' : ''}" data-tab="${i}">${t}</button>`).join('')}</div>
     <div class="upGrid">${rows.map(([n, ic, ups]) => `<div class="upTree"><div class="upBan">${upRowIco(ic)}<div>${n}</div></div>${ups.map(([id, name], j) => {
       const sj = st(id); return `${j ? `<div class="upChain${st(ups[j - 1][0]) === 2 ? ' on' : ''}"></div>` : ''}<button class="upNode s${sj}${id === upSel ? ' sel' : ''}" data-up="${id}" aria-label="${name}">${upIco(name)}${sj === 2 ? '<span class="upTick">✓</span>' : '<span class="upCost">★1</span>'}</button>`; }).join('')}</div>`).join('')}</div>
