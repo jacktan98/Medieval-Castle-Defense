@@ -673,9 +673,9 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .upBig{width:56px;height:56px;flex:0 0 auto;border-radius:12px;border:2px solid #f0c95a;background:radial-gradient(circle at 50% 35%,#6a4f22,#2a1e0c);display:grid;place-items:center} .upBig svg{width:36px;height:36px}
 .upTx{flex:1;min-width:0} .upOf{font-size:11px;color:#bfae80;line-height:1.1}
 .upTx h3{margin:1px 0;font-family:var(--display);font-weight:400;color:#f0c95a;font-size:19px;line-height:1.05} .upTx p{margin:0;font-size:14px;font-weight:700;color:#fff1c4;line-height:1.1}
-.modal.tome .upDet .upBuy{min-height:0;padding:8px 14px;font-size:15px;white-space:nowrap}
+.modal.tome .upDet .upBuy{min-height:0;height:38px;padding:0 14px;font-size:15px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center}
 .modal.tome .upDet .upBuy:disabled{filter:grayscale(.6) brightness(.75)}
-.upLk{display:inline-flex;align-items:center;gap:5px;white-space:nowrap} .upBuy .lockIco{flex:none;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.upLk{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;line-height:1;text-box:trim-both cap alphabetic} .upBuy .lockIco{flex:none;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 /* a locked stage has no story to read yet (Jack): no scroll on its card */
 .cCard.locked .cInfo,.cCard.preUnlock .cInfo{display:none}
 /* the campaign screen's way in: beside the stars, with the stars still to spend */

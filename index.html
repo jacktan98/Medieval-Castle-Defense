@@ -690,9 +690,9 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .upBig{width:56px;height:56px;flex:0 0 auto;border-radius:12px;border:2px solid #f0c95a;background:radial-gradient(circle at 50% 35%,#6a4f22,#2a1e0c);display:grid;place-items:center} .upBig svg{width:36px;height:36px}
 .upTx{flex:1;min-width:0} .upOf{font-size:11px;color:#bfae80;line-height:1.1}
 .upTx h3{margin:1px 0;font-family:var(--display);font-weight:400;color:#f0c95a;font-size:19px;line-height:1.05} .upTx p{margin:0;font-size:14px;font-weight:700;color:#fff1c4;line-height:1.1}
-.modal.tome .upDet .upBuy{min-height:0;padding:8px 14px;font-size:15px;white-space:nowrap}
+.modal.tome .upDet .upBuy{min-height:0;height:38px;padding:0 14px;font-size:15px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center}
 .modal.tome .upDet .upBuy:disabled{filter:grayscale(.6) brightness(.75)}
-.upLk{display:inline-flex;align-items:center;gap:5px;white-space:nowrap} .upBuy .lockIco{flex:none;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.upLk{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;line-height:1;text-box:trim-both cap alphabetic} .upBuy .lockIco{flex:none;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 /* a locked stage has no story to read yet (Jack): no scroll on its card */
 .cCard.locked .cInfo,.cCard.preUnlock .cInfo{display:none}
 /* the campaign screen's way in: beside the stars, with the stars still to spend */
@@ -9277,7 +9277,9 @@ const upIco = name => { const c = new THREE.Color(); c.setStyle(TEAM_PAL[TEAM.to
 // are open from the start. upStage gives that stage's index (-1: always open), upShut whether it is still locked
 const upStage = id => { for (const [, rows] of UP_TABS) for (const [, ic, ups] of rows) if (ups.some(u => u[0] === id)) return CAMPAIGN.findIndex(c => !c.bonus && c.adds.includes(ic)); return -1; };
 const upShut = id => { const k = upStage(id); return k > 0 && campState().locked[k]; };
-const upBuyLabel = (id, s) => upShut(id) ? `<span class="upLk">${LOCK_ICO}Stage ${upStage(id) + 1}</span>` : s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1';
+// the label in a span trimmed to its capitals and baseline (text-box), so it sits in the button's middle whatever line box a browser
+// gives the font (Jack's iPhone showed it low)
+const upBuyLabel = (id, s) => `<span class="upLk">${upShut(id) ? `${LOCK_ICO}Stage ${upStage(id) + 1}` : s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1'}</span>`;
 const upFind = id => { for (const [, rows] of UP_TABS) for (const [row, , ups] of rows) { const k = ups.findIndex(u => u[0] === id); if (k >= 0) return { row, u: ups[k], prev: k ? ups[k - 1][0] : null }; } };
 function openUpgrades() { sfx('click'); $('#upPick').replaceChildren(); $('#campaign').hidden = true; $('#upPick').hidden = false; upSel = null; renderUpgrades(); }
 function renderUpgrades() {

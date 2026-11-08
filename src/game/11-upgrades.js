@@ -136,7 +136,9 @@ const upIco = name => { const c = new THREE.Color(); c.setStyle(TEAM_PAL[TEAM.to
 // are open from the start. upStage gives that stage's index (-1: always open), upShut whether it is still locked
 const upStage = id => { for (const [, rows] of UP_TABS) for (const [, ic, ups] of rows) if (ups.some(u => u[0] === id)) return CAMPAIGN.findIndex(c => !c.bonus && c.adds.includes(ic)); return -1; };
 const upShut = id => { const k = upStage(id); return k > 0 && campState().locked[k]; };
-const upBuyLabel = (id, s) => upShut(id) ? `<span class="upLk">${LOCK_ICO}Stage ${upStage(id) + 1}</span>` : s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1';
+// the label in a span trimmed to its capitals and baseline (text-box), so it sits in the button's middle whatever line box a browser
+// gives the font (Jack's iPhone showed it low)
+const upBuyLabel = (id, s) => `<span class="upLk">${upShut(id) ? `${LOCK_ICO}Stage ${upStage(id) + 1}` : s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1'}</span>`;
 const upFind = id => { for (const [, rows] of UP_TABS) for (const [row, , ups] of rows) { const k = ups.findIndex(u => u[0] === id); if (k >= 0) return { row, u: ups[k], prev: k ? ups[k - 1][0] : null }; } };
 function openUpgrades() { sfx('click'); $('#upPick').replaceChildren(); $('#campaign').hidden = true; $('#upPick').hidden = false; upSel = null; renderUpgrades(); }
 function renderUpgrades() {
