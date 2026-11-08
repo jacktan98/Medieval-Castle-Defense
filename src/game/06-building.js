@@ -141,6 +141,9 @@ function doorPoint(B) { const d = B.door; if (!d) return { x: center(B).x, z: B.
 // centre is 1 m off the building's middle, toward the door's side)
 function doorShift(B) {
   const L = DOOR[B.type]; if (!L || !B.door) return [0, 0];
+  // the forester's way in is the gate in the middle of its fence, on the door tile's centre line; its hut door is deep in the plot,
+  // and shifting toward it drew a stray path arm beside the gate, into the fenced grove (Jack)
+  if (B.type === 'forester') return [0, 0];
   const tile = B.ev.s % 2 ? 0 : Math.sign(L[0][0]) * CELL / 2;
   return faceRot(B.face || 0, L[B.tier - 1][0] - tile, 0);
 }
