@@ -652,6 +652,8 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 /* the tab in use is lit: gold like the main buttons, dark text, a glow; the others stay dark and dim (Jack: it didn't stand out) */
 .modal.tome .upTabs .upTab.on{background:linear-gradient(180deg,#e9c463 0%,#c7962f 55%,#a47422 100%)!important;border-color:#f2d27a!important;color:#2a1a06!important;text-shadow:0 1px 0 rgba(255,236,170,.6);box-shadow:inset 0 1px 0 rgba(255,245,200,.7)!important;transform:translateY(2px)}
 .upGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px;width:100%}
+/* every tab's trees sit in one spot, only the open one shown, so the details below never move between tabs (Jack) */
+.upGrids{display:grid;width:100%;align-items:start} .upGrids>.upGrid{grid-area:1/1} .upGrid.off{visibility:hidden}
 .upTree{display:flex;flex-direction:column;align-items:center;padding-bottom:16px;border-radius:10px;background:linear-gradient(rgba(60,45,22,.55),rgba(20,15,8,.35));border:1px solid rgba(217,176,78,.25)}
 .upBan{width:100%;padding:5px 0 9px;text-align:center;background:linear-gradient(var(--tc),var(--td));clip-path:polygon(0 0,100% 0,100% 78%,50% 100%,0 78%);border-radius:9px 9px 0 0;margin-bottom:6px}
 .upBan svg{width:28px;height:28px;display:block;margin:0 auto 1px;fill:none;stroke:#fff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
@@ -7952,14 +7954,19 @@ function codexFrame(m) {
   // banner, the Raider Chief, the Warlord, the trebuchet), and the ground sits at the same height in the view for all of a kind
   const F = CX_FIT[m.cat], fit = m.cat === 'b2' || m.cat === 'b3' ? Math.max(F[0], size.y * .62) : F[0], d = fit / Math.tan(cxCam.fov * Math.PI / 360) * 1.02;
   // the grass: past a building's corners (half its footprint's diagonal), a set patch under figures and engines
-  const r = m.foot ? m.foot * .71 + .25 : F[2], lawn = cxScene.getObjectByName('lawn');
-  lawn.scale.set(r, 1, r); lawn.position.set(0, -.06, 0);
+  m.r = m.foot ? m.foot * .71 + .25 : F[2]; m.k = Math.max(2, fit * 1.6); m.c = c.clone();
   m.look = new THREE.Vector3(0, fit * F[1], 0); m.d = d;
-  const sl = cxScene.children.find(o => o.isDirectionalLight); const k = Math.max(2, fit * 1.6);
+}
+// the grass and the sun's shadow box are shared, so each shot sets them for its own model (the thumbnails made while the
+// screen opened left them at the last thumbnail's size, and the castle stood with its small lawn hidden under it: Jack)
+function codexStage(m) {
+  const lawn = cxScene.getObjectByName('lawn'); lawn.scale.set(m.r, 1, m.r); lawn.position.set(0, -.06, 0);
+  const sl = cxScene.children.find(o => o.isDirectionalLight), k = m.k, c = m.c;
   Object.assign(sl.shadow.camera, { left: -k, right: k, top: k, bottom: -k }); sl.shadow.camera.updateProjectionMatrix();
   sl.position.set(c.x - k * .8, c.y + k * 2.2, c.z + k); sl.target.position.copy(c);
 }
 function codexShot(m, ang) {
+  codexStage(m);
   cxCam.position.set(m.look.x + Math.sin(ang) * m.d * .9, m.look.y + m.d * .42, m.look.z + Math.cos(ang) * m.d * .9); cxCam.lookAt(m.look);
   cxR.render(cxScene, cxCam);
 }
@@ -9161,8 +9168,8 @@ function renderUpgrades() {
   let sh = el.querySelector('.upSheet'); if (!sh) { sh = document.createElement('div'); sh.className = 'upSheet'; el.replaceChildren(sh); }
   sh.innerHTML = `<div class="upTop"><button class="upBack campBack" id="upBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Upgrades</h2><div class="upBank"><i class="upStar">★</i><b>${left}</b></div></div>
     <div class="upTabs">${UP_TABS.map(([t], i) => `<button class="upTab${i === upTab ? ' on' : ''}" data-tab="${i}">${t}</button>`).join('')}</div>
-    <div class="upGrid">${rows.map(([n, ic, ups]) => `<div class="upTree"><div class="upBan">${upRowIco(ic)}<div>${n}</div></div>${ups.map(([id, name], j) => {
-      const sj = st(id); return `${j ? `<div class="upChain${st(ups[j - 1][0]) === 2 ? ' on' : ''}"></div>` : ''}<button class="upNode s${sj}${id === upSel ? ' sel' : ''}" data-up="${id}" aria-label="${name}">${upIco(name)}${sj === 2 ? '<span class="upTick">✓</span>' : '<span class="upCost">★1</span>'}</button>`; }).join('')}</div>`).join('')}</div>
+    <div class="upGrids">${UP_TABS.map(([, tabRows], ti) => `<div class="upGrid${ti === upTab ? '' : ' off'}"${ti === upTab ? '' : ' inert'}>${tabRows.map(([n, ic, ups]) => `<div class="upTree"><div class="upBan">${upRowIco(ic)}<div>${n}</div></div>${ups.map(([id, name], j) => {
+      const sj = st(id); return `${j ? `<div class="upChain${st(ups[j - 1][0]) === 2 ? ' on' : ''}"></div>` : ''}<button class="upNode s${sj}${id === upSel ? ' sel' : ''}" data-up="${id}" aria-label="${name}">${upIco(name)}${sj === 2 ? '<span class="upTick">✓</span>' : '<span class="upCost">★1</span>'}</button>`; }).join('')}</div>`).join('')}</div>`).join('')}</div>
     <div class="upRs"><button id="upReset" ${spent ? '' : 'disabled'}>${UP_RESET}Reset ${UP_TABS[upTab][0]}</button></div>
     <div class="upDet"><div class="upBig${s === 2 ? '' : ' dim'}">${upIco(sel.u[1])}</div><div class="upTx"><div class="upOf">${sel.row}</div><h3>${sel.u[1]}</h3><p>${sel.u[2]}</p></div>
       <button class="primary upBuy" id="upBuy" ${s === 1 && left > 0 ? '' : 'disabled'}>${s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1'}</button></div>`;

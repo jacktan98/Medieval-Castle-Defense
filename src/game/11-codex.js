@@ -82,14 +82,19 @@ function codexFrame(m) {
   // banner, the Raider Chief, the Warlord, the trebuchet), and the ground sits at the same height in the view for all of a kind
   const F = CX_FIT[m.cat], fit = m.cat === 'b2' || m.cat === 'b3' ? Math.max(F[0], size.y * .62) : F[0], d = fit / Math.tan(cxCam.fov * Math.PI / 360) * 1.02;
   // the grass: past a building's corners (half its footprint's diagonal), a set patch under figures and engines
-  const r = m.foot ? m.foot * .71 + .25 : F[2], lawn = cxScene.getObjectByName('lawn');
-  lawn.scale.set(r, 1, r); lawn.position.set(0, -.06, 0);
+  m.r = m.foot ? m.foot * .71 + .25 : F[2]; m.k = Math.max(2, fit * 1.6); m.c = c.clone();
   m.look = new THREE.Vector3(0, fit * F[1], 0); m.d = d;
-  const sl = cxScene.children.find(o => o.isDirectionalLight); const k = Math.max(2, fit * 1.6);
+}
+// the grass and the sun's shadow box are shared, so each shot sets them for its own model (the thumbnails made while the
+// screen opened left them at the last thumbnail's size, and the castle stood with its small lawn hidden under it: Jack)
+function codexStage(m) {
+  const lawn = cxScene.getObjectByName('lawn'); lawn.scale.set(m.r, 1, m.r); lawn.position.set(0, -.06, 0);
+  const sl = cxScene.children.find(o => o.isDirectionalLight), k = m.k, c = m.c;
   Object.assign(sl.shadow.camera, { left: -k, right: k, top: k, bottom: -k }); sl.shadow.camera.updateProjectionMatrix();
   sl.position.set(c.x - k * .8, c.y + k * 2.2, c.z + k); sl.target.position.copy(c);
 }
 function codexShot(m, ang) {
+  codexStage(m);
   cxCam.position.set(m.look.x + Math.sin(ang) * m.d * .9, m.look.y + m.d * .42, m.look.z + Math.cos(ang) * m.d * .9); cxCam.lookAt(m.look);
   cxR.render(cxScene, cxCam);
 }
