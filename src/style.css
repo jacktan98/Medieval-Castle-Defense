@@ -243,6 +243,13 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 .cCard .cPic{display:block;width:100%;aspect-ratio:1/1;background-size:cover;background-position:center;border-radius:10px}
 .cCard .cName{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:1px;padding:16px 12px 8px;justify-content:flex-end;border-radius:0 0 10px 10px;background:linear-gradient(180deg,rgba(10,11,8,0) 0%,rgba(10,11,8,.55) 45%,rgba(10,11,8,.72) 100%);text-shadow:0 1px 3px rgba(0,0,0,.9)} .cName small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)} .cName b{font-family:var(--display);font-weight:400;font-size:20px;color:var(--gold);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cCard.boss{border-color:rgba(226,113,91,.85)} .cCard.boss .cName small{color:#e2715b}
+/* the story (Jack): a round ! in the card's bottom-right corner flips it to the story on its back (bronze, the stage on a gold band) */
+.cInfo{position:absolute;right:9px;bottom:9px;width:28px;height:28px;border-radius:50%;background:rgba(14,12,6,.82);border:1.5px solid #c9a03e;color:#f2d27a;font:700 17px/25px Georgia,serif;font-style:normal;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.6);z-index:2}
+.cBack{display:none;position:absolute;inset:0;border-radius:10px;overflow:hidden;flex-direction:column;background:linear-gradient(180deg,#3a2e19 0%,#22190d 100%);z-index:3}
+.cCard.flipped .cBack{display:flex} .cCard.flipped .cInfo,.cCard.flipped .jLock{display:none}
+.cBackT{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 10px 6px;background:linear-gradient(180deg,#e8c56a 0%,#b98d33 100%);color:#2a1d08;text-align:center}
+.cBackT small{font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:#5a3f12} .cBackT b{font-family:var(--display);font-weight:400;font-size:calc(var(--cw,240px) * .075);line-height:1.1}
+.cStory{flex:1;min-height:0;display:flex;align-items:center;padding:4% 7%;font-size:clamp(11px,calc(var(--cw,240px) * .051),16px);line-height:1.42;color:#f1e4c2;text-align:left;text-wrap:pretty}
 .cCard.locked .cPic{filter:grayscale(.75) brightness(.7)}
 .cCard.cur.front{border-color:#f2d27a;animation:jGlow 1.8s ease-in-out infinite alternate}
 @keyframes jGlow{from{box-shadow:0 0 0 1px rgba(255,215,106,.4),0 0 16px rgba(255,200,80,.35),0 14px 34px rgba(0,0,0,.65)}to{box-shadow:0 0 0 2px rgba(255,215,106,.8),0 0 34px rgba(255,200,80,.7),0 14px 34px rgba(0,0,0,.65)}}

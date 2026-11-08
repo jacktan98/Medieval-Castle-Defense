@@ -551,6 +551,25 @@ const CAMPAIGN = [
   { name: 'Frozen Pass', sub: 'Bonus', map: 'pass', bonus: true, land: 'Deep winter · huge waves', adds: [] },
 ];
 const MAIN = CAMPAIGN.filter(c => !c.bonus);
+// the storyline (Jack): read only on the back of each stage's card in the campaign (its ! button flips it), never in the game;
+// a young prince wins back his father's kingdom from the Warlord, light in tone; no short forms (Jack: "will", not "'ll")
+const STORY = {
+  vale: 'Long ago your family ruled these lands in peace, until the Warlord came with his raiders. The King, your father, fell defending the castle, and you escaped as a boy. Years of training later, you are back. Greenvale is a quiet valley at the edge of the old kingdom, and its people still remember your family. Build them a home worth defending.',
+  bridge: 'Stonebridge guards the only crossing on the great river. The townsfolk started a wall to keep the raiders out, but lost their nerve halfway through. When the young prince rides in with a plan, the blacksmith grins and hands out spears. Finish the wall, train some soldiers, and hold the bridge.',
+  cross: 'Two old roads meet at a worn stone cross, and merchants have traded there for a hundred years. Business has been awful since the raiders came, and there is hardly a rock in sight to build with. The merchants make you an offer: keep the roads safe, and they will trade you all the stone you need.',
+  watch: 'Your father once kept watch over the dry hills from a tall stone tower. The raiders burned it the year he fell, and it still smoulders. The hill gives the best view for miles, so it is the perfect spot for a ballista. Your father would like that.',
+  dune: 'Dunewell is an oasis on the old caravan road, and the only water for days in any direction. The desert folk are friendly but careful: trees are precious here, and they will not let you cut down theirs. Plant a grove of your own, dig a well, and the caravans might just come back.',
+  bend: 'At Riverbend the river splits in two, with the town on the island between. The Warlord\'s raiders have learned a new trick: attacking over both bridges at once. Luckily the town\'s crossbowmen are the best in the land, and they have been waiting for someone to lead them.',
+  crag: 'Ironwood\'s trees are so thick that the sun barely reaches the ground. There is not a loose rock anywhere, but the woodsfolk say the old crag is full of good stone. Dig a mine, raise your banners high, and let the whole forest know the prince has come.',
+  ford: 'The Warlord is worried now, and he is sending catapults and rams down the highland valley. An old stone wall still guards the river, a bit crumbly but standing. If they bring siege engines, you will build bigger ones.',
+  mere: 'Meadowmere was once famous for its golden wheat. The Warlord\'s men spoiled the soil as they passed, and now crops rot in the marsh. The farmers have not given up, though: hens and pigs do not mind a bit of blight. Build farmhouses and keep the town fed.',
+  plains: 'The finest horses in the kingdom graze on these open plains, and the Warlord wants them all for his riders. There are no hills to hide behind and no walls to lean on. Raise stables, train your own knights, and meet his horsemen head on.',
+  keep: 'The Raider Chief helped the Warlord take your father\'s throne. He sits in a palisade keep above a burned village, his raiders camped all around. Leave the camps quiet and they will leave you alone, until the Chief himself marches out. Then it is the fight you have trained for.',
+  hold: 'Far north in the snow stands the Warlord\'s hold, the last thing between you and your father\'s crown. Every town you have freed has sent its best: archers, knights, engineers and a few very brave farmers. Cross the great bridge, break his army, and bring the crown home.',
+  meadow: 'Peace at last, and the new King\'s first summer is the driest anyone can remember. The river has shrunk to cracked mud and the trees have withered, and the Warlord\'s leftover raiders smell an opportunity. Rule wisely with what little there is.',
+  isle: 'A blight has crept onto the river isle and the fields are failing. Hungry raiders are circling the island, hoping the King\'s town is too weak to fight. Show them that a full henhouse and a sharp arrow beat a blight any day.',
+  pass: 'The longest winter in memory has buried the mountain pass in snow. The Warlord\'s last loyal captains have gathered every raider they could find for one final march. Hold the pass, keep the fires burning, and the kingdom will see spring.',
+};
 // Jack is testing every stage, so a locked stage can still be played; set false for release (a locked stage's Play is then refused)
 const TEST_OPEN = true;
 const mainWon = () => MAIN.every(c => STARS[c.map] > 0);
@@ -573,7 +592,7 @@ function buildDeck() {
   $('#cCards').innerHTML = CAMPAIGN.map((c, i) => { const st = won[i] ? 'won' : i === cur ? 'cur' : locked[i] ? 'locked' : '';
     const mark = locked[i] ? `<i class="jLock">${LOCK_SVG}</i>` : '';
     return `<button class="cCard ${st}${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}" data-i="${i}" tabindex="-1"><span class="cPic" style="background-image:url(maps/thumb/${c.map}.jpg)"></span>
-      <span class="cName"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}${won[i] && !c.bonus ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}</button>`; }).join('');
+      <span class="cName"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}${won[i] && !c.bonus ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}${STORY[c.map] ? `<i class="cInfo" aria-label="Story">!</i><span class="cBack"><span class="cBackT"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}</small><b>${c.name}</b></span><span class="cStory">${STORY[c.map]}</span></span>` : ''}</button>`; }).join('');
   $('#cDots').innerHTML = CAMPAIGN.map((c, i) => `<button class="cDot${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}${won[i] ? ' won' : i === cur ? ' cur' : ''}" data-i="${i}" aria-label="Stage ${i + 1}"></button>`).join('');
 }
 // place every card for the front index cSel plus the live drag (in cards); the card's size follows the room the deck has
@@ -588,16 +607,32 @@ function layoutDeck(anim = true) {
   document.querySelectorAll('#cCards .cCard').forEach(el => {
     const d = +el.dataset.i - f, a = Math.abs(d), sg = Math.sign(d), x = sg * (Math.min(a, 1) * .62 + Math.max(0, a - 1) * .2) * W;
     el.style.transition = anim ? '' : 'none';
-    el.style.transform = `translateX(${x.toFixed(1)}px) translateZ(${(-Math.min(a, 4) * 70).toFixed(0)}px) rotateY(${(-Math.max(-1, Math.min(1, d)) * 34).toFixed(1)}deg) scale(${(1 - Math.min(a, 3) * .07).toFixed(3)})`;
+    el.style.transform = `translateX(${x.toFixed(1)}px) translateZ(${(-Math.min(a, 4) * 70).toFixed(0)}px) rotateY(${(-Math.max(-1, Math.min(1, d)) * 34).toFixed(1)}deg) scale(${(1 - Math.min(a, 3) * .07).toFixed(3)}) rotateY(var(--fl, 0deg))`;
     el.style.zIndex = 100 - Math.round(a * 10); el.style.opacity = a > 3.4 ? 0 : Math.max(0, 1 - Math.max(0, a - 1.3) * .45).toFixed(2); el.style.pointerEvents = a > 3.4 ? 'none' : 'auto';
     el.style.setProperty('--dim', Math.min(a, 1.5) * .4);
     el.classList.toggle('front', a < .5);
   });
   // no arrow past the ends: none to the left on Stage 1, none to the right on Stage 12 (Jack); hidden, not removed, so the deck keeps its place
+  document.querySelectorAll('#cCards .cCard.flipped').forEach(fitStory);
   $('#cPrev').style.visibility = cSel <= 0 ? 'hidden' : ''; $('#cNext').style.visibility = cSel >= CAMPAIGN.length - 1 ? 'hidden' : '';
 }
+// the card's story (Jack): its ! flips it over to the story on the back, a tap on the card or the ! flips it back; turning the deck
+// flips any open card back. The flip turns the card edge-on, swaps its face, and turns it back (a whole half turn would show it mirrored)
+function flipCard(card, on) {
+  if (!card || card.classList.contains('flipped') === on || card._flipping) return;
+  card._flipping = true; card.style.transition = 'transform .16s ease-in'; card.style.setProperty('--fl', '90deg');
+  setTimeout(() => { card.classList.toggle('flipped', on); if (on) fitStory(card); card.style.transition = 'transform .2s ease-out'; card.style.setProperty('--fl', '0deg');
+    setTimeout(() => { card._flipping = false; card.style.transition = ''; }, 220); }, 160);
+}
+// the story's text shrinks until it fits the card (a phone held sideways has a small card), from its CSS size down to 9 px
+function fitStory(card) {
+  const back = card.querySelector('.cBack'), t = card.querySelector('.cStory'); if (!back || !t) return;
+  t.style.fontSize = ''; let f = parseFloat(getComputedStyle(t).fontSize);
+  while (back.scrollHeight > back.clientHeight + 1 && f > 9) { f -= .5; t.style.fontSize = f + 'px'; }
+}
+const unflipAll = () => document.querySelectorAll('#cCards .cCard.flipped').forEach(c => { c.classList.remove('flipped'); c.style.setProperty('--fl', '0deg'); });
 function selectStage(i, quiet) {
-  i = Math.max(0, Math.min(CAMPAIGN.length - 1, i)); if (!quiet && i !== cSel) sfx('click'); cSel = i; cDrag = 0; layoutDeck(); openStage(i);
+  i = Math.max(0, Math.min(CAMPAIGN.length - 1, i)); if (i !== cSel) unflipAll(); if (!quiet && i !== cSel) sfx('click'); cSel = i; cDrag = 0; layoutDeck(); openStage(i);
 }
 function openStage(i) {
   const c = CAMPAIGN[i]; cSel = i;
@@ -649,7 +684,11 @@ $('#dHard').addEventListener('click', () => {
     if (moved > 6) { cDrag = Math.max(-cSel - .4, Math.min(CAMPAIGN.length - 1 - cSel + .4, -dx / (parseFloat(deck.style.getPropertyValue('--cw')) * .62))); layoutDeck(false); } });
   const up = e => { if (x0 === null) return; x0 = null;
     if (moved > 6) selectStage(Math.round(cSel + cDrag));
-    else { const card = document.elementFromPoint(e.clientX, e.clientY)?.closest('.cCard'); if (card) selectStage(+card.dataset.i); } };
+    else { const hit = document.elementFromPoint(e.clientX, e.clientY), card = hit?.closest('.cCard'); if (!card) return;
+      // the ! (or anywhere on a card showing its story) flips the front card; on a side card the ! brings it forward and flips it
+      if (hit.closest('.cInfo') || card.classList.contains('flipped')) { const i = +card.dataset.i; if (i !== cSel) selectStage(i);
+        sfx('click'); flipCard(card, !card.classList.contains('flipped')); }
+      else selectStage(+card.dataset.i); } };
   deck.addEventListener('pointerup', up); deck.addEventListener('pointercancel', () => { x0 = null; cDrag = 0; layoutDeck(); });
   deck.addEventListener('wheel', e => { e.preventDefault(); wheelAcc += Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
     const now = performance.now(); if (Math.abs(wheelAcc) > 40 && now - wheelT > 220) { selectStage(cSel + Math.sign(wheelAcc)); wheelAcc = 0; wheelT = now; } }, { passive: false });
