@@ -7888,8 +7888,13 @@ function codexMeet(kind, tier) { if (!achOn() || !ENEMY[kind] || (CODEX.r[kind] 
 
 // ---- the little renderer: one fixed square canvas, copied to the live view each frame and snapped for the list's thumbnails ----
 const CX_PX = 320;
-// the angle each thumbnail is taken from; the spearman from nearer his front, so his long spear points toward the camera and stays inside the tile (Jack)
-const cxAng = (side, id) => side === 'r' && id === 'spear' ? .2 : .7;
+// the thumbnail's pose: the gallery's fighting pose, but the spearman stands at rest with his spear upright, so it stays inside
+// the tile while he faces the same way as the others (Jack: held level it poked out of the tile)
+function cxRest(m, side, id) {
+  galPose(m.p, .4, 1);
+  if (side === 'r' && id === 'spear') { const p = m.p; p.arms[1].rotation.x = -.35; p.pivot.rotation.x = CX_SPEAR; p.pivot.position.y = CX_SPEAR_Y; p.body.position.z = 0; p.body.rotation.x = 0; }
+}
+const CX_SPEAR = -2.8, CX_SPEAR_Y = -.33;
 // each kind's zoom: [fit (metres), how high the camera aims (× fit), the grass patch's radius for figures and engines]
 // buildings by footprint (Jack): the 3×3 ones (castle, forester) in proportion to each other, the 2×2 ones smaller and the 1×1 ones
 // smaller again, though each a little bigger than to true scale; the town's catapult at the raiders' siege zoom; bosses on their own
@@ -7955,8 +7960,8 @@ function codexThumbs() {
   while (cxQueue.length && performance.now() - t0 < 14) {
     const [side, id, tier] = cxQueue.shift(), key = thumbKey(side, id, tier); if (cxThumb[key]) continue;
     const m = codexModel(side, id, tier); codexFrame(m);
-    if (m.p) galPose(m.p, .4, 1);
-    codexShot(m, cxAng(side, id)); cxThumb[key] = cxR.domElement.toDataURL('image/png'); codexDrop(m);
+    if (m.p) cxRest(m, side, id);
+    codexShot(m, .7); cxThumb[key] = cxR.domElement.toDataURL('image/png'); codexDrop(m);
     for (const im of document.querySelectorAll(`#codexPick img[data-k="${key}"]`)) im.src = cxThumb[key];
   }
 }
