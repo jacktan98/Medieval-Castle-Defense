@@ -662,7 +662,7 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 /* the campaign screen's round buttons, on the left just above the progress bar (Jack): Upgrades (a hammer, with the stars still to spend), Achievements later beside it; no height of their own, so the deck and the bar don't move */
 .cDotsWrap{position:relative;width:min(380px,100%)} .cDotsWrap .cDots{width:100%}
 .campSide{position:absolute;left:0;bottom:100%;margin-bottom:10px;z-index:5;display:flex;gap:10px}
-.modal.tome .campSide .campCirc,.modal.tome .campAch .campCirc{position:relative;width:48px;height:48px;min-height:0!important;padding:0!important;border-radius:50%!important;display:grid!important;place-items:center;background:radial-gradient(circle at 50% 35%,#5a4426,#241a0c)!important;border:2px solid #d9b04e!important;box-shadow:0 2px 8px rgba(0,0,0,.6),0 0 10px rgba(240,201,90,.25)!important}
+.modal.tome .campSide .campCirc{position:relative;width:48px;height:48px;min-height:0!important;padding:0!important;border-radius:50%!important;display:grid!important;place-items:center;background:radial-gradient(circle at 50% 35%,#5a4426,#241a0c)!important;border:2px solid #d9b04e!important;box-shadow:0 2px 8px rgba(0,0,0,.6),0 0 10px rgba(240,201,90,.25)!important}
 .campCirc > svg{width:30px;height:30px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.7))}
 .campBadge{position:absolute;top:-5px;right:-14px;padding:0 5px;border-radius:9px;background:#f0c95a;color:#2a1d0a;font-size:11px;font-weight:700;line-height:16px;border:1.5px solid #fff1c4;box-shadow:0 1px 3px rgba(0,0,0,.6);animation:badgePulse 1.6s ease-in-out infinite}
 /* stars still to spend: the badge pulses and glows so players see there are upgrades to buy (Jack); hidden at none */
@@ -675,7 +675,6 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
   .upDet{max-width:520px;align-self:center;padding:6px 10px}   /* Reset sits to the left of the details, on their row */
   .modal.tome .upTabs .upTab{padding:4px 0 3px!important;font-size:14px} .modal.tome .upTop .upBack{width:34px;height:34px} .upBank{height:26px} }
 /* a phone held sideways: the deck reaches down to the bar, so the round buttons sit to the bar's left instead */
-@media (max-height:520px){ .campSide{left:auto;right:100%;bottom:0;margin:0 12px 0 0} }
 /* the campaign screen's way back to the title: a round button in the top-left corner (Jack); Play has the details' foot to itself */
 .modal.tome .campBack{position:absolute;top:calc(16px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left));z-index:6;width:40px;height:40px;min-height:0!important;min-width:0!important;padding:0!important;border-radius:11px!important;border:2px solid #d9b04e!important;background:linear-gradient(180deg,#5a4428,#2c210f)!important;display:flex!important;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,230,160,.25)!important}
 .campBack svg{display:block;width:22px;height:22px;fill:none;stroke:#f0c95a;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
@@ -728,7 +727,6 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 
 /* ---- achievements (Jack): the trophy beside the Upgrades hammer upright; on a phone held sideways at the progress bar's right end ---- */
 .campAch{position:absolute;left:58px;bottom:100%;margin-bottom:10px;z-index:5}
-@media (max-height:520px){ .campAch{left:100%;bottom:0;margin:0 0 0 12px} }
 #achPick{display:flex;justify-content:center;align-items:flex-start;overflow:auto} #achPick .upSheet{margin:auto}
 body.showcase #achPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 20%, rgba(42,32,18,.9) 0%, rgba(14,11,6,.95) 55%, rgba(6,5,3,.98) 100%)!important}
 .achSheet .upBank{gap:5px;font-size:14px} .achSheet .upBank b{font-size:18px}
@@ -762,3 +760,27 @@ body.showcase #achPick.modal.tome{background-color:transparent!important;backgro
 .cDot.bonus{border-color:#b084e8!important} .cDot.bonus.won{background:linear-gradient(180deg,#c7a6f2,#6d47a8)!important}
 .modal.tome #stDiff.only #dHard{border-radius:999px}
 #campPlay.shut svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;display:block;margin:auto}
+
+/* ---- the Codex (Jack): Upgrades, Achievements and the Codex's book side by side just above the progress bar, upright and sideways ---- */
+#codexPick{display:flex;justify-content:center;align-items:flex-start;overflow:hidden} #codexPick .achSheet{height:100%;min-height:0;margin:0 auto}
+body.showcase #codexPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 20%, rgba(42,32,18,.9) 0%, rgba(14,11,6,.95) 55%, rgba(6,5,3,.98) 100%)!important}
+.cxSheet .upTop{margin-bottom:8px;padding-bottom:0;border-bottom:none}
+.cxSheet .upTabs{flex:0 0 auto}
+.modal.tome .cxNode{overflow:hidden}
+.cxNode img{width:58px;height:58px;object-fit:contain;transform:translateY(-1px)}
+.cxNode.locked img{filter:brightness(0);opacity:.55}
+.cxLock{position:absolute;inset:0;display:grid;place-items:center} .cxLock .lockIco{width:20px;height:20px;color:#d9c08a;opacity:.9}
+.modal.tome .cxNode.done{background:radial-gradient(circle at 50% 35%,#6a5228,#2a1f0e)!important;border-color:#c9a03e!important;box-shadow:inset 0 0 0 1px rgba(255,241,196,.15)!important}
+.cxDet{align-items:center}
+.cxView{width:132px;height:132px;flex:0 0 auto;border-radius:12px;border:2px solid #d9b04e;background:radial-gradient(circle at 50% 40%,#3c5a7a,#1a2433)}
+.cxDet.locked .cxView{filter:brightness(0);opacity:.6}
+.cxTiers{display:flex;gap:4px;margin:5px 0 3px}
+.modal.tome .cxTiers .seg{min-height:0!important;padding:2px 9px!important;font-size:12px!important;border-radius:9px!important;border:1px solid rgba(217,176,78,.55)!important;background:#1a140a!important;color:#d9c08a!important}
+.modal.tome .cxTiers .seg.on{background:linear-gradient(180deg,#e9c463,#a47422)!important;color:#2a1a06!important;border-color:#f2d27a!important}
+.modal.tome .cxTiers .seg:disabled{opacity:.6} .cxTiers .lockIco{width:12px;height:12px;vertical-align:-2px}
+.cxStats{display:flex;flex-wrap:wrap;gap:3px 10px;font-size:13px;color:#f4e3b2} .cxStats .ico svg{width:14px;height:14px;vertical-align:-2px}
+@media (max-height:520px){ .cxView{width:86px;height:86px} .cxSheet .achGrid{grid-auto-columns:72px;padding-bottom:12px} .cxNode img{width:48px;height:48px}
+  .cxSheet .upTop{margin-bottom:2px} .cxSheet .upTabs{margin-bottom:6px} .modal.tome .cxDet{padding:4px 10px;margin-top:4px} .cxDet .upTx h3{font-size:17px} .cxDet .upTx p{font-size:13px}
+  .cxTiers{margin:3px 0 2px} }
+/* a phone held sideways: the cards sit a little higher, leaving room for the round buttons over the progress bar (Jack) */
+.cCards{transform:translateY(var(--cy,0px))}

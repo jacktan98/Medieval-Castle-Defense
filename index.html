@@ -679,7 +679,7 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 /* the campaign screen's round buttons, on the left just above the progress bar (Jack): Upgrades (a hammer, with the stars still to spend), Achievements later beside it; no height of their own, so the deck and the bar don't move */
 .cDotsWrap{position:relative;width:min(380px,100%)} .cDotsWrap .cDots{width:100%}
 .campSide{position:absolute;left:0;bottom:100%;margin-bottom:10px;z-index:5;display:flex;gap:10px}
-.modal.tome .campSide .campCirc,.modal.tome .campAch .campCirc{position:relative;width:48px;height:48px;min-height:0!important;padding:0!important;border-radius:50%!important;display:grid!important;place-items:center;background:radial-gradient(circle at 50% 35%,#5a4426,#241a0c)!important;border:2px solid #d9b04e!important;box-shadow:0 2px 8px rgba(0,0,0,.6),0 0 10px rgba(240,201,90,.25)!important}
+.modal.tome .campSide .campCirc{position:relative;width:48px;height:48px;min-height:0!important;padding:0!important;border-radius:50%!important;display:grid!important;place-items:center;background:radial-gradient(circle at 50% 35%,#5a4426,#241a0c)!important;border:2px solid #d9b04e!important;box-shadow:0 2px 8px rgba(0,0,0,.6),0 0 10px rgba(240,201,90,.25)!important}
 .campCirc > svg{width:30px;height:30px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.7))}
 .campBadge{position:absolute;top:-5px;right:-14px;padding:0 5px;border-radius:9px;background:#f0c95a;color:#2a1d0a;font-size:11px;font-weight:700;line-height:16px;border:1.5px solid #fff1c4;box-shadow:0 1px 3px rgba(0,0,0,.6);animation:badgePulse 1.6s ease-in-out infinite}
 /* stars still to spend: the badge pulses and glows so players see there are upgrades to buy (Jack); hidden at none */
@@ -692,7 +692,6 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
   .upDet{max-width:520px;align-self:center;padding:6px 10px}   /* Reset sits to the left of the details, on their row */
   .modal.tome .upTabs .upTab{padding:4px 0 3px!important;font-size:14px} .modal.tome .upTop .upBack{width:34px;height:34px} .upBank{height:26px} }
 /* a phone held sideways: the deck reaches down to the bar, so the round buttons sit to the bar's left instead */
-@media (max-height:520px){ .campSide{left:auto;right:100%;bottom:0;margin:0 12px 0 0} }
 /* the campaign screen's way back to the title: a round button in the top-left corner (Jack); Play has the details' foot to itself */
 .modal.tome .campBack{position:absolute;top:calc(16px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left));z-index:6;width:40px;height:40px;min-height:0!important;min-width:0!important;padding:0!important;border-radius:11px!important;border:2px solid #d9b04e!important;background:linear-gradient(180deg,#5a4428,#2c210f)!important;display:flex!important;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,230,160,.25)!important}
 .campBack svg{display:block;width:22px;height:22px;fill:none;stroke:#f0c95a;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
@@ -745,7 +744,6 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 
 /* ---- achievements (Jack): the trophy beside the Upgrades hammer upright; on a phone held sideways at the progress bar's right end ---- */
 .campAch{position:absolute;left:58px;bottom:100%;margin-bottom:10px;z-index:5}
-@media (max-height:520px){ .campAch{left:100%;bottom:0;margin:0 0 0 12px} }
 #achPick{display:flex;justify-content:center;align-items:flex-start;overflow:auto} #achPick .upSheet{margin:auto}
 body.showcase #achPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 20%, rgba(42,32,18,.9) 0%, rgba(14,11,6,.95) 55%, rgba(6,5,3,.98) 100%)!important}
 .achSheet .upBank{gap:5px;font-size:14px} .achSheet .upBank b{font-size:18px}
@@ -779,6 +777,30 @@ body.showcase #achPick.modal.tome{background-color:transparent!important;backgro
 .cDot.bonus{border-color:#b084e8!important} .cDot.bonus.won{background:linear-gradient(180deg,#c7a6f2,#6d47a8)!important}
 .modal.tome #stDiff.only #dHard{border-radius:999px}
 #campPlay.shut svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;display:block;margin:auto}
+
+/* ---- the Codex (Jack): Upgrades, Achievements and the Codex's book side by side just above the progress bar, upright and sideways ---- */
+#codexPick{display:flex;justify-content:center;align-items:flex-start;overflow:hidden} #codexPick .achSheet{height:100%;min-height:0;margin:0 auto}
+body.showcase #codexPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse at 50% 20%, rgba(42,32,18,.9) 0%, rgba(14,11,6,.95) 55%, rgba(6,5,3,.98) 100%)!important}
+.cxSheet .upTop{margin-bottom:8px;padding-bottom:0;border-bottom:none}
+.cxSheet .upTabs{flex:0 0 auto}
+.modal.tome .cxNode{overflow:hidden}
+.cxNode img{width:58px;height:58px;object-fit:contain;transform:translateY(-1px)}
+.cxNode.locked img{filter:brightness(0);opacity:.55}
+.cxLock{position:absolute;inset:0;display:grid;place-items:center} .cxLock .lockIco{width:20px;height:20px;color:#d9c08a;opacity:.9}
+.modal.tome .cxNode.done{background:radial-gradient(circle at 50% 35%,#6a5228,#2a1f0e)!important;border-color:#c9a03e!important;box-shadow:inset 0 0 0 1px rgba(255,241,196,.15)!important}
+.cxDet{align-items:center}
+.cxView{width:132px;height:132px;flex:0 0 auto;border-radius:12px;border:2px solid #d9b04e;background:radial-gradient(circle at 50% 40%,#3c5a7a,#1a2433)}
+.cxDet.locked .cxView{filter:brightness(0);opacity:.6}
+.cxTiers{display:flex;gap:4px;margin:5px 0 3px}
+.modal.tome .cxTiers .seg{min-height:0!important;padding:2px 9px!important;font-size:12px!important;border-radius:9px!important;border:1px solid rgba(217,176,78,.55)!important;background:#1a140a!important;color:#d9c08a!important}
+.modal.tome .cxTiers .seg.on{background:linear-gradient(180deg,#e9c463,#a47422)!important;color:#2a1a06!important;border-color:#f2d27a!important}
+.modal.tome .cxTiers .seg:disabled{opacity:.6} .cxTiers .lockIco{width:12px;height:12px;vertical-align:-2px}
+.cxStats{display:flex;flex-wrap:wrap;gap:3px 10px;font-size:13px;color:#f4e3b2} .cxStats .ico svg{width:14px;height:14px;vertical-align:-2px}
+@media (max-height:520px){ .cxView{width:86px;height:86px} .cxSheet .achGrid{grid-auto-columns:72px;padding-bottom:12px} .cxNode img{width:48px;height:48px}
+  .cxSheet .upTop{margin-bottom:2px} .cxSheet .upTabs{margin-bottom:6px} .modal.tome .cxDet{padding:4px 10px;margin-top:4px} .cxDet .upTx h3{font-size:17px} .cxDet .upTx p{font-size:13px}
+  .cxTiers{margin:3px 0 2px} }
+/* a phone held sideways: the cards sit a little higher, leaving room for the round buttons over the progress bar (Jack) */
+.cCards{transform:translateY(var(--cy,0px))}
 </style>
 
 <!-- shown from the first paint until the game is ready (three.js comes from a CDN; on a slow phone that takes a while) -->
@@ -903,6 +925,7 @@ body.showcase #achPick.modal.tome{background-color:transparent!important;backgro
   </div>
   <div class="modal tome" id="upPick" hidden></div>
   <div class="modal tome" id="achPick" hidden></div>
+  <div class="modal tome" id="codexPick" hidden></div>
   <div id="achToast" hidden></div>
   <div class="modal tome" id="campaign" hidden>
     <!-- back to the title, a round button in the top-left corner like the Upgrades screen's (Jack: Back on each stage's details made no sense) -->
@@ -913,7 +936,7 @@ body.showcase #achPick.modal.tome{background-color:transparent!important;backgro
         <div class="cLeft">
           <div class="cDeckWrap"><div class="cDeck" id="campMap"><div class="cCards" id="cCards"></div></div><button class="cArrow l" id="cPrev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M15 5 L8 12 L15 19"/></svg></button><button class="cArrow r" id="cNext" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M9 5 L16 12 L9 19"/></svg></button></div>
           <!-- round buttons just above the progress bar on its left (Jack): Upgrades (a hammer), Achievements to come beside it -->
-      <div class="cDotsWrap"><div class="campSide"><button class="campCirc" id="campUpBtn" aria-label="Upgrades" title="Upgrades"><svg viewBox="-12 14 512 512"><defs><linearGradient id="hmg39" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9a46a"/><stop offset="1" stop-color="#8a5a30"/></linearGradient></defs><g fill="url(#hmg39)" stroke="#140d05" stroke-width="34" paint-order="stroke" stroke-linejoin="round"><path d="M215.97 27.813c-2.218.04-4.35.177-6.407.375l-.532.062c-2.774.266-5.796 1.01-9.124 1.844c-4.418 1.11-8.096 2.607-11.125 4.406l77.782 59.313l7.375 5.656l-5.593 7.405l-13.72 18.156l67.595 51.626l14.217-18.812l9.47-12.53l6.5 14.342l19.656 43.47l60.593-80.095l-47.187-7.124l-15.533-2.312l9.47-12.563l14.28-18.843l-67.593-51.624L310.78 50.78l-5.03 6.657l-7.188-4.25c-28.635-16.917-58.02-25.157-80.343-25.374a77 77 0 0 0-2.25 0zM453 127.124l-71.47 94.438l34.564 26.187c44.24-20.22 64.01-52.594 71.312-94.625zm-193.688 25.03c-27.17 33.09-55.308 64.706-82.812 96.22l47.406 39.875c23.11-35.343 46.336-71.61 71.938-108.22l-36.53-27.874zM164.25 262.47c-11.355 13.115-22.564 26.254-33.5 39.5l48.375 52.717c11.707-16.6 23.107-33.515 34.438-50.687zm-45.438 54.124a1112 1112 0 0 0-23.093 29.72l33.468 73.842c13.586-16.22 26.434-32.893 38.843-49.937zm-35.75 47.03c-12.108 16.978-23.57 34.335-34.124 52.282L98.53 454.47a688 688 0 0 0 17.22-18.72zm-43.437 68.688a546 546 0 0 0-14.75 29l37.375 28.313a611 611 0 0 0 23.125-21.72z"/></g><defs><linearGradient id="hmo39_0" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef2f6"/><stop offset="1" stop-color="#8c96a3"/></linearGradient></defs><g fill="url(#hmo39_0)"><path d="M215.97 27.813 c-2.218 0.04 -4.35 0.177 -6.407 0.375 l-0.532 0.062 c-2.774 0.266 -5.796 1.01 -9.124 1.844 c-4.418 1.11 -8.096 2.607 -11.125 4.406 l77.782 59.313 l7.375 5.656 l-5.593 7.405 l-13.72 18.156 l67.595 51.626 l14.217 -18.812 l9.47 -12.53 l6.5 14.342 l19.656 43.47 l60.593 -80.095 l-47.187 -7.124 l-15.533 -2.312 l9.47 -12.563 l14.28 -18.843 l-67.593 -51.624 L310.78 50.78 l-5.03 6.657 l-7.188 -4.25 c-28.635 -16.917 -58.02 -25.157 -80.343 -25.374 a77 77 0 0 0 -2.25 0 Z"/><path d="M453 127.124 l-71.47 94.438 l34.564 26.187 c44.24 -20.22 64.01 -52.594 71.312 -94.625 Z"/></g></svg><span class="campBadge" id="campUpN" hidden></span></button></div><div class="campAch"><button class="campCirc" id="campAchBtn" aria-label="Achievements" title="Achievements"><svg viewBox="8 8 496 496"><defs><linearGradient id="achg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0b0"/><stop offset="1" stop-color="#d9a12e"/></linearGradient><linearGradient id="achw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a8703f"/><stop offset="1" stop-color="#5a3518"/></linearGradient></defs><g fill="url(#achg)" stroke="#140d05" stroke-width="34" paint-order="stroke" stroke-linejoin="round"><path  d="M98.398 21.146a17 17 0 0 0-4.636.521c-20.49 5.262-33.163 20.63-36.116 38.649c-2.952 18.019 2.168 38.346 12.676 58.193c20.695 39.086 63.262 77.08 117.852 85.85c-5.61-6.72-11.05-14.246-16.274-22.375c-39.008-12.57-70.021-42.344-85.67-71.899c-9.206-17.387-12.846-34.491-10.82-46.857C77.437 50.862 83.482 42.89 98.238 39.1c.065-.017.068-.034.092-.053c-.065-.143.105-.08 0 0a.7.7 0 0 0 .176.217c.527.493 1.689 2.24 2.207 5.14c1.036 5.804-.413 15.593-8.135 25.68l14.293 10.942c10.418-13.61 13.65-28.086 11.56-39.785c-1.044-5.85-3.396-11.165-7.628-15.124c-3.174-2.969-7.747-4.868-12.405-4.972zm315.204 0c-4.658.104-9.23 2.003-12.405 4.972c-4.232 3.96-6.584 9.274-7.629 15.124c-2.089 11.699 1.143 26.174 11.56 39.785l14.294-10.942c-7.722-10.087-9.171-19.876-8.135-25.68c.518-2.9 1.68-4.647 2.207-5.14a.7.7 0 0 0 .176-.217c-.105-.08.065-.143 0 0c.024.019.027.036.092.053c14.756 3.79 20.801 11.76 22.828 24.127c2.026 12.366-1.614 29.47-10.82 46.857c-15.649 29.555-46.662 59.33-85.67 71.899c-5.223 8.129-10.665 15.655-16.274 22.375c54.59-8.77 97.157-46.764 117.852-85.85c10.508-19.847 15.628-40.174 12.676-58.193c-2.953-18.02-15.626-33.387-36.116-38.649a17 17 0 0 0-4.636-.521m-276.166 7.713c2.146 36.533 16.76 83.07 36.537 120.824c10.707 20.442 22.876 38.334 34.761 50.685C220.62 212.72 232 218.858 240 218.858h32c8 0 19.38-6.138 31.266-18.49s24.054-30.243 34.761-50.685c19.777-37.755 34.39-84.29 36.537-120.824zm95.564 208v16h46v-16zm6.445 34c-2.458 25.967-12.796 57.873-24.437 76h81.984c-11.64-18.127-21.979-50.033-24.437-76zm-38.445 94v14h110v-14zm-32 32v94h174v-94zm23 23h128v48H192z"/></g><g fill="url(#achw)"><path d="M168.99999999999986 396.85900000000004 v94 h174 v-94 Z"/></g><g fill="url(#achg)"><path d="M191.99999999999986 419.85900000000004 h128 v48 H192 Z"/></g></svg></button></div>
+      <div class="cDotsWrap"><div class="campSide"><button class="campCirc" id="campUpBtn" aria-label="Upgrades" title="Upgrades"><svg viewBox="-12 14 512 512"><defs><linearGradient id="hmg39" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9a46a"/><stop offset="1" stop-color="#8a5a30"/></linearGradient></defs><g fill="url(#hmg39)" stroke="#140d05" stroke-width="34" paint-order="stroke" stroke-linejoin="round"><path d="M215.97 27.813c-2.218.04-4.35.177-6.407.375l-.532.062c-2.774.266-5.796 1.01-9.124 1.844c-4.418 1.11-8.096 2.607-11.125 4.406l77.782 59.313l7.375 5.656l-5.593 7.405l-13.72 18.156l67.595 51.626l14.217-18.812l9.47-12.53l6.5 14.342l19.656 43.47l60.593-80.095l-47.187-7.124l-15.533-2.312l9.47-12.563l14.28-18.843l-67.593-51.624L310.78 50.78l-5.03 6.657l-7.188-4.25c-28.635-16.917-58.02-25.157-80.343-25.374a77 77 0 0 0-2.25 0zM453 127.124l-71.47 94.438l34.564 26.187c44.24-20.22 64.01-52.594 71.312-94.625zm-193.688 25.03c-27.17 33.09-55.308 64.706-82.812 96.22l47.406 39.875c23.11-35.343 46.336-71.61 71.938-108.22l-36.53-27.874zM164.25 262.47c-11.355 13.115-22.564 26.254-33.5 39.5l48.375 52.717c11.707-16.6 23.107-33.515 34.438-50.687zm-45.438 54.124a1112 1112 0 0 0-23.093 29.72l33.468 73.842c13.586-16.22 26.434-32.893 38.843-49.937zm-35.75 47.03c-12.108 16.978-23.57 34.335-34.124 52.282L98.53 454.47a688 688 0 0 0 17.22-18.72zm-43.437 68.688a546 546 0 0 0-14.75 29l37.375 28.313a611 611 0 0 0 23.125-21.72z"/></g><defs><linearGradient id="hmo39_0" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef2f6"/><stop offset="1" stop-color="#8c96a3"/></linearGradient></defs><g fill="url(#hmo39_0)"><path d="M215.97 27.813 c-2.218 0.04 -4.35 0.177 -6.407 0.375 l-0.532 0.062 c-2.774 0.266 -5.796 1.01 -9.124 1.844 c-4.418 1.11 -8.096 2.607 -11.125 4.406 l77.782 59.313 l7.375 5.656 l-5.593 7.405 l-13.72 18.156 l67.595 51.626 l14.217 -18.812 l9.47 -12.53 l6.5 14.342 l19.656 43.47 l60.593 -80.095 l-47.187 -7.124 l-15.533 -2.312 l9.47 -12.563 l14.28 -18.843 l-67.593 -51.624 L310.78 50.78 l-5.03 6.657 l-7.188 -4.25 c-28.635 -16.917 -58.02 -25.157 -80.343 -25.374 a77 77 0 0 0 -2.25 0 Z"/><path d="M453 127.124 l-71.47 94.438 l34.564 26.187 c44.24 -20.22 64.01 -52.594 71.312 -94.625 Z"/></g></svg><span class="campBadge" id="campUpN" hidden></span></button><button class="campCirc" id="campAchBtn" aria-label="Achievements" title="Achievements"><svg viewBox="8 8 496 496"><defs><linearGradient id="achg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0b0"/><stop offset="1" stop-color="#d9a12e"/></linearGradient><linearGradient id="achw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a8703f"/><stop offset="1" stop-color="#5a3518"/></linearGradient></defs><g fill="url(#achg)" stroke="#140d05" stroke-width="34" paint-order="stroke" stroke-linejoin="round"><path  d="M98.398 21.146a17 17 0 0 0-4.636.521c-20.49 5.262-33.163 20.63-36.116 38.649c-2.952 18.019 2.168 38.346 12.676 58.193c20.695 39.086 63.262 77.08 117.852 85.85c-5.61-6.72-11.05-14.246-16.274-22.375c-39.008-12.57-70.021-42.344-85.67-71.899c-9.206-17.387-12.846-34.491-10.82-46.857C77.437 50.862 83.482 42.89 98.238 39.1c.065-.017.068-.034.092-.053c-.065-.143.105-.08 0 0a.7.7 0 0 0 .176.217c.527.493 1.689 2.24 2.207 5.14c1.036 5.804-.413 15.593-8.135 25.68l14.293 10.942c10.418-13.61 13.65-28.086 11.56-39.785c-1.044-5.85-3.396-11.165-7.628-15.124c-3.174-2.969-7.747-4.868-12.405-4.972zm315.204 0c-4.658.104-9.23 2.003-12.405 4.972c-4.232 3.96-6.584 9.274-7.629 15.124c-2.089 11.699 1.143 26.174 11.56 39.785l14.294-10.942c-7.722-10.087-9.171-19.876-8.135-25.68c.518-2.9 1.68-4.647 2.207-5.14a.7.7 0 0 0 .176-.217c-.105-.08.065-.143 0 0c.024.019.027.036.092.053c14.756 3.79 20.801 11.76 22.828 24.127c2.026 12.366-1.614 29.47-10.82 46.857c-15.649 29.555-46.662 59.33-85.67 71.899c-5.223 8.129-10.665 15.655-16.274 22.375c54.59-8.77 97.157-46.764 117.852-85.85c10.508-19.847 15.628-40.174 12.676-58.193c-2.953-18.02-15.626-33.387-36.116-38.649a17 17 0 0 0-4.636-.521m-276.166 7.713c2.146 36.533 16.76 83.07 36.537 120.824c10.707 20.442 22.876 38.334 34.761 50.685C220.62 212.72 232 218.858 240 218.858h32c8 0 19.38-6.138 31.266-18.49s24.054-30.243 34.761-50.685c19.777-37.755 34.39-84.29 36.537-120.824zm95.564 208v16h46v-16zm6.445 34c-2.458 25.967-12.796 57.873-24.437 76h81.984c-11.64-18.127-21.979-50.033-24.437-76zm-38.445 94v14h110v-14zm-32 32v94h174v-94zm23 23h128v48H192z"/></g><g fill="url(#achw)"><path d="M168.99999999999986 396.85900000000004 v94 h174 v-94 Z"/></g><g fill="url(#achg)"><path d="M191.99999999999986 419.85900000000004 h128 v48 H192 Z"/></g></svg></button><button class="campCirc" id="campCxBtn" aria-label="Codex" title="Codex"><svg viewBox="0 0 512 512"><g stroke="#140d05" stroke-width="30" stroke-linejoin="round" paint-order="stroke"><path d="M36 156 L36 424 Q148 392 256 444 Q364 392 476 424 L476 156 Z" fill="#8a5428"/><path d="M66 104 Q164 84 246 138 L246 414 Q164 364 66 386 Z" fill="#f4e8c6"/><path d="M446 104 Q348 84 266 138 L266 414 Q348 364 446 386 Z" fill="#f4e8c6"/></g><g fill="none" stroke="#a88a58" stroke-width="12" stroke-linecap="round"><path d="M104 166 Q160 156 212 186 M104 220 Q160 210 212 240 M104 274 Q160 264 212 294 M300 186 Q352 156 408 166 M300 240 Q352 210 408 220 M300 294 Q352 264 408 274"/></g><path d="M330 380 L330 470 L352 446 L374 470 L374 372" fill="#c23a2c" stroke="#140d05" stroke-width="22" stroke-linejoin="round" paint-order="stroke"/></svg></button></div>
           <div class="cDots" id="cDots"></div></div>
         </div>
         <div class="cDetSlot" id="cDetSlot"><div class="stSide cDet">
@@ -4480,7 +4503,7 @@ function completeSite(B) {
   }
   if (S.kind !== 'repair') { B.pop = performance.now(); for (let n = 0; n < 6; n++) { const a = n / 6 * 6.283, r = B.ev.s * CELL * .55; dustAt(c.x + Math.cos(a) * r, B.group.position.y, c.z + Math.sin(a) * r); } }
   if (S.kind === 'new') {
-    B.built = true; B.group.scale.y = 1; soddenPop(B); stats.built++; stats.made[B.type] = (stats.made[B.type] || 0) + 1; achAdd('built'); if (B.type === 'wall') achAdd('walls'); if (B.type !== 'castle' || stats.built > 1) sfx('build', c);
+    B.built = true; B.group.scale.y = 1; soddenPop(B); stats.built++; stats.made[B.type] = (stats.made[B.type] || 0) + 1; codexUse(B.type, B.tier); achAdd('built'); if (B.type === 'wall') achAdd('walls'); if (B.type !== 'castle' || stats.built > 1) sfx('build', c);
     if (B.type !== 'wall') log(`<b>${T.tiers[0]}</b> built${T.residents ? ` · +${T.residents[0]}` : ''}`, 'good');
     // the first of a kind: a one-line tip for what it can do
     if (T.soldiers) tipOnce('rally', 'Tap the <b>Barracks</b>, then <b>Rally</b> to send soldiers to a spot');
@@ -4489,7 +4512,7 @@ function completeSite(B) {
     else if (DEF_FXT(B.type)) tipOnce('decor', '<b>Decor</b> helps what stands near it');
     if (stats.built >= 4 && B.type !== 'castle') tipOnce('skip', '<b>Skip day</b> early to earn gold for the time left');
   } else {
-    B.tier++; stats.upgrades++; if (B.type === 'castle' && B.tier === 3) achFlag('castle3'); swapModel(B); settleBase(B); rebuildRoads(); B.group.scale.y = 1; B.max = T.hp[B.tier - 1]; B.hp = B.max;
+    B.tier++; stats.upgrades++; codexUse(B.type, B.tier); if (B.type === 'castle' && B.tier === 3) achFlag('castle3'); swapModel(B); settleBase(B); rebuildRoads(); B.group.scale.y = 1; B.max = T.hp[B.tier - 1]; B.hp = B.max;
     if (B.tier === 2) rebuildRoads();   // the new stone base: paths now stop at its edge
     if (B.figs && B.figs.length) { hideDefenders(B); (B.manned || []).forEach((on, a) => on && showDefender(B, a)); }
     floatText(`${T.tiers[B.tier - 1]}!`, '#f2c95e', c.x, B.group.position.y + 4, c.z); sfx('build', c);
@@ -6192,6 +6215,8 @@ function updateEnemies(dt) {
       continue;
     }
     e.walking = false; e.aiming = false; e.running = false;
+    // the Codex: a raider is met once it is out (a dormant camp raider once it wakes)
+    if (!e.dormant && !e.codexed) { e.codexed = true; codexMeet(e.kind, e.tier); }
     if (e.dormant && dormantStep(e, dt)) {} else {
     if (!e.target || e.target.dead || (e.retarget -= dt) < 0) {
       const t = pickTarget(e); if (t !== e.target) e.lob = false; e.target = t; e.retarget = 2.6 + Math.random() * .8;
@@ -7804,6 +7829,163 @@ $('#achPick').addEventListener('click', e => {
   if (b.dataset.ach) { sfx('click'); selectAch(b.dataset.ach); }
 });
 document.addEventListener('click', e => { if (e.target.closest('#campAchBtn')) openAchievements(); });
+// ---------- the Codex (Jack): the players' own gallery of the town's buildings and the raiders, from the campaign screen's
+// round book button. Every entry stays locked (a dark shape) until the player builds that building or meets that raider, and each
+// tier only once reached (built up to, or met at); kept in localStorage['mtd-codex'] as { b: { type: top tier }, r: { kind: top tier } }.
+// Each entry shows the real model turning slowly, drawn by a small renderer of its own (the game's renderer keeps the title scene) ----------
+const CODEX_B = ['castle', 'house', 'farm', 'lodge', 'quarry', 'tower', 'barracks', 'wall', 'gate', 'market', 'ballista', 'forester', 'crossbow',
+  'mine', 'catapult', 'farmhouse', 'stables', 'flowers', 'torch', 'rack', 'statue', 'campfire', 'well', 'butts', 'banner', 'stores'];
+const CODEX_R = ['spear', 'sword', 'archer', 'xbow', 'lancer', 'rider', 'ram', 'ballista', 'catapult', 'chief', 'warlord'];
+// one short line each (Jack's style: a few plain words, no full stop)
+const CODEX_TXT = {
+  castle: 'The heart of your town, lose it and the stage is lost', house: 'Homes for villagers and a little gold', farm: 'Fields of grain that feed the town',
+  lodge: 'Woodcutters fell the trees nearby', quarry: 'Masons cut stone from the rocks nearby', tower: 'Archers shoot raiders from above',
+  barracks: 'Soldiers hold the door or a rally flag', wall: 'Holds raiders back, rams break it', gate: 'Lets villagers through the wall',
+  market: 'Trade one resource for another', ballista: 'Heavy bolts that pierce a line of raiders', forester: 'Grows its own trees for wood',
+  crossbow: 'Fast bolts at close range', mine: 'Digs stone with no rocks needed', catapult: 'Hurls stones that crush crowds, can be moved',
+  farmhouse: 'Livestock that feed the town, even in a blight', stables: 'Riders that run raiders down', flowers: 'Charm that lifts nearby houses\' gold',
+  torch: 'Lights the night and adds range', rack: 'Nearby soldiers hit harder', statue: 'Much charm for nearby houses', campfire: 'Adds more range to towers nearby',
+  well: 'Nearby workers work faster', butts: 'Archers and crossbows nearby reach further', banner: 'Nearby soldiers strike and move faster', stores: 'Siege engines nearby reload faster',
+  spear: 'Goes for the nearest building', sword: 'Hunts your towers and siege engines', archer: 'Shoots from range, even over walls',
+  xbow: 'Shoots fast from range, even over walls', lancer: 'A rider that hunts your towers', rider: 'A rider that charges the castle',
+  ram: 'Batters down walls and gates', r_ballista: 'Shoots bolts at your buildings from afar', r_catapult: 'Lobs stones at your defences from far off',
+  chief: 'The raiders\' leader, marching on the castle', warlord: 'The mounted lord of the raiders, charges all in his way',
+};
+var CODEX = { b: {}, r: {} }; try { const o = JSON.parse(localStorage.getItem('mtd-codex') || '{}'); CODEX = { b: o.b || {}, r: o.r || {} }; } catch (e) {}
+const codexSave = () => { try { localStorage.setItem('mtd-codex', JSON.stringify(CODEX)); } catch (e) {} };
+// the castle stands from the start, so it is always open at tier 1
+const codexTop = (side, id) => side === 'b' ? Math.max(id === 'castle' ? 1 : 0, CODEX.b[id] || 0) : CODEX.r[id] || 0;
+// built (or upgraded) and met (a raider out of its spawn or woken in its camp), only in a real campaign game (not the title scene or the gallery)
+function codexUse(type, tier) { if (!achOn() || !DEF[type] || (CODEX.b[type] || 0) >= tier) return; CODEX.b[type] = tier; codexSave(); }
+function codexMeet(kind, tier) { if (!achOn() || !ENEMY[kind] || (CODEX.r[kind] || 0) >= tier) return; CODEX.r[kind] = tier; codexSave(); }
+
+// ---- the little renderer: one fixed square canvas, copied to the live view each frame and snapped for the list's thumbnails ----
+const CX_PX = 320;
+let cxR = null, cxScene = null, cxCam = null, cxModel = null, cxRaf = 0, cxT0 = 0, cxLast = 0;
+function codexRenderer() {
+  if (cxR) return;
+  cxR = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+  cxR.setPixelRatio(1); cxR.setSize(CX_PX, CX_PX, false);
+  cxR.outputEncoding = THREE.sRGBEncoding; cxR.toneMapping = THREE.ACESFilmicToneMapping; cxR.toneMappingExposure = 1.1;
+  cxR.shadowMap.enabled = true; cxR.shadowMap.type = THREE.PCFSoftShadowMap; cxR.setClearColor(0x000000, 0);
+  cxScene = new THREE.Scene();
+  cxScene.add(new THREE.HemisphereLight('#d6e6ff', '#4a3d28', .75));
+  const s = new THREE.DirectionalLight('#ffe7c4', 1.1); s.position.set(-6, 14, 8); s.castShadow = true; s.shadow.mapSize.set(1024, 1024);
+  Object.assign(s.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6, near: 1, far: 40 }); s.shadow.bias = -.0008; cxScene.add(s, s.target);
+  // a round patch of grass under each model, so it stands on something
+  const g = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.04, .12, 40), mat('#6f8a45')); g.position.y = -.06; g.receiveShadow = true; g.name = 'lawn'; cxScene.add(g);
+  cxCam = new THREE.PerspectiveCamera(30, 1, .1, 200);
+}
+// a model for an entry at a tier: the building as built, the raider as it fights (posed by the gallery's own poses)
+function codexModel(side, id, tier) {
+  if (side === 'b') {
+    const g = makeModel(id, tier, true, id === 'wall' || id === 'gate' ? 10 : 0, 0); galPreview(g, id, tier); return { g };
+  }
+  const E = ENEMY[id], p = makeRaider(id, E.boss ? 3 : tier);
+  Object.assign(p, E.engine ? { kind: id, tier, rate: E.rate, seed: 0 } : { raider: id, rt: tier, seed: 0 });
+  if (!E.engine) p.g.scale.setScalar(UNIT_K * (E.boss || 1));
+  return { g: p.g, p };
+}
+// frame the model: the camera backs off to fit its bounding box, a little from above and to the side
+function codexFrame(m) {
+  cxScene.add(m.g); m.g.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(m.g), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+  const r = Math.max(size.x, size.z) * .62, lawn = cxScene.getObjectByName('lawn');
+  lawn.scale.set(r + .25, 1, r + .25); lawn.position.set(c.x, -.06, c.z);
+  const fit = Math.max(size.length() * .47, .5), d = fit / Math.tan(cxCam.fov * Math.PI / 360) * 1.02;
+  m.look = new THREE.Vector3(c.x, c.y * .92, c.z); m.d = d;
+  const sl = cxScene.children.find(o => o.isDirectionalLight); const k = Math.max(2, fit * 1.6);
+  Object.assign(sl.shadow.camera, { left: -k, right: k, top: k, bottom: -k }); sl.shadow.camera.updateProjectionMatrix();
+  sl.position.set(c.x - k * .8, c.y + k * 2.2, c.z + k); sl.target.position.copy(c);
+}
+function codexShot(m, ang) {
+  cxCam.position.set(m.look.x + Math.sin(ang) * m.d * .9, m.look.y + m.d * .42, m.look.z + Math.cos(ang) * m.d * .9); cxCam.lookAt(m.look);
+  cxR.render(cxScene, cxCam);
+}
+const codexDrop = m => { if (m) cxScene.remove(m.g); };
+// thumbnails, made a few at a time while the screen is open, kept for the session
+const cxThumb = {}, cxQueue = [];
+const thumbKey = (side, id, tier) => `${side}:${id}:${tier}`;
+function codexThumbs() {
+  const t0 = performance.now();
+  while (cxQueue.length && performance.now() - t0 < 14) {
+    const [side, id, tier] = cxQueue.shift(), key = thumbKey(side, id, tier); if (cxThumb[key]) continue;
+    const m = codexModel(side, id, tier); codexFrame(m);
+    if (m.p) galPose(m.p, .4, 1);
+    codexShot(m, .7); cxThumb[key] = cxR.domElement.toDataURL('image/png'); codexDrop(m);
+    for (const im of document.querySelectorAll(`#codexPick img[data-k="${key}"]`)) im.src = cxThumb[key];
+  }
+}
+
+// ---- the screen ----
+let cxTab = 'b', cxSel = null, cxTier = 1;
+const cxEntries = () => (cxTab === 'b' ? CODEX_B : CODEX_R).map(id => ({ side: cxTab, id }));
+const cxName = (side, id, tier) => side === 'b' ? DEF[id].name : Array.isArray(RAIDER_NAME[id]) ? RAIDER_NAME[id][tier - 1] : RAIDER_NAME[id];
+const cxTiers = (side, id) => side === 'b' ? DEF[id].tiers.length : ENEMY[id].boss ? 1 : 3;
+function openCodex() {
+  sfx('click'); codexRenderer();
+  $('#codexPick').replaceChildren(); $('#campaign').hidden = true; $('#codexPick').hidden = false;
+  cxTab = 'b'; cxSel = null; renderCodex();
+  cancelAnimationFrame(cxRaf); cxT0 = cxLast = performance.now(); cxRaf = requestAnimationFrame(codexLoop);
+}
+function closeCodex() { cancelAnimationFrame(cxRaf); cxRaf = 0; codexDrop(cxModel); cxModel = null; $('#codexPick').hidden = true; openCampaign(cSel); }
+function renderCodex() {
+  const list = cxEntries(); if (!cxSel || !list.some(e => e.id === cxSel)) cxSel = list[0].id;
+  const el = $('#codexPick'), all = CODEX_B.length + CODEX_R.length, got = CODEX_B.filter(id => codexTop('b', id)).length + CODEX_R.filter(id => codexTop('r', id)).length;
+  let sh = el.querySelector('.upSheet'); if (!sh) { sh = document.createElement('div'); sh.className = 'upSheet achSheet cxSheet'; el.replaceChildren(sh); }
+  cxQueue.length = 0;
+  const tiles = list.map(({ side, id }) => {
+    const top = codexTop(side, id), t = Math.max(1, top), key = thumbKey(side, id, t);
+    if (!cxThumb[key]) cxQueue.push([side, id, t]);
+    return `<div class="achItem"><button class="achNode cxNode${top ? ' done' : ' locked'}${id === cxSel ? ' sel' : ''}" data-cx="${id}" aria-label="${top ? cxName(side, id, t) : 'Locked'}"><img data-k="${key}" alt="" src="${cxThumb[key] || 'data:image/gif;base64,R0lGODlhAQABAAAAACw='}">${top ? '' : `<span class="cxLock">${LOCK_ICO}</span>`}</button><div class="achName">${top ? cxName(side, id, t) : '???'}</div></div>`;
+  }).join('');
+  sh.innerHTML = `<div class="upTop"><button class="upBack campBack" id="cxBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Codex</h2><div class="upBank"><b>${got}</b>/${all}</div></div>
+    <div class="upTabs"><button class="upTab${cxTab === 'b' ? ' on' : ''}" data-cxtab="b">Buildings</button><button class="upTab${cxTab === 'r' ? ' on' : ''}" data-cxtab="r">Raiders</button></div>
+    <div class="achGrid cxGrid">${tiles}</div>
+    <div class="upDet cxDet"><canvas class="cxView" width="${CX_PX}" height="${CX_PX}"></canvas><div class="upTx"><div class="upOf"></div><h3></h3><p></p><div class="cxTiers"></div><div class="cxStats"></div></div></div>`;
+  selectCodex(cxSel);
+}
+function cxStatsHTML(side, id, tier) {
+  if (side === 'b') return newCardStats(id, tier);
+  const E = ENEMY[id], k = tier - 1, hp = E.boss ? E.hp : Math.round(E.hp * RAIDER_T.hp[k]), dmg = E.boss ? E.dmg : Math.round(E.dmg * RAIDER_T.dmg[k] * 10) / 10;
+  const st = [STAT('hp', hp), STAT(E.engine ? 'siege' : E.range > 2 ? 'bow' : 'sword', dmg, '', 'Damage')];
+  if (E.range > 2) st.push(STAT('range', `${E.range} m`));
+  return st.join('');
+}
+function selectCodex(id, tier) {
+  cxSel = id; const el = $('#codexPick'), side = cxTab, top = codexTop(side, id), n = cxTiers(side, id);
+  cxTier = top ? Math.min(top, tier || top) : 1;
+  for (const b of el.querySelectorAll('.cxNode')) b.classList.toggle('sel', b.dataset.cx === id);
+  const det = el.querySelector('.cxDet'); det.classList.toggle('locked', !top);
+  el.querySelector('.upOf').textContent = !top ? (side === 'b' ? 'Building' : 'Raider') : side === 'b' ? (DEF[id].decor ? 'Decor' : DEF[id].tiers[cxTier - 1]) : ENEMY[id].boss ? 'Boss' : `Raider · Tier ${cxTier}`;
+  el.querySelector('.upTx h3').textContent = top ? cxName(side, id, cxTier) : '???';
+  el.querySelector('.upTx p').textContent = !top ? (side === 'b' ? 'Build one to unlock' : 'Meet one to unlock') : CODEX_TXT[side === 'r' && DEF[id] && CODEX_TXT['r_' + id] ? 'r_' + id : id] || '';
+  el.querySelector('.cxTiers').innerHTML = top && n > 1 ? [1, 2, 3].slice(0, n).map(t => `<button class="seg cxT${t === cxTier ? ' on' : ''}" data-cxt="${t}"${t > top ? ' disabled' : ''}>${t > top ? LOCK_ICO : 'Tier ' + t}</button>`).join('') : '';
+  el.querySelector('.cxStats').innerHTML = top ? cxStatsHTML(side, id, cxTier) : '';
+  codexDrop(cxModel); cxModel = codexModel(side, id, cxTier); codexFrame(cxModel); cxT0 = performance.now();
+}
+// the live view: the model turns slowly (a raider keeps fighting, a building's horses and flags keep moving); then a few thumbnails
+function codexLoop(now) {
+  if ($('#codexPick').hidden) { cxRaf = 0; return; }
+  cxRaf = requestAnimationFrame(codexLoop);
+  const dt = Math.min(.05, (now - cxLast) / 1000); cxLast = now;
+  const cv = $('#codexPick .cxView');
+  if (cxModel && cv) {
+    const t = (now - cxT0) / 1000; windU.value = now / 1000;
+    if (cxModel.p) galPose(cxModel.p, t, dt); else animHorses(cxModel.g, now / 1000);
+    codexShot(cxModel, .7 + t * .35);
+    const c = cv.getContext('2d'); c.clearRect(0, 0, CX_PX, CX_PX); c.drawImage(cxR.domElement, 0, 0);
+  }
+  if (cxQueue.length) { const keep = cxModel; if (keep) cxScene.remove(keep.g); codexThumbs(); if (keep) cxScene.add(keep.g); }
+}
+$('#codexPick').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'cxBack') { sfx('click'); closeCodex(); return; }
+  if (b.dataset.cxtab) { if (b.dataset.cxtab !== cxTab) { sfx('click'); cxTab = b.dataset.cxtab; cxSel = null; renderCodex(); } return; }
+  if (b.dataset.cx) { sfx('click'); selectCodex(b.dataset.cx); return; }
+  if (b.dataset.cxt && !b.disabled) { sfx('click'); selectCodex(cxSel, +b.dataset.cxt); }
+});
+document.addEventListener('click', e => { if (e.target.closest('#campCxBtn')) openCodex(); });
 // ---------- the town's buildings for this game: one of each pair for the economy and the defences, any five decor ----------
 const LOAD_SLOTS = {
   eco: [['food', ['farm', 'farmhouse']], ['wood', ['lodge', 'forester']], ['stone', ['quarry', 'mine']]],
@@ -7939,13 +8121,13 @@ function fordWall() {
 }
 // a stage's new buildings, one card at a time over the paused game: picture (tool icon), name, cost and tier-1 stats; Next, then Play
 var newCards = [], newCardI = 0;
-function newCardStats(t) {
-  const T = DEF[t], st = [];
-  if (T.hp) st.push(STAT('hp', T.hp[0]));
-  if (T.residents) st.push(STAT('home', T.residents[0])); if (T.gold) st.push(STAT('gold', `+${T.gold[0]}`)); if (T.food) st.push(STAT('food', `+${T.food[0]}`));
-  if (T.workers) st.push(STAT('hammer', T.workers[0])); if (T.reach) st.push(STAT('range', `${T.reach} m`, '', 'Reach'));
-  if (T.archers) st.push(STAT('guard', T.archers[0])); if (T.dmg && T.archers) st.push(STAT('bow', T.dmg[0])); if (T.dmg && T.crew) st.push(STAT('guard', T.crew[0], '', 'Crew'), STAT('siege', T.dmg[0], '', 'Damage')); if (T.range) st.push(STAT('range', `${T.range[0]} m`, '', 'Range'));
-  if (T.soldiers) st.push(STAT('guard', T.soldiers[0], '', 'Soldiers'), STAT('sword', SOLDIER.dmg[0]));
+function newCardStats(t, tier = 1) {
+  const T = DEF[t], st = [], k = tier - 1;
+  if (T.hp) st.push(STAT('hp', T.hp[k]));
+  if (T.residents) st.push(STAT('home', T.residents[k])); if (T.gold) st.push(STAT('gold', `+${T.gold[k]}`)); if (T.food) st.push(STAT('food', `+${T.food[k]}`));
+  if (T.workers) st.push(STAT('hammer', T.workers[k])); if (T.reach) st.push(STAT('range', `${T.reach} m`, '', 'Reach'));
+  if (T.archers) st.push(STAT('guard', T.archers[k])); if (T.dmg && T.archers) st.push(STAT('bow', T.dmg[k])); if (T.dmg && T.crew) st.push(STAT('guard', T.crew[k], '', 'Crew'), STAT('siege', T.dmg[k], '', 'Damage')); if (T.range) st.push(STAT('range', `${T.range[k]} m`, '', 'Range'));
+  if (T.soldiers) st.push(STAT('guard', T.soldiers[k], '', 'Soldiers'), STAT('sword', SOLDIER.dmg[k]));
   if (T.decor) { st.push(...fxStats(t, (i, v, n) => STAT(i, v, 'good', n))); if (T.charm) st.push(STAT('charm', `+${Math.round(T.charm * 100)}%`, 'good')); }
   return st.join('');
 }
@@ -8384,7 +8566,10 @@ function buildDeck() {
 }
 // place every card for the front index cSel plus the live drag (in cards); the card's size follows the room the deck has
 function layoutDeck(anim = true) {
-  const deck = $('#campMap'), W = Math.min(deck.clientWidth * (deck.clientWidth > deck.clientHeight * 1.2 ? .48 : .62), deck.clientHeight - 16, 480), f = cSel + cDrag;
+  // a phone held sideways: the card leaves room under it for the round buttons above the progress bar (Jack)
+  const side = innerHeight <= 520 ? 64 : 0;
+  const deck = $('#campMap'), W = Math.min(deck.clientWidth * (deck.clientWidth > deck.clientHeight * 1.2 ? .48 : .62), deck.clientHeight - 16 - side, 480), f = cSel + cDrag;
+  deck.style.setProperty('--cy', -side / 2 + 'px');
   deck.style.setProperty('--cw', Math.max(120, W) + 'px');
   document.querySelectorAll('#cCards .cCard').forEach(el => {
     const d = +el.dataset.i - f, a = Math.abs(d), sg = Math.sign(d), x = sg * (Math.min(a, 1) * .62 + Math.max(0, a - 1) * .2) * W;
@@ -8704,7 +8889,7 @@ $('#adGallery').addEventListener('click', openGallery);
 let campResetT = 0;
 for (const b of document.querySelectorAll('.campReset')) b.addEventListener('click', () => {
   if (performance.now() > campResetT) { campResetT = performance.now() + 3000; b.style.minWidth = b.offsetWidth + 'px'; b.classList.add('armed'); b.innerHTML = PICO.tick.replace('<svg ', '<svg class="bIco" '); setTimeout(() => { if (performance.now() > campResetT) { b.classList.remove('armed'); b.textContent = 'Reset campaign'; b.style.minWidth = ''; } }, 3100); return; }
-  try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor', 'upg', 'ach']) localStorage.removeItem('mtd-' + k); } catch (e) {}
+  try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor', 'upg', 'ach', 'codex']) localStorage.removeItem('mtd-' + k); } catch (e) {}
   location.reload();
 });
 $('#moveBtn').addEventListener('click', () => { if (paused) return setHint('Paused', 'bad'); if (!selected) return; moveFor = moveFor === selected ? null : selected; setHint(moveFor ? 'Tap a tile' : 'Select a building'); refreshCard(); });
@@ -9561,9 +9746,9 @@ function adaptResolution(raw) {
 }
 // a title screen, map or town picker, campaign or stage preview, or the new-building cards is up: the game underneath stands still
 // (setPaused(false) at startup used to set it running under the title screen, paying out gold)
-const MENUS = ['#mapPick', '#loadPick', '#campaign', '#newCards', '#upPick', '#achPick'].map(q => $(q));
+const MENUS = ['#mapPick', '#loadPick', '#campaign', '#newCards', '#upPick', '#achPick', '#codexPick'].map(q => $(q));
 const menuOn = () => MENUS.some(m => !m.hidden);
-const mapPickEl = $('#mapPick'), campEl = $('#campaign'), loadEl = $('#loadPick'), upEl = $('#upPick'), achEl = $('#achPick'); let liteN = 0;
+const mapPickEl = $('#mapPick'), campEl = $('#campaign'), loadEl = $('#loadPick'), upEl = $('#upPick'), achEl = $('#achPick'), cxEl = $('#codexPick'); let liteN = 0;
 mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button') && !e.target.closest('#colCard')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
 // one step of the game itself (no camera, no drawing): frame runs it every animation frame; tools/test runs it in a loop to play fast
 function tick(dt, now) {
@@ -9604,7 +9789,7 @@ function frame(now) {
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   keyCamera(dt);
   if (galleryOn) { updateGallery(dt, now); renderer.render(gScene, camera); requestAnimationFrame(frame); return; } updateLamps(dt, now); updateLight(dt, now); updateWeather(dt, !paused && !menuOn() && !gameOver);
-  const sc = showcaseBuilt && (!mapPickEl.hidden || !campEl.hidden || !loadEl.hidden || !upEl.hidden || !achEl.hidden); if (sc !== document.body.classList.contains('showcase')) document.body.classList.toggle('showcase', sc);
+  const sc = showcaseBuilt && (!mapPickEl.hidden || !campEl.hidden || !loadEl.hidden || !upEl.hidden || !achEl.hidden || !cxEl.hidden); if (sc !== document.body.classList.contains('showcase')) document.body.classList.toggle('showcase', sc);
   // the title's showcase town: the camera circles slowly. It looks a little beyond the town, so the town sits low on the screen,
   // under the cards (an off-centre lens did that before and skewed the picture: Jack found it squeezed); on a wide screen the view
   // is narrowed to about 64 degrees across (45 degrees up and down gave nearly 90 across a laptop: wide-angle smear at the sides)
@@ -9620,7 +9805,7 @@ function frame(now) {
   } else if (camera.fov !== 45) { camera.fov = 45; camera.updateProjectionMatrix(); }
   // behind the campaign and the town picker the scene is darkened under panels: drawn at 1x pixels and every other frame, so the
   // phone keeps its time for the cards (Jack found the carousel slow to answer); full detail again on the title and in the game
-  const lite = sc && (!campEl.hidden || !loadEl.hidden || !upEl.hidden || !achEl.hidden), pr = lite ? Math.min(pixelK, 1) : pixelK;
+  const lite = sc && (!campEl.hidden || !loadEl.hidden || !upEl.hidden || !achEl.hidden || !cxEl.hidden), pr = lite ? Math.min(pixelK, 1) : pixelK;
   // (a resize clears the canvas, so that frame is always drawn: a skipped one showed a blank canvas for a moment)
   let fresh = false; if (renderer.getPixelRatio() !== pr) { renderer.setPixelRatio(pr); resize(); fresh = true; }
   if (paused || menuOn()) { if (!lite || fresh || (liteN = (liteN + 1) % 2) === 0) renderer.render(scene, camera); requestAnimationFrame(frame); if ((hudT -= dt) <= 0) { hudT = .2; updateHud(); } return; }

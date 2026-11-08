@@ -699,6 +699,8 @@ function updateEnemies(dt) {
       continue;
     }
     e.walking = false; e.aiming = false; e.running = false;
+    // the Codex: a raider is met once it is out (a dormant camp raider once it wakes)
+    if (!e.dormant && !e.codexed) { e.codexed = true; codexMeet(e.kind, e.tier); }
     if (e.dormant && dormantStep(e, dt)) {} else {
     if (!e.target || e.target.dead || (e.retarget -= dt) < 0) {
       const t = pickTarget(e); if (t !== e.target) e.lob = false; e.target = t; e.retarget = 2.6 + Math.random() * .8;

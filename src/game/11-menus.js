@@ -133,13 +133,13 @@ function fordWall() {
 }
 // a stage's new buildings, one card at a time over the paused game: picture (tool icon), name, cost and tier-1 stats; Next, then Play
 var newCards = [], newCardI = 0;
-function newCardStats(t) {
-  const T = DEF[t], st = [];
-  if (T.hp) st.push(STAT('hp', T.hp[0]));
-  if (T.residents) st.push(STAT('home', T.residents[0])); if (T.gold) st.push(STAT('gold', `+${T.gold[0]}`)); if (T.food) st.push(STAT('food', `+${T.food[0]}`));
-  if (T.workers) st.push(STAT('hammer', T.workers[0])); if (T.reach) st.push(STAT('range', `${T.reach} m`, '', 'Reach'));
-  if (T.archers) st.push(STAT('guard', T.archers[0])); if (T.dmg && T.archers) st.push(STAT('bow', T.dmg[0])); if (T.dmg && T.crew) st.push(STAT('guard', T.crew[0], '', 'Crew'), STAT('siege', T.dmg[0], '', 'Damage')); if (T.range) st.push(STAT('range', `${T.range[0]} m`, '', 'Range'));
-  if (T.soldiers) st.push(STAT('guard', T.soldiers[0], '', 'Soldiers'), STAT('sword', SOLDIER.dmg[0]));
+function newCardStats(t, tier = 1) {
+  const T = DEF[t], st = [], k = tier - 1;
+  if (T.hp) st.push(STAT('hp', T.hp[k]));
+  if (T.residents) st.push(STAT('home', T.residents[k])); if (T.gold) st.push(STAT('gold', `+${T.gold[k]}`)); if (T.food) st.push(STAT('food', `+${T.food[k]}`));
+  if (T.workers) st.push(STAT('hammer', T.workers[k])); if (T.reach) st.push(STAT('range', `${T.reach} m`, '', 'Reach'));
+  if (T.archers) st.push(STAT('guard', T.archers[k])); if (T.dmg && T.archers) st.push(STAT('bow', T.dmg[k])); if (T.dmg && T.crew) st.push(STAT('guard', T.crew[k], '', 'Crew'), STAT('siege', T.dmg[k], '', 'Damage')); if (T.range) st.push(STAT('range', `${T.range[k]} m`, '', 'Range'));
+  if (T.soldiers) st.push(STAT('guard', T.soldiers[k], '', 'Soldiers'), STAT('sword', SOLDIER.dmg[k]));
   if (T.decor) { st.push(...fxStats(t, (i, v, n) => STAT(i, v, 'good', n))); if (T.charm) st.push(STAT('charm', `+${Math.round(T.charm * 100)}%`, 'good')); }
   return st.join('');
 }
@@ -578,7 +578,10 @@ function buildDeck() {
 }
 // place every card for the front index cSel plus the live drag (in cards); the card's size follows the room the deck has
 function layoutDeck(anim = true) {
-  const deck = $('#campMap'), W = Math.min(deck.clientWidth * (deck.clientWidth > deck.clientHeight * 1.2 ? .48 : .62), deck.clientHeight - 16, 480), f = cSel + cDrag;
+  // a phone held sideways: the card leaves room under it for the round buttons above the progress bar (Jack)
+  const side = innerHeight <= 520 ? 64 : 0;
+  const deck = $('#campMap'), W = Math.min(deck.clientWidth * (deck.clientWidth > deck.clientHeight * 1.2 ? .48 : .62), deck.clientHeight - 16 - side, 480), f = cSel + cDrag;
+  deck.style.setProperty('--cy', -side / 2 + 'px');
   deck.style.setProperty('--cw', Math.max(120, W) + 'px');
   document.querySelectorAll('#cCards .cCard').forEach(el => {
     const d = +el.dataset.i - f, a = Math.abs(d), sg = Math.sign(d), x = sg * (Math.min(a, 1) * .62 + Math.max(0, a - 1) * .2) * W;
@@ -898,7 +901,7 @@ $('#adGallery').addEventListener('click', openGallery);
 let campResetT = 0;
 for (const b of document.querySelectorAll('.campReset')) b.addEventListener('click', () => {
   if (performance.now() > campResetT) { campResetT = performance.now() + 3000; b.style.minWidth = b.offsetWidth + 'px'; b.classList.add('armed'); b.innerHTML = PICO.tick.replace('<svg ', '<svg class="bIco" '); setTimeout(() => { if (performance.now() > campResetT) { b.classList.remove('armed'); b.textContent = 'Reset campaign'; b.style.minWidth = ''; } }, 3100); return; }
-  try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor', 'upg', 'ach']) localStorage.removeItem('mtd-' + k); } catch (e) {}
+  try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor', 'upg', 'ach', 'codex']) localStorage.removeItem('mtd-' + k); } catch (e) {}
   location.reload();
 });
 $('#moveBtn').addEventListener('click', () => { if (paused) return setHint('Paused', 'bad'); if (!selected) return; moveFor = moveFor === selected ? null : selected; setHint(moveFor ? 'Tap a tile' : 'Select a building'); refreshCard(); });
