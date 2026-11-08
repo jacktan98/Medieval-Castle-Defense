@@ -645,8 +645,8 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 /* the pill's numbers sat low (the fonts' digits ride below the line's middle): lifted to the middle (Jack) */
 .upBank{line-height:1;padding-bottom:3px;box-sizing:border-box}
 .upStar{font-style:normal;position:relative;top:2.5px}
-/* the "/ 37" after the count sits on the big number's baseline, not centred above it (Jack) */
-.upAll{font-style:normal;position:relative;top:2px}
+/* the Achievements and Archive pills: count and "/ 37" in one line of text, so both sit on one baseline (Jack: a nudged span still read high) */
+.upNum{white-space:nowrap;line-height:1} .upAll{font-style:normal;margin-left:3px}
 .upTabs{display:flex;gap:4px;width:100%;border-bottom:2px solid #d9b04e;margin-bottom:12px}
 .modal.tome .upTabs .upTab{flex:1;min-height:0!important;padding:8px 0 6px!important;border-radius:10px 10px 0 0!important;border:2px solid rgba(217,176,78,.4)!important;border-bottom:none!important;background:#1a140a!important;font-family:var(--display);font-weight:400;font-size:15px;letter-spacing:.06em;-webkit-text-stroke:.35px currentColor;color:#8f8160!important;box-shadow:none!important}
 /* the tab in use is lit: gold like the main buttons, dark text, a glow; the others stay dark and dim (Jack: it didn't stand out) */
@@ -7840,7 +7840,7 @@ function renderAchievements() {
   const all = ACH_ALL; if (!achSel) achSel = all[0].id;
   const el = $('#achPick'), got = ACH_ALL.filter(achIsDone).length;
   let sh = el.querySelector('.upSheet'); if (!sh) { sh = document.createElement('div'); sh.className = 'upSheet achSheet'; el.replaceChildren(sh); }
-  sh.innerHTML = `<div class="upTop"><button class="upBack campBack" id="achBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Achievements</h2><div class="upBank"><b>${got}</b><i class="upAll">/ ${ACH_ALL.length}</i></div></div>
+  sh.innerHTML = `<div class="upTop"><button class="upBack campBack" id="achBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Achievements</h2><div class="upBank"><span class="upNum"><b>${got}</b><i class="upAll">/ ${ACH_ALL.length}</i></span></div></div>
     <div class="achGrid">${all.map(a => { const d = achIsDone(a), f = Math.min(1, achVal(a) / a.of);
       return `<div class="achItem"><button class="achNode${d ? ' done' : ''}${a.id === achSel ? ' sel' : ''}" data-ach="${a.id}" aria-label="${a.name}">${achIco(a)}${d ? '<span class="upTick">✓</span>' : ''}</button><div class="achName">${a.name}</div>${!d && a.of > 1 ? `<div class="achBar"><u style="width:${f > 0 ? Math.max(3, f * 100) : 0}%"></u></div>` : ''}</div>`; }).join('')}</div>
     <div class="upDet achDet"><div class="upBig"></div><div class="upTx"><div class="upOf"></div><h3></h3><p></p><div class="achP"></div></div></div>`;
@@ -7991,7 +7991,7 @@ function renderCodex() {
     if (!cxThumb[key]) cxQueue.push([side, id, t]);
     return `<div class="achItem"><button class="achNode cxNode${top ? ' done' : ' locked'}${id === cxSel ? ' sel' : ''}" data-cx="${id}" aria-label="${top ? cxName(side, id, t) : 'Locked'}"><img data-k="${key}" alt="" src="${cxThumb[key] || 'data:image/gif;base64,R0lGODlhAQABAAAAACw='}">${top ? '' : `<span class="cxLock">${LOCK_ICO}</span>`}</button><div class="achName">${top ? cxName(side, id, t) : '???'}</div></div>`;
   }).join('');
-  sh.innerHTML = `<div class="upTop"><button class="upBack campBack" id="cxBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Archive</h2><div class="upBank"><b>${got}</b><i class="upAll">/ ${all}</i></div></div>
+  sh.innerHTML = `<div class="upTop"><button class="upBack campBack" id="cxBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Archive</h2><div class="upBank"><span class="upNum"><b>${got}</b><i class="upAll">/ ${all}</i></span></div></div>
     <div class="upTabs"><button class="upTab${cxTab === 'b' ? ' on' : ''}" data-cxtab="b">Buildings</button><button class="upTab${cxTab === 'r' ? ' on' : ''}" data-cxtab="r">Raiders</button></div>
     <div class="achGrid cxGrid">${tiles}</div>
     <div class="upDet cxDet"><canvas class="cxView" width="${CX_PX}" height="${CX_PX}"></canvas><div class="upTx"><div class="upOf"></div><h3></h3><p></p><div class="cxTiers"></div><div class="cxStats"></div></div></div>`;
