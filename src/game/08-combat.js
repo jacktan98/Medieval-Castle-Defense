@@ -211,7 +211,7 @@ function spawnEnemy(kind, sp, wave, tier = 1) {
   // a metre or so from the spawn point, but never onto ground they can't stand on (a mountain or hillside: they'd stand stuck)
   let sx = clamp(sp.x + (Math.random() - .5) * 2, 1, SIZE - 1), sz = clamp(sp.z + (Math.random() - .5) * 2, 1, SIZE - 1);
   if (!canStand(sx, sz, 2)) { sx = sp.x; sz = sp.z; }
-  const e = Object.assign(p, { kind, tier, x: sx, z: sz,
+  const e = Object.assign(p, { kind, tier, x: sx, z: sz, via: sp.via ? sp.via.map(q => q.slice()) : null,
     hp, max: hp, speed: E.speed * (.9 + Math.random() * .2), range: E.range, dmg: E.boss ? E.dmg : E.dmg * RAIDER_T.dmg[k], rate: E.rate,
     cool: E.engine ? E.rate * .5 : Math.random(), fresh: true, target: null, retarget: 0, dead: false, deadT: 0, phase: Math.random() * 6,
     bar: makeBar(E.boss ? 1.6 : E.engine ? 1.3 : E.mounted ? 1.0 : .8), barY: (E.engine ? (kind === 'catapult' ? [1.6, 1.8, 3.3][k] : kind === 'ram' ? 2.1 : 1.5) : 1.6 * UNIT_K + (E.mounted ? SADDLE : 0)) * (E.boss || 1) });
@@ -222,6 +222,9 @@ function distRect(B, x, z) { const e = B.ev; return Math.hypot(Math.max(e.x0 - x
 function nearestBuilding(x, z, maxD = 1e9, ok = null) { let best = null, bd = maxD; for (const B of buildings) { if (DEF[B.type].decor || (ok && !ok(B))) continue; const d = distRect(B, x, z); if (d < bd) { bd = d; best = B; } } return best; }
 // a spawn spot from a medium map's 56 m layout: the coordinate along the edge scaled, the edge itself kept
 const edgeK = ([x, z]) => [x === 1.2 || x === SIZE - 1.2 ? x : x * MK, z === 1.2 || z === SIZE - 1.2 ? z : z * MK];
+// Raider Keep's side raiders take the long way (Jack): along the keep's front to its gate, then down their side's road
+const KEEP_VIA = { kl: [[27, 21], [31, 24.5], [36, 26.5], [40, 27], [39, 33], [36, 37], [33, 40], [30, 47], [33, 54]],
+  kr: [[55, 21], [51, 24.5], [46, 26.5], [42, 27], [45, 33], [49, 36], [52, 38], [56, 47], [52, 54]] };
 function edgePoint(side) {
   const C = castleB(), dp = C && doorPoint(C);   // a spawn must have a walkable route to the castle's door
   if (MAP === 'keep' || MAP === 'hold') {
@@ -232,7 +235,7 @@ function edgePoint(side) {
     const pick = side === 'kl' ? () => [25.5 + Math.random() * 2, 12 + Math.random() * 7] : side === 'kr' ? () => [54.5 + Math.random() * 2, 12 + Math.random() * 7] : side === 'w' ? () => [1.2, 24 + Math.random() * 2.5] : side === 'e' ? () => [SIZE - 1.2, 24 + Math.random() * 2.5] : () => [G[0] - (MAP === 'keep' ? 2.5 : 1.5) + Math.random() * (MAP === 'keep' ? 5 : 3), G[1] + 2 + Math.random() * 1.5];
     for (const needRoute of [true, false]) for (let n = 0; n < 60; n++) {
       const [x, z] = pick();
-      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return { x, z };
+      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return side === 'kl' || side === 'kr' ? { x, z, via: KEEP_VIA[side] } : { x, z };
     }
     const [x, z] = pick(); return { x, z };
   }
@@ -246,7 +249,7 @@ function edgePoint(side) {
     const pick = () => edgeK(pick0());
     for (const needRoute of [true, false]) for (let n = 0; n < 60; n++) {
       const [x, z] = pick();
-      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return { x, z };
+      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return side === 'kl' || side === 'kr' ? { x, z, via: KEEP_VIA[side] } : { x, z };
     }
     const [x, z] = pick(); return { x, z };
   }
@@ -259,7 +262,7 @@ function edgePoint(side) {
     const pick = () => edgeK(pick0());
     for (const needRoute of [true, false]) for (let n = 0; n < 60; n++) {
       const [x, z] = pick();
-      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return { x, z };
+      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return side === 'kl' || side === 'kr' ? { x, z, via: KEEP_VIA[side] } : { x, z };
     }
     const [x, z] = pick(); return { x, z };
   }
@@ -273,7 +276,7 @@ function edgePoint(side) {
       : (late ? () => [15 + Math.random() * 10, SIZE - 1.2] : () => [18 + Math.random() * 10, 1.2]);
     for (const needRoute of [true, false]) for (let n = 0; n < 60; n++) {
       const [x, z] = pick();
-      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return { x, z };
+      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return side === 'kl' || side === 'kr' ? { x, z, via: KEEP_VIA[side] } : { x, z };
     }
     const [x, z] = pick(); return { x, z };
   }
@@ -281,7 +284,7 @@ function edgePoint(side) {
     const north = PH.wave >= 3 && Math.random() < .4;
     for (const needRoute of [true, false]) for (let n = 0; n < 60; n++) {
       const [x, z] = north ? [39.5 + Math.random() * 6, 1.2] : [SIZE - 1.2, 37 + Math.random() * 6];
-      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return { x, z };
+      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return side === 'kl' || side === 'kr' ? { x, z, via: KEEP_VIA[side] } : { x, z };
     }
     return north ? { x: 42.5, z: 1.5 } : { x: SIZE - 1.5, z: 40 };
   }
@@ -289,7 +292,7 @@ function edgePoint(side) {
     const east = PH.wave >= 3 && Math.random() < .45;
     for (const needRoute of [true, false]) for (let n = 0; n < 60; n++) {
       const [x, z] = east ? [SIZE - 1.2, 22 + Math.random() * 6] : [24 + Math.random() * 6, 1.2];
-      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return { x, z };
+      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return side === 'kl' || side === 'kr' ? { x, z, via: KEEP_VIA[side] } : { x, z };
     }
     return east ? { x: SIZE - 1.5, z: 25 } : { x: 27, z: 1.5 };
   }
@@ -297,7 +300,7 @@ function edgePoint(side) {
     const ford = PH.wave >= 3 && Math.random() < .4;
     for (const needRoute of [true, false]) for (let n = 0; n < 80; n++) {
       const x = ford ? 40 + Math.random() * 14 : 10 + Math.random() * 24, z = 1.2;
-      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return { x, z };
+      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return side === 'kl' || side === 'kr' ? { x, z, via: KEEP_VIA[side] } : { x, z };
     }
     return { x: 22, z: 1.5 };
   }
@@ -725,7 +728,11 @@ function updateEnemies(dt) {
       else { e.g.rotation.y = Math.atan2(foe.x - e.x, foe.z - e.z); if ((e.cool -= dt) <= 0) { e.cool = e.rate; e.attackT = strikeT; sfx('clash', e); hurtSoldier(foe, e.dmg); } }
     } else if (B) {
       const d = distRect(B, e.x, e.z), shoots = SHOOTER[e.kind] || e.kind === 'ballista' || e.kind === 'catapult';
-      if (e.detour) { steer(e, e.detour.x, e.detour.z, dt, 2); if ((e.detour.t -= dt) < 0) e.detour = null; }
+      if (e.via && e.via.length && d > 8) {                 // waypoints first (Raider Keep's side raiders keep to the roads)
+        const [vx, vz] = e.via[0]; walkTo(e, vx, vz, dt, 2, 1, 1);
+        if (Math.hypot(vx - e.x, vz - e.z) < 1.8 || e.noProg > 4) { e.via.shift(); e.path = null; e.noProg = 0; e.stuck = 0; e.prog = null; }
+      }
+      else if (e.detour) { steer(e, e.detour.x, e.detour.z, dt, 2); if ((e.detour.t -= dt) < 0) e.detour = null; }
       else if (d > e.range + (e.lob ? 3.5 : 0)) {
         // the Warlord charges from further out (riders otherwise keep their pace)
         e.running = !shoots && !E.engine && (!e.horse || e.kind === 'warlord') && d < (e.horse ? 10 : 6);
