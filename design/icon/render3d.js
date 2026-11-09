@@ -111,12 +111,12 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? proces
     // the castle (a swordsman, a spearman and an archer loosing at it) with arrows flying at the castle through the night sky
     const fig = (p, x, z, ry, k = 1.2) => { p.g.position.set(x, hill(x, z), z); p.g.rotation.y = ry; p.g.scale.setScalar(k); S.add(p.g); p.g.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = true; }); return p; };
     if (!NIGHT) {
-      // a statue and a flower bed (the game's decor) on the day side's lawn
-      for (const [type, x, z, ry, k] of [['statue', -5.6, -.6, .35, .72], ['flowers', -4.4, 2.0, .2, .85]]) {
+      // a flower bed (the game's decor) further back on the day side's lawn
+      for (const [type, x, z, ry, k] of [['flowers', -4.4, 2.0, .2, .85]]) {
         const d = makeModel(type, 1, true, 0, 0); d.position.set(x, hill(x, z), z); d.rotation.y = ry; d.scale.setScalar(k); S.add(d); d.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = true; }); }
-      const a = fig(makePerson({}), -2.7, 5.6, -.25);
+      const a = fig(makePerson({}), -1.8, 5.3, .55);
       a.arms[0].rotation.set(-2.9, 0, -.35); a.arms[1].rotation.set(-2.9, 0, .35); a.body.position.y = .1;    // cheering: both arms up, mid-hop
-      const b = fig(makePerson({}), -1.9, 7.2, -.35); giveTool(b, 'hammer');
+      const b = fig(makePerson({}), -2.6, 7.2, .35); giveTool(b, 'hammer');
       b.arms[0].rotation.set(-2.85, 0, -.4); b.arms[1].rotation.set(-2.85, 0, .4); b.pivot.rotation.x = -.6; b.body.position.y = .06;   // cheering too, hammer held up
     } else {
       const run = (p, k) => { p.legs[0].rotation.x = .7 * k; p.legs[1].rotation.x = -.7 * k; p.body.rotation.x = .14; };
