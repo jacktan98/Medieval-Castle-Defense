@@ -887,13 +887,12 @@ function fitModal(m) {
   // the sheet's own laid-out height, not its rect: the menus' rise animation moves the sheet while it opens, and a measure then
   // came out different each time (the Achievements and Archive copy this zoom, so their Back buttons sat a few px off)
   // the modal's own padding too (the Upgrades screen's last row was cut off on an iPad held sideways)
-  const side = !document.body.classList.contains('tablet') && innerHeight <= 520 && innerWidth > innerHeight;
-  const need = sh.scrollHeight + (side ? 8 : 24) + (parseFloat(getComputedStyle(m).paddingTop) || 0) + (parseFloat(getComputedStyle(m).paddingBottom) || 0);
+  const need = sh.scrollHeight + 24 + (parseFloat(getComputedStyle(m).paddingTop) || 0) + (parseFloat(getComputedStyle(m).paddingBottom) || 0);
   // put the sheet back as laid out (this line was once lost behind the comment above, so the Upgrades sheet stayed short and
   // sat lower than the Achievements' and Archive's: Jack saw their Back buttons out of line)
   sh.style.minHeight = sh.style.height = '';
   // a phone held sideways may zoom past 1 when the height allows (Jack: the three screens looked smaller than the room there was)
-  const cap = side ? 1.3 : k;
+  const cap = !document.body.classList.contains('tablet') && innerHeight <= 520 && innerWidth > innerHeight ? 1.3 : k;
   m.style.zoom = Math.max(.7, Math.min(cap, innerHeight / need)).toFixed(3);
 }
 // the Achievements and Archive take the Upgrades screen's zoom, so all three sheets are one size and their Back buttons sit in
