@@ -8112,7 +8112,7 @@ function selectCodex(id, tier) {
   const det = el.querySelector('.cxDet'); det.classList.toggle('locked', !top);
   el.querySelector('.upOf').textContent = !top ? (side === 'b' ? 'Building' : 'Raider') : side === 'b' ? (DEF[id].decor ? 'Decor' : DEF[id].tiers[cxTier - 1]) : ENEMY[id].boss ? 'Boss' : `Raider · Tier ${cxTier}`;
   el.querySelector('.upTx h3').textContent = top ? cxName(side, id, cxTier) : '???';
-  el.querySelector('.upTx p').textContent = !top ? (side === 'b' ? 'Build one to unlock' : 'Meet one to unlock') : CODEX_TXT[side === 'r' && DEF[id] && CODEX_TXT['r_' + id] ? 'r_' + id : id] || '';
+  el.querySelector('.upTx p').textContent = !top ? '' : CODEX_TXT[side === 'r' && DEF[id] && CODEX_TXT['r_' + id] ? 'r_' + id : id] || '';
   el.querySelector('.cxTiers').innerHTML = top && n > 1 ? [1, 2, 3].slice(0, n).map(t => `<button class="seg cxT${t === cxTier ? ' on' : ''}" data-cxt="${t}"${t > top ? ' disabled' : ''}>${t > top ? LOCK_ICO : 'Tier ' + t}</button>`).join('') : '';
   el.querySelector('.cxStats').innerHTML = top ? cxStatsHTML(side, id, cxTier) : '';
   codexDrop(cxModel); cxModel = codexModel(side, id, cxTier); codexFrame(cxModel); cxT0 = performance.now();
@@ -9953,7 +9953,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'e1c5077e3f'; var updateWait = false, updateT = 0;
+const BUILD = '6ac4da3ddd'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

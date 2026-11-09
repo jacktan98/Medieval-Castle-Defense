@@ -155,7 +155,7 @@ function selectCodex(id, tier) {
   const det = el.querySelector('.cxDet'); det.classList.toggle('locked', !top);
   el.querySelector('.upOf').textContent = !top ? (side === 'b' ? 'Building' : 'Raider') : side === 'b' ? (DEF[id].decor ? 'Decor' : DEF[id].tiers[cxTier - 1]) : ENEMY[id].boss ? 'Boss' : `Raider · Tier ${cxTier}`;
   el.querySelector('.upTx h3').textContent = top ? cxName(side, id, cxTier) : '???';
-  el.querySelector('.upTx p').textContent = !top ? (side === 'b' ? 'Build one to unlock' : 'Meet one to unlock') : CODEX_TXT[side === 'r' && DEF[id] && CODEX_TXT['r_' + id] ? 'r_' + id : id] || '';
+  el.querySelector('.upTx p').textContent = !top ? '' : CODEX_TXT[side === 'r' && DEF[id] && CODEX_TXT['r_' + id] ? 'r_' + id : id] || '';
   el.querySelector('.cxTiers').innerHTML = top && n > 1 ? [1, 2, 3].slice(0, n).map(t => `<button class="seg cxT${t === cxTier ? ' on' : ''}" data-cxt="${t}"${t > top ? ' disabled' : ''}>${t > top ? LOCK_ICO : 'Tier ' + t}</button>`).join('') : '';
   el.querySelector('.cxStats').innerHTML = top ? cxStatsHTML(side, id, cxTier) : '';
   codexDrop(cxModel); cxModel = codexModel(side, id, cxTier); codexFrame(cxModel); cxT0 = performance.now();
