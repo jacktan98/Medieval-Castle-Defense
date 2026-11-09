@@ -818,3 +818,17 @@ body.tablet .upSheet .achDet{max-width:560px;align-self:center}
 /* the sound, speed and admin buttons only with ?debug (Jack: removed from the game; Music and Sounds are in the pause card) */
 body:not(.dev) .cornerBtns{display:none}
 @media (max-height:520px){ body:not(.dev) #pauseBtn{left:calc(50% - 19px)} }
+/* tablets (Jack): every upgrade on one screen, no tabs; a gold heading over each group; the details and one Reset for all in the
+   Castle row's empty right half */
+.upSheet.upAll{max-width:min(100%,760px)}
+.upAll .upTop{margin-bottom:10px;padding-bottom:10px;border-bottom:2px solid #d9b04e}
+.upAll .upGrids{display:flex;flex-direction:column;gap:6px}
+.upAll .upGrid{grid-template-columns:repeat(8,1fr);gap:8px 6px}
+.upAll .upSec{grid-column:1/-1;display:flex;align-items:center;gap:10px;font-family:var(--display);color:#f0c95a;font-size:17px;letter-spacing:.06em;margin:2px 0 -2px}
+.upAll .upSec::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,#d9b04e,transparent)}
+.upAll .upBan{padding:4px 0 7px;margin-bottom:4px} .upAll .upBan svg{width:22px;height:22px}
+.modal.tome .upAll .upTree .upNode{width:54px;height:54px} .upAll .upNode > svg:first-child{width:30px;height:30px;transform:translateY(-4px)} .upAll .upChain{height:12px;margin:4px 0} .upAll .upTree{padding-bottom:12px}
+.upAll .upSide{grid-column:5/-1;display:flex;flex-direction:column;justify-content:center;gap:10px;padding-left:6px}
+.upAll .upSide .upDet{flex-wrap:wrap;padding:10px 12px}
+.upAll .upSide .upTx{min-width:120px}
+.upAll .upSide .upRs{margin:0;padding:0;justify-content:flex-end}

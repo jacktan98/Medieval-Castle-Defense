@@ -141,21 +141,30 @@ const upShut = id => { const k = upStage(id); return k > 0 && campState().locked
 const upBuyLabel = (id, s) => `<span class="upLk">${upShut(id) ? `${LOCK_ICO}Stage ${upStage(id) + 1}` : s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1'}</span>`;
 const upFind = id => { for (const [, rows] of UP_TABS) for (const [row, , ups] of rows) { const k = ups.findIndex(u => u[0] === id); if (k >= 0) return { row, u: ups[k], prev: k ? ups[k - 1][0] : null }; } };
 function openUpgrades() { sfx('click'); $('#upPick').replaceChildren(); $('#campaign').hidden = true; $('#upPick').hidden = false; upSel = null; renderUpgrades(); fitModal($('#upPick')); }
+// on a tablet every upgrade shows at once (Jack): no tabs, a heading over each group, the details and one Reset for all in the
+// Castle row's empty right half
+const upAllOn = () => document.body.classList.contains('tablet');
 function renderUpgrades() {
-  const [, rows] = UP_TABS[upTab], left = upLeft(), tc = TEAM_PAL[TEAM.town], dk = new THREE.Color(); dk.setStyle(tc); dk.multiplyScalar(.45);
+  const all = upAllOn(), rows = all ? UP_TABS.flatMap(t => t[1]) : UP_TABS[upTab][1], left = upLeft(), tc = TEAM_PAL[TEAM.town], dk = new THREE.Color(); dk.setStyle(tc); dk.multiplyScalar(.45);
   if (!upSel || !rows.some(r => r[2].some(u => u[0] === upSel))) upSel = rows[0][2][0][0];
   const st = id => UPG.has(id) ? 2 : upShut(id) ? 0 : (!upFind(id).prev || UPG.has(upFind(id).prev)) ? 1 : 0;
   const sel = upFind(upSel), s = st(upSel), spent = rows.flatMap(r => r[2]).filter(u => UPG.has(u[0])).length;
   const el = $('#upPick'); el.style.setProperty('--tc', tc); el.style.setProperty('--td', '#' + dk.getHexString());
   // the sheet stays put (a new one replayed the menus' rise animation and the whole screen flickered on every tap: Jack)
   let sh = el.querySelector('.upSheet'); if (!sh) { sh = document.createElement('div'); sh.className = 'upSheet'; el.replaceChildren(sh); }
-  sh.innerHTML = `<div class="upTop"><button class="upBack campBack" id="upBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Upgrades</h2><div class="upBank"><i class="upStar">★</i><b>${left}</b></div></div>
-    <div class="upTabs">${UP_TABS.map(([t], i) => `<button class="upTab${i === upTab ? ' on' : ''}" data-tab="${i}">${t}</button>`).join('')}</div>
-    <div class="upGrids">${UP_TABS.map(([, tabRows], ti) => `<div class="upGrid${ti === upTab ? '' : ' off'}"${ti === upTab ? '' : ' inert'}>${tabRows.map(([n, ic, ups]) => `<div class="upTree"><div class="upBan">${upRowIco(ic)}<div>${n}</div></div>${ups.map(([id, name], j) => {
-      const sj = st(id); return `${j ? `<div class="upChain${st(ups[j - 1][0]) === 2 ? ' on' : ''}"></div>` : ''}<button class="upNode s${sj}${id === upSel ? ' sel' : ''}" data-up="${id}" aria-label="${name}">${upIco(name)}${sj === 2 ? '<span class="upTick">✓</span>' : '<span class="upCost">★1</span>'}</button>`; }).join('')}</div>`).join('')}</div>`).join('')}</div>
-    <div class="upRs"><button id="upReset" ${spent ? '' : 'disabled'}>${UP_RESET}Reset ${UP_TABS[upTab][0]}</button></div>
-    <div class="upDet"><div class="upBig${s === 2 ? '' : ' dim'}">${upIco(sel.u[1])}</div><div class="upTx"><div class="upOf">${sel.row}</div><h3>${sel.u[1]}</h3><p>${sel.u[2]}</p></div>
+  sh.classList.toggle('upAll', all);
+  const reset = `<div class="upRs"><button id="upReset" ${spent ? '' : 'disabled'}>${UP_RESET}Reset ${all ? 'all' : UP_TABS[upTab][0]}</button></div>`;
+  const det = `<div class="upDet"><div class="upBig${s === 2 ? '' : ' dim'}">${upIco(sel.u[1])}</div><div class="upTx"><div class="upOf">${sel.row}</div><h3>${sel.u[1]}</h3><p>${sel.u[2]}</p></div>
       <button class="primary upBuy" id="upBuy" ${s === 1 && left > 0 && !upShut(upSel) ? '' : 'disabled'}>${upBuyLabel(upSel, s)}</button></div>`;
+  const tree = ([n, ic, ups]) => `<div class="upTree"><div class="upBan">${upRowIco(ic)}<div>${n}</div></div>${ups.map(([id, name], j) => {
+      const sj = st(id); return `${j ? `<div class="upChain${st(ups[j - 1][0]) === 2 ? ' on' : ''}"></div>` : ''}<button class="upNode s${sj}${id === upSel ? ' sel' : ''}" data-up="${id}" aria-label="${name}">${upIco(name)}${sj === 2 ? '<span class="upTick">✓</span>' : '<span class="upCost">★1</span>'}</button>`; }).join('')}</div>`;
+  const top = `<div class="upTop"><button class="upBack campBack" id="upBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Upgrades</h2><div class="upBank"><i class="upStar">★</i><b>${left}</b></div></div>`;
+  if (all) { sh.innerHTML = top + `<div class="upGrids">${UP_TABS.map(([t, tabRows], ti) => `<div class="upGrid"><div class="upSec">${t}</div>${tabRows.map(tree).join('')}${ti === UP_TABS.length - 1 ? `<div class="upSide">${det}${reset}</div>` : ''}</div>`).join('')}</div>`; return; }
+  sh.innerHTML = top + `
+    <div class="upTabs">${UP_TABS.map(([t], i) => `<button class="upTab${i === upTab ? ' on' : ''}" data-tab="${i}">${t}</button>`).join('')}</div>
+    <div class="upGrids">${UP_TABS.map(([, tabRows], ti) => `<div class="upGrid${ti === upTab ? '' : ' off'}"${ti === upTab ? '' : ' inert'}>${tabRows.map(tree).join('')}</div>`).join('')}</div>
+    ${reset}
+    ${det}`;
 }
 // picking another upgrade only moves the highlight and refills the details; the tiles stay as they are
 function selectUpgrade(id) {
@@ -179,6 +188,7 @@ $('#upPick').addEventListener('click', e => {
     renderUpgrades(); return;
   }
   // a tab's reset gives back only the stars spent in that tab (Jack)
-  if (b.id === 'upReset') { sfx('click'); for (const [, , ups] of UP_TABS[upTab][1]) for (const [id] of ups) UPG.delete(id); saveUpg(); renderUpgrades(); }
+  // on a tablet one Reset gives back every star (Jack)
+  if (b.id === 'upReset') { sfx('click'); for (const [, , ups] of upAllOn() ? UP_TABS.flatMap(t => t[1]) : UP_TABS[upTab][1]) for (const [id] of ups) UPG.delete(id); saveUpg(); renderUpgrades(); }
 });
 document.addEventListener('click', e => { if (e.target.closest('#campUpBtn')) openUpgrades(); });

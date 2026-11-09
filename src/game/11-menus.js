@@ -860,7 +860,7 @@ function fitModal(m) {
   // measured unstretched: the Upgrades sheet is at least the screen's height and pushes its details to the bottom, which read as no room to grow
   const sh = m.firstElementChild; sh.style.minHeight = '0'; sh.style.height = 'auto';
   // from the sheet's own top (it sits centred on the screen), with its padding
-  const need = Math.max(...[...sh.children].map(c => c.getBoundingClientRect().bottom)) - sh.getBoundingClientRect().top + 24; sh.style.minHeight = sh.style.height = '';
+  const need = Math.max(...[...sh.children].map(c => c.getBoundingClientRect().bottom)) - sh.getBoundingClientRect().top + 24 + (parseFloat(getComputedStyle(m).paddingTop) || 0) + (parseFloat(getComputedStyle(m).paddingBottom) || 0);   // the modal's own padding too (the Upgrades screen's last row was cut off on an iPad held sideways) sh.style.minHeight = sh.style.height = '';
   m.style.zoom = Math.max(.7, Math.min(k, innerHeight / need)).toFixed(3);
 }
 tabletScale(); addEventListener('resize', tabletScale);
