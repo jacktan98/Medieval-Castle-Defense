@@ -9699,10 +9699,10 @@ var LOOPS = {
   fire:  { file: 'sfx/Fire_sound.mp3',             vol: 1.3, amb: true },
   river: { file: 'sfx/River_water_flow.mp3',       vol: 1.0, amb: true },
   gallop: { file: 'sfx/Horse_gallop.mp3',          vol: .4, amb: true },   // horses on the move (loudest .3 s RMS .126)
-  // the weather (Jack): rain for rain and drizzle, the desert wind for blowing sand and dust; they follow the weather's own ease in
+  // the weather (Jack): rain for rain and drizzle, the wind for blowing sand and dust, snow and ash; they follow the weather's own ease in
   // and out (WX.w). Measured: rain loudest .3 s RMS .069 (steady, median .051), desert wind .196 in gusts (median .036)
   rain:  { file: 'sfx/Rain_sound.mp3',             vol: .6, amb: true },
-  wind:  { file: 'sfx/Desert_sound.mp3',           vol: .55, amb: true },
+  wind:  { file: 'sfx/Wind_sound.mp3',             vol: .55, amb: true },
 };
 // bump when a sound file is replaced, so phones fetch the new file instead of a cached copy
 var AUDIO_V = 6;
@@ -9810,8 +9810,8 @@ function hushSfx() {
 // fire and running water: how loud each should be from where the camera looks (the nearest torch or campfire, the nearest bit of
 // shoreline) and how close it is zoomed in; eased so panning past doesn't jump; the loop only plays while it is audible
 var ambT = 0, ambCallT = 3;
-// how much of each weather sound a kind of weather has (drizzle a softer rain, dust a lighter wind)
-var WX_SND = { rain: { rain: 1 }, drizzle: { rain: .55 }, sand: { wind: 1 }, dust: { wind: .7 } };
+// how much of each weather sound a kind of weather has (drizzle a softer rain; dust, snow and ash lighter winds than the sand's)
+var WX_SND = { rain: { rain: 1 }, drizzle: { rain: .55 }, sand: { wind: 1 }, dust: { wind: .7 }, snow: { wind: .65 }, ash: { wind: .45 } };
 // no birdsong where it would sound wrong (Jack): the desert, the snowy and the scorched or burned stages; in rain they fall quiet too
 function birdless() {
   try {
