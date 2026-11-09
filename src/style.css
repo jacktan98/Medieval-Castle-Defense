@@ -833,3 +833,5 @@ body:not(.dev) .cornerBtns{display:none}
 .upAll .upSide .upTx{min-width:120px}
 .upAll .upSide .upRs{margin:0;padding:0;justify-content:flex-end}
 label.volRow > span{cursor:pointer;-webkit-user-select:none;user-select:none}
+/* the details and Reset all start level with the Castle row's tops; upright the Buy button sits centred under the text (Jack) */
+.upAll .upSide{align-self:start;justify-content:flex-start} .upAll .upSide .upBuy{margin:0 auto}
