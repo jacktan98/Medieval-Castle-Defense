@@ -425,33 +425,28 @@ function setTool(t) {
 }
 document.querySelector('.util .tool').addEventListener('click', () => setTool('select'));
 $('#gridBtn').addEventListener('click', e => { grid.visible = !grid.visible; e.currentTarget.setAttribute('aria-pressed', String(grid.visible)); });
-const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
 // pause menu icons
 const PICO = {
   play: '<svg viewBox="0 0 24 24"><path class="solid" d="M7.5 4.5 L19.5 12 L7.5 19.5 Z"/></svg>',
-  fs: '<svg viewBox="0 0 24 24"><path d="M4 9 V4 H9 M15 4 H20 V9 M20 15 V20 H15 M9 20 H4 V15"/></svg>',
-  fsOff: '<svg viewBox="0 0 24 24"><path d="M9 4 V9 H4 M20 9 H15 V4 M15 20 V15 H20 M4 15 H9 V20"/></svg>',
+  home: '<svg viewBox="0 0 24 24"><path d="M3.5 11.5 L12 4 L20.5 11.5"/><path d="M6 10 V19.5 H10 V14.5 H14 V19.5 H18 V10"/></svg>',
   restart: '<svg viewBox="0 0 24 24"><path d="M4.5 12 a7.5 7.5 0 1 0 2.2-5.3"/><path d="M6.5 3 V6.9 H10.4"/></svg>',
   tick: '<svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17.5 L19 7"/></svg>',
   no: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M6.3 17.7 L17.7 6.3"/></svg>',
 };
 $('#resumeBtn').innerHTML = PICO.play; $('#reset').innerHTML = PICO.restart;
-function syncFs() { const on = fsEl(); $('#fsBtn').innerHTML = on ? PICO.fsOff : PICO.fs; $('#fsBtn').title = on ? 'Exit full screen' : 'Full screen'; }
-$('#fsBtn').addEventListener('click', async () => {
-  try {
-    if (fsEl()) await (document.exitFullscreen || document.webkitExitFullscreen).call(document);
-    else { const el = document.documentElement, rq = el.requestFullscreen || el.webkitRequestFullscreen; if (!rq) throw 0; await rq.call(el); }
-  } catch (e) { $('#fsBtn').innerHTML = PICO.no; $('#fsBtn').title = 'Not available here'; setTimeout(syncFs, 2000); }
-});
-document.addEventListener('fullscreenchange', () => { syncFs(); resize(); });
-document.addEventListener('webkitfullscreenchange', () => { syncFs(); resize(); });
-syncFs();
-let resetArmed = 0;
-$('#reset').addEventListener('click', () => {
-  if (resetArmed && performance.now() - resetArmed < 3000) { resetArmed = 0; $('#reset').innerHTML = PICO.restart; $('#reset').classList.remove('armed'); showStart(); return; }
-  resetArmed = performance.now(); $('#reset').innerHTML = PICO.tick; $('#reset').classList.add('armed');
-  setTimeout(() => { if (resetArmed && performance.now() - resetArmed >= 2900) { resetArmed = 0; $('#reset').innerHTML = PICO.restart; $('#reset').classList.remove('armed'); } }, 3000);
-});
+// the pause card (Jack: an app is always full screen, so Full screen gave way to Main menu): Main menu goes back to this stage on the
+// campaign, Restart plays the stage again at once; each takes two taps within 3 s
+function armTwice(btn, ico, act) {
+  let t = 0;
+  btn.addEventListener('click', () => {
+    if (t && performance.now() - t < 3000) { t = 0; btn.innerHTML = ico; btn.classList.remove('armed'); act(); return; }
+    t = performance.now(); btn.innerHTML = PICO.tick; btn.classList.add('armed');
+    setTimeout(() => { if (t && performance.now() - t >= 2900) { t = 0; btn.innerHTML = ico; btn.classList.remove('armed'); } }, 3000);
+  });
+}
+$('#menuBtn').innerHTML = PICO.home;
+armTwice($('#menuBtn'), PICO.home, () => showStart());
+armTwice($('#reset'), PICO.restart, () => { setPaused(false); hushSfx(); startGame(); });
 // the summary's Restart plays the same stage again (same picks and difficulty); Continue / Main menu goes to a stage's preview
 $('#sumRestart').addEventListener('click', () => { clearSummary(); hushSfx(); paused = false; startGame(); });
 $('#sumNext').addEventListener('click', () => {

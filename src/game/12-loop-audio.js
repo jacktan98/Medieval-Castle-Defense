@@ -472,6 +472,15 @@ $('#sfxVol').addEventListener('change', () => sfx('click'));
 $('#setMusic').addEventListener('input', e => setVol('music', e.target.value / 100));
 $('#setSfx').addEventListener('input', e => setVol('sfx', e.target.value / 100));
 $('#setSfx').addEventListener('change', () => sfx('click'));
+// tapping the word Music or Sounds turns it all the way down, and a second tap brings back the last loudness (Jack)
+const volKeep = { music: 1, sfx: 1 };
+document.addEventListener('click', e => {
+  const sp = e.target.closest('.volRow > span:first-child'); if (!sp) return;
+  const inp = sp.parentElement.querySelector('input[type=range]'); if (!inp) return;
+  e.preventDefault(); const kind = /music/i.test(inp.id) ? 'music' : 'sfx', now = kind === 'music' ? musicVol : sfxVol;
+  if (now > 0) { volKeep[kind] = now; setVol(kind, 0); } else setVol(kind, volKeep[kind] || 1);
+  if (kind === 'sfx') sfx('click');
+});
 syncAudioToggles();
 // Graphics: Low / High (both switches, Settings and the pause card, share data-gfx)
 function syncGfx() { for (const b of document.querySelectorAll('[data-gfx]')) b.classList.toggle('on', (b.dataset.gfx === 'low') === gfxLow); }

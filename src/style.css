@@ -832,3 +832,4 @@ body:not(.dev) .cornerBtns{display:none}
 .upAll .upSide .upDet{flex-wrap:wrap;padding:10px 12px}
 .upAll .upSide .upTx{min-width:120px}
 .upAll .upSide .upRs{margin:0;padding:0;justify-content:flex-end}
+label.volRow > span{cursor:pointer;-webkit-user-select:none;user-select:none}
