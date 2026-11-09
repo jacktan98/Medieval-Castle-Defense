@@ -316,9 +316,21 @@ function strikes(b) {
   env.forEach((e, i) => { if (e > peak * .25 && quiet >= 8) { on.push(i * .01); quiet = 0; } else if (e < peak * .1) quiet++; else if (e > peak * .25) quiet = 0; });
   return on.map((t, i) => { const from = Math.max(0, t - .02), to = Math.min(i + 1 < on.length ? on[i + 1] - .03 : b.duration, t + .6); return [from, to - from]; }).filter(([, len]) => len > .08);
 }
+// the sound effects' files: fetched with ?v= (so a replaced sound is never an old cached copy), then without it, then by an
+// XMLHttpRequest (inside the app, from capacitor://, Jack heard no effects on his iPhone while the music played: one of these
+// is bound to reach the file); decoded with the callback form, which every WebKit has. How many loaded is logged once.
+function sfxBytes(u) {
+  const xhr = () => new Promise(res => { try { const x = new XMLHttpRequest(); x.open('GET', u); x.responseType = 'arraybuffer';
+    x.onload = () => res(x.response && x.response.byteLength ? x.response : null); x.onerror = () => res(null); x.send(); } catch (e) { res(null); } });
+  const get = q => fetch(q).then(r => r.ok ? r.arrayBuffer() : null).then(ab => ab && ab.byteLength ? ab : null).catch(() => null);
+  return get(u + '?v=' + AUDIO_V).then(ab => ab || get(u)).then(ab => ab || xhr());
+}
+function sfxDecode(ab) { return new Promise(res => { try { const p = actx.decodeAudioData(ab, res, () => res(null)); if (p && p.catch) p.catch(() => res(null)); } catch (e) { res(null); } }); }
+var sfxLoad = { ok: 0, bad: [], n: 0 };
+function sfxReport() { if (++sfxLoad.n === Object.values(SND).reduce((t, S) => t + (S.files || [S.file]).length, 0)) console.info('sounds loaded ' + sfxLoad.ok + ' of ' + sfxLoad.n + (sfxLoad.bad.length ? ' · missing ' + sfxLoad.bad.join(', ') : '') + ' · audio ' + (actx && actx.state)); }
 if (actx) for (const k in SND) {
   const S = SND[k]; clips[k] = [];
-  for (const f of S.files || [S.file]) fetch('audio/' + f + '?v=' + AUDIO_V).then(r => r.ok ? r.arrayBuffer() : null).then(ab => ab && actx.decodeAudioData(ab, b => {
+  for (const f of S.files || [S.file]) sfxBytes('audio/' + f).then(ab => ab && sfxDecode(ab)).then(b => { if (!b) { sfxLoad.bad.push(f); return; } sfxLoad.ok++;
     if (S.strikes) {
       const cuts = strikes(b), sr = b.sampleRate;
       for (const [from, len] of cuts) clips[k].push({ buf: b, from, len, gain: gainFor(levelOf(b, Math.floor(from * sr), Math.floor((from + len) * sr)), S.trim) });
@@ -329,7 +341,7 @@ if (actx) for (const k in SND) {
       const from = Math.max(0, i0 / b.sampleRate - .01);
       clips[k].push({ buf: b, from, len: b.duration - from, gain: gainFor(levelOf(b), S.trim) });
     }
-  }, () => {})).catch(() => {});
+  }).catch(() => sfxLoad.bad.push(f)).finally(sfxReport);
 }
 for (const k in LOOPS) {
   const day = k === 'music' || k === 'music2';
