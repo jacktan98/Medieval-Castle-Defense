@@ -894,4 +894,16 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 #campPlay.buy:disabled{opacity:.6}
 .buyMsg{right:0;left:0;margin:0 auto;width:max-content}
 /* Restore purchases sits under the colour rows (Jack: beside Graphics the right column looked squeezed) */
-.colCard #setRestoreRow{margin-top:14px}
+.setFoot{display:flex;flex-direction:column;gap:10px} .gfxLbl{display:none}
+@media (max-height:520px){.setFoot{flex-direction:row;align-items:center;gap:6px}.setFoot>.setBtns{flex:1 1 0;margin-top:0}.setFoot>#setRestoreRow[hidden]+.setBtns{margin-left:50%}}
+/* DRAFT compact */
+.colCard.cmp{gap:9px;padding-bottom:12px}
+.cmp .setSub{display:none} .cmp .setCols,.cmp .setCol{gap:9px}
+.cmp .colRow{flex-direction:row;justify-content:space-between;padding:0 18px} .cmp .colRow>span{width:76px;text-align:left}
+.modal.tome .cmp .colSw .sw{width:28px;height:28px} .cmp .colSw{gap:7px}
+.cmp .setVols{gap:9px}
+.cmp .gfxRow{justify-content:space-between;align-items:center;padding:0 18px} .cmp .gfxLbl{display:block;font-size:13px;color:#f4e3b2}
+.cmp .setFoot{gap:8px}
+.cmp .setBtns button{min-height:32px!important;padding:4px 14px!important}
+.colCard.cmp #colDone{min-height:32px!important;height:32px}
+.cmp .setSec{font-family:var(--display);font-size:13px;color:#f0c95a;text-align:left;padding:0 18px;margin-bottom:-4px}

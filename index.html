@@ -911,7 +911,19 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 #campPlay.buy:disabled{opacity:.6}
 .buyMsg{right:0;left:0;margin:0 auto;width:max-content}
 /* Restore purchases sits under the colour rows (Jack: beside Graphics the right column looked squeezed) */
-.colCard #setRestoreRow{margin-top:14px}
+.setFoot{display:flex;flex-direction:column;gap:10px} .gfxLbl{display:none}
+@media (max-height:520px){.setFoot{flex-direction:row;align-items:center;gap:6px}.setFoot>.setBtns{flex:1 1 0;margin-top:0}.setFoot>#setRestoreRow[hidden]+.setBtns{margin-left:50%}}
+/* DRAFT compact */
+.colCard.cmp{gap:9px;padding-bottom:12px}
+.cmp .setSub{display:none} .cmp .setCols,.cmp .setCol{gap:9px}
+.cmp .colRow{flex-direction:row;justify-content:space-between;padding:0 18px} .cmp .colRow>span{width:76px;text-align:left}
+.modal.tome .cmp .colSw .sw{width:28px;height:28px} .cmp .colSw{gap:7px}
+.cmp .setVols{gap:9px}
+.cmp .gfxRow{justify-content:space-between;align-items:center;padding:0 18px} .cmp .gfxLbl{display:block;font-size:13px;color:#f4e3b2}
+.cmp .setFoot{gap:8px}
+.cmp .setBtns button{min-height:32px!important;padding:4px 14px!important}
+.colCard.cmp #colDone{min-height:32px!important;height:32px}
+.cmp .setSec{font-family:var(--display);font-size:13px;color:#f0c95a;text-align:left;padding:0 18px;margin-bottom:-4px}
 </style>
 
 <!-- shown from the first paint until the game is ready (three.js comes from a CDN; on a slow phone that takes a while) -->
@@ -972,7 +984,7 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
       <button class="iconBtn" id="adminBtn" aria-pressed="false" aria-label="Admin" title="Admin tools"><svg viewBox="0 0 24 24"><path d="M14.5 5.5 a4 4 0 0 0 4.9 5 l-8.6 8.6 a2.1 2.1 0 0 1-3-3 l8.6-8.6 a4 4 0 0 0-1.9-2z"/><path d="M5 5 L9 9"/></svg></button>
     </div>
   </div>
-  <div class="pausedTag" id="pausedTag" hidden><div class="pauseCard"><div class="pauseT">Paused</div><div class="pauseBtns"><button class="primary pIco" id="resumeBtn" title="Resume" aria-label="Resume"></button><button class="pIco" id="menuBtn" title="Main menu" aria-label="Main menu"></button><button class="danger pIco" id="reset" title="Restart stage" aria-label="Restart stage"></button></div><div class="audioRows"><label class="volRow"><span>Music</span><input type="range" id="musicVol" min="0" max="100" step="1" aria-label="Music loudness"></label><label class="volRow"><span>Sounds</span><input type="range" id="sfxVol" min="0" max="100" step="1" aria-label="Sound loudness"></label><div class="volRow"><span>Graphics</span><span class="gfxSeg"><button class="seg" data-gfx="low">Low</button><button class="seg" data-gfx="high">High</button></span></div></div><div class="pCols"><div class="colRow"><span>Your town</span><div class="colSw" data-side="town"></div></div><div class="colRow"><span>Raiders</span><div class="colSw" data-side="foe"></div></div></div></div></div>
+  <div class="pausedTag" id="pausedTag" hidden><div class="pauseCard"><div class="pauseT">Paused</div><div class="pauseBtns"><button class="primary pIco" id="resumeBtn" title="Resume" aria-label="Resume"></button><button class="pIco" id="menuBtn" title="Main menu" aria-label="Main menu"></button><button class="danger pIco" id="reset" title="Restart stage" aria-label="Restart stage"></button></div><div class="audioRows"><label class="volRow"><span>Music</span><input type="range" id="musicVol" min="0" max="100" step="1" aria-label="Music loudness"></label><label class="volRow"><span>Sounds</span><input type="range" id="sfxVol" min="0" max="100" step="1" aria-label="Sound loudness"></label><div class="volRow"><span>Graphics</span><span class="gfxSeg"><button class="seg" data-gfx="low">Low</button><button class="seg" data-gfx="high">High</button></span></div></div><div class="pCols"><div class="colRow"><span>Your castle</span><div class="colSw" data-side="town"></div></div><div class="colRow"><span>Raiders</span><div class="colSw" data-side="foe"></div></div></div></div></div>
   <div class="dock">
     <div class="statTip" id="statTip" hidden></div>
     <div class="card" id="card" hidden>
@@ -1022,16 +1034,18 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
       <h3>Settings</h3>
       <div class="setCols"><div class="setCol">
       <div class="setSub">Colours</div>
-      <div class="colRow"><span>Your town</span><div class="colSw" id="colTown" data-side="town"></div></div>
+      <div class="colRow"><span>Your castle</span><div class="colSw" id="colTown" data-side="town"></div></div>
       <div class="colRow"><span>Raiders</span><div class="colSw" id="colFoe" data-side="foe"></div></div>
-      <div class="setBtns" id="setRestoreRow" hidden><button id="setRestore">Restore purchases</button></div>
       </div><div class="setCol">
       <div class="setSub">Sound</div>
       <div class="setVols"><label class="volRow"><span>Music</span><input type="range" id="setMusic" min="0" max="100" step="1" aria-label="Music loudness"></label>
       <label class="volRow"><span>Sounds</span><input type="range" id="setSfx" min="0" max="100" step="1" aria-label="Sound loudness"></label></div>
       <div class="setSub">Graphics</div>
-      <div class="gfxRow"><span class="gfxSeg"><button class="seg" data-gfx="low">Low</button><button class="seg" data-gfx="high">High</button></span></div>
-      <div class="setBtns"><button id="setCredits">Credits</button><button class="campReset" id="setReset">Reset campaign</button></div></div></div>
+      <div class="gfxRow"><span class="gfxLbl">Graphics</span><span class="gfxSeg"><button class="seg" data-gfx="low">Low</button><button class="seg" data-gfx="high">High</button></span></div>
+      </div></div>
+      <!-- Restore purchases, then Credits and Reset campaign: one row under each column sideways, so they line up (Jack) -->
+      <div class="setFoot"><div class="setBtns" id="setRestoreRow" hidden><button id="setRestore">Restore purchases</button></div>
+      <div class="setBtns"><button id="setCredits">Credits</button><button class="campReset" id="setReset">Reset campaign</button></div></div>
       <button class="primary" id="colDone">Done</button>
     </div>
     <!-- the credits on parchment like a stage's story (Jack); a tap anywhere closes it -->
@@ -10049,7 +10063,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '1e0af4dce3'; var updateWait = false, updateT = 0;
+const BUILD = 'c882fce088'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
