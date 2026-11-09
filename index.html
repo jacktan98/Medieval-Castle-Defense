@@ -875,6 +875,9 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 .modal{padding-top:calc(16px + var(--safeT))}
 #campaign{padding-top:calc(10px + var(--safeT))}
 .pausedTag{padding-top:calc(18vh + var(--safeT))}
+/* upright on a phone the campaign's Back sits where the Upgrades, Achievements and Archive put theirs (Jack): the modal's 16 px
+   and the sheet's 10 / 12 px padding */
+@media (min-height:521px){ body:not(.tablet) #campaign .campBack{top:calc(28px + var(--safeT));left:26px} }
 </style>
 
 <!-- shown from the first paint until the game is ready (three.js comes from a CDN; on a slow phone that takes a while) -->
@@ -8866,11 +8869,16 @@ var hardSel = false;
 const stChips = adds => adds.map(t => `<span>${TOOL_ICON[t] || ''}<b>${t === 'road' ? 'Path' : DEF[t].name}</b></span>`).join('');
 function fitDetSlot() {
   const slot = $('#cDetSlot'), det = slot.firstElementChild;
+  // not while the campaign is hidden (nothing to measure: a 0 there once cleared the reserved room)
+  if (!det || !det.offsetHeight) return;
   // measured with Stage 1's chips put in for a moment (two rows, the most any stage has), then put back
   const sn = det.querySelector('.stNew'), own = det.offsetHeight, keep = sn.innerHTML;
   sn.innerHTML = stChips(CAMPAIGN[0].adds); const full = Math.max(own, det.offsetHeight); sn.innerHTML = keep;
-    if (getComputedStyle($('.cMain')).flexDirection === 'row') { slot.style.minHeight = ''; return; }
-    if (full > (slot._h || 0) || slot._w !== innerWidth) { slot._h = Math.max(full, slot._w === innerWidth ? slot._h || 0 : 0); slot._w = innerWidth; slot.style.minHeight = slot._h + 'px'; }
+  if (getComputedStyle($('.cMain')).flexDirection === 'row') { slot.style.minHeight = ''; return; }
+  // set every time (sideways clears it, and turning back upright used to leave it cleared: Jack saw the bar move again after
+  // playing a stage); a new width starts a new tallest
+  if (slot._w !== innerWidth) { slot._w = innerWidth; slot._h = 0; }
+  slot._h = Math.max(slot._h || 0, full); slot.style.minHeight = slot._h + 'px';
 }
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { const sl = $('#cDetSlot'); if (sl) { sl._h = 0; if (!$('#campaign').hidden) fitDetSlot(); } });
 function syncDiff(can) {
@@ -9935,7 +9943,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '25489c4864'; var updateWait = false, updateT = 0;
+const BUILD = '5aacccbf7f'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

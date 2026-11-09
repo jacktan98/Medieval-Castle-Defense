@@ -858,3 +858,6 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 .modal{padding-top:calc(16px + var(--safeT))}
 #campaign{padding-top:calc(10px + var(--safeT))}
 .pausedTag{padding-top:calc(18vh + var(--safeT))}
+/* upright on a phone the campaign's Back sits where the Upgrades, Achievements and Archive put theirs (Jack): the modal's 16 px
+   and the sheet's 10 / 12 px padding */
+@media (min-height:521px){ body:not(.tablet) #campaign .campBack{top:calc(28px + var(--safeT));left:26px} }

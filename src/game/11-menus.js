@@ -736,11 +736,16 @@ var hardSel = false;
 const stChips = adds => adds.map(t => `<span>${TOOL_ICON[t] || ''}<b>${t === 'road' ? 'Path' : DEF[t].name}</b></span>`).join('');
 function fitDetSlot() {
   const slot = $('#cDetSlot'), det = slot.firstElementChild;
+  // not while the campaign is hidden (nothing to measure: a 0 there once cleared the reserved room)
+  if (!det || !det.offsetHeight) return;
   // measured with Stage 1's chips put in for a moment (two rows, the most any stage has), then put back
   const sn = det.querySelector('.stNew'), own = det.offsetHeight, keep = sn.innerHTML;
   sn.innerHTML = stChips(CAMPAIGN[0].adds); const full = Math.max(own, det.offsetHeight); sn.innerHTML = keep;
-    if (getComputedStyle($('.cMain')).flexDirection === 'row') { slot.style.minHeight = ''; return; }
-    if (full > (slot._h || 0) || slot._w !== innerWidth) { slot._h = Math.max(full, slot._w === innerWidth ? slot._h || 0 : 0); slot._w = innerWidth; slot.style.minHeight = slot._h + 'px'; }
+  if (getComputedStyle($('.cMain')).flexDirection === 'row') { slot.style.minHeight = ''; return; }
+  // set every time (sideways clears it, and turning back upright used to leave it cleared: Jack saw the bar move again after
+  // playing a stage); a new width starts a new tallest
+  if (slot._w !== innerWidth) { slot._w = innerWidth; slot._h = 0; }
+  slot._h = Math.max(slot._h || 0, full); slot.style.minHeight = slot._h + 'px';
 }
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { const sl = $('#cDetSlot'); if (sl) { sl._h = 0; if (!$('#campaign').hidden) fitDetSlot(); } });
 function syncDiff(can) {
