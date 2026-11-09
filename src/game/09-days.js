@@ -232,6 +232,8 @@ const saveName = S => { const st = CAMPAIGN.findIndex(c => c.map === S.map); ret
 function syncResumeBtn() { const S = loadSave(), b = $('#saveResume'), i = $('#saveInfo'); if (!b) return; b.hidden = i.hidden = !S; if (S) i.textContent = saveName(S); }
 function resumeGame() {
   const S = loadSave(); if (!S) return;
+  // a game saved on a stage the full game opens (bought on another device, or refunded since): its stage on the campaign instead
+  const st = CAMPAIGN.findIndex(c => c.map === S.map); if (st >= 0 && paidStage(st)) { $('#mapPick').hidden = true; openCampaign(st); return; }
   ['#mapPick', '#campaign', '#loadPick'].forEach(q => $(q).hidden = true);
   MAP = S.map; nextSeed = S.seed; hardOn = !!S.hard; paused = false; startGame();
   $('#newCards').hidden = true; newCards = []; paused = false;

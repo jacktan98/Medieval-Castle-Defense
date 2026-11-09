@@ -886,3 +886,10 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 }
 /* sideways the title's gear sits further in from the screen's edge, like the campaign's Back (Jack) */
 @media (max-height:520px){ #mapPick .setBtn{right:calc(var(--padR) + 18px)} }
+/* the full game's Unlock in place of Play (Stage 4 on): an open padlock, the word and the App Store's price */
+.cDet .stActs{position:relative}
+.modal.tome .cDet .stActs #campPlay.buy{padding:4px 16px!important}
+#campPlay.buy .lockIco{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;flex:none}
+#campPlay.buy small{display:inline;font-size:12px;color:inherit;opacity:.75;margin-left:3px}
+#campPlay.buy:disabled{opacity:.6}
+.buyMsg{right:0;left:0;margin:0 auto;width:max-content}

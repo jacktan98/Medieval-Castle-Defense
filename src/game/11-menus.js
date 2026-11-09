@@ -46,6 +46,8 @@ function applyLoadout() {
   if (tierCap() < 2) GUIDE.pop();   // no upgrades on this stage
 }
 const LOCK_ICO = '<svg class="lockIco" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V8 a4 4 0 0 1 8 0 V11"/></svg>';
+// an open padlock, for Unlock (the full game)
+const UNLOCK_ICO = '<svg class="lockIco" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V8 a4 4 0 0 1 7.6-1.7"/></svg>';
 function renderLoadPick() {
   // on a stage: what it has unlocked is fixed (or, for decor, picked), everything else shows a lock
   const SM = CAMP_MAPS[stagePick], open = new Set([...SM.cats.eco, ...SM.cats.def, ...SM.cats.decor]);
@@ -723,9 +725,12 @@ function openStage(i) {
   requestAnimationFrame(fitDetSlot);
   // a locked stage can't be played (TEST_OPEN off): Play is a padlock that refuses
   const shut = !TEST_OPEN && campState().locked[i];
-  $('#stPlay').innerHTML = c.map ? `<button class="primary${shut ? ' shut' : ''}" id="campPlay">${shut ? LOCK_ICO : 'Play'}</button>` : '';
+  // Stage 4 on, once open, needs the full game (11-store.js): Play becomes Unlock with the price from the App Store
+  const paid = !shut && paidStage(i);
+  $('#stPlay').innerHTML = c.map ? `<button class="primary${shut ? ' shut' : ''}${paid ? ' buy' : ''}" id="campPlay"${buying ? ' disabled' : ''}>${shut ? LOCK_ICO : paid ? `<span class="upLk">${UNLOCK_ICO}Unlock${fullPrice ? `<small>${fullPrice}</small>` : ''}</span>` : 'Play'}</button>` : '';
   if (c.map) $('#campPlay').addEventListener('click', () => {
     if (shut) { sfx('nope'); return; }
+    if (paid) { sfx('click'); buyFull(); return; }
     sfx('click');
     MAP = c.map; $('#mapPick').hidden = true; hardOn = c.bonus || (hardSel && (STARS[c.map] || 0) >= 3);
     if (stagePicks(MAP)) { $('#campaign').hidden = true; showLoadPick(MAP); return; }   // more decor than fits: choose four first

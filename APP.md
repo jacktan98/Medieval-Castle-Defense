@@ -35,6 +35,23 @@ git pull
 npm run app
 ```
 Then press **▶** in Xcode again. (`npm run app` builds the game, copies it into the app and updates the iOS project.)
+If a change adds a package (`package.json` changed, as when the purchase plugin came in), run `npm install` once before
+`npm run app`.
+
+## Testing the purchase (the full game)
+
+Stages 1 to 3 are free; Stage 4 on shows **Unlock** with the price in place of Play until the full game is bought
+(product `com.jacktan.castledefense.fullgame`, a Non-Consumable in App Store Connect). **Restore purchases** is in Settings.
+
+1. Run the app from Xcode **on your iPhone** (the Simulator may not reach the App Store's test server).
+2. On the phone: **Settings → Developer → Sandbox Apple Account** → sign in with the sandbox tester from App Store
+   Connect (Users and Access → Sandbox).
+3. In the game, win Stage 3 (or use the website's `?debug` to check the rest), open Stage 4 and tap **Unlock**. Apple's
+   sheet shows **[Sandbox]**; nothing is charged. Stage 4 on then plays.
+4. To test again from scratch: App Store Connect → Users and Access → Sandbox → tick the tester → **Clear Purchase
+   History**, then delete and reinstall the app. **Restore purchases** in Settings should bring it back.
+5. Take a screenshot of the Unlock button for the purchase's **Review Information** in App Store Connect, and send the
+   purchase for review together with the first app version (the purchase can't be reviewed on its own).
 
 ## Sending a build to TestFlight / the App Store
 
@@ -50,4 +67,5 @@ Then press **▶** in Xcode again. (`npm run app` builds the game, copies it int
 - Saved progress (stars, upgrades, crowns, the saved game) is also kept in the app's own storage, which iOS never clears.
 - The fonts are inside the app, so it works with no connection from the very first launch.
 - No website update check: updates come from the App Store.
+- Stage 4 on is bought in the app (the website shows the same Unlock, which says the full game is in the app).
 - The status bar (clock, battery) is hidden.
