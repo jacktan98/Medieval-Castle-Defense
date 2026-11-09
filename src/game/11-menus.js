@@ -894,8 +894,7 @@ function fitModal(m) {
   sh.style.minHeight = sh.style.height = '';
   // a phone held sideways may zoom past 1 when the height allows (Jack: the three screens looked smaller than the room there was)
   const cap = side ? 1.3 : k;
-  // sideways on a phone 8% under the fitted size (Jack: at the full fit some parts looked squeezed)
-  m.style.zoom = Math.max(.7, Math.min(cap, innerHeight / need) * (side ? .92 : 1)).toFixed(3);
+  m.style.zoom = Math.max(.7, Math.min(cap, innerHeight / need)).toFixed(3);
 }
 // the Achievements and Archive take the Upgrades screen's zoom, so all three sheets are one size and their Back buttons sit in
 // one place (Jack; first on a tablet, then on a phone too: held sideways the Upgrades is shrunk to fit and its Back was smaller and
