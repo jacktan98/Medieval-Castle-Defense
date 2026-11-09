@@ -901,6 +901,8 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
   .pauseCard{display:grid!important;grid-template-columns:auto auto;grid-template-areas:'t t' 'b c' 'a c';column-gap:20px;align-items:start}
   .pauseCard .pauseT{grid-area:t;justify-self:center;text-align:center} .pauseCard .pauseBtns{grid-area:b} .pauseCard .audioRows{grid-area:a} .pauseCard .pCols{grid-area:c;margin-top:0;align-self:center}
 }
+/* sideways the title's gear sits further in from the screen's edge, like the campaign's Back (Jack) */
+@media (max-height:520px){ #mapPick .setBtn{right:calc(var(--padR) + 18px)} }
 </style>
 
 <!-- shown from the first paint until the game is ready (three.js comes from a CDN; on a slow phone that takes a while) -->
@@ -9971,7 +9973,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'c1f89633b4'; var updateWait = false, updateT = 0;
+const BUILD = 'b936ffdef9'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
