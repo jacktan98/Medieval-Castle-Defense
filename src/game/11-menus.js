@@ -848,7 +848,7 @@ islandSide(); addEventListener('resize', islandSide);
 // and the HUD's panels by --uiK with CSS zoom, so they lay out as on a big phone (upright) or a small laptop (sideways)
 function tabletScale() {
   const W = innerWidth, H = innerHeight, tab = (navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches) && Math.min(W, H) >= 700;
-  const k = !tab ? 1 : Math.max(1, Math.min(1.6, W < H ? Math.min(W / 430, H / 900) : Math.min(W / 1000, H / 640)));
+  const k = !tab ? 1 : Math.max(1, Math.min(1.6, W < H ? Math.min(W / 430, H / 900) : Math.min(W / 900, H / 560)));
   document.body.classList.toggle('tablet', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3));
   fitModal($('#loadPick')); fitModal($('#upPick'));
 }
