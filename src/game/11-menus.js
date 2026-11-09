@@ -533,6 +533,7 @@ function showMapPick() {
   clearSummary(); paused = true; hideGhost(); $('#mapPick').hidden = false;
   if (!showcaseBuilt) buildShowcase();
   syncResumeBtn();
+  applyUpdate();   // a newer version found while in a game loads now, back on the title
 }
 // ---------- campaign: twelve stages, each bringing in a few new buildings, then three bonus stages
 const CAMPAIGN = [

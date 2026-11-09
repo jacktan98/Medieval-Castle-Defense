@@ -20,10 +20,15 @@ function precache() {
   return list.map(p => [p, require('crypto').createHash('sha1').update(fs.readFileSync(path.join(ROOT, p))).digest('hex').slice(0, 10)]);
 }
 const FONTS = (fs.readFileSync(path.join(SRC, 'page.html'), 'utf8').match(/href="(https:\/\/fonts\.googleapis\.com\/css2[^"]+)"/) || [])[1] || '';
-const sw = fs.readFileSync(path.join(SRC, 'sw.js'), 'utf8').replace('/*@files*/', JSON.stringify(precache())).replace('/*@fonts*/', JSON.stringify(FONTS.replace(/&amp;/g, '&')));
-const html = build(), file = path.join(ROOT, 'index.html'), swFile = path.join(ROOT, 'sw.js');
+const swSrc = fs.readFileSync(path.join(SRC, 'sw.js'), 'utf8').replace('/*@files*/', JSON.stringify(precache())).replace('/*@fonts*/', JSON.stringify(FONTS.replace(/&amp;/g, '&')));
+// the build's id ('@BUILD@' in the game and in sw.js): a hash of the page, so every change to the game gives a new id; the page
+// checks version.json against its own id and reloads when a newer one is out (Jack: the home-screen app kept an old copy open)
+const crypto = require('crypto'), html0 = build(), BUILD = crypto.createHash('sha1').update(html0).digest('hex').slice(0, 10);
+const html = html0.split('@BUILD@').join(BUILD), file = path.join(ROOT, 'index.html'), swFile = path.join(ROOT, 'sw.js');
+const sw = swSrc.split('@BUILD@').join(BUILD), verFile = path.join(ROOT, 'version.json'), ver = JSON.stringify({ build: BUILD }) + '\n';
 if (process.argv.includes('--check')) {
   if (fs.readFileSync(file, 'utf8') !== html) { console.error('index.html is out of date with src/: run node tools/build.js'); process.exit(1); }
+  if (!fs.existsSync(verFile) || fs.readFileSync(verFile, 'utf8') !== ver) { console.error('version.json is out of date: run node tools/build.js'); process.exit(1); }
   if (!fs.existsSync(swFile) || fs.readFileSync(swFile, 'utf8') !== sw) { console.error('sw.js is out of date (src/sw.js, or a picture or sound changed): run node tools/build.js'); process.exit(1); }
   console.log('ok · index.html and sw.js match src/');
-} else { fs.writeFileSync(file, html); fs.writeFileSync(swFile, sw); console.log(`built index.html · ${(html.length / 1024).toFixed(0)} KB · sw.js`); }
+} else { fs.writeFileSync(file, html); fs.writeFileSync(swFile, sw); fs.writeFileSync(verFile, ver); console.log(`built index.html · ${(html.length / 1024).toFixed(0)} KB · sw.js`); }

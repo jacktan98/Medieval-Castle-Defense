@@ -8654,6 +8654,7 @@ function showMapPick() {
   clearSummary(); paused = true; hideGhost(); $('#mapPick').hidden = false;
   if (!showcaseBuilt) buildShowcase();
   syncResumeBtn();
+  applyUpdate();   // a newer version found while in a game loads now, back on the title
 }
 // ---------- campaign: twelve stages, each bringing in a few new buildings, then three bonus stages
 const CAMPAIGN = [
@@ -9564,7 +9565,9 @@ function startGame() {
 // ---------- loop ----------
 for (const t in DEF) if (t !== 'castle') makeGhost(t);   // here, once every model's materials exist (stables and siege use the soldiers' and horses')
 resize();
-if (!/[?&](gallery|debug|map=)/.test(location.search)) showMapPick(); else { startGame(); $('#mapPick').hidden = true; }   // shown from the first paint, so the game never flashes up behind it
+if (!/[?&](gallery|debug|map=)/.test(location.search)) { showMapPick();
+  // a reload for an update made on the campaign screen opens it again
+  try { if (sessionStorage.getItem('mtd-reopen') === 'campaign') { sessionStorage.removeItem('mtd-reopen'); setTimeout(() => openCampaign(), 0); } } catch (e) {} } else { startGame(); $('#mapPick').hidden = true; }   // shown from the first paint, so the game never flashes up behind it
 // the game is up: the loading screen fades once the first frames are drawn
 requestAnimationFrame(() => requestAnimationFrame(() => { const L = $('#loading'); if (!L) return; L.classList.add('done'); setTimeout(() => L.remove(), 600); }));
 const easeOut = t => 1 - Math.pow(1 - t, 3);
@@ -9898,6 +9901,31 @@ document.addEventListener('visibilitychange', () => { if (actx) document.hidden 
 // the game pauses itself when the app goes to the background (a call, another app, the phone locked): it used to play on unseen
 const autoPause = () => { if (document.hidden && !paused && !gameOver && !menuOn() && !$('#app').classList.contains('gallery') && !document.body.classList.contains('showcase')) setPaused(true); };
 document.addEventListener('visibilitychange', autoPause); addEventListener('pagehide', autoPause);
+// updates (Jack: the home-screen app came back from the background still running an old copy, e.g. no bonus stages after
+// Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
+// build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
+// as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
+const BUILD = '875414b9c8'; var updateWait = false, updateT = 0;
+function checkUpdate() {
+  if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
+  if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
+  fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.json() : null)
+    .then(v => {
+      if (!v || !v.build || v.build === BUILD) return;
+      // tried once already and still handed the old page (a slow cache along the way): no reload loop, the next launch gets it
+      let tried = ''; try { tried = sessionStorage.getItem('mtd-upd') || ''; } catch (e) {}
+      if (tried === v.build) return;
+      updateWait = v.build; applyUpdate(); }).catch(() => {});
+}
+function applyUpdate() {
+  if (!updateWait || document.hidden || unlockNext || document.querySelector('.cCard.unlocking, .cCard.preUnlock')) return;
+  const onCamp = !campEl.hidden;
+  if (!onCamp && mapPickEl.hidden) return;
+  try { sessionStorage.setItem('mtd-upd', updateWait); if (onCamp) sessionStorage.setItem('mtd-reopen', 'campaign'); } catch (e) {}
+  location.reload();
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
+addEventListener('pageshow', () => checkUpdate()); setTimeout(checkUpdate, 3000);
 // ask the browser to keep the save, stars and upgrades even when the device runs low on space (Safari may otherwise clear them)
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}
 document.addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.closest('.cArrow, .cDot, .cCard')) sfx('click'); }, true);

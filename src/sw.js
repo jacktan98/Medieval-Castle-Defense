@@ -4,6 +4,8 @@
 // first. Sounds the page plays through <audio> ask for byte ranges, which are cut from the stored file (Safari needs that).
 const FILES = /*@files*/, FONTS = /*@fonts*/;
 const CACHE = 'mtd', HASHES = '__hashes', PAGE = 'index.html';
+// the game's build: a new build is a new sw.js, so the phone installs it and stores the new page
+const BUILD = '@BUILD@';
 const same = u => new URL(u, self.location).origin === self.location.origin;
 
 self.addEventListener('install', e => e.waitUntil((async () => {
@@ -30,7 +32,8 @@ self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 // the page: from the network (kept for next time), or the stored copy when there is no network or it takes over 4 s
 async function page(req) {
   const c = await caches.open(CACHE);
-  const net = fetch(req).then(r => { if (r.ok) c.put(PAGE, r.clone()); return r; });
+  // past the browser's own cache too (GitHub Pages lets it keep the page 10 minutes): an old page could come back after an update
+  const net = fetch(req.url, { cache: 'no-cache' }).then(r => { if (r.ok) c.put(PAGE, r.clone()); return r; });
   net.catch(() => {}); const late = new Promise(res => setTimeout(res, 4000));
   try {
     const r = await Promise.race([net, late]); if (r) return r;
@@ -51,6 +54,7 @@ self.addEventListener('fetch', e => {
   const own = same(req.url);
   if (req.mode === 'navigate' && own) return e.respondWith(page(req));
   if (!own && !KEEP.test(req.url)) return;
+  if (own && /\/version\.json$/.test(req.url.split('?')[0])) return;   // the update check always asks the network
   // the sounds are asked for with ?v=N: the game's own files are looked up by their plain address, the one the install keeps
   // fresh (a lookup ignoring the ?v= could find an old copy kept under another ?v=: Jack heard the old unlock sound);
   // the fonts' answers vary by browser
