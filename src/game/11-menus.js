@@ -857,7 +857,9 @@ function tabletScale() {
 function fitModal(m) {
   if (!m || m.hidden || !m.firstElementChild) return;
   m.style.zoom = ''; const k = parseFloat(getComputedStyle(m).zoom) || 1; m.style.zoom = 1;
-  const sh = m.firstElementChild, bot = Math.max(...[...sh.children].map(c => c.getBoundingClientRect().bottom));
+  // measured unstretched: the Upgrades sheet is at least the screen's height and pushes its details to the bottom, which read as no room to grow
+  const sh = m.firstElementChild; sh.style.minHeight = '0'; sh.style.height = 'auto';
+  const bot = Math.max(...[...sh.children].map(c => c.getBoundingClientRect().bottom)); sh.style.minHeight = sh.style.height = '';
   m.style.zoom = Math.max(.7, Math.min(k, innerHeight / (bot + 14))).toFixed(3);
 }
 tabletScale(); addEventListener('resize', tabletScale);
