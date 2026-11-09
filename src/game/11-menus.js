@@ -859,8 +859,9 @@ function fitModal(m) {
   m.style.zoom = ''; const k = parseFloat(getComputedStyle(m).zoom) || 1; m.style.zoom = 1;
   // measured unstretched: the Upgrades sheet is at least the screen's height and pushes its details to the bottom, which read as no room to grow
   const sh = m.firstElementChild; sh.style.minHeight = '0'; sh.style.height = 'auto';
-  const bot = Math.max(...[...sh.children].map(c => c.getBoundingClientRect().bottom)); sh.style.minHeight = sh.style.height = '';
-  m.style.zoom = Math.max(.7, Math.min(k, innerHeight / (bot + 14))).toFixed(3);
+  // from the sheet's own top (it sits centred on the screen), with its padding
+  const need = Math.max(...[...sh.children].map(c => c.getBoundingClientRect().bottom)) - sh.getBoundingClientRect().top + 24; sh.style.minHeight = sh.style.height = '';
+  m.style.zoom = Math.max(.7, Math.min(k, innerHeight / need)).toFixed(3);
 }
 tabletScale(); addEventListener('resize', tabletScale);
 // the HUD tick that places the night powers and the boss bar stops while paused: place them again whenever the screen turns
