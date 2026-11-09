@@ -111,6 +111,9 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? proces
     // the castle (a swordsman, a spearman and an archer loosing at it) with arrows flying at the castle through the night sky
     const fig = (p, x, z, ry, k = 1.2) => { p.g.position.set(x, hill(x, z), z); p.g.rotation.y = ry; p.g.scale.setScalar(k); S.add(p.g); p.g.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = true; }); return p; };
     if (!NIGHT) {
+      // a statue and a flower bed (the game's decor) on the day side's lawn
+      for (const [type, x, z, ry, k] of [['statue', -3.9, 3.7, .35, .72], ['flowers', -3.2, 6.7, .2, .85]]) {
+        const d = makeModel(type, 1, true, 0, 0); d.position.set(x, hill(x, z), z); d.rotation.y = ry; d.scale.setScalar(k); S.add(d); d.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = true; }); }
       const a = fig(makePerson({}), -2.7, 5.6, -.25);
       a.arms[0].rotation.set(-2.9, 0, -.35); a.arms[1].rotation.set(-2.9, 0, .35); a.body.position.y = .1;    // cheering: both arms up, mid-hop
       const b = fig(makePerson({}), -1.9, 7.2, -Math.PI / 2 + .25); giveTool(b, 'hammer');
@@ -121,7 +124,7 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? proces
       const s2 = fig(makeRaider('spear', 2), 2.9, 6.9, -2.35); run(s2, -1); spearPose(s2, 0, 0); s2.arms[0].rotation.x = -.6;
       const s3 = fig(makeRaider('archer', 2), 3.1, 4.1, -2.0); s3.arms[0].rotation.set(-2.0, 0, .55); s3.arms[1].rotation.set(-1.85, 0, -.6);   // bow drawn, aimed up at the walls
       const am = new THREE.MeshStandardMaterial({ color: '#d8c39a', emissive: '#2a2010', roughness: .8 }), hm = new THREE.MeshStandardMaterial({ color: '#cfd4dc', metalness: .3, roughness: .5 }), fm = new THREE.MeshStandardMaterial({ color: '#e8e0d0', side: THREE.DoubleSide });
-      for (const [x, y, z, dx, dy, dz] of [[3.7, 7.3, 2.2, 6, 1.4, 2], [4.9, 6.1, 2.9, 5, 3.4, 4.5], [3.0, 8.9, 3.4, 6, .3, 1.2], [5.6, 8.1, 2.0, 4.5, 2.6, -1.2]]) {
+      for (const [x, y, z, dx, dy, dz] of [[3.7, 7.3, 2.2, 5, 4.2, 1.5], [4.9, 6.1, 2.9, 4.5, 4.6, 1.2], [3.0, 8.9, 3.4, 5, 3.8, 1.2], [5.6, 8.1, 2.0, 4.5, 2.6, -1.2]]) {
         const ar = new THREE.Group(), sh = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, 1.1, 5).rotateX(Math.PI / 2), am); ar.add(sh);
         const hd = new THREE.Mesh(new THREE.ConeGeometry(.07, .2, 4).rotateX(-Math.PI / 2), hm); hd.position.z = -.62; ar.add(hd);
         for (const r of [0, Math.PI / 2]) { const f = new THREE.Mesh(new THREE.PlaneGeometry(.16, .28), fm); f.rotation.set(Math.PI / 2, 0, r); f.position.z = .45; ar.add(f); }
