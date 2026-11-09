@@ -850,7 +850,7 @@ function tabletScale() {
   const W = innerWidth, H = innerHeight, tab = (navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches) && Math.min(W, H) >= 700;
   const k = !tab ? 1 : Math.max(1, Math.min(1.6, W < H ? Math.min(W / 430, H / 900) : Math.min(W / 900, H / 560)));
   document.body.classList.toggle('tablet', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3));
-  fitModal($('#loadPick')); fitModal($('#upPick'));
+  fitModal($('#loadPick')); fitModal($('#upPick')); if (typeof renderUpgrades === 'function') { matchUpZoom($('#achPick')); matchUpZoom($('#codexPick')); }
 }
 // a tall sheet (the town picker, the Upgrades screen) is zoomed to fit the screen's height: on a short phone a little smaller than
 // designed (Jack's iPhone SE had Start below the screen), on a tablet only as far up as fits (sideways the upright layout was cut off)
@@ -860,8 +860,22 @@ function fitModal(m) {
   // measured unstretched: the Upgrades sheet is at least the screen's height and pushes its details to the bottom, which read as no room to grow
   const sh = m.firstElementChild; sh.style.minHeight = '0'; sh.style.height = 'auto';
   // from the sheet's own top (it sits centred on the screen), with its padding
-  const need = Math.max(...[...sh.children].map(c => c.getBoundingClientRect().bottom)) - sh.getBoundingClientRect().top + 24 + (parseFloat(getComputedStyle(m).paddingTop) || 0) + (parseFloat(getComputedStyle(m).paddingBottom) || 0);   // the modal's own padding too (the Upgrades screen's last row was cut off on an iPad held sideways) sh.style.minHeight = sh.style.height = '';
+  // the sheet's own laid-out height, not its rect: the menus' rise animation moves the sheet while it opens, and a measure then
+  // came out different each time (the Achievements and Archive copy this zoom, so their Back buttons sat a few px off)
+  const need = sh.scrollHeight + 24 + (parseFloat(getComputedStyle(m).paddingTop) || 0) + (parseFloat(getComputedStyle(m).paddingBottom) || 0);   // the modal's own padding too (the Upgrades screen's last row was cut off on an iPad held sideways) sh.style.minHeight = sh.style.height = '';
   m.style.zoom = Math.max(.7, Math.min(k, innerHeight / need)).toFixed(3);
+}
+// on a tablet the Achievements and Archive take the Upgrades screen's zoom, so all three sheets are one size and their Back
+// buttons sit in one place (Jack): the Upgrades screen is fitted out of sight and its zoom copied
+function matchUpZoom(m) {
+  if (!m) return; if (!document.body.classList.contains('tablet')) { m.style.zoom = ''; return; }
+  if (m.hidden) return;
+  const u = $('#upPick'), was = u.hidden;
+  if (was) { u.style.visibility = 'hidden'; u.hidden = false; }
+  if (!u.querySelector('.upSheet')) renderUpgrades();
+  fitModal(u); const z = u.style.zoom;
+  if (was) { u.hidden = true; u.style.visibility = ''; }
+  m.style.zoom = z;
 }
 tabletScale(); addEventListener('resize', tabletScale);
 // the HUD tick that places the night powers and the boss bar stops while paused: place them again whenever the screen turns

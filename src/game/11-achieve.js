@@ -72,7 +72,7 @@ function achToastNext() {
 // ---- the Achievements screen (from the campaign screen), laid out like Upgrades but the whole list at once, no tabs (Jack):
 // upright it scrolls down, on a phone held sideways two rows scroll right ----
 let achSel = null;
-function openAchievements() { sfx('click'); $('#achPick').replaceChildren(); $('#campaign').hidden = true; $('#achPick').hidden = false; achSel = null; renderAchievements(); }
+function openAchievements() { sfx('click'); $('#achPick').replaceChildren(); $('#campaign').hidden = true; $('#achPick').hidden = false; achSel = null; renderAchievements(); matchUpZoom($('#achPick')); }
 const achProg = a => { const v = Math.min(achVal(a), a.of); return achIsDone(a) ? 'Done' : a.of > 1 ? `${v.toLocaleString()} / ${a.of.toLocaleString()}` : 'Not yet'; };
 function renderAchievements() {
   const all = ACH_ALL; if (!achSel) achSel = all[0].id;

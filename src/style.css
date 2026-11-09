@@ -837,3 +837,5 @@ label.volRow > span{cursor:pointer;-webkit-user-select:none;user-select:none}
 .upAll .upSide{align-self:start;justify-content:flex-start} .upAll .upSide .upBuy{margin:0 auto}
 /* the gap before the crown is only for the stars before it: a bonus stage's crown stands alone and sat 6 px right of centre (Jack) */
 .crown:first-child svg{margin-left:0!important}
+/* tablets (Jack): Upgrades, Achievements and Archive are one size, 760 px wide from the top of the screen, so their Back buttons line up */
+body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .upSheet{margin:0 auto}

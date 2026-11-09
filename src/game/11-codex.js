@@ -121,7 +121,7 @@ const cxTiers = (side, id) => side === 'b' ? DEF[id].tiers.length : ENEMY[id].bo
 function openCodex() {
   sfx('click'); codexRenderer();
   $('#codexPick').replaceChildren(); $('#campaign').hidden = true; $('#codexPick').hidden = false;
-  cxTab = 'b'; cxSel = null; renderCodex();
+  cxTab = 'b'; cxSel = null; renderCodex(); matchUpZoom($('#codexPick'));
   cancelAnimationFrame(cxRaf); cxT0 = cxLast = performance.now(); cxRaf = requestAnimationFrame(codexLoop);
 }
 function closeCodex() { cancelAnimationFrame(cxRaf); cxRaf = 0; codexDrop(cxModel); cxModel = null; $('#codexPick').hidden = true; openCampaign(cSel); }
