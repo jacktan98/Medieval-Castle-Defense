@@ -893,3 +893,5 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 #campPlay.buy small{display:inline;font-size:12px;color:inherit;opacity:.75;margin-left:3px}
 #campPlay.buy:disabled{opacity:.6}
 .buyMsg{right:0;left:0;margin:0 auto;width:max-content}
+/* Restore purchases sits under the colour rows (Jack: beside Graphics the right column looked squeezed) */
+.colCard #setRestoreRow{margin-top:14px}
