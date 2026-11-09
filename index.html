@@ -856,6 +856,16 @@ label.volRow > span{cursor:pointer;-webkit-user-select:none;user-select:none}
 .crown:first-child svg{margin-left:0!important}
 /* tablets (Jack): Upgrades, Achievements and Archive are one size, 760 px wide from the top of the screen, so their Back buttons line up */
 body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .upSheet{margin:0 auto}
+
+/* Settings: Credits to the left of Reset campaign (Jack) */
+.colCard .setBtns{display:flex;gap:8px;justify-content:center;margin-top:4px}
+.colCard .setBtns button{min-height:36px!important;padding:6px 16px!important;font-size:13px!important;margin:0!important}
+/* the credits card: the story cards' parchment, dark brown text and wax seal */
+.credCard{--cw:min(340px,86vw);position:absolute;inset:0;margin:auto;z-index:6;width:var(--cw);height:var(--cw);border-radius:12px;border:2px solid rgba(212,168,78,.85);overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#f6ebcf 0%,#ecdcb4 60%,#dcc492 100%);box-shadow:inset 0 0 22px rgba(120,82,34,.35),0 6px 24px rgba(0,0,0,.6);cursor:pointer}
+.credText{height:100%;box-sizing:border-box;padding:calc(var(--cw) * .07) calc(var(--cw) * .08) 0;color:#3a2710;font-family:var(--body);font-size:clamp(12px,calc(var(--cw) * .041),14.5px);line-height:1.28;text-align:left}
+.credText h4{margin:0 0 .35em;font-family:var(--display);font-weight:400;font-size:1.45em;color:#5a3a16;text-align:center}
+.credText p{margin:0 0 .45em} .credText b{display:block;font-weight:700;color:#6b4520;font-size:.85em;letter-spacing:.04em}
+.credCard .cSp1{height:calc(100% - var(--cw) * .22)}
 </style>
 
 <!-- shown from the first paint until the game is ready (three.js comes from a CDN; on a slow phone that takes a while) -->
@@ -974,9 +984,18 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
       <label class="volRow"><span>Sounds</span><input type="range" id="setSfx" min="0" max="100" step="1" aria-label="Sound loudness"></label></div>
       <div class="setSub">Graphics</div>
       <div class="gfxRow"><span class="gfxSeg"><button class="seg" data-gfx="low">Low</button><button class="seg" data-gfx="high">High</button></span></div>
-      <button class="campReset" id="setReset">Reset campaign</button></div></div>
+      <div class="setBtns"><button id="setCredits">Credits</button><button class="campReset" id="setReset">Reset campaign</button></div></div></div>
       <button class="primary" id="colDone">Done</button>
     </div>
+    <!-- the credits on parchment like a stage's story (Jack); a tap anywhere closes it -->
+    <div class="credCard" id="credCard" hidden><div class="credText"><span class="cSp1"></span><span class="cSp2"></span>
+      <h4>Credits</h4>
+      <p><b>Made by</b>Jack</p>
+      <p><b>Music and sounds</b>ElevenLabs and Pixabay</p>
+      <p><b>Icons</b>game-icons.net, by Lorc, Delapouite and other artists, under CC BY 3.0</p>
+      <p><b>3D engine</b>three.js</p>
+      <p><b>Fonts</b>IM Fell English and Alegreya Sans (Google Fonts)</p>
+    </div><div class="cSeal" id="credSeal"></div></div>
   </div>
   <div class="modal tome" id="upPick" hidden></div>
   <div class="modal tome" id="achPick" hidden></div>
@@ -8914,6 +8933,8 @@ function renderColours() {
 // Settings (Jack picked a gear in the title's corner over a Colours button under Campaign): the colours and the two loudness sliders
 $('#setBtn').addEventListener('click', () => { sfx('click'); renderColours(); syncAudioToggles(); $('#colCard').hidden = false; });
 $('#colDone').addEventListener('click', () => { $('#colCard').hidden = true; });
+$('#setCredits').addEventListener('click', () => { if (!$('#credSeal').firstChild) $('#credSeal').innerHTML = sealIco('cr'); $('#credCard').hidden = false; });
+$('#credCard').addEventListener('click', () => { sfx('click'); $('#credCard').hidden = true; });
 // the same swatches in the Settings card and the pause card
 document.addEventListener('click', e => {
   const b = e.target.closest('.colSw .sw'); if (!b) return;
@@ -9854,6 +9875,11 @@ function unlockAudio() {
 }
 for (const ev of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) addEventListener(ev, unlockAudio, true);
 document.addEventListener('visibilitychange', () => { if (actx) document.hidden ? actx.suspend() : audioUnlocked && actx.resume(); syncMusic(); });
+// the game pauses itself when the app goes to the background (a call, another app, the phone locked): it used to play on unseen
+const autoPause = () => { if (document.hidden && !paused && !gameOver && !menuOn() && !$('#app').classList.contains('gallery') && !document.body.classList.contains('showcase')) setPaused(true); };
+document.addEventListener('visibilitychange', autoPause); addEventListener('pagehide', autoPause);
+// ask the browser to keep the save, stars and upgrades even when the device runs low on space (Safari may otherwise clear them)
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}
 document.addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.closest('.cArrow, .cDot, .cCard')) sfx('click'); }, true);
 function setMuted(on) {
   muted = on; try { localStorage.setItem('mtd-muted', on ? '1' : '0'); } catch (e) {}
@@ -10035,7 +10061,7 @@ function adaptResolution(raw) {
 const MENUS = ['#mapPick', '#loadPick', '#campaign', '#newCards', '#upPick', '#achPick', '#codexPick'].map(q => $(q));
 const menuOn = () => MENUS.some(m => !m.hidden);
 const mapPickEl = $('#mapPick'), campEl = $('#campaign'), loadEl = $('#loadPick'), upEl = $('#upPick'), achEl = $('#achPick'), cxEl = $('#codexPick'); let liteN = 0;
-mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button') && !e.target.closest('#colCard')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
+mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button') && !e.target.closest('#colCard') && !e.target.closest('#credCard')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
 // one step of the game itself (no camera, no drawing): frame runs it every animation frame; tools/test runs it in a loop to play fast
 function tick(dt, now) {
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not

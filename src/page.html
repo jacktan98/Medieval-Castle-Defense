@@ -134,9 +134,18 @@
       <label class="volRow"><span>Sounds</span><input type="range" id="setSfx" min="0" max="100" step="1" aria-label="Sound loudness"></label></div>
       <div class="setSub">Graphics</div>
       <div class="gfxRow"><span class="gfxSeg"><button class="seg" data-gfx="low">Low</button><button class="seg" data-gfx="high">High</button></span></div>
-      <button class="campReset" id="setReset">Reset campaign</button></div></div>
+      <div class="setBtns"><button id="setCredits">Credits</button><button class="campReset" id="setReset">Reset campaign</button></div></div></div>
       <button class="primary" id="colDone">Done</button>
     </div>
+    <!-- the credits on parchment like a stage's story (Jack); a tap anywhere closes it -->
+    <div class="credCard" id="credCard" hidden><div class="credText"><span class="cSp1"></span><span class="cSp2"></span>
+      <h4>Credits</h4>
+      <p><b>Made by</b>Jack</p>
+      <p><b>Music and sounds</b>ElevenLabs and Pixabay</p>
+      <p><b>Icons</b>game-icons.net, by Lorc, Delapouite and other artists, under CC BY 3.0</p>
+      <p><b>3D engine</b>three.js</p>
+      <p><b>Fonts</b>IM Fell English and Alegreya Sans (Google Fonts)</p>
+    </div><div class="cSeal" id="credSeal"></div></div>
   </div>
   <div class="modal tome" id="upPick" hidden></div>
   <div class="modal tome" id="achPick" hidden></div>

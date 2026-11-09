@@ -812,6 +812,8 @@ function renderColours() {
 // Settings (Jack picked a gear in the title's corner over a Colours button under Campaign): the colours and the two loudness sliders
 $('#setBtn').addEventListener('click', () => { sfx('click'); renderColours(); syncAudioToggles(); $('#colCard').hidden = false; });
 $('#colDone').addEventListener('click', () => { $('#colCard').hidden = true; });
+$('#setCredits').addEventListener('click', () => { if (!$('#credSeal').firstChild) $('#credSeal').innerHTML = sealIco('cr'); $('#credCard').hidden = false; });
+$('#credCard').addEventListener('click', () => { sfx('click'); $('#credCard').hidden = true; });
 // the same swatches in the Settings card and the pause card
 document.addEventListener('click', e => {
   const b = e.target.closest('.colSw .sw'); if (!b) return;

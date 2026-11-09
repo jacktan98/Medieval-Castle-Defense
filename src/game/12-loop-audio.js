@@ -450,6 +450,11 @@ function unlockAudio() {
 }
 for (const ev of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) addEventListener(ev, unlockAudio, true);
 document.addEventListener('visibilitychange', () => { if (actx) document.hidden ? actx.suspend() : audioUnlocked && actx.resume(); syncMusic(); });
+// the game pauses itself when the app goes to the background (a call, another app, the phone locked): it used to play on unseen
+const autoPause = () => { if (document.hidden && !paused && !gameOver && !menuOn() && !$('#app').classList.contains('gallery') && !document.body.classList.contains('showcase')) setPaused(true); };
+document.addEventListener('visibilitychange', autoPause); addEventListener('pagehide', autoPause);
+// ask the browser to keep the save, stars and upgrades even when the device runs low on space (Safari may otherwise clear them)
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}
 document.addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.closest('.cArrow, .cDot, .cCard')) sfx('click'); }, true);
 function setMuted(on) {
   muted = on; try { localStorage.setItem('mtd-muted', on ? '1' : '0'); } catch (e) {}
@@ -631,7 +636,7 @@ function adaptResolution(raw) {
 const MENUS = ['#mapPick', '#loadPick', '#campaign', '#newCards', '#upPick', '#achPick', '#codexPick'].map(q => $(q));
 const menuOn = () => MENUS.some(m => !m.hidden);
 const mapPickEl = $('#mapPick'), campEl = $('#campaign'), loadEl = $('#loadPick'), upEl = $('#upPick'), achEl = $('#achPick'), cxEl = $('#codexPick'); let liteN = 0;
-mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button') && !e.target.closest('#colCard')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
+mapPickEl.addEventListener('click', e => { if (showcaseBuilt && !e.target.closest('button') && !e.target.closest('#colCard') && !e.target.closest('#credCard')) nextShowcase(); });   // a tap off the cards and buttons: the next scene (Jack)
 // one step of the game itself (no camera, no drawing): frame runs it every animation frame; tools/test runs it in a loop to play fast
 function tick(dt, now) {
   const gdt = dt * gameSpeed;            // game time runs faster at 2×; the camera does not
