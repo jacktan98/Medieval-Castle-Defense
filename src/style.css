@@ -691,8 +691,8 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 /* a phone held sideways: the trees eight across on a wider sheet, everything a little smaller, so most of a tab fits */
 @media (max-height:520px){ .upSheet{max-width:820px;padding-top:8px} .upTop{margin-bottom:4px} .upTop h2{font-size:22px} .upTabs{margin-bottom:8px}
   .upGrid{grid-template-columns:repeat(8,1fr);gap:8px 6px} .upBan{padding:4px 0 7px;margin-bottom:4px} .upBan svg{width:22px;height:22px}
-  .modal.tome .upTree .upNode{width:52px;height:52px} .upNode > svg:first-child{width:30px;height:30px;transform:translateY(-4px)} .upChain{height:12px;margin:4px 0} .upTree{padding-bottom:12px}
-  .upRs{padding-top:10px;margin-bottom:-29.4px;justify-content:flex-start;position:relative;z-index:1;pointer-events:none} .upRs button{pointer-events:auto}
+  .modal.tome .upTree .upNode{width:52px;height:52px} .upNode > svg:first-child{width:30px;height:30px;transform:translateY(-4px)} .upChain{height:12px;margin:4px 0} .upTree{padding-bottom:6px}
+  .upRs{padding-top:4px;margin-bottom:-29.4px;justify-content:flex-start;position:relative;z-index:1;pointer-events:none} .upRs button{pointer-events:auto}
   .upDet{max-width:520px;align-self:center;padding:6px 10px}   /* Reset sits to the left of the details, on their row */
   .modal.tome .upTabs .upTab{padding:4px 0 3px!important;font-size:14px} .modal.tome .upTop .upBack{width:34px;height:34px} .upBank{height:26px} }
 /* a phone held sideways: the deck reaches down to the bar, so the round buttons sit to the bar's left instead */
@@ -861,3 +861,11 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 /* upright on a phone the campaign's Back sits where the Upgrades, Achievements and Archive put theirs (Jack): the modal's 16 px
    and the sheet's 10 / 12 px padding */
 @media (min-height:521px){ body:not(.tablet) #campaign .campBack{top:calc(28px + var(--safeT));left:26px} }
+/* a phone held sideways (Jack: the three screens looked smaller than the room there was): bigger tiles and pictures; the
+   Achievements and Archive, shorter than the Upgrades, fill the rest of their height with bigger tiles too */
+@media (max-height:520px){
+  .modal.tome .upTree .upNode{width:58px;height:58px} .upNode > svg:first-child{width:34px;height:34px}
+  .upBan{padding:3px 0 5px} .upChain{height:10px;margin:3px 0}
+  .achSheet .achGrid{grid-auto-columns:88px;gap:10px 6px} .modal.tome .achNode{width:62px;height:62px} .achNode > svg:first-child{width:36px;height:36px}
+  .cxSheet .achGrid{grid-auto-columns:84px} .cxNode img{width:56px;height:56px}
+}

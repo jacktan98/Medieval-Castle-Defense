@@ -891,7 +891,9 @@ function fitModal(m) {
   // put the sheet back as laid out (this line was once lost behind the comment above, so the Upgrades sheet stayed short and
   // sat lower than the Achievements' and Archive's: Jack saw their Back buttons out of line)
   sh.style.minHeight = sh.style.height = '';
-  m.style.zoom = Math.max(.7, Math.min(k, innerHeight / need)).toFixed(3);
+  // a phone held sideways may zoom past 1 when the height allows (Jack: the three screens looked smaller than the room there was)
+  const cap = !document.body.classList.contains('tablet') && innerHeight <= 520 && innerWidth > innerHeight ? 1.3 : k;
+  m.style.zoom = Math.max(.7, Math.min(cap, innerHeight / need)).toFixed(3);
 }
 // the Achievements and Archive take the Upgrades screen's zoom, so all three sheets are one size and their Back buttons sit in
 // one place (Jack; first on a tablet, then on a phone too: held sideways the Upgrades is shrunk to fit and its Back was smaller and
