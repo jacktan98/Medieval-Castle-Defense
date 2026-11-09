@@ -7,6 +7,7 @@ const path = require('path'), fs = require('fs');
 const { openGame } = require('../../tools/render/serve');
 const ROOT = path.resolve(__dirname, '../..');
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
+const BLEND_W = +arg('--blend', 360);
 (async () => {
   const { page, close, errors } = await openGame('index.html?debug&map=meadow', { three: arg('--three'), viewport: { width: 1024, height: 1024 } });
   const shot = night => page.evaluate(night => G(`((NIGHT) => {
@@ -143,18 +144,21 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? proces
   })(${night})`), night);
   const day = await shot(false), nightShot = await shot(true);
   // day on the left, night on the right, blended over a narrow band down the middle
-  const out = await page.evaluate(async ([a, b]) => {
+  const out = await page.evaluate(async ([a, b, W]) => {
     const load = s => { const im = new Image(); im.src = s; return im.decode().then(() => im); };
     const [A, B] = [await load(a), await load(b)];
     const c = document.createElement('canvas'); c.width = c.height = 1024; const x = c.getContext('2d');
     x.drawImage(A, 0, 0);
     const m = document.createElement('canvas'); m.width = m.height = 1024; const y = m.getContext('2d');
     y.drawImage(B, 0, 0); y.globalCompositeOperation = 'destination-in';
-    const g = y.createLinearGradient(482, 0, 542, 0); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,1)');
+    // a wide, eased fade (Jack: the day turned into night too suddenly over the old 60 px band)
+    const g = y.createLinearGradient(512 - W / 2, 0, 512 + W / 2, 0);
+    for (let i = 0; i <= 16; i++) { const t = i / 16, e = t * t * (3 - 2 * t); g.addColorStop(t, 'rgba(0,0,0,' + e.toFixed(3) + ')'); }
     y.fillStyle = g; y.fillRect(0, 0, 1024, 1024);
     x.drawImage(m, 0, 0);
     return c.toDataURL('image/png');
-  }, [day, nightShot]);
+  }, [day, nightShot, BLEND_W]);
+  if (process.env.ICON_PREVIEW) { fs.writeFileSync(process.env.ICON_PREVIEW, Buffer.from(out.split(',')[1], 'base64')); console.log('preview', process.env.ICON_PREVIEW); await close(); return; }
   const big = path.join(__dirname, 'icon-1024.png'); fs.writeFileSync(big, Buffer.from(out.split(',')[1], 'base64'));
   // Apple refuses an app icon with an alpha channel: drop it (PIL), and put the icon in the iOS project
   require('child_process').execFileSync('python3', ['-c', `from PIL import Image; im = Image.open('${big}').convert('RGB'); im.save('${big}'); im.save('${path.join(ROOT, 'ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png')}')`]);
