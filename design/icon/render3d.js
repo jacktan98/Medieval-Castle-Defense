@@ -104,8 +104,8 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? proces
       st.forEach(([x, z, r, kerb], n) => { const h = hash(x * 7, z * 3); dm.position.set(x, hill(x, z) + (kerb ? .06 : .08), z); dm.rotation.set((h - .5) * .12, h * 6.3, (hash(z, x) - .5) * .12); dm.scale.set(r, kerb ? .1 : .06, r * (.75 + .4 * h)); dm.updateMatrix(); im.setMatrixAt(n, dm.matrix);
         sc.set(kerb ? '#666154' : '#5e5749').multiplyScalar(.9 + .25 * h); im.setColorAt(n, sc); });
       im.castShadow = im.receiveShadow = true; im.frustumCulled = false; S.add(im); }
-    // a torch either side of the track (the left one only shows in the day half, the right one in the night half)
-    { const tx = NIGHT ? 3.4 : -3.4, tz = 6.4; const t = makeModel('torch', 1, true, 0, 0); t.position.set(tx, hill(tx, tz), tz); t.scale.setScalar(.85); S.add(t);
+    // a torch on the night side of the track, lit
+    if (NIGHT) { const tx = 3.4, tz = 6.4; const t = makeModel('torch', 1, true, 0, 0); t.position.set(tx, hill(tx, tz), tz); t.scale.setScalar(.85); S.add(t);
       if (NIGHT) { const L = new THREE.PointLight('#ffa64a', 1.3, 4.5, 2); L.position.set(tx, hill(tx, tz) + 1.3, tz); S.add(L); } }
     // people (Jack): by day two villagers, one cheering by the torch, a builder walking up the track; by night raiders charging
     // the castle (a swordsman, a spearman and an archer loosing at it) with arrows flying at the castle through the night sky
@@ -113,7 +113,7 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? proces
     if (!NIGHT) {
       const a = fig(makePerson({}), -2.7, 5.6, -.25);
       a.arms[0].rotation.set(-2.9, 0, -.35); a.arms[1].rotation.set(-2.9, 0, .35); a.body.position.y = .1;    // cheering: both arms up, mid-hop
-      const b = fig(makePerson({}), -1.5, 7.4, .15); giveTool(b, 'hammer');
+      const b = fig(makePerson({}), -1.9, 7.2, -Math.PI / 2 + .25); giveTool(b, 'hammer');
       b.legs[0].rotation.x = .5; b.legs[1].rotation.x = -.5; b.arms[0].rotation.x = -.4; b.arms[1].rotation.x = -.35; b.pivot.rotation.x = -.25;   // walking, hammer in hand
     } else {
       const run = (p, k) => { p.legs[0].rotation.x = .7 * k; p.legs[1].rotation.x = -.7 * k; p.body.rotation.x = .14; };
@@ -121,11 +121,11 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? proces
       const s2 = fig(makeRaider('spear', 2), 2.9, 6.9, -2.35); run(s2, -1); spearPose(s2, 0, 0); s2.arms[0].rotation.x = -.6;
       const s3 = fig(makeRaider('archer', 2), 3.1, 4.1, -2.0); s3.arms[0].rotation.set(-2.0, 0, .55); s3.arms[1].rotation.set(-1.85, 0, -.6);   // bow drawn, aimed up at the walls
       const am = new THREE.MeshStandardMaterial({ color: '#d8c39a', emissive: '#2a2010', roughness: .8 }), hm = new THREE.MeshStandardMaterial({ color: '#cfd4dc', metalness: .3, roughness: .5 }), fm = new THREE.MeshStandardMaterial({ color: '#e8e0d0', side: THREE.DoubleSide });
-      for (const [x, y, z] of [[3.7, 7.3, 2.2], [4.9, 6.1, 2.9], [3.2, 8.7, 3.4], [5.4, 8.0, 2.4]]) {
+      for (const [x, y, z, dx, dy, dz] of [[3.7, 7.3, 2.2, 6, 1.4, 2], [4.9, 6.1, 2.9, 5, 3.4, 4.5], [3.0, 8.9, 3.4, 6, .3, 1.2], [5.6, 8.1, 2.0, 4.5, 2.6, -1.2]]) {
         const ar = new THREE.Group(), sh = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, 1.1, 5).rotateX(Math.PI / 2), am); ar.add(sh);
         const hd = new THREE.Mesh(new THREE.ConeGeometry(.07, .2, 4).rotateX(-Math.PI / 2), hm); hd.position.z = -.62; ar.add(hd);
         for (const r of [0, Math.PI / 2]) { const f = new THREE.Mesh(new THREE.PlaneGeometry(.16, .28), fm); f.rotation.set(Math.PI / 2, 0, r); f.position.z = .45; ar.add(f); }
-        ar.position.set(x, y, z); ar.lookAt(x + 6, y + 2.2, z + 3); ar.scale.setScalar(.95); S.add(ar);   // flying in at the castle, nose down-left
+        ar.position.set(x, y, z); ar.lookAt(x + dx, y + dy, z + dz); ar.scale.setScalar(.95); S.add(ar);   // each flying in from its own angle, so they look loosed by different bows
       }
     }
     if (NIGHT) {
