@@ -352,7 +352,8 @@ for (const k in LOOPS) {
 }
 // at: a world point; world sounds fade with distance from what the camera looks at, and when zoomed far out
 function sfx(name, at, vol = 1) {
-  if (muted || !actx || actx.state !== 'running') return;
+  if (muted || !actx) return;
+  if (actx.state !== 'running') { if (audioUnlocked && !document.hidden && actx.state !== 'closed') actx.resume().catch(() => {}); return; }
   if (name === 'victory' || name === 'defeat' ? musicOff : sfxOff) return;
   if (!clips[name] || !clips[name].length) return SND[name] && SND[name].fallback ? sfx(SND[name].fallback, at, vol * .7) : undefined;
   const now = actx.currentTime; if (now - (sfxLast[name] || -9) < (SFX_GAP[name] || .05)) return;
@@ -469,6 +470,9 @@ function unlockAudio() {
 }
 for (const ev of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) addEventListener(ev, unlockAudio, true);
 document.addEventListener('visibilitychange', () => { if (actx) document.hidden ? actx.suspend() : audioUnlocked && actx.resume(); syncMusic(); });
+// iOS can leave the sound 'interrupted' (a call, the app's own audio session being set): try to bring it back as soon as it
+// stops running while the game is on screen, and again at the next sound (sfx skips sounds while it isn't running)
+if (actx) actx.addEventListener('statechange', () => { if (actx.state !== 'running' && actx.state !== 'closed' && audioUnlocked && !document.hidden) actx.resume().catch(() => {}); });
 // the game pauses itself when the app goes to the background (a call, another app, the phone locked): it used to play on unseen
 const autoPause = () => { if (document.hidden && !paused && !gameOver && !menuOn() && !$('#app').classList.contains('gallery') && !document.body.classList.contains('showcase')) setPaused(true); };
 document.addEventListener('visibilitychange', autoPause); addEventListener('pagehide', autoPause);

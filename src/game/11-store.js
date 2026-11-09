@@ -40,3 +40,16 @@ if (STORE) {
   STORE.owned().then(r => { if (r && r.ids && r.ids.includes(FULL_ID)) setFull(true); }).catch(() => {});
   try { STORE.addListener('owned', d => { if (d && d.ids && d.ids.includes(FULL_ID)) setFull(!d.revoked); }); } catch (e) {}
 }
+
+// TEMPORARY, for testing the purchase on a phone (Jack): five quick taps on the campaign's "N / 12 stages" line mark Stages 1
+// to 3 won (1 star each) and turn the deck to Stage 4. Set TEST_SKIP to false (or remove this) before the App Store release.
+var TEST_SKIP = true;
+if (TEST_SKIP) { let n = 0, t0 = 0;
+  $('#campStars').addEventListener('click', () => {
+    const now = performance.now(); if (now - t0 > 3000) n = 0; if (!n) t0 = now;
+    if (++n < 5) return; n = 0;
+    for (const c of CAMPAIGN.slice(0, FREE_N)) STARS[c.map] = Math.max(STARS[c.map] || 0, 1);
+    try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {}
+    sfx('unlock'); openCampaign(FREE_N);
+  });
+}

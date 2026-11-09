@@ -14,11 +14,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
 
+    // only the category: the web view turns the session on itself when the game plays a sound (turning it on here as well,
+    // at every return to the app, could leave the game's sound interrupted)
     func setPlayback() {
-        let s = AVAudioSession.sharedInstance()
-        try? s.setCategory(.playback, mode: .default, options: [])
-        try? s.overrideOutputAudioPort(.none)
-        try? s.setActive(true)
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

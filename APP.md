@@ -46,7 +46,7 @@ Stages 1 to 3 are free; Stage 4 on shows **Unlock** with the price in place of P
 1. Run the app from Xcode **on your iPhone** (the Simulator may not reach the App Store's test server).
 2. On the phone: **Settings → Developer → Sandbox Apple Account** → sign in with the sandbox tester from App Store
    Connect (Users and Access → Sandbox).
-3. In the game, win Stage 3 (or use the website's `?debug` to check the rest), open Stage 4 and tap **Unlock**. Apple's
+3. In the game, win Stage 3, or tap the campaign's "N / 12 stages" line five times quickly (a temporary test shortcut that marks Stages 1 to 3 won), then on Stage 4 tap **Unlock**. Apple's
    sheet shows **[Sandbox]**; nothing is charged. Stage 4 on then plays.
 4. To test again from scratch: App Store Connect → Users and Access → Sandbox → tick the tester → **Clear Purchase
    History**, then delete and reinstall the app. **Restore purchases** in Settings should bring it back.
