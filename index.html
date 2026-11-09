@@ -235,7 +235,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #mapPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse 90% 65% at 50% 50%, rgba(6,7,5,.15) 0%, rgba(6,7,5,.35) 55%, rgba(4,5,3,.85) 100%),linear-gradient(180deg, rgba(6,7,5,.55) 0%, rgba(6,7,5,0) 30%, rgba(6,7,5,0) 70%, rgba(6,7,5,.6) 100%)!important;background-size:cover!important}
 body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 /* the title on a big screen (a laptop): everything scales with the window instead of staying phone-sized in the middle */
-@media (min-width:900px) and (min-height:600px){
+@media (min-width:900px) and (min-height:600px) and (orientation:landscape){
   #mapPick .mapSheet{width:min(1100px,92vw);gap:min(26px,2.6vh)}
   #mapPick .gameTitle{font-size:clamp(52px,5.2vw,92px)}
   #mapPick .mapSub{font-size:15px;width:min(460px,50vw)}
@@ -280,7 +280,7 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 .cArrow svg{width:22px;height:22px;fill:none;stroke:var(--gold);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round} .cArrow.l{left:2px} .cArrow.r{right:2px}
 .cDet{width:min(520px,100%);flex:0 0 auto}
 .cDet .stActs{display:flex;gap:10px;justify-content:center} .cDet .stActs button{min-width:110px;min-height:42px}
-@media (min-width:900px) and (min-height:600px){ .cMain{flex-direction:row;align-items:stretch;gap:24px} .cLeft{flex:1 1 auto} .cDet{width:300px;align-self:center} .cCard .cName b{font-size:24px} }
+@media (min-width:900px) and (min-height:600px) and (orientation:landscape){ .cMain{flex-direction:row;align-items:stretch;gap:24px} .cLeft{flex:1 1 auto} .cDet{width:300px;align-self:center} .cCard .cName b{font-size:24px} }
 @media (max-height:520px){ #campaign .cHead{flex-direction:row;gap:14px} #campaign .cHead .mapSub{width:auto} .cMain{flex-direction:row;align-items:stretch;gap:12px} .cDet{width:250px;align-self:center;padding:8px 10px!important;gap:5px} .cDet h3{font-size:18px} }
 
 /* behind the campaign and the town picker the title's scene keeps running (Jack: it flashed up between them before); these screens only
@@ -337,7 +337,7 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
    so the progress bar above never moves (Jack); the box sits at the slot's top on a tall screen, centred beside the deck on a wide one */
 .cDetSlot{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;width:100%;flex:0 0 auto}
 /* beside the deck (laptop, phone sideways) the slot has a fixed width and the deck takes the rest, so neither changes size from stage to stage */
-@media (min-width:900px) and (min-height:600px){ .cDetSlot{width:370px;justify-content:center;align-self:stretch;min-height:0!important} .modal.tome .cDet{width:100%!important} .cLeft{flex:1 1 0;min-width:0} }
+@media (min-width:900px) and (min-height:600px) and (orientation:landscape){ .cDetSlot{width:370px;justify-content:center;align-self:stretch;min-height:0!important} .modal.tome .cDet{width:100%!important} .cLeft{flex:1 1 0;min-width:0} }
 @media (max-height:520px){ .cDetSlot{width:250px;justify-content:center;align-self:stretch;min-height:0!important} .modal.tome .cDet{width:100%!important} .cLeft{flex:1 1 0;min-width:0} }
 /* on a tall screen the progress bar and the details sit a little higher, into the spare room under the card (Jack: a small shift only) */
 @media (max-aspect-ratio:3/4){ .cDotsWrap{margin:-28px 0 6px} }
@@ -8156,7 +8156,7 @@ $('#loadPick').addEventListener('click', e => {
 });
 function showLoadPick(stage) {
   stagePick = stage; STAGE_DECOR[stagePick] = stageDecor(stagePick);
-  renderLoadPick(); $('#loadPick').hidden = false; $('#loadPick').scrollTop = 0; }
+  renderLoadPick(); $('#loadPick').hidden = false; $('#loadPick').scrollTop = 0; fitModal($('#loadPick')); }
 $('#ldBack').addEventListener('click', () => { sfx('click'); $('#loadPick').hidden = true; stagePick = null; openCampaign(CAMP_MAPS[MAP].stop); });
 $('#ldStart').addEventListener('click', () => {
   sfx('click');
@@ -8929,6 +8929,15 @@ function tabletScale() {
   const W = innerWidth, H = innerHeight, tab = (navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches) && Math.min(W, H) >= 700;
   const k = !tab ? 1 : Math.max(1, Math.min(1.6, W < H ? Math.min(W / 430, H / 900) : Math.min(W / 1000, H / 640)));
   document.body.classList.toggle('tablet', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3));
+  fitModal($('#loadPick')); fitModal($('#upPick'));
+}
+// a tall sheet (the town picker, the Upgrades screen) is zoomed to fit the screen's height: on a short phone a little smaller than
+// designed (Jack's iPhone SE had Start below the screen), on a tablet only as far up as fits (sideways the upright layout was cut off)
+function fitModal(m) {
+  if (!m || m.hidden || !m.firstElementChild) return;
+  m.style.zoom = ''; const k = parseFloat(getComputedStyle(m).zoom) || 1; m.style.zoom = 1;
+  const sh = m.firstElementChild, bot = Math.max(...[...sh.children].map(c => c.getBoundingClientRect().bottom));
+  m.style.zoom = Math.max(.7, Math.min(k, innerHeight / (bot + 14))).toFixed(3);
 }
 tabletScale(); addEventListener('resize', tabletScale);
 // the HUD tick that places the night powers and the boss bar stops while paused: place them again whenever the screen turns
@@ -9294,7 +9303,7 @@ const upShut = id => { const k = upStage(id); return k > 0 && campState().locked
 // gives the font (Jack's iPhone showed it low)
 const upBuyLabel = (id, s) => `<span class="upLk">${upShut(id) ? `${LOCK_ICO}Stage ${upStage(id) + 1}` : s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1'}</span>`;
 const upFind = id => { for (const [, rows] of UP_TABS) for (const [row, , ups] of rows) { const k = ups.findIndex(u => u[0] === id); if (k >= 0) return { row, u: ups[k], prev: k ? ups[k - 1][0] : null }; } };
-function openUpgrades() { sfx('click'); $('#upPick').replaceChildren(); $('#campaign').hidden = true; $('#upPick').hidden = false; upSel = null; renderUpgrades(); }
+function openUpgrades() { sfx('click'); $('#upPick').replaceChildren(); $('#campaign').hidden = true; $('#upPick').hidden = false; upSel = null; renderUpgrades(); fitModal($('#upPick')); }
 function renderUpgrades() {
   const [, rows] = UP_TABS[upTab], left = upLeft(), tc = TEAM_PAL[TEAM.town], dk = new THREE.Color(); dk.setStyle(tc); dk.multiplyScalar(.45);
   if (!upSel || !rows.some(r => r[2].some(u => u[0] === upSel))) upSel = rows[0][2][0][0];

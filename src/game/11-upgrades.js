@@ -140,7 +140,7 @@ const upShut = id => { const k = upStage(id); return k > 0 && campState().locked
 // gives the font (Jack's iPhone showed it low)
 const upBuyLabel = (id, s) => `<span class="upLk">${upShut(id) ? `${LOCK_ICO}Stage ${upStage(id) + 1}` : s === 2 ? 'Bought' : s === 0 ? 'Locked' : 'Buy ★1'}</span>`;
 const upFind = id => { for (const [, rows] of UP_TABS) for (const [row, , ups] of rows) { const k = ups.findIndex(u => u[0] === id); if (k >= 0) return { row, u: ups[k], prev: k ? ups[k - 1][0] : null }; } };
-function openUpgrades() { sfx('click'); $('#upPick').replaceChildren(); $('#campaign').hidden = true; $('#upPick').hidden = false; upSel = null; renderUpgrades(); }
+function openUpgrades() { sfx('click'); $('#upPick').replaceChildren(); $('#campaign').hidden = true; $('#upPick').hidden = false; upSel = null; renderUpgrades(); fitModal($('#upPick')); }
 function renderUpgrades() {
   const [, rows] = UP_TABS[upTab], left = upLeft(), tc = TEAM_PAL[TEAM.town], dk = new THREE.Color(); dk.setStyle(tc); dk.multiplyScalar(.45);
   if (!upSel || !rows.some(r => r[2].some(u => u[0] === upSel))) upSel = rows[0][2][0][0];

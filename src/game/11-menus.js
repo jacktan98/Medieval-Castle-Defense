@@ -77,7 +77,7 @@ $('#loadPick').addEventListener('click', e => {
 });
 function showLoadPick(stage) {
   stagePick = stage; STAGE_DECOR[stagePick] = stageDecor(stagePick);
-  renderLoadPick(); $('#loadPick').hidden = false; $('#loadPick').scrollTop = 0; }
+  renderLoadPick(); $('#loadPick').hidden = false; $('#loadPick').scrollTop = 0; fitModal($('#loadPick')); }
 $('#ldBack').addEventListener('click', () => { sfx('click'); $('#loadPick').hidden = true; stagePick = null; openCampaign(CAMP_MAPS[MAP].stop); });
 $('#ldStart').addEventListener('click', () => {
   sfx('click');
@@ -850,6 +850,15 @@ function tabletScale() {
   const W = innerWidth, H = innerHeight, tab = (navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches) && Math.min(W, H) >= 700;
   const k = !tab ? 1 : Math.max(1, Math.min(1.6, W < H ? Math.min(W / 430, H / 900) : Math.min(W / 1000, H / 640)));
   document.body.classList.toggle('tablet', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3));
+  fitModal($('#loadPick')); fitModal($('#upPick'));
+}
+// a tall sheet (the town picker, the Upgrades screen) is zoomed to fit the screen's height: on a short phone a little smaller than
+// designed (Jack's iPhone SE had Start below the screen), on a tablet only as far up as fits (sideways the upright layout was cut off)
+function fitModal(m) {
+  if (!m || m.hidden || !m.firstElementChild) return;
+  m.style.zoom = ''; const k = parseFloat(getComputedStyle(m).zoom) || 1; m.style.zoom = 1;
+  const sh = m.firstElementChild, bot = Math.max(...[...sh.children].map(c => c.getBoundingClientRect().bottom));
+  m.style.zoom = Math.max(.7, Math.min(k, innerHeight / (bot + 14))).toFixed(3);
 }
 tabletScale(); addEventListener('resize', tabletScale);
 // the HUD tick that places the night powers and the boss bar stops while paused: place them again whenever the screen turns

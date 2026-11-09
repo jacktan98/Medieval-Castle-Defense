@@ -218,7 +218,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 #mapPick.modal.tome{background-color:transparent!important;background-image:radial-gradient(ellipse 90% 65% at 50% 50%, rgba(6,7,5,.15) 0%, rgba(6,7,5,.35) 55%, rgba(4,5,3,.85) 100%),linear-gradient(180deg, rgba(6,7,5,.55) 0%, rgba(6,7,5,0) 30%, rgba(6,7,5,0) 70%, rgba(6,7,5,.6) 100%)!important;background-size:cover!important}
 body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 /* the title on a big screen (a laptop): everything scales with the window instead of staying phone-sized in the middle */
-@media (min-width:900px) and (min-height:600px){
+@media (min-width:900px) and (min-height:600px) and (orientation:landscape){
   #mapPick .mapSheet{width:min(1100px,92vw);gap:min(26px,2.6vh)}
   #mapPick .gameTitle{font-size:clamp(52px,5.2vw,92px)}
   #mapPick .mapSub{font-size:15px;width:min(460px,50vw)}
@@ -263,7 +263,7 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
 .cArrow svg{width:22px;height:22px;fill:none;stroke:var(--gold);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round} .cArrow.l{left:2px} .cArrow.r{right:2px}
 .cDet{width:min(520px,100%);flex:0 0 auto}
 .cDet .stActs{display:flex;gap:10px;justify-content:center} .cDet .stActs button{min-width:110px;min-height:42px}
-@media (min-width:900px) and (min-height:600px){ .cMain{flex-direction:row;align-items:stretch;gap:24px} .cLeft{flex:1 1 auto} .cDet{width:300px;align-self:center} .cCard .cName b{font-size:24px} }
+@media (min-width:900px) and (min-height:600px) and (orientation:landscape){ .cMain{flex-direction:row;align-items:stretch;gap:24px} .cLeft{flex:1 1 auto} .cDet{width:300px;align-self:center} .cCard .cName b{font-size:24px} }
 @media (max-height:520px){ #campaign .cHead{flex-direction:row;gap:14px} #campaign .cHead .mapSub{width:auto} .cMain{flex-direction:row;align-items:stretch;gap:12px} .cDet{width:250px;align-self:center;padding:8px 10px!important;gap:5px} .cDet h3{font-size:18px} }
 
 /* behind the campaign and the town picker the title's scene keeps running (Jack: it flashed up between them before); these screens only
@@ -320,7 +320,7 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
    so the progress bar above never moves (Jack); the box sits at the slot's top on a tall screen, centred beside the deck on a wide one */
 .cDetSlot{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;width:100%;flex:0 0 auto}
 /* beside the deck (laptop, phone sideways) the slot has a fixed width and the deck takes the rest, so neither changes size from stage to stage */
-@media (min-width:900px) and (min-height:600px){ .cDetSlot{width:370px;justify-content:center;align-self:stretch;min-height:0!important} .modal.tome .cDet{width:100%!important} .cLeft{flex:1 1 0;min-width:0} }
+@media (min-width:900px) and (min-height:600px) and (orientation:landscape){ .cDetSlot{width:370px;justify-content:center;align-self:stretch;min-height:0!important} .modal.tome .cDet{width:100%!important} .cLeft{flex:1 1 0;min-width:0} }
 @media (max-height:520px){ .cDetSlot{width:250px;justify-content:center;align-self:stretch;min-height:0!important} .modal.tome .cDet{width:100%!important} .cLeft{flex:1 1 0;min-width:0} }
 /* on a tall screen the progress bar and the details sit a little higher, into the spare room under the card (Jack: a small shift only) */
 @media (max-aspect-ratio:3/4){ .cDotsWrap{margin:-28px 0 6px} }
