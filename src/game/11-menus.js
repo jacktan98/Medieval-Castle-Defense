@@ -548,7 +548,7 @@ const CAMPAIGN = [
   { name: 'Meadowmere', map: 'mere', land: 'Damp blight · crops fail', adds: ['farmhouse'] },
   { name: 'Horsefields', map: 'plains', land: 'Open plains', adds: ['stables'] },
   { name: 'Raider Keep', sub: 'Boss', map: 'keep', boss: true, land: 'Blighted land · crops fail', adds: [] },
-  { name: "Warlord's Hold", sub: 'Boss', map: 'hold', boss: true, adds: [] },
+  { name: "Warlord's Hold", sub: 'Boss', map: 'hold', boss: true, land: 'Deep winter · the last stand', adds: [] },
   // the bonus stages (Jack): the old free-play maps made very hard, open once all twelve are won; Hard only, a crown and no stars
   { name: 'Scorched Meadow', sub: 'Bonus', map: 'meadow', bonus: true, land: 'Drought · no trees or rocks', adds: [] },
   { name: 'Blighted Isle', sub: 'Bonus', map: 'isle', bonus: true, land: 'Crop blight · fields fail', adds: [] },

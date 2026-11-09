@@ -876,3 +876,11 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
   #campaign .campBack{left:calc(var(--padL) + 18px)}
   #campaign .cHead{padding-left:68px}
 }
+/* the paused card sideways (Jack, iPhone 18 Pro: the colour rows ran off the bottom): centred again (the notch's top padding,
+   added later for upright, had brought back the 18vh drop sideways), and in two columns, the sound and graphics on the left and
+   the colours on the right, so it fits any phone's height */
+@media (max-height:520px){
+  .pausedTag{padding-top:0}
+  .pauseCard{display:grid!important;grid-template-columns:auto auto;grid-template-areas:'t t' 'b c' 'a c';column-gap:20px;align-items:start}
+  .pauseCard .pauseT{grid-area:t;justify-self:center;text-align:center} .pauseCard .pauseBtns{grid-area:b} .pauseCard .audioRows{grid-area:a} .pauseCard .pCols{grid-area:c;margin-top:0;align-self:center}
+}
