@@ -1,0 +1,16 @@
+{
+  "name": "castle-defense",
+  "private": true,
+  "description": "The iPhone and iPad app of the game, built with Capacitor from the same files as the website",
+  "scripts": {
+    "app": "node tools/build.js && node tools/app.js && npx cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "@capacitor/preferences": "^8.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.0.0"
+  }
+}

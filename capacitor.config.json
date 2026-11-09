@@ -1,0 +1,10 @@
+{
+  "appId": "com.jacktan.castledefense",
+  "appName": "Castle Defense",
+  "webDir": "www",
+  "backgroundColor": "#141a17",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#141a17"
+  }
+}

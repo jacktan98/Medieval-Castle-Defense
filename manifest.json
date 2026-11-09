@@ -1,6 +1,6 @@
 {
-  "name": "Medieval Town Defense",
-  "short_name": "Town Defense",
+  "name": "Castle Defense",
+  "short_name": "Castle Defense",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
