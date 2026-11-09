@@ -8,11 +8,11 @@ The app is the same game as the website, wrapped by [Capacitor](https://capacito
 1. Install **Xcode** (Mac App Store) and open it once so it finishes installing. In **Xcode → Settings → Accounts**, press
    **+** and sign in with the Apple ID of your developer account.
 2. Install **Node.js** (the LTS version) from nodejs.org.
-3. Open **Terminal** and get the game (use the repo's new name once it is renamed):
+3. Open **Terminal** and get the game:
    ```
    cd ~/Documents
-   git clone https://github.com/jacktan98/Medieval-Town-Defense.git
-   cd Medieval-Town-Defense
+   git clone https://github.com/jacktan98/Medieval-Castle-Defense.git
+   cd Medieval-Castle-Defense
    npm install
    ```
 4. Build the app's files and open it in Xcode:
@@ -30,7 +30,7 @@ The app is the same game as the website, wrapped by [Capacitor](https://capacito
 ## Every time the game changes
 
 ```
-cd ~/Documents/Medieval-Town-Defense
+cd ~/Documents/Medieval-Castle-Defense
 git pull
 npm run app
 ```
