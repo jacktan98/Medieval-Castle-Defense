@@ -664,6 +664,10 @@ function layoutDeck(anim = true) {
   if (sideways) { const dr = deck.getBoundingClientRect(), sr = $('.campSide').getBoundingClientRect(); room = sr.top - dr.top - 8 - GAP_TOP; }
   const W = Math.min(deck.clientWidth * (deck.clientWidth > deck.clientHeight * 1.2 ? .48 : .62), room, 480), f = cSel + cDrag;
   if (sideways) cy = GAP_TOP + Math.max(120, W) / 2 - deck.clientHeight / 2;
+  // upright the card is centred between the deck's top and the round buttons (Jack: up more; centred on the whole deck, which
+  // runs down behind the buttons, it left a gap above it), the arrows with it
+  else { const dr = deck.getBoundingClientRect(), sr = $('.campSide').getBoundingClientRect();
+    if (sr.height && sr.top > dr.top + 120 && sr.top < dr.bottom + 4) cy = Math.min(0, (sr.top - dr.top) / 2 - deck.clientHeight / 2); }
   deck.parentElement.style.setProperty('--cy', cy.toFixed(1) + 'px');
   deck.style.setProperty('--cw', Math.max(120, W) + 'px');
   document.querySelectorAll('#cCards .cCard').forEach(el => {
@@ -702,7 +706,7 @@ function openStage(i) {
   document.querySelectorAll('#cDots .cDot').forEach(m => m.classList.toggle('sel', +m.dataset.i === i));
   $('#stName').textContent = `Stage ${i + 1} · ${c.name}`;
   $('#stSub').textContent = [c.sub, c.land].filter(Boolean).join(' · ');
-  $('#stNew').innerHTML = c.adds.map(t => `<span>${TOOL_ICON[t] || ''}<b>${t === 'road' ? 'Path' : DEF[t].name}</b></span>`).join('');
+  $('#stNew').innerHTML = stChips(c.adds);
   // a bonus stage has no stars, only its crown (outlined until won)
   $('#stStars').innerHTML = c.bonus ? `<span class="crown${CROWNS[c.map] ? '' : ' empty'}" title="Win on hard">${CROWN_ICO}</span>` : starsHTML(c.map ? STARS[c.map] || 0 : 0) + (c.map && CROWNS[c.map] ? `<span class="crown" title="Won on hard">${CROWN_ICO}</span>` : c.map && (STARS[c.map] || 0) >= 3 ? `<span class="crown empty" title="Win on hard">${CROWN_ICO}</span>` : '');
   // hard mode: open once the stage has 3 stars (raiders a tier up, 30% less gold and wood to start; a win earns the crown)
@@ -713,11 +717,7 @@ function openStage(i) {
   // how many waves, how long to prepare before the first, and the quickest win so far
   const R = c.map && MAP_RULES[c.map];
   $('#stInfo').innerHTML = R ? `<span>Day 1: <b>${Math.round(R.day[0] / 60)}</b> min${Math.round(R.day[0] / 60) === 1 ? '' : 's'}</span><span>Waves: <b>${R.waves.length}</b></span>${BEST[c.map] ? `<span>Best: <b>${fmt(BEST[c.map])}</b></span>` : ''}` : '';
-  requestAnimationFrame(() => { const slot = $('#cDetSlot'), det = slot.firstElementChild, chips = [...det.querySelectorAll('.stNew span')];
-    const rows = new Set(chips.map(e => e.offsetTop)).size, ch = chips[0] ? chips[0].offsetHeight + 7 : 0;
-    const full = det.offsetHeight + (rows === 1 ? ch : 0);
-    if (getComputedStyle($('.cMain')).flexDirection === 'row') { slot.style.minHeight = ''; return; }
-    if (full > (slot._h || 0) || slot._w !== innerWidth) { slot._h = Math.max(full, slot._w === innerWidth ? slot._h || 0 : 0); slot._w = innerWidth; slot.style.minHeight = slot._h + 'px'; } });
+  requestAnimationFrame(fitDetSlot);
   // a locked stage can't be played (TEST_OPEN off): Play is a padlock that refuses
   const shut = !TEST_OPEN && campState().locked[i];
   $('#stPlay').innerHTML = c.map ? `<button class="primary${shut ? ' shut' : ''}" id="campPlay">${shut ? LOCK_ICO : 'Play'}</button>` : '';
@@ -730,6 +730,19 @@ function openStage(i) {
   });
 }
 var hardSel = false;
+// the details' slot is kept at the tallest the details get, so the progress bar above never moves; it reserves Stage 1's two
+// rows of chips, the most any stage has, whichever stage the campaign opens on: opened on a boss stage (no chips) the bar
+// sat lower, then jumped up on reaching Stage 1 (Jack); measured again once the fonts have loaded
+const stChips = adds => adds.map(t => `<span>${TOOL_ICON[t] || ''}<b>${t === 'road' ? 'Path' : DEF[t].name}</b></span>`).join('');
+function fitDetSlot() {
+  const slot = $('#cDetSlot'), det = slot.firstElementChild;
+  // measured with Stage 1's chips put in for a moment (two rows, the most any stage has), then put back
+  const sn = det.querySelector('.stNew'), own = det.offsetHeight, keep = sn.innerHTML;
+  sn.innerHTML = stChips(CAMPAIGN[0].adds); const full = Math.max(own, det.offsetHeight); sn.innerHTML = keep;
+    if (getComputedStyle($('.cMain')).flexDirection === 'row') { slot.style.minHeight = ''; return; }
+    if (full > (slot._h || 0) || slot._w !== innerWidth) { slot._h = Math.max(full, slot._w === innerWidth ? slot._h || 0 : 0); slot._w = innerWidth; slot.style.minHeight = slot._h + 'px'; }
+}
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { const sl = $('#cDetSlot'); if (sl) { sl._h = 0; if (!$('#campaign').hidden) fitDetSlot(); } });
 function syncDiff(can) {
   const h = $('#dHard'); h.classList.toggle('locked', !can); h.innerHTML = can ? 'Hard' : LOCK_ICO;   // locked: only the padlock (Jack)
   h.classList.toggle('on', hardSel); $('#dNormal').classList.toggle('on', !hardSel);
@@ -868,13 +881,18 @@ function fitModal(m) {
   // from the sheet's own top (it sits centred on the screen), with its padding
   // the sheet's own laid-out height, not its rect: the menus' rise animation moves the sheet while it opens, and a measure then
   // came out different each time (the Achievements and Archive copy this zoom, so their Back buttons sat a few px off)
-  const need = sh.scrollHeight + 24 + (parseFloat(getComputedStyle(m).paddingTop) || 0) + (parseFloat(getComputedStyle(m).paddingBottom) || 0);   // the modal's own padding too (the Upgrades screen's last row was cut off on an iPad held sideways) sh.style.minHeight = sh.style.height = '';
+  // the modal's own padding too (the Upgrades screen's last row was cut off on an iPad held sideways)
+  const need = sh.scrollHeight + 24 + (parseFloat(getComputedStyle(m).paddingTop) || 0) + (parseFloat(getComputedStyle(m).paddingBottom) || 0);
+  // put the sheet back as laid out (this line was once lost behind the comment above, so the Upgrades sheet stayed short and
+  // sat lower than the Achievements' and Archive's: Jack saw their Back buttons out of line)
+  sh.style.minHeight = sh.style.height = '';
   m.style.zoom = Math.max(.7, Math.min(k, innerHeight / need)).toFixed(3);
 }
-// on a tablet the Achievements and Archive take the Upgrades screen's zoom, so all three sheets are one size and their Back
-// buttons sit in one place (Jack): the Upgrades screen is fitted out of sight and its zoom copied
+// the Achievements and Archive take the Upgrades screen's zoom, so all three sheets are one size and their Back buttons sit in
+// one place (Jack; first on a tablet, then on a phone too: held sideways the Upgrades is shrunk to fit and its Back was smaller and
+// further in): the Upgrades screen is fitted out of sight and its zoom copied
 function matchUpZoom(m) {
-  if (!m) return; if (!document.body.classList.contains('tablet')) { m.style.zoom = ''; return; }
+  if (!m) return;
   if (m.hidden) return;
   const u = $('#upPick'), was = u.hidden;
   if (was) { u.style.visibility = 'hidden'; u.hidden = false; }
