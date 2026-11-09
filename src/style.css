@@ -849,3 +849,12 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 .credText h4{margin:0 0 .35em;font-family:var(--display);font-weight:400;font-size:1.45em;color:#5a3a16;text-align:center}
 .credText p{margin:0 0 .45em} .credText b{display:block;font-weight:700;color:#6b4520;font-size:.85em;letter-spacing:.04em}
 .credCard .cSp1{height:calc(100% - var(--cw) * .22)}
+/* the notch / Dynamic Island (Jack, in the app on an iPhone 16e upright): the app's web view runs up under the status bar, unlike
+   Safari and the home-screen web app (where the page starts below it and this inset is 0), so everything at the top of the screen
+   starts below it; held sideways the top inset is 0 and nothing moves (the sides were handled already: --padL/--padR) */
+:root{--safeT:env(safe-area-inset-top,0px)}
+.panel{top:calc(8px + var(--safeT))}
+#pauseBtn{top:calc(8px + var(--safeT))}
+.modal{padding-top:calc(16px + var(--safeT))}
+#campaign{padding-top:calc(10px + var(--safeT))}
+.pausedTag{padding-top:calc(18vh + var(--safeT))}

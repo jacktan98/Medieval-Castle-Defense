@@ -866,6 +866,15 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 .credText h4{margin:0 0 .35em;font-family:var(--display);font-weight:400;font-size:1.45em;color:#5a3a16;text-align:center}
 .credText p{margin:0 0 .45em} .credText b{display:block;font-weight:700;color:#6b4520;font-size:.85em;letter-spacing:.04em}
 .credCard .cSp1{height:calc(100% - var(--cw) * .22)}
+/* the notch / Dynamic Island (Jack, in the app on an iPhone 16e upright): the app's web view runs up under the status bar, unlike
+   Safari and the home-screen web app (where the page starts below it and this inset is 0), so everything at the top of the screen
+   starts below it; held sideways the top inset is 0 and nothing moves (the sides were handled already: --padL/--padR) */
+:root{--safeT:env(safe-area-inset-top,0px)}
+.panel{top:calc(8px + var(--safeT))}
+#pauseBtn{top:calc(8px + var(--safeT))}
+.modal{padding-top:calc(16px + var(--safeT))}
+#campaign{padding-top:calc(10px + var(--safeT))}
+.pausedTag{padding-top:calc(18vh + var(--safeT))}
 </style>
 
 <!-- shown from the first paint until the game is ready (three.js comes from a CDN; on a slow phone that takes a while) -->
@@ -9209,6 +9218,9 @@ function updatePowers() {
   if (bb && !bb.hidden) { const r = bb.getBoundingClientRect(); if (r.height && r.left < pn.left + 110) top = Math.max(top, r.bottom + 8); }
   el.classList.remove('col'); el.style.bottom = 'auto'; el.style.top = top + 'px'; el.style.left = pn.left + 'px';
 }
+// the screen's top inset (the notch or Dynamic Island in the app held upright; 0 in Safari and sideways), read off a probe
+const safeProbe = (() => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;top:0;left:0;width:0;height:var(--safeT);visibility:hidden;pointer-events:none'; document.body.appendChild(d); return d; })();
+const safeTop = () => safeProbe.offsetHeight;
 // the boss's health along the top while one is out
 function updateBossBar() {
   const B = enemies.find(e => !e.dead && !e.dormant && ENEMY[e.kind].boss), el = $('#bossBar');
@@ -9217,7 +9229,7 @@ function updateBossBar() {
   const top = document.querySelector('.panel').getBoundingClientRect(), wide = top.right > innerWidth * .6, w = el.offsetWidth;
   // a phone held sideways: under the row of buttons at the top middle
   const side = matchMedia('(max-height:520px)').matches;
-  el.style.top = (wide ? top.bottom + 8 : side ? 54 : 10) + 'px'; el.style.left = (wide ? innerWidth / 2 : Math.max(innerWidth / 2, top.right + 14 + w / 2)) + 'px';
+  el.style.top = (wide ? top.bottom + 8 : (side ? 54 : 10) + safeTop()) + 'px'; el.style.left = (wide ? innerWidth / 2 : Math.max(innerWidth / 2, top.right + 14 + w / 2)) + 'px';
   $('#bossName').textContent = RAIDER_NAME[B.kind]; $('#bossFill').style.width = Math.max(0, B.hp / B.max * 100) + '%';
 }
 $('#recallBtn').addEventListener('click', () => { if (selected) { setRally(selected, null); rallyFor = null; setHint('Recalled'); refreshCard(); } });
@@ -9905,7 +9917,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '17db8daf95'; var updateWait = false, updateT = 0;
+const BUILD = '55c6eec72e'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

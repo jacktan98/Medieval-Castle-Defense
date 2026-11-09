@@ -1088,6 +1088,9 @@ function updatePowers() {
   if (bb && !bb.hidden) { const r = bb.getBoundingClientRect(); if (r.height && r.left < pn.left + 110) top = Math.max(top, r.bottom + 8); }
   el.classList.remove('col'); el.style.bottom = 'auto'; el.style.top = top + 'px'; el.style.left = pn.left + 'px';
 }
+// the screen's top inset (the notch or Dynamic Island in the app held upright; 0 in Safari and sideways), read off a probe
+const safeProbe = (() => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;top:0;left:0;width:0;height:var(--safeT);visibility:hidden;pointer-events:none'; document.body.appendChild(d); return d; })();
+const safeTop = () => safeProbe.offsetHeight;
 // the boss's health along the top while one is out
 function updateBossBar() {
   const B = enemies.find(e => !e.dead && !e.dormant && ENEMY[e.kind].boss), el = $('#bossBar');
@@ -1096,7 +1099,7 @@ function updateBossBar() {
   const top = document.querySelector('.panel').getBoundingClientRect(), wide = top.right > innerWidth * .6, w = el.offsetWidth;
   // a phone held sideways: under the row of buttons at the top middle
   const side = matchMedia('(max-height:520px)').matches;
-  el.style.top = (wide ? top.bottom + 8 : side ? 54 : 10) + 'px'; el.style.left = (wide ? innerWidth / 2 : Math.max(innerWidth / 2, top.right + 14 + w / 2)) + 'px';
+  el.style.top = (wide ? top.bottom + 8 : (side ? 54 : 10) + safeTop()) + 'px'; el.style.left = (wide ? innerWidth / 2 : Math.max(innerWidth / 2, top.right + 14 + w / 2)) + 'px';
   $('#bossName').textContent = RAIDER_NAME[B.kind]; $('#bossFill').style.width = Math.max(0, B.hp / B.max * 100) + '%';
 }
 $('#recallBtn').addEventListener('click', () => { if (selected) { setRally(selected, null); rallyFor = null; setHint('Recalled'); refreshCard(); } });
