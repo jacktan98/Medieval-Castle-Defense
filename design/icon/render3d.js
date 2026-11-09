@@ -47,7 +47,7 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? proces
     // a low-poly green hill, flat on top for the castle, running off to the horizon; grass tones vary by position
     const hill = (px, pz) => { const r = Math.hypot(px, pz * 1.1); return 4.2 * (1 - sstep(4.6, 20, r)) + (fbm(px * .18 + 3, pz * .18) - .5) * 1.2 * sstep(5, 10, r) - .03 * r; };
     // the track's line (used for its ribbon below; the ground under it is left smooth and kept clear of tufts)
-    const roadX = z => { const t = Math.max(0, (z - 3.3) / 17); return Math.sin(t * 3.4) * .7 * t; }, roadW = z => .75 + Math.max(0, (z - 3.3) / 17) * 1.1;
+    const roadX = z => { const t = Math.max(0, (z - 3.3) / 17); return Math.sin(t * 3.4) * .7 * t; }, roadW = z => .8 + Math.max(0, (z - 3.3) / 17) * .45;
     const onRoad = (px, pz, m = 0) => pz > 2.5 && Math.abs(px - roadX(pz)) < roadW(pz) * 1.3 + m;
     const geo = new THREE.PlaneGeometry(120, 120, 140, 140).rotateX(-Math.PI / 2), pos = geo.attributes.position, col = [];
     const gc = new THREE.Color();
@@ -79,22 +79,55 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? proces
     for (const [bx, bz, s] of [[-4.4, 5.0, 1.2], [4.4, 4.6, 1.0], [-7.8, 6.0, .9], [8.8, 7.4, 1.1], [-1.8, 8.0, .7]]) { const m = new THREE.Mesh(CL[2].geo, bushM); m.position.set(bx, hill(bx, bz) - .05, bz); m.scale.setScalar(s); m.castShadow = true; S.add(m); }
     const tuftM = new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(.22, .4, .24), flatShading: true });
     for (let k = 0; k < 140; k++) { const tx = (hash(k, 1.3) - .5) * 30, tz = 2 + hash(k, 7.1) * 14; if ((Math.abs(tx) < 3.5 && tz < 5) || onRoad(tx, tz, .6)) continue; const m = new THREE.Mesh(CL[0].geo, tuftM); m.position.set(tx, hill(tx, tz) - .02, tz); m.scale.setScalar(.8 + hash(k, 2.2) * .8); m.rotation.y = k; S.add(m); }
-    // a worn dirt track from the gate down the hill toward the viewer: one smooth ribbon laid on the ground, widening as it
-    // comes near and bending gently, with a darker worn edge
+    // the game's path from the gate toward the viewer (Jack: the in-game look): a darker worn edge under packed brown earth,
+    // flat grey-brown stones set in it and a kerb of small stones along both edges (the game's earth style and its stone mesh)
     const fx = 0, fz = 1;
-    { const pts = [], cols = [], idx = [], N = 60, cc = new THREE.Color();
+    const ribbon = (wk, lift, colAt, matl) => {
+      const pts = [], cols = [], idx = [], N = 70, cc = new THREE.Color();
       for (let i = 0; i <= N; i++) {
-        const t = i / N, z = 3.3 + t * 17, cx = roadX(z), w = roadW(z);
-        for (const k of [-1.25, -1, 0, 1, 1.25]) { const px = cx + k * w, wob = Math.abs(k) > 1.1 ? (hash(i * 1.7, k * 5) - .5) * .18 * w : 0;
-          pts.push(px + wob * Math.sign(k), hill(px, z) + .04, z);
-          cc.set(Math.abs(k) > 1.1 ? '#6b5a40' : Math.abs(k) === 1 ? '#8a7656' : '#9a8564'); cols.push(cc.r, cc.g, cc.b); }
+        const z = 3.3 + i / N * 17, cx = roadX(z), w = roadW(z) * wk;
+        for (const k of [-1, -.5, 0, .5, 1]) { const px = cx + k * w + (Math.abs(k) === 1 ? (hash(i * 1.7, k * 5) - .5) * .12 : 0);
+          pts.push(px, hill(px, z) + lift, z); colAt(px, z, cc); cols.push(cc.r, cc.g, cc.b); }
         if (i) for (let k = 0; k < 4; k++) { const a = (i - 1) * 5 + k, b = a + 5; idx.push(a, b, a + 1, a + 1, b, b + 1); }
       }
       const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3)); g.setIndex(idx); g.computeVertexNormals();
-      const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 })); m.receiveShadow = true; S.add(m); }
+      const m = new THREE.Mesh(g, matl); m.receiveShadow = true; S.add(m);
+    };
+    ribbon(1.22, .04, (x, z, c) => c.set('#4e3f2a'), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+    ribbon(1, .07, (x, z, c) => { const n = .5 + .25 * Math.sin(x * 2.3 + z * 1.1) + .25 * Math.sin(x * .9 - z * 2.7); c.set('#78614a').multiplyScalar(.85 + .2 * n + .06 * hash(Math.round(x * 4), Math.round(z * 4))); },
+      new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }));
+    { const st = [], sc = new THREE.Color(), dm = new THREE.Object3D();
+      for (let z = 3.6; z < 20; z += .32) { const cx = roadX(z), w = roadW(z);
+        for (const sd of [-1, 1]) if (hash(z * 3.3, sd) > .15) st.push([cx + sd * w * (1.12 + (hash(z, sd * 2) - .5) * .1), z + (hash(z * 1.1, sd * 3) - .5) * .12, .09 + hash(z, sd * 7) * .05, 1]);   // kerb
+        for (let k = 0; k < 2; k++) if (hash(z * 2.9, k * 4.1) < .55) st.push([cx + (hash(z * 1.3, k * 9) - .5) * w * 1.5, z + (hash(z * 5, k) - .5) * .3, .12 + hash(z * 7, k) * .1, 0]); }   // set stones
+      const im = new THREE.InstancedMesh(pathStones.geometry, pathStones.material, st.length); im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(st.length * 3), 3);
+      st.forEach(([x, z, r, kerb], n) => { const h = hash(x * 7, z * 3); dm.position.set(x, hill(x, z) + (kerb ? .06 : .08), z); dm.rotation.set((h - .5) * .12, h * 6.3, (hash(z, x) - .5) * .12); dm.scale.set(r, kerb ? .1 : .06, r * (.75 + .4 * h)); dm.updateMatrix(); im.setMatrixAt(n, dm.matrix);
+        sc.set(kerb ? '#666154' : '#5e5749').multiplyScalar(.9 + .25 * h); im.setColorAt(n, sc); });
+      im.castShadow = im.receiveShadow = true; im.frustumCulled = false; S.add(im); }
     // a torch either side of the track (the left one only shows in the day half, the right one in the night half)
     { const tx = NIGHT ? 3.4 : -3.4, tz = 6.4; const t = makeModel('torch', 1, true, 0, 0); t.position.set(tx, hill(tx, tz), tz); t.scale.setScalar(.85); S.add(t);
       if (NIGHT) { const L = new THREE.PointLight('#ffa64a', 1.3, 4.5, 2); L.position.set(tx, hill(tx, tz) + 1.3, tz); S.add(L); } }
+    // people (Jack): by day two villagers, one cheering by the torch, a builder walking up the track; by night raiders charging
+    // the castle (a swordsman, a spearman and an archer loosing at it) with arrows flying at the castle through the night sky
+    const fig = (p, x, z, ry, k = 1.2) => { p.g.position.set(x, hill(x, z), z); p.g.rotation.y = ry; p.g.scale.setScalar(k); S.add(p.g); p.g.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = true; }); return p; };
+    if (!NIGHT) {
+      const a = fig(makePerson({}), -2.7, 5.6, -.25);
+      a.arms[0].rotation.set(-2.9, 0, -.35); a.arms[1].rotation.set(-2.9, 0, .35); a.body.position.y = .1;    // cheering: both arms up, mid-hop
+      const b = fig(makePerson({}), -1.5, 7.4, .15); giveTool(b, 'hammer');
+      b.legs[0].rotation.x = .5; b.legs[1].rotation.x = -.5; b.arms[0].rotation.x = -.4; b.arms[1].rotation.x = -.35; b.pivot.rotation.x = -.25;   // walking, hammer in hand
+    } else {
+      const run = (p, k) => { p.legs[0].rotation.x = .7 * k; p.legs[1].rotation.x = -.7 * k; p.body.rotation.x = .14; };
+      const s1 = fig(makeRaider('sword', 2), 1.9, 5.5, -2.5); run(s1, 1); s1.arms[0].rotation.x = -.7; s1.arms[1].rotation.x = -2.7; s1.pivot.rotation.x = -.95;   // sword raised
+      const s2 = fig(makeRaider('spear', 2), 2.9, 6.9, -2.35); run(s2, -1); spearPose(s2, 0, 0); s2.arms[0].rotation.x = -.6;
+      const s3 = fig(makeRaider('archer', 2), 3.1, 4.1, -2.0); s3.arms[0].rotation.set(-2.0, 0, .55); s3.arms[1].rotation.set(-1.85, 0, -.6);   // bow drawn, aimed up at the walls
+      const am = new THREE.MeshStandardMaterial({ color: '#d8c39a', emissive: '#2a2010', roughness: .8 }), hm = new THREE.MeshStandardMaterial({ color: '#cfd4dc', metalness: .3, roughness: .5 }), fm = new THREE.MeshStandardMaterial({ color: '#e8e0d0', side: THREE.DoubleSide });
+      for (const [x, y, z] of [[3.7, 7.3, 2.2], [4.9, 6.1, 2.9], [3.2, 8.7, 3.4], [5.4, 8.0, 2.4]]) {
+        const ar = new THREE.Group(), sh = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, 1.1, 5).rotateX(Math.PI / 2), am); ar.add(sh);
+        const hd = new THREE.Mesh(new THREE.ConeGeometry(.07, .2, 4).rotateX(-Math.PI / 2), hm); hd.position.z = -.62; ar.add(hd);
+        for (const r of [0, Math.PI / 2]) { const f = new THREE.Mesh(new THREE.PlaneGeometry(.16, .28), fm); f.rotation.set(Math.PI / 2, 0, r); f.position.z = .45; ar.add(f); }
+        ar.position.set(x, y, z); ar.lookAt(x + 6, y + 2.2, z + 3); ar.scale.setScalar(.95); S.add(ar);   // flying in at the castle, nose down-left
+      }
+    }
     if (NIGHT) {
       const G2 = new THREE.PointLight('#ffb35c', .7, 3.2, 2); G2.position.set(fx * 2.9, y0 + 1, fz * 2.9); S.add(G2);
     }
