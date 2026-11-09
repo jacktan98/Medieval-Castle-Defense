@@ -280,7 +280,9 @@ var AUDIO_V = 6;
 var TARGET_LOUD = .09, LOUD_WINDOW = .3, GAIN_MIN = .1, GAIN_MAX = 6, MASTER = .9, PEAK_CEILING = .95 / MASTER;
 var SFX_GAP = { ramHit: .3, hen: 2, pig: 1.5, cow: 4, neigh: 3, bolt: .1, qbolt: .06, rockFire: .15, rockHit: .15, path: .12, clash: .12, arrowHit: .08, grunt: 3, yawn: 3, nope: .3, rooster: 2, chop: .15, pick: .15, hoe: .2, hammer: .12, arrow: .08, attack: .1, coins: .3, click: .05 };   // min seconds between repeats
 var STROKE_SFX = { axe: 'chop', pick: 'pick', hoe: 'hoe', hammer: 'hammer' };
-var muted = false; try { muted = localStorage.getItem('mtd-muted') === '1'; } catch (e) {}
+// the mute button and M are only for ?debug now (Jack removed the corner buttons), so a player is never left muted with no way back
+var devOn = /[?&]debug\b/.test(location.search); document.body.classList.toggle('dev', devOn);
+var muted = false; try { muted = devOn && localStorage.getItem('mtd-muted') === '1'; } catch (e) {}
 // music and sounds each have their own loudness (the pause card's two sliders, 0 to 1; all the way down is off); the corner
 // button still mutes everything. Stored as numbers ('mtd-music', 'mtd-sfx'; the old on/off toggles stored '1' and '0')
 var musicVol = 1, sfxVol = 1, musicOff = false, sfxOff = false, musicBus = null, sfxBus = null;
@@ -479,7 +481,7 @@ function setGfx(low) {
 }
 document.addEventListener('click', e => { const b = e.target.closest('[data-gfx]'); if (b) setGfx(b.dataset.gfx === 'low'); });
 syncGfx();
-addEventListener('keydown', e => { if ((e.key === 'm' || e.key === 'M') && !e.target.closest('input')) setMuted(!muted); });
+addEventListener('keydown', e => { if (devOn && (e.key === 'm' || e.key === 'M') && !e.target.closest('input')) setMuted(!muted); });
 setMuted(muted);
 
 // ---------- personal space: units ease apart instead of standing inside each other ----------

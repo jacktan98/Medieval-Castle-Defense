@@ -811,3 +811,10 @@ body.showcase #codexPick.modal.tome{background-color:transparent!important;backg
 /* tablets (tabletScale): the menus and the HUD's own panels are zoomed by --uiK, so they lay out as on a big phone upright and a
    small laptop sideways instead of staying phone-sized on an iPad (Jack); elements the game places in px from JS are left alone */
 body.tablet .modal,body.tablet .panel,body.tablet .dock,body.tablet .corner,body.tablet #pauseBtn,body.tablet #pausedTag,body.tablet .tipPill{zoom:var(--uiK)}
+/* tablets (Jack): the Achievements and Archive lists spread across the big screen, as many across as fit, so the whole list shows without scrolling */
+body.tablet .achSheet{max-width:min(100%,980px)}
+body.tablet .achSheet .achGrid{grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:12px 6px}
+body.tablet .upSheet .achDet{max-width:560px;align-self:center}
+/* the sound, speed and admin buttons only with ?debug (Jack: removed from the game; Music and Sounds are in the pause card) */
+body:not(.dev) .cornerBtns{display:none}
+@media (max-height:520px){ body:not(.dev) #pauseBtn{left:calc(50% - 19px)} }
