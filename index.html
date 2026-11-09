@@ -889,7 +889,8 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 /* sideways, a little more (Jack: they could be bigger still): the Upgrades' header, tabs and details made more compact, so its
    fitted zoom (shared by the Achievements and Archive) grows */
 @media (max-height:520px){
-  .upSheet{padding-top:4px;padding-bottom:calc(4px + env(safe-area-inset-bottom))} .upTop{margin-bottom:2px} .upTabs{margin-bottom:6px}
+  /* only a little of the home bar's room at the foot (Jack's Simulator: the full inset left a band empty under the details) */
+  .upSheet{padding-top:4px;padding-bottom:calc(4px + env(safe-area-inset-bottom) * .3)} .upTop{margin-bottom:2px} .upTabs{margin-bottom:6px}
   .upDet{padding:4px 10px} .upDet .upBig{width:46px;height:46px} .upDet .upBig svg{width:30px;height:30px}
   .upDet .upTx h3{font-size:17px} .upDet .upTx p{font-size:13px}
 }
@@ -9972,7 +9973,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'eb464cdf20'; var updateWait = false, updateT = 0;
+const BUILD = 'f26daa5803'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

@@ -872,7 +872,8 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 /* sideways, a little more (Jack: they could be bigger still): the Upgrades' header, tabs and details made more compact, so its
    fitted zoom (shared by the Achievements and Archive) grows */
 @media (max-height:520px){
-  .upSheet{padding-top:4px;padding-bottom:calc(4px + env(safe-area-inset-bottom))} .upTop{margin-bottom:2px} .upTabs{margin-bottom:6px}
+  /* only a little of the home bar's room at the foot (Jack's Simulator: the full inset left a band empty under the details) */
+  .upSheet{padding-top:4px;padding-bottom:calc(4px + env(safe-area-inset-bottom) * .3)} .upTop{margin-bottom:2px} .upTabs{margin-bottom:6px}
   .upDet{padding:4px 10px} .upDet .upBig{width:46px;height:46px} .upDet .upBig svg{width:30px;height:30px}
   .upDet .upTx h3{font-size:17px} .upDet .upTx p{font-size:13px}
 }
