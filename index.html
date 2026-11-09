@@ -9568,8 +9568,9 @@ var SND = {   // game event -> file in audio/sfx (or audio/music) and its trim a
   pick:      { file: 'sfx/Mason_pick.mp3',           trim: .736, strikes: true },
   hammer:    { file: 'sfx/Builder_hammer.mp3', trim: .668, strikes: true },
   hoe:       { file: 'sfx/Farmer_hoe.mp3',           trim: .6,   strikes: true },
-  // a path tile laid: Path_placed.mp3 when it is added; until then one soft hoe stroke into the earth
-  path:      { file: 'sfx/Path_placed.mp3',          trim: .5, fallback: 'hoe' },
+  // a path tile laid: one soft hoe stroke into the earth (Jack: the hoe is its sound for now); no file of its own is fetched
+  // (it asked for a Path_placed.mp3 that was never supplied); give it `file` again if a recording comes
+  path:      { files: [], fallback: 'hoe' },
   bolt:      { file: 'sfx/Ballista_bolt_shot.mp3',   trim: 1 },      // a ballista looses its bolt (yours or the raiders')
   qbolt:     { file: 'sfx/Crossbow_quiver_shot.mp3', trim: .8 },     // a crossbow shoots (yours or the raiders')
   rockFire:  { file: 'sfx/Rock_fired.mp3',           trim: .9 },     // a catapult, mangonel or trebuchet lets its stone go
