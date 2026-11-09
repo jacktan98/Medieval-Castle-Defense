@@ -1,4 +1,5 @@
 import UIKit
+import AVFoundation
 import Capacitor
 
 @UIApplicationMain
@@ -7,8 +8,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // the game's sound plays as media: through the loudspeaker at full media volume, with the silent switch on too
+        // (Jack: in the app it was much quieter than the website on the same phone)
+        setPlayback()
         return true
+    }
+
+    func setPlayback() {
+        let s = AVAudioSession.sharedInstance()
+        try? s.setCategory(.playback, mode: .default, options: [])
+        try? s.overrideOutputAudioPort(.none)
+        try? s.setActive(true)
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -27,6 +37,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        setPlayback()
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
