@@ -824,6 +824,10 @@ body.showcase #codexPick.modal.tome{background-color:transparent!important;backg
 .cCards{transform:translateY(var(--cy,0px))} .cArrow{top:calc(50% + var(--cy,0px))}
 @media (max-height:520px){ .cCard.cur.front{animation-name:jGlowS} }
 @keyframes jGlowS{from{box-shadow:0 0 0 1px rgba(255,215,106,.4),0 0 10px rgba(255,200,80,.35),0 8px 18px rgba(0,0,0,.6)}to{box-shadow:0 0 0 2px rgba(255,215,106,.8),0 0 18px rgba(255,200,80,.7),0 8px 18px rgba(0,0,0,.6)}}
+
+/* tablets (tabletScale): the menus and the HUD's own panels are zoomed by --uiK, so they lay out as on a big phone upright and a
+   small laptop sideways instead of staying phone-sized on an iPad (Jack); elements the game places in px from JS are left alone */
+body.tablet .modal,body.tablet .panel,body.tablet .dock,body.tablet .corner,body.tablet #pauseBtn,body.tablet #pausedTag,body.tablet .tipPill{zoom:var(--uiK)}
 </style>
 
 <!-- shown from the first paint until the game is ready (three.js comes from a CDN; on a slow phone that takes a while) -->
@@ -8919,6 +8923,14 @@ function islandSide() {
   document.body.classList.toggle('islandL', a === 90); document.body.classList.toggle('islandR', a === 270 || a === -90);
 }
 islandSide(); addEventListener('resize', islandSide);
+// tablets (Jack: on an iPad the menus and the bars stayed phone-sized): a touch screen at least 700 px both ways scales the menus
+// and the HUD's panels by --uiK with CSS zoom, so they lay out as on a big phone (upright) or a small laptop (sideways)
+function tabletScale() {
+  const W = innerWidth, H = innerHeight, tab = (navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches) && Math.min(W, H) >= 700;
+  const k = !tab ? 1 : Math.max(1, Math.min(1.6, W < H ? Math.min(W / 430, H / 900) : Math.min(W / 1000, H / 640)));
+  document.body.classList.toggle('tablet', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3));
+}
+tabletScale(); addEventListener('resize', tabletScale);
 // the HUD tick that places the night powers and the boss bar stops while paused: place them again whenever the screen turns
 // (Jack turned the phone while paused and the powers stayed where the sideways layout had them)
 addEventListener('resize', () => { markRect = null; updatePowers(); updateBossBar(); if (typeof sideHints === 'function') sideHints(); }); addEventListener('orientationchange', () => setTimeout(islandSide, 100));

@@ -844,6 +844,14 @@ function islandSide() {
   document.body.classList.toggle('islandL', a === 90); document.body.classList.toggle('islandR', a === 270 || a === -90);
 }
 islandSide(); addEventListener('resize', islandSide);
+// tablets (Jack: on an iPad the menus and the bars stayed phone-sized): a touch screen at least 700 px both ways scales the menus
+// and the HUD's panels by --uiK with CSS zoom, so they lay out as on a big phone (upright) or a small laptop (sideways)
+function tabletScale() {
+  const W = innerWidth, H = innerHeight, tab = (navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches) && Math.min(W, H) >= 700;
+  const k = !tab ? 1 : Math.max(1, Math.min(1.6, W < H ? Math.min(W / 430, H / 900) : Math.min(W / 1000, H / 640)));
+  document.body.classList.toggle('tablet', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3));
+}
+tabletScale(); addEventListener('resize', tabletScale);
 // the HUD tick that places the night powers and the boss bar stops while paused: place them again whenever the screen turns
 // (Jack turned the phone while paused and the powers stayed where the sideways layout had them)
 addEventListener('resize', () => { markRect = null; updatePowers(); updateBossBar(); if (typeof sideHints === 'function') sideHints(); }); addEventListener('orientationchange', () => setTimeout(islandSide, 100));
