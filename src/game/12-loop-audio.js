@@ -276,7 +276,7 @@ var LOOPS = {
   gallop: { file: 'sfx/Horse_gallop.mp3',          vol: .4, amb: true },   // horses on the move (loudest .3 s RMS .126)
   // the weather (Jack): rain for rain and drizzle, the wind for blowing sand and dust, snow and ash; they follow the weather's own ease in
   // and out (WX.w). Measured: rain loudest .3 s RMS .069 (steady, median .051), desert wind .196 in gusts (median .036)
-  rain:  { file: 'sfx/Rain_sound.mp3',             vol: .6, amb: true },
+  rain:  { file: 'sfx/Rain_sound.mp3',             vol: .42, amb: true },
   wind:  { file: 'sfx/Wind_sound.mp3',             vol: .55, amb: true },
 };
 // bump when a sound file is replaced, so phones fetch the new file instead of a cached copy
