@@ -122,7 +122,7 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? proces
       for (const [type, x, z, ry, k] of [['flowers', -4.4, 2.0, .2, .85]]) {
         const d = makeModel(type, 1, true, 0, 0); d.position.set(x, hill(x, z), z); d.rotation.y = ry; d.scale.setScalar(k); S.add(d); d.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = true; }); }
       const a = fig(makePerson({}), -1.8, 5.3, .55);
-      a.arms[0].rotation.set(-2.9, 0, -.35); a.arms[1].rotation.set(-2.9, 0, .35);    // cheering: both arms up, feet on the ground
+      a.arms[0].rotation.set(-2.9, 0, -.35); a.arms[1].rotation.set(-2.9, 0, .35); a.g.position.y += .3; a.legs[0].rotation.x = .35; a.legs[1].rotation.x = -.2;   // jumping for joy: arms up, off the ground over his shadow (Jack)
       const b = fig(makePerson({}), -3.2, 6.3, .35); giveTool(b, 'hammer');
       b.arms[0].rotation.set(-2.85, 0, -.4); b.arms[1].rotation.set(-2.85, 0, .4); b.pivot.rotation.x = -.6;    // cheering too, hammer held up
     } else {
