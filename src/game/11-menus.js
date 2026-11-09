@@ -661,7 +661,10 @@ function layoutDeck(anim = true) {
   // down to just above the round buttons, and the arrows follow it (--cy on the deck's wrapper); its gold glow is smaller there
   const sideways = innerHeight <= 520, deck = $('#campMap'), GAP_TOP = 22;
   let room = deck.clientHeight - 16, cy = 0;
-  if (sideways) { const dr = deck.getBoundingClientRect(), sr = $('.campSide').getBoundingClientRect(); room = sr.top - dr.top - 8 - GAP_TOP; }
+  // measured from the top of the round buttons or the stars badge on the Upgrades one, whichever is higher, with 16 px clear
+  // (Jack, a big phone sideways: the bigger card came close to the badge as it pulses)
+  if (sideways) { const dr = deck.getBoundingClientRect(), sr = $('.campSide').getBoundingClientRect(), bg = $('#campUpN'), bt = bg && bg.offsetParent ? bg.getBoundingClientRect().top - 3 : sr.top;
+    room = Math.min(sr.top, bt) - dr.top - 16 - GAP_TOP; }
   const W = Math.min(deck.clientWidth * (deck.clientWidth > deck.clientHeight * 1.2 ? .48 : .62), room, 480), f = cSel + cDrag;
   if (sideways) cy = GAP_TOP + Math.max(120, W) / 2 - deck.clientHeight / 2;
   // upright the card is centred between the deck's top and the round buttons (Jack: up more; centred on the whole deck, which
@@ -705,7 +708,7 @@ function openStage(i) {
   const c = CAMPAIGN[i]; cSel = i;
   document.querySelectorAll('#cDots .cDot').forEach(m => m.classList.toggle('sel', +m.dataset.i === i));
   $('#stName').textContent = `Stage ${i + 1} · ${c.name}`;
-  $('#stSub').textContent = [c.sub, c.land].filter(Boolean).join(' · ');
+  $('#stSub').textContent = [c.boss || c.bonus ? '' : c.sub, c.land].filter(Boolean).join(' · ');
   $('#stNew').innerHTML = stChips(c.adds);
   // a bonus stage has no stars, only its crown (outlined until won)
   $('#stStars').innerHTML = c.bonus ? `<span class="crown${CROWNS[c.map] ? '' : ' empty'}" title="Win on hard">${CROWN_ICO}</span>` : starsHTML(c.map ? STARS[c.map] || 0 : 0) + (c.map && CROWNS[c.map] ? `<span class="crown" title="Won on hard">${CROWN_ICO}</span>` : c.map && (STARS[c.map] || 0) >= 3 ? `<span class="crown empty" title="Win on hard">${CROWN_ICO}</span>` : '');

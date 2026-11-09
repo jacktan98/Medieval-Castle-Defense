@@ -869,3 +869,10 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
   .achSheet .achGrid{grid-auto-columns:88px;gap:10px 6px} .modal.tome .achNode{width:62px;height:62px} .achNode > svg:first-child{width:36px;height:36px}
   .cxSheet .achGrid{grid-auto-columns:84px} .cxNode img{width:56px;height:56px}
 }
+/* the stage details' chips keep clear of the panel's sides (Jack, iPhone 18 Pro Max upright: House and Archers touched them) */
+.modal.tome .cDet .stNew{padding-left:10px;padding-right:10px}
+/* sideways the campaign's Back and its heading sit further in from the screen's edge (Jack) */
+@media (max-height:520px){
+  #campaign .campBack{left:calc(var(--padL) + 18px)}
+  #campaign .cHead{padding-left:68px}
+}
