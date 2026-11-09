@@ -886,6 +886,24 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
   .achSheet .achGrid{grid-auto-columns:88px;gap:10px 6px} .modal.tome .achNode{width:62px;height:62px} .achNode > svg:first-child{width:36px;height:36px}
   .cxSheet .achGrid{grid-auto-columns:84px} .cxNode img{width:56px;height:56px}
 }
+/* sideways, a little more (Jack: they could be bigger still): the Upgrades' header, tabs and details made more compact, so its
+   fitted zoom (shared by the Achievements and Archive) grows */
+@media (max-height:520px){
+  .upSheet{padding-top:4px;padding-bottom:calc(4px + env(safe-area-inset-bottom))} .upTop{margin-bottom:2px} .upTabs{margin-bottom:6px}
+  .upDet{padding:4px 10px} .upDet .upBig{width:46px;height:46px} .upDet .upBig svg{width:30px;height:30px}
+  .upDet .upTx h3{font-size:17px} .upDet .upTx p{font-size:13px}
+}
+@media (max-height:520px){
+  .achSheet .achGrid{grid-auto-columns:84px;gap:6px 6px;padding-top:6px} .modal.tome .achNode{width:56px;height:56px} .achNode > svg:first-child{width:32px;height:32px}
+  .upSheet .achDet{margin-top:6px} .achSheet .upTop{margin-bottom:4px;padding-bottom:4px}
+  .cxSheet .achGrid{grid-auto-columns:80px;padding-bottom:10px} .cxNode img{width:50px;height:50px}
+  .cxView{width:72px;height:72px} .modal.tome .cxDet{margin-top:2px}
+}
+@media (max-height:520px){
+  .cxSheet .upTop{margin-bottom:2px;padding-bottom:0} .cxSheet .upTabs{margin-bottom:4px}
+  .cxSheet .achGrid{gap:4px 6px;padding-top:4px;padding-bottom:8px} .modal.tome .cxSheet .achNode{width:54px;height:54px} .cxNode img{width:48px;height:48px}
+  .cxTiers{margin:2px 0 1px} .modal.tome .cxTiers .seg{padding-top:1px!important;padding-bottom:1px!important}
+}
 </style>
 
 <!-- shown from the first paint until the game is ready (three.js comes from a CDN; on a slow phone that takes a while) -->
@@ -9028,12 +9046,13 @@ function fitModal(m) {
   // the sheet's own laid-out height, not its rect: the menus' rise animation moves the sheet while it opens, and a measure then
   // came out different each time (the Achievements and Archive copy this zoom, so their Back buttons sat a few px off)
   // the modal's own padding too (the Upgrades screen's last row was cut off on an iPad held sideways)
-  const need = sh.scrollHeight + 24 + (parseFloat(getComputedStyle(m).paddingTop) || 0) + (parseFloat(getComputedStyle(m).paddingBottom) || 0);
+  const side = !document.body.classList.contains('tablet') && innerHeight <= 520 && innerWidth > innerHeight;
+  const need = sh.scrollHeight + (side ? 8 : 24) + (parseFloat(getComputedStyle(m).paddingTop) || 0) + (parseFloat(getComputedStyle(m).paddingBottom) || 0);
   // put the sheet back as laid out (this line was once lost behind the comment above, so the Upgrades sheet stayed short and
   // sat lower than the Achievements' and Archive's: Jack saw their Back buttons out of line)
   sh.style.minHeight = sh.style.height = '';
   // a phone held sideways may zoom past 1 when the height allows (Jack: the three screens looked smaller than the room there was)
-  const cap = !document.body.classList.contains('tablet') && innerHeight <= 520 && innerWidth > innerHeight ? 1.3 : k;
+  const cap = side ? 1.3 : k;
   m.style.zoom = Math.max(.7, Math.min(cap, innerHeight / need)).toFixed(3);
 }
 // the Achievements and Archive take the Upgrades screen's zoom, so all three sheets are one size and their Back buttons sit in
@@ -9953,7 +9972,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '20e59e8a94'; var updateWait = false, updateT = 0;
+const BUILD = 'eb464cdf20'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

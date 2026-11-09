@@ -869,3 +869,21 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
   .achSheet .achGrid{grid-auto-columns:88px;gap:10px 6px} .modal.tome .achNode{width:62px;height:62px} .achNode > svg:first-child{width:36px;height:36px}
   .cxSheet .achGrid{grid-auto-columns:84px} .cxNode img{width:56px;height:56px}
 }
+/* sideways, a little more (Jack: they could be bigger still): the Upgrades' header, tabs and details made more compact, so its
+   fitted zoom (shared by the Achievements and Archive) grows */
+@media (max-height:520px){
+  .upSheet{padding-top:4px;padding-bottom:calc(4px + env(safe-area-inset-bottom))} .upTop{margin-bottom:2px} .upTabs{margin-bottom:6px}
+  .upDet{padding:4px 10px} .upDet .upBig{width:46px;height:46px} .upDet .upBig svg{width:30px;height:30px}
+  .upDet .upTx h3{font-size:17px} .upDet .upTx p{font-size:13px}
+}
+@media (max-height:520px){
+  .achSheet .achGrid{grid-auto-columns:84px;gap:6px 6px;padding-top:6px} .modal.tome .achNode{width:56px;height:56px} .achNode > svg:first-child{width:32px;height:32px}
+  .upSheet .achDet{margin-top:6px} .achSheet .upTop{margin-bottom:4px;padding-bottom:4px}
+  .cxSheet .achGrid{grid-auto-columns:80px;padding-bottom:10px} .cxNode img{width:50px;height:50px}
+  .cxView{width:72px;height:72px} .modal.tome .cxDet{margin-top:2px}
+}
+@media (max-height:520px){
+  .cxSheet .upTop{margin-bottom:2px;padding-bottom:0} .cxSheet .upTabs{margin-bottom:4px}
+  .cxSheet .achGrid{gap:4px 6px;padding-top:4px;padding-bottom:8px} .modal.tome .cxSheet .achNode{width:54px;height:54px} .cxNode img{width:48px;height:48px}
+  .cxTiers{margin:2px 0 1px} .modal.tome .cxTiers .seg{padding-top:1px!important;padding-bottom:1px!important}
+}
