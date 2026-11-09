@@ -143,6 +143,8 @@ function newCardStats(t, tier = 1) {
   if (T.decor) { st.push(...fxStats(t, (i, v, n) => STAT(i, v, 'good', n))); if (T.charm) st.push(STAT('charm', `+${Math.round(T.charm * 100)}%`, 'good')); }
   return st.join('');
 }
+// shown only the first time a stage is played (Jack): seen stages kept in localStorage['mtd-cards'] once the last card's Play is pressed
+var CARDS_SEEN = {}; try { CARDS_SEEN = JSON.parse(localStorage.getItem('mtd-cards') || '{}') || {}; } catch (e) {}
 function showNewCards(list) {
   newCards = list.slice(); newCardI = 0; if (!newCards.length) return;
   paused = true; hideGhost(); renderNewCard(); $('#newCards').hidden = false; sfx('alert');
@@ -174,6 +176,7 @@ $('#ncNext').addEventListener('click', () => {
   sfx('click');
   if (++newCardI < newCards.length) { renderNewCard(); sfx('alert'); return; }
   $('#newCards').hidden = true; paused = false;
+  CARDS_SEEN[MAP] = 1; try { localStorage.setItem('mtd-cards', JSON.stringify(CARDS_SEEN)); } catch (e) {}
   if (bannerLater) { banner(...bannerLater); bannerLater = null; }
 });
 // Market Cross: the old roads laid as paths cell by cell (stepping round corners so they join), the stone cross by the junction
@@ -1039,7 +1042,7 @@ $('#adGallery').addEventListener('click', openGallery);
 let campResetT = 0;
 for (const b of document.querySelectorAll('.campReset')) b.addEventListener('click', () => {
   if (performance.now() > campResetT) { campResetT = performance.now() + 3000; b.style.minWidth = b.offsetWidth + 'px'; b.classList.add('armed'); b.innerHTML = PICO.tick.replace('<svg ', '<svg class="bIco" '); setTimeout(() => { if (performance.now() > campResetT) { b.classList.remove('armed'); b.textContent = 'Reset campaign'; b.style.minWidth = ''; } }, 3100); return; }
-  try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor', 'upg', 'ach', 'codex', 'story']) localStorage.removeItem('mtd-' + k); } catch (e) {}
+  try { for (const k of ['stars', 'best', 'crowns', 'save', 'guide', 'tips', 'stage-pair', 'stage-decor', 'upg', 'ach', 'codex', 'story', 'cards']) localStorage.removeItem('mtd-' + k); } catch (e) {}
   location.reload();
 });
 $('#moveBtn').addEventListener('click', () => { if (paused) return setHint('Paused', 'bad'); if (!selected) return; moveFor = moveFor === selected ? null : selected; setHint(moveFor ? 'Tap a tile' : 'Select a building'); refreshCard(); });
