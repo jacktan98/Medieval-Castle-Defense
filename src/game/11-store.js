@@ -62,7 +62,6 @@ function revealSweep() {
 }
 // a gold crown beside the title on the title screen once the full game is owned (Jack; it sat on the showcase castle's flag pole)
 function syncTitleCrown() { const c = $('#titleCrown'); if (!c) return; if (!c.firstChild) c.innerHTML = CROWN_ICO; c.hidden = !fullOwned(); }
-syncTitleCrown();
 // a short line in the small black strip over the details' button (like Hard's "Win 3 stars to unlock")
 function buyMsg(t) { const p = $(!$('#offerWrap').hidden ? '#offerMsg' : '#buyMsg'); if (!p) return; p.textContent = t; p.hidden = true; void p.offsetWidth; p.hidden = false; clearTimeout(p._t); p._t = setTimeout(() => p.hidden = true, 2200); }
 function buyFull() {
@@ -126,3 +125,4 @@ if (TEST_SKIP) { let n = 0, t0 = 0;
     sfx('unlock'); openCampaign(FREE_N);
   });
 }
+syncTitleCrown();

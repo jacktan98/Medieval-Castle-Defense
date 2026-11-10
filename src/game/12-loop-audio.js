@@ -359,7 +359,7 @@ for (const k in LOOPS) {
   if (el.canPlayType('audio/mp4; codecs="mp4a.40.2"')) el.src = m4a;
   el.addEventListener('error', () => {
     if (el.src.endsWith('.m4a')) { const was = !el.paused; el.src = mp3; el.load(); if (was || loopWanted[k]) el.play().catch(() => {}); return; }
-    delete loopEl[k]; syncMusic();
+    console.log('loop ' + k + ' failed to load: ' + el.src.split('/').pop() + ' (' + (el.error && el.error.code) + ')'); delete loopEl[k]; syncMusic();
   });
   loopEl[k] = el;
 }
@@ -458,6 +458,7 @@ function musicFade(s) {
   if (!musicBus || !actx) return; const g = musicBus.gain, t = actx.currentTime;
   g.cancelScheduledValues(t); g.setValueAtTime(s ? g.value : musicVol, t); if (s) g.linearRampToValueAtTime(0, t + s);
 }
+var loopFail = {};
 function syncMusic() {
   if (!loopEl) return;
   const on = !muted && audioUnlocked && !document.hidden, end = musicWant === 'victory' || musicWant === 'defeat';
@@ -467,7 +468,8 @@ function syncMusic() {
   const dayK = loopEl[dayTrack] ? dayTrack : 'music', dayOn = mu && !end && !nightOn && musicWant !== 'none';
   const want = { music: dayOn && dayK === 'music', music2: dayOn && dayK === 'music2', night: mu && !!nightOn, birds: fx && musicWant === 'day' && !birdless(), fire: fx && !end && ambK.fire > .01, river: fx && !end && ambK.river > .01, gallop: fx && !end && ambK.gallop > .01, rain: fx && !end && ambK.rain > .01, wind: fx && !end && ambK.wind > .01 };
   loopWanted = want;
-  for (const k in loopEl) { const el = loopEl[k]; if (want[k] && el.paused) el.play().catch(() => {}); else if (!want[k] && !el.paused) el.pause(); }
+  // a loop that refuses to play says why in the console (Xcode shows it in the app: Jack heard no music there)
+  for (const k in loopEl) { const el = loopEl[k]; if (want[k] && el.paused) el.play().catch(e => { if (!loopFail[k]) { loopFail[k] = 1; console.log('loop ' + k + ' did not play: ' + (e && e.name) + ' · audio ' + (actx && actx.state)); } }); else if (!want[k] && !el.paused) el.pause(); }
   if (on && end && !stinger) stinger = sfx(musicWant) || 1;
   if (!end) stinger = null;
 }

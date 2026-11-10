@@ -157,7 +157,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .ldBtns{display:flex;justify-content:space-between;gap:8px;margin-top:4px} .ldBtns button{min-width:110px;min-height:42px;font-size:16px}
 @media (max-height:520px){ .loadSheet{gap:6px;width:min(780px,100%)} .ldRows{display:grid;grid-template-columns:1fr 1fr;gap:6px} .ldOpt{min-height:38px;padding:4px 6px} .loadSheet h3{font-size:17px} }
 #mapPick{z-index:50;background:radial-gradient(ellipse at 50% 35%, #23271f 0%, #121410 70%, #0b0c09 100%)}
-.tCrown svg{width:.62em;height:.62em;fill:#f0c95a;stroke:#fff1c4;stroke-width:1;vertical-align:.05em;margin-left:.22em;filter:drop-shadow(0 0 8px rgba(255,205,90,.65))}
+.tCrown svg{width:.7em;height:.7em;fill:#f0c95a;stroke:#fff1c4;stroke-width:1;vertical-align:-.04em;margin-left:.22em;filter:drop-shadow(0 0 8px rgba(255,205,90,.65))}
 .gameTitle{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(34px,10vw,52px);line-height:1.05;color:var(--gold);text-shadow:0 2px 18px rgba(0,0,0,.6);text-wrap:balance}
 .stars{color:#5a5646;letter-spacing:.06em;white-space:nowrap} .stars .on{color:var(--gold)} .stars.big{font-size:34px;text-align:center;line-height:1}
 #sumGoals{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:14px}
@@ -908,7 +908,7 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 .cDet .stActs{position:relative}
 .modal.tome .cDet .stActs #campPlay.buy{padding:4px 16px!important}
 #campPlay.buy .lockIco{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;flex:none}
-#campPlay.buy small{display:inline;font-size:12px;color:inherit;opacity:.75;margin-left:3px}
+#campPlay.buy small{display:inline;font-size:12px;color:#4a2f0a!important;opacity:1;font-weight:700;margin-left:3px}
 #campPlay.buy:disabled{opacity:.6}
 .buyMsg{right:0;left:0;margin:0 auto;width:max-content}
 /* Restore purchases sits under the colour rows (Jack: beside Graphics the right column looked squeezed) */
@@ -958,7 +958,7 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 .offerList i svg{width:22px;height:22px} .offerList i .lockIco{fill:none;stroke:#f0c95a;stroke-width:2.2}
 .offerAct{position:relative;display:flex;justify-content:center}
 #offerBuy{display:flex;align-items:center;gap:6px;padding:6px 22px;font-size:16px;border-radius:8px;animation:buyGlow 2.4s ease-in-out infinite}
-#offerBuy .upLk{display:flex;align-items:center;gap:6px} #offerBuy small{font-size:12px;opacity:.75;margin-left:3px}
+#offerBuy .upLk{display:flex;align-items:center;gap:6px} #offerBuy small{display:inline;font-size:13px;color:#4a2f0a!important;opacity:1;font-weight:700;margin-left:4px}
 #offerBuy .lockIco{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2}
 #offerBuy:disabled{opacity:.6}
 .offerAct .buyMsg{bottom:calc(100% + 6px)}
@@ -9445,7 +9445,6 @@ function revealSweep() {
 }
 // a gold crown beside the title on the title screen once the full game is owned (Jack; it sat on the showcase castle's flag pole)
 function syncTitleCrown() { const c = $('#titleCrown'); if (!c) return; if (!c.firstChild) c.innerHTML = CROWN_ICO; c.hidden = !fullOwned(); }
-syncTitleCrown();
 // a short line in the small black strip over the details' button (like Hard's "Win 3 stars to unlock")
 function buyMsg(t) { const p = $(!$('#offerWrap').hidden ? '#offerMsg' : '#buyMsg'); if (!p) return; p.textContent = t; p.hidden = true; void p.offsetWidth; p.hidden = false; clearTimeout(p._t); p._t = setTimeout(() => p.hidden = true, 2200); }
 function buyFull() {
@@ -9509,6 +9508,7 @@ if (TEST_SKIP) { let n = 0, t0 = 0;
     sfx('unlock'); openCampaign(FREE_N);
   });
 }
+syncTitleCrown();
 // ---------- star upgrades (campaign only) ----------
 // Jack: the stars won on the campaign buy upgrades, ★1 each, in three tabs (Economy, Defences, Castle); every building has one
 // or two, the second only after the first; 36 in all, one for each star there is. Bought ones are kept in localStorage['mtd-upg']
@@ -10071,7 +10071,7 @@ for (const k in LOOPS) {
   if (el.canPlayType('audio/mp4; codecs="mp4a.40.2"')) el.src = m4a;
   el.addEventListener('error', () => {
     if (el.src.endsWith('.m4a')) { const was = !el.paused; el.src = mp3; el.load(); if (was || loopWanted[k]) el.play().catch(() => {}); return; }
-    delete loopEl[k]; syncMusic();
+    console.log('loop ' + k + ' failed to load: ' + el.src.split('/').pop() + ' (' + (el.error && el.error.code) + ')'); delete loopEl[k]; syncMusic();
   });
   loopEl[k] = el;
 }
@@ -10170,6 +10170,7 @@ function musicFade(s) {
   if (!musicBus || !actx) return; const g = musicBus.gain, t = actx.currentTime;
   g.cancelScheduledValues(t); g.setValueAtTime(s ? g.value : musicVol, t); if (s) g.linearRampToValueAtTime(0, t + s);
 }
+var loopFail = {};
 function syncMusic() {
   if (!loopEl) return;
   const on = !muted && audioUnlocked && !document.hidden, end = musicWant === 'victory' || musicWant === 'defeat';
@@ -10179,7 +10180,8 @@ function syncMusic() {
   const dayK = loopEl[dayTrack] ? dayTrack : 'music', dayOn = mu && !end && !nightOn && musicWant !== 'none';
   const want = { music: dayOn && dayK === 'music', music2: dayOn && dayK === 'music2', night: mu && !!nightOn, birds: fx && musicWant === 'day' && !birdless(), fire: fx && !end && ambK.fire > .01, river: fx && !end && ambK.river > .01, gallop: fx && !end && ambK.gallop > .01, rain: fx && !end && ambK.rain > .01, wind: fx && !end && ambK.wind > .01 };
   loopWanted = want;
-  for (const k in loopEl) { const el = loopEl[k]; if (want[k] && el.paused) el.play().catch(() => {}); else if (!want[k] && !el.paused) el.pause(); }
+  // a loop that refuses to play says why in the console (Xcode shows it in the app: Jack heard no music there)
+  for (const k in loopEl) { const el = loopEl[k]; if (want[k] && el.paused) el.play().catch(e => { if (!loopFail[k]) { loopFail[k] = 1; console.log('loop ' + k + ' did not play: ' + (e && e.name) + ' · audio ' + (actx && actx.state)); } }); else if (!want[k] && !el.paused) el.pause(); }
   if (on && end && !stinger) stinger = sfx(musicWant) || 1;
   if (!end) stinger = null;
 }
@@ -10205,7 +10207,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '17bee66808'; var updateWait = false, updateT = 0;
+const BUILD = '6746c73b3c'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
