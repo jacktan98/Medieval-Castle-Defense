@@ -891,6 +891,10 @@ function tabletScale() {
   const W = innerWidth, H = innerHeight, tab = (navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches) && Math.min(W, H) >= 700;
   const k = !tab ? 1 : Math.max(1, Math.min(1.6, W < H ? Math.min(W / 430, H / 900) : Math.min(W / 900, H / 560)));
   document.body.classList.toggle('tablet', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3));
+  // the zoom as a plain number, not var(--uiK): Safari zoomed the boxes but not most of the text with the variable
+  let zr = document.getElementById('uiKRule'); if (!zr) { zr = document.createElement('style'); zr.id = 'uiKRule'; document.head.appendChild(zr); }
+  const zs = `body.tablet .modal,body.tablet .panel,body.tablet .dock,body.tablet .corner,body.tablet #pauseBtn,body.tablet #pausedTag,body.tablet .tipPill{zoom:${k.toFixed(3)}}`;
+  if (zr.textContent !== zs) zr.textContent = zs;
   const up = $('#upPick'), us = up && up.querySelector('.upSheet'); if (us && !up.hidden && us.classList.contains('upWide') !== upWideOn()) renderUpgrades();
   fitModal($('#loadPick')); fitModal($('#upPick')); if (typeof renderUpgrades === 'function') { matchUpZoom($('#achPick')); matchUpZoom($('#codexPick')); }
 }
