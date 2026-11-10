@@ -969,6 +969,7 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
   body.tablet .achSheet .upDet .upTx{width:100%} body.tablet .cxTiers,body.tablet .cxStats{justify-content:center}
 }
 /* tablets: the small labels a little bigger, so they keep up with the tiles (Jack: the text looked small next to the boxes) */
-body.tablet .achName{font-size:12px} body.tablet .upBan div{font-size:12px} body.tablet .upOf{font-size:12.5px}
-body.tablet .upTx p{font-size:15px} body.tablet .cxStats{font-size:14px} body.tablet .achP{font-size:13px}
-body.tablet .modal.tome .cxTiers .seg{font-size:13px!important;padding:3px 11px!important}
+body.tablet .achName{font-size:14px} body.tablet .upBan div{font-size:14px} body.tablet .upOf{font-size:14px}
+body.tablet .upTx h3{font-size:23px} body.tablet .upTx p{font-size:17px} body.tablet .cxStats .stat{font-size:15px;gap:4px} body.tablet .cxStats .stat .ico{width:16px;height:16px} body.tablet .cxStats .ico svg{width:16px;height:16px}
+body.tablet .achP{font-size:15px} body.tablet .upSec{font-size:19px} body.tablet .upRs button{font-size:14px!important}
+body.tablet .modal.tome .cxTiers .seg{font-size:14px!important;padding:3px 12px!important}
