@@ -213,8 +213,9 @@ const mat = c => new THREE.MeshStandardMaterial({ color: c, roughness: .9, flatS
 // has by default (`teamMat`); `teamColor` maps that default onto the picked colour, keeping its offset in hue, saturation and
 // lightness from the side's default (so a darker drape stays darker than the flag); tinted copies (`tinted`) and the boss forts'
 // darkened copies (`darkFort`) register themselves too; the quilted gambesons get a newly drawn texture (`quiltTex`)
-const TEAM_PAL = { blue: '#3466b0', red: '#a32a22', green: '#2f8a3e', purple: '#6b3fa0', black: '#34343b' };
-const TEAM_DEF = { town: '#3466b0', foe: '#a32a22' }, TEAM_NAMES = ['blue', 'red', 'green', 'purple', 'black'];
+const TEAM_PAL = { blue: '#3466b0', red: '#a32a22', green: '#2f8a3e', purple: '#6b3fa0', black: '#34343b', gold: '#c9962f', white: '#d8d3c4' };
+// gold and white come with the full game (Jack): a padlock on their swatches before (renderColours, 11-store.js)
+const TEAM_DEF = { town: '#3466b0', foe: '#a32a22' }, TEAM_NAMES = ['blue', 'red', 'green', 'purple', 'black', 'gold', 'white'], FULL_COLS = ['gold', 'white'];
 var TEAM = { town: 'blue', foe: 'red' };
 try { const t = JSON.parse(localStorage.getItem('mtd-colours') || 'null'); if (t && TEAM_PAL[t.town] && TEAM_PAL[t.foe] && t.town !== t.foe) TEAM = t; } catch (e) {}
 const teamMats = [];

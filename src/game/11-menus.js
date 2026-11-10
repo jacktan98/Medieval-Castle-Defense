@@ -649,9 +649,13 @@ function campState() {
 function buildDeck() {
   const { won, cur, locked } = campState(); cCur = cur;
   $('#cCards').innerHTML = CAMPAIGN.map((c, i) => { const st = won[i] ? 'won' : i === cur ? 'cur' : locked[i] ? 'locked' : '';
-    const mark = locked[i] ? `<i class="jLock">${LOCK_SVG}</i>` : '';
-    return `<button class="cCard ${st}${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}" data-i="${i}" tabindex="-1"><span class="cPic" style="background-image:url(maps/thumb/${c.map}.jpg)"></span>
-      <span class="cName"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}${won[i] && !c.bonus ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}${STORY[c.map] ? `<i class="cInfo${STORY_READ[c.map] ? '' : ' unread'}" aria-label="Story">${SCROLL_ICO}</i><span class="cBack"><span class="cStory"><i class="cSp1"></i><i class="cSp2"></i>${STORY[c.map]}</span><i class="cSeal">${sealIco(i)}</i></span>` : ''}</button>`; }).join('');
+    // a stage the full game opens (11-store.js): no picture yet, only a dark cover and the padlock, a grey edge, and a teaser on
+    // its back instead of the story (Jack); the picture is revealed once bought (revealFull)
+    const cov = coverOn(i), mark = locked[i] || cov ? `<i class="jLock">${LOCK_SVG}</i>` : '';
+    const back = cov ? `<i class="cInfo" aria-label="Full game">${SCROLL_ICO}</i><span class="cBack"><span class="cStory cTease"><i class="cSp1"></i><i class="cSp2"></i>${TEASE}</span><i class="cSeal">${sealIco(i)}</i></span>`
+      : STORY[c.map] ? `<i class="cInfo${STORY_READ[c.map] ? '' : ' unread'}" aria-label="Story">${SCROLL_ICO}</i><span class="cBack"><span class="cStory"><i class="cSp1"></i><i class="cSp2"></i>${STORY[c.map]}</span><i class="cSeal">${sealIco(i)}</i></span>` : '';
+    return `<button class="cCard ${st}${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}${cov ? ' paid' : ''}" data-i="${i}" tabindex="-1"><span class="cPic"${cov ? '' : ` style="background-image:url(maps/thumb/${c.map}.jpg)"`}></span>${cov ? '<span class="cCover"></span>' : ''}
+      <span class="cName"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}${won[i] && !c.bonus ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}${back}</button>`; }).join('');
   $('#cDots').innerHTML = CAMPAIGN.map((c, i) => `<button class="cDot${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}${won[i] ? ' won' : i === cur ? ' cur' : ''}" data-i="${i}" aria-label="Stage ${i + 1}"></button>`).join('');
 }
 // place every card for the front index cSel plus the live drag (in cards); the card's size follows the room the deck has
@@ -775,7 +779,7 @@ $('#dHard').addEventListener('click', () => {
     if (moved > 6) selectStage(Math.round(cSel + cDrag));
     else { const hit = document.elementFromPoint(e.clientX, e.clientY), card = hit?.closest('.cCard'); if (!card) return;
       // the ! (or anywhere on a card showing its story) flips the front card; on a side card the ! brings it forward and flips it
-      if (card.classList.contains('locked') || card.classList.contains('preUnlock')) { if (+card.dataset.i !== cSel) selectStage(+card.dataset.i); }
+      if ((card.classList.contains('locked') || card.classList.contains('preUnlock')) && !card.classList.contains('paid')) { if (+card.dataset.i !== cSel) selectStage(+card.dataset.i); }
       else if (hit.closest('.cInfo') || card.classList.contains('flipped')) { const i = +card.dataset.i; if (i !== cSel) selectStage(i);
         sfx('click'); flipCard(card, !card.classList.contains('flipped')); }
       else selectStage(+card.dataset.i); } };
@@ -798,6 +802,8 @@ function openCampaign(i) {
   achCheck();
   // opens on the given stage (Restart / Play again) or where the player is
   cSel = i !== undefined ? i : cCur; cDrag = 0; layoutDeck(false); openStage(cSel);
+  // the full game was bought or restored away from the campaign: its reveal plays now
+  if (pendingReveal) { pendingReveal = false; revealFull(); }
 }
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
 // a stage just unlocked by the last win (Jack): its card starts grey with the padlock, the padlock springs open and fades, and the
@@ -832,11 +838,12 @@ function unlockCard(list) {
 }
 // ---------- Colours (Jack): the town's and the raiders' colours, five each, in the title's Settings (gear); a colour one side
 // has is greyed out for the other; a tap recolours at once (the title's town shows it) and is kept ('mtd-colours')
-const COL_NAME = { blue: 'Blue', red: 'Red', green: 'Green', purple: 'Purple', black: 'Black' };
+const COL_NAME = { blue: 'Blue', red: 'Red', green: 'Green', purple: 'Purple', black: 'Black', gold: 'Gold', white: 'White' };
 function renderColours() {
   for (const el of document.querySelectorAll('.colSw[data-side]')) {
     const side = el.dataset.side, other = side === 'town' ? TEAM.foe : TEAM.town;
-    el.innerHTML = TEAM_NAMES.map(n => `<button class="sw${TEAM[side] === n ? ' on' : ''}${other === n ? ' taken' : ''}" data-side="${side}" data-c="${n}" aria-label="${COL_NAME[n]}" style="--c:${TEAM_PAL[n]}"></button>`).join('');
+    el.innerHTML = TEAM_NAMES.map(n => { const shut = FULL_COLS.includes(n) && !fullOwned() && TEAM[side] !== n;
+      return `<button class="sw${TEAM[side] === n ? ' on' : ''}${other === n ? ' taken' : ''}${shut ? ' shut' : ''}" data-side="${side}" data-c="${n}" aria-label="${COL_NAME[n]}" style="--c:${TEAM_PAL[n]}">${shut ? LOCK_ICO : ''}</button>`; }).join('');
   }
 }
 // Settings (Jack picked a gear in the title's corner over a Colours button under Campaign): the colours and the two loudness sliders
@@ -848,7 +855,7 @@ $('#credCard').addEventListener('click', () => { sfx('click'); $('#credCard').hi
 document.addEventListener('click', e => {
   const b = e.target.closest('.colSw .sw'); if (!b) return;
   const side = b.dataset.side, c = b.dataset.c, other = side === 'town' ? 'foe' : 'town';
-  if (TEAM[other] === c) { sfx('nope'); return; }
+  if (TEAM[other] === c || b.classList.contains('shut')) { sfx('nope'); return; }
   sfx('click'); TEAM = { ...TEAM, [side]: c }; applyTeams(); renderColours();
   try { localStorage.setItem('mtd-colours', JSON.stringify(TEAM)); } catch (e) {}
 });

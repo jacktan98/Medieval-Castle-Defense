@@ -38,6 +38,8 @@ function buildShowcase(n = Math.floor(Math.random() * SHOW_SCENES.length)) {
   const K = buildings.find(B => B.type === 'castle');
   const setTier = (B, t) => { if (!B || t < 2) return; B.tier = t; B.max = DEF[B.type].hp[t - 1]; B.hp = B.max; swapModel(B); };
   setTier(K, 3);
+  // the full game bought: a gold crown on the castle's flag pole (Jack; 11-store.js)
+  if (fullOwned()) crownCastle(K);
   const ci = Math.floor((K.ev.x0 + K.ev.x1) / 2 / CELL), cj = Math.floor((K.ev.z0 + K.ev.z1) / 2 / CELL);
   for (const [type, dx, dz, t] of SHOWCASE) { const ev = findValid(type, ci + dx, cj + dz, { free: true }); if (ev) setTier(place(type, ev.ci, ev.cj, { instant: true, free: true, quiet: true }), t); }
   for (const v of villagers) v.g.visible = false;                           // everyone indoors at dusk: the town doesn't move under the menu
