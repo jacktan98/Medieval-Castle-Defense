@@ -17,7 +17,10 @@ function setFull(on, user) {
   try { if (on) localStorage.setItem('mtd-full', '1'); else localStorage.removeItem('mtd-full'); } catch (e) {}
   // bought on the campaign: the thank-you card, then the stages' reveal; bought anywhere else (a locked colour on the title or
   // in the pause card): the thank-you card at once, and the reveal waits for the campaign (Jack)
-  if (on && !was) { if (!$('#campaign').hidden) revealFull(); else { pendingReveal = true; thanksCard(); } }
+  // only a purchase or Restore the player made just now plays the card and the reveal; the App Store's own record found at
+  // start (or sent in later) unlocks quietly (Jack saw the card at every relaunch: killing the app from Xcode can lose the
+  // last saves, so mtd-full was missing and the start-up check counted the purchase as new)
+  if (on && !was && user) { if (!$('#campaign').hidden) revealFull(); else { pendingReveal = true; thanksCard(); } }
   else if (!$('#campaign').hidden) { buildDeck(); layoutDeck(false); openStage(cSel); }
   renderColours(); syncTitleCrown();
 }
@@ -48,8 +51,18 @@ function thanksCard(after) {
   T.push(setTimeout(finish, t + 2200));
   w.onclick = () => { sfx('click'); finish(); };
 }
+// while the stages are revealed nothing on screen answers a tap, a swipe, the wheel or a key (Jack: players could turn the
+// deck mid-sweep and spoil it): a clear layer over everything, and key and wheel events stopped before the game sees them
+var revealLock = false;
+function lockReveal(on) {
+  revealLock = on; let b = $('#revealBlock');
+  if (!b) { b = document.createElement('div'); b.id = 'revealBlock'; b.style.cssText = 'position:fixed;inset:0;z-index:99999;background:transparent;touch-action:none'; document.body.appendChild(b); }
+  b.hidden = !on;
+}
+for (const t of ['keydown', 'wheel']) addEventListener(t, e => { if (revealLock) { e.preventDefault(); e.stopImmediatePropagation(); } }, { capture: true, passive: false });
 function revealSweep() {
   const idx = [...REVEAL].sort((a, b) => a - b), STEP = 650, T0 = 500;
+  lockReveal(true);
   duck(true, .8);
   idx.forEach((i, k) => setTimeout(() => {
     if ($('#campaign').hidden) { REVEAL.clear(); return; }
@@ -63,7 +76,7 @@ function revealSweep() {
       sfx('star', null, .55);
     }, 260);
   }, T0 + k * STEP));
-  setTimeout(() => { REVEAL.clear(); duck(false, 2); if ($('#campaign').hidden) return; buildDeck(); selectStage(FREE_N, true); }, T0 + idx.length * STEP + 1400);
+  setTimeout(() => { REVEAL.clear(); duck(false, 2); lockReveal(false); if ($('#campaign').hidden) return; buildDeck(); selectStage(FREE_N, true); }, T0 + idx.length * STEP + 1400);
 }
 // a gold crown beside the title on the title screen once the full game is owned (Jack; it sat on the showcase castle's flag pole):
 // a classic crown in the title's style, five points with round tips over a separate band
