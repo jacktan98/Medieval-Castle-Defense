@@ -75,7 +75,8 @@ function markBand(dt) {
     markRectT = .5; const top = document.querySelector('.panel').getBoundingClientRect(), dock = document.querySelector('.dock').getBoundingClientRect();
     // a phone held sideways: the panel is a column down the left, the bar sits in the bottom-right corner
     if (matchMedia('(max-height:520px)').matches) markRect = { x0: top.right + 26, x1: innerWidth - 24, y0: 60, y1: Math.min(innerHeight, dock.top) - 26 };
-    else markRect = { x0: 24, x1: innerWidth - 24, y0: (top.bottom < innerHeight / 2 && top.right > innerWidth / 2 ? top.bottom : 60) + 26, y1: Math.min(innerHeight, dock.top) - 26 };
+    // on a tablet the scaled panel reaches down past 60 px, so the marks keep below it (Jack saw one over the chips)
+    else markRect = { x0: 24, x1: innerWidth - 24, y0: (top.bottom < innerHeight / 2 && (top.right > innerWidth / 2 || document.body.classList.contains('tablet')) ? top.bottom : 60) + 26, y1: Math.min(innerHeight, dock.top) - 26 };
   }
   return markRect;
 }
@@ -191,7 +192,8 @@ function updateRaidMarks(dt) {
   const pop = $('#wavePop'); if (!pop.hidden) placePop(m[+pop.dataset.i]);
 }
 function placePop(e) {
-  const pop = $('#wavePop'), r = e.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  // its own size as drawn: on a tablet it is scaled up (uiScale)
+  const pop = $('#wavePop'), r = e.getBoundingClientRect(), z = uiZ(pop), w = pop.offsetWidth * z, h = pop.offsetHeight * z;
   pop.style.left = clamp(r.left + r.width / 2 - w / 2, 8, innerWidth - w - 8) + 'px';
   pop.style.top = (r.top - h - 10 > 70 ? r.top - h - 10 : Math.min(r.bottom + 10, innerHeight - h - 8)) + 'px';
 }

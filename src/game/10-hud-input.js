@@ -188,7 +188,9 @@ function selectPath(a, b) {
 }
 function removePath(P) { road[P.b * N + P.a] = 0; rebuildRoads(); villagers.forEach(v => v.path = null); sfx('click'); deselect(); }
 let statTipT = 0;
-document.body.appendChild($('#statTip'));   // out of the dock: its transform would offset a fixed tooltip
+// out of the dock (its transform would offset a fixed tooltip) into #app with the HUD's other parts: straight under <body>, after
+// the 3D canvas's layer, Chromium drew it under the map on screens wider than a phone and the tip never showed there
+$('#app').appendChild($('#statTip'));
 // a name tooltip over (or, for the top bar, under) an icon, for 1.6 s
 function showTip(el, name, below) {
   const r = el.getBoundingClientRect(), tip = $('#statTip');

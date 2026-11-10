@@ -7194,7 +7194,8 @@ function markBand(dt) {
     markRectT = .5; const top = document.querySelector('.panel').getBoundingClientRect(), dock = document.querySelector('.dock').getBoundingClientRect();
     // a phone held sideways: the panel is a column down the left, the bar sits in the bottom-right corner
     if (matchMedia('(max-height:520px)').matches) markRect = { x0: top.right + 26, x1: innerWidth - 24, y0: 60, y1: Math.min(innerHeight, dock.top) - 26 };
-    else markRect = { x0: 24, x1: innerWidth - 24, y0: (top.bottom < innerHeight / 2 && top.right > innerWidth / 2 ? top.bottom : 60) + 26, y1: Math.min(innerHeight, dock.top) - 26 };
+    // on a tablet the scaled panel reaches down past 60 px, so the marks keep below it (Jack saw one over the chips)
+    else markRect = { x0: 24, x1: innerWidth - 24, y0: (top.bottom < innerHeight / 2 && (top.right > innerWidth / 2 || document.body.classList.contains('tablet')) ? top.bottom : 60) + 26, y1: Math.min(innerHeight, dock.top) - 26 };
   }
   return markRect;
 }
@@ -7310,7 +7311,8 @@ function updateRaidMarks(dt) {
   const pop = $('#wavePop'); if (!pop.hidden) placePop(m[+pop.dataset.i]);
 }
 function placePop(e) {
-  const pop = $('#wavePop'), r = e.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  // its own size as drawn: on a tablet it is scaled up (uiScale)
+  const pop = $('#wavePop'), r = e.getBoundingClientRect(), z = uiZ(pop), w = pop.offsetWidth * z, h = pop.offsetHeight * z;
   pop.style.left = clamp(r.left + r.width / 2 - w / 2, 8, innerWidth - w - 8) + 'px';
   pop.style.top = (r.top - h - 10 > 70 ? r.top - h - 10 : Math.min(r.bottom + 10, innerHeight - h - 8)) + 'px';
 }
@@ -7710,7 +7712,9 @@ function selectPath(a, b) {
 }
 function removePath(P) { road[P.b * N + P.a] = 0; rebuildRoads(); villagers.forEach(v => v.path = null); sfx('click'); deselect(); }
 let statTipT = 0;
-document.body.appendChild($('#statTip'));   // out of the dock: its transform would offset a fixed tooltip
+// out of the dock (its transform would offset a fixed tooltip) into #app with the HUD's other parts: straight under <body>, after
+// the 3D canvas's layer, Chromium drew it under the map on screens wider than a phone and the tip never showed there
+$('#app').appendChild($('#statTip'));
 // a name tooltip over (or, for the top bar, under) an icon, for 1.6 s
 function showTip(el, name, below) {
   const r = el.getBoundingClientRect(), tip = $('#statTip');
@@ -8044,6 +8048,8 @@ const achToastQ = []; let achToastOn = false;
 function achToastNext() {
   if (achToastOn || !achToastQ.length) return; const a = achToastQ.shift(), el = $('#achToast'); achToastOn = true;
   el.innerHTML = `<span class="atIco">${achIco(a)}</span><span class="atTx"><small>Achievement</small><b>${a.name}</b></span>`; el.hidden = false;
+  // a tablet's scaled top panel reaches past the pill's usual spot, so it sits just under the panel there (Jack saw it over the chips)
+  el.style.top = document.body.classList.contains('tablet') ? (document.querySelector('.panel').getBoundingClientRect().bottom + 10) + 'px' : '';
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); sfx('achieve');
   setTimeout(() => { el.classList.remove('show'); setTimeout(() => { el.hidden = true; achToastOn = false; achToastNext(); }, 400); }, 3200);
 }
@@ -9153,7 +9159,8 @@ function tabletScale() {
   const k = !tab ? 1 : Math.max(1, Math.min(1.6, W < H ? Math.min(W / 430, H / 900) : Math.min(W / 900, H / 560)));
   document.body.classList.toggle('tablet', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3)); uiK = k;
   // the HUD's panels and the paused overlay grow by k with a CSS scale (uiScale), each from the corner or edge it is pinned to
-  for (const [sel, o, full] of [['.panel', '0 0'], ['.dock', '0 100%'], ['.corner', '100% 100%'], ['#pauseBtn', '100% 0'], ['#pausedTag', '0 0', 1], ['#tipPill', '0 100%'], ['#offerWrap', '0 0', 1], ['#fullWrap', '0 0', 1]])
+  for (const [sel, o, full] of [['.panel', '0 0'], ['.dock', '0 100%'], ['.corner', '100% 100%'], ['#pauseBtn', '100% 0'], ['#pausedTag', '0 0', 1], ['#tipPill', '0 100%'], ['#offerWrap', '0 0', 1], ['#fullWrap', '0 0', 1],
+    ['#banner', '0 0'], ['#achToast', '0 0'], ['#wavePop', '0 0'], ['#statTip', '0 0']])
     document.querySelectorAll(sel).forEach(el => uiScale(el, k, o, full));
   // every menu at k; the town picker and the three screens are then fitted to the height below
   document.querySelectorAll('.modal').forEach(m => uiScale(m, k, '0 0', 1));
@@ -10301,7 +10308,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '41e386892f'; var updateWait = false, updateT = 0;
+const BUILD = 'd1ff5d612a'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
