@@ -923,7 +923,7 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 .cCard.revealing .cCover{animation:coverOff 1.1s ease-out forwards} @keyframes coverOff{to{opacity:0}}
 .cCard.revealing{border-color:rgba(212,168,78,.85)!important;animation:unlockGlow 1.8s both}
 /* the seal card after buying: parchment, the seal stamped down onto it */
-.fullWrap{position:absolute;inset:0;z-index:30;background:rgba(6,7,5,.6);display:flex;align-items:center;justify-content:center}
+.fullWrap{position:fixed;inset:0;z-index:85;background:rgba(6,7,5,.6);display:flex;align-items:center;justify-content:center}
 .fullCard{--cw:min(250px,72vw,62vh);position:relative;inset:auto;margin:0}
 .fullText{display:flex;flex-direction:column;justify-content:center;padding-bottom:calc(var(--cw) * .2)!important;text-align:center!important;font-size:clamp(13px,calc(var(--cw) * .066),17px)!important;line-height:1.35!important}
 .fullText h4{font-size:1.75em!important;margin-bottom:0!important} .fullText .fullSub{font-family:var(--display);color:#8a5a1c;letter-spacing:.12em;margin-bottom:.6em!important}
@@ -1122,10 +1122,6 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
         </div></div>
       </div>
     </div>
-    <!-- the full game bought (Jack): a parchment card stamped with the seal, then every stage's picture is revealed in turn -->
-    <div class="fullWrap" id="fullWrap" hidden><div class="credCard fullCard" id="fullCard"><div class="credText fullText"><span class="cSp1"></span><span class="cSp2"></span>
-      <h4 class="ty">Full Game</h4><p class="fullSub ty">Unlocked</p><p class="fullThanks ty">Thank you for your support</p><p class="fullAwait ty">Your castle awaits!</p>
-    </div><div class="cSeal" id="fullSeal"></div></div></div>
   </div>
   <div class="modal" id="newCards" hidden>
     <div class="ncCard">
@@ -1169,6 +1165,10 @@ addEventListener('error', () => ldFail('Something went wrong'));
 // (on https, i.e. the live site; ?sw turns it on for a local test server)
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || /[?&]sw\b/.test(location.search))) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 </script>
+  <!-- the full game bought (Jack): a parchment card stamped with the seal, then every stage's picture is revealed in turn -->
+    <div class="fullWrap" id="fullWrap" hidden><div class="credCard fullCard" id="fullCard"><div class="credText fullText"><span class="cSp1"></span><span class="cSp2"></span>
+      <h4 class="ty">Full Game</h4><p class="fullSub ty">Unlocked</p><p class="fullThanks ty">Thank you for your support</p><p class="fullAwait ty">Your castle awaits!</p>
+    </div><div class="cSeal" id="fullSeal"></div></div></div>
   <!-- what the full game brings (Jack): pops up from Unlock, a covered stage and a locked colour, with the same Unlock below -->
   <div class="offerWrap" id="offerWrap" hidden><div class="offerCard" id="offerCard"><button class="offerX" id="offerX" aria-label="Close">&#x2715;</button>
     <h3>Unlock Full Game</h3><ul class="offerList" id="offerList"></ul>
@@ -9034,8 +9034,8 @@ function openCampaign(i) {
   achCheck();
   // opens on the given stage (Restart / Play again) or where the player is
   cSel = i !== undefined ? i : cCur; cDrag = 0; layoutDeck(false); openStage(cSel);
-  // the full game was bought or restored away from the campaign: its reveal plays now
-  if (pendingReveal) { pendingReveal = false; revealFull(); }
+  // the full game was bought or restored away from the campaign (its thank-you card already shown there): the reveal plays now
+  if (pendingReveal) { pendingReveal = false; revealStart(); revealSweep(); }
 }
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
 // a stage just unlocked by the last win (Jack): its card starts grey with the padlock, the padlock springs open and fades, and the
@@ -9398,7 +9398,9 @@ function setFull(on, user) {
   if (on) try { localStorage.removeItem('mtd-testfree'); } catch (e) {}
   const was = fullOwned();
   try { if (on) localStorage.setItem('mtd-full', '1'); else localStorage.removeItem('mtd-full'); } catch (e) {}
-  if (on && !was) { if (!$('#campaign').hidden) revealFull(); else pendingReveal = true; }
+  // bought on the campaign: the thank-you card, then the stages' reveal; bought anywhere else (a locked colour on the title or
+  // in the pause card): the thank-you card at once, and the reveal waits for the campaign (Jack)
+  if (on && !was) { if (!$('#campaign').hidden) revealFull(); else { pendingReveal = true; thanksCard(); } }
   else if (!$('#campaign').hidden) { buildDeck(); layoutDeck(false); openStage(cSel); }
   renderColours(); syncTitleCrown();
 }
@@ -9409,16 +9411,17 @@ var REVEAL = new Set(), pendingReveal = false;
 function coverOn(i) { return i >= FREE_N && (!fullOwned() || REVEAL.has(i)); }
 // the thank-you card (Jack): it fades in slowly, its words are typed out one line after another, the seal is stamped, then it
 // fades out by itself and the stages are revealed; a tap skips straight to the reveal
-function revealFull() {
-  for (let i = FREE_N; i < CAMPAIGN.length; i++) REVEAL.add(i);
-  buildDeck(); selectStage(FREE_N, true);
+function revealFull() { revealStart(); thanksCard(revealSweep); }
+// every stage from the fourth on gets its cover back for the sweep to lift
+function revealStart() { for (let i = FREE_N; i < CAMPAIGN.length; i++) REVEAL.add(i); buildDeck(); selectStage(FREE_N, true); }
+function thanksCard(after) {
   const w = $('#fullWrap'), seal = $('#fullSeal'), lines = [...w.querySelectorAll('.ty')], T = [];
   if (!seal.firstChild) seal.innerHTML = sealIco('full');
   lines.forEach(l => { l.dataset.t = l.dataset.t || l.textContent; l.textContent = ''; });
   w.classList.remove('stamped', 'out', 'sealed'); w.hidden = false; void w.offsetWidth; w.classList.add('stamped');
   let done = false; const finish = () => { if (done) return; done = true; T.forEach(clearTimeout);
     lines.forEach(l => l.textContent = l.dataset.t); w.classList.add('out');
-    setTimeout(() => { w.hidden = true; w.classList.remove('out'); revealSweep(); }, 700); w.onclick = null; };
+    setTimeout(() => { w.hidden = true; w.classList.remove('out'); if (after) after(); }, 700); w.onclick = null; };
   let t = 1100;
   lines.forEach((l, k) => { const txt = l.dataset.t, gap = k < 2 ? 70 : 42;
     for (let c = 1; c <= txt.length; c++) T.push(setTimeout(() => { l.textContent = txt.slice(0, c); }, t + c * gap));
@@ -10209,7 +10212,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '38f441d4d8'; var updateWait = false, updateT = 0;
+const BUILD = '3450ad081b'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

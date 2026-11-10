@@ -15,7 +15,9 @@ function setFull(on, user) {
   if (on) try { localStorage.removeItem('mtd-testfree'); } catch (e) {}
   const was = fullOwned();
   try { if (on) localStorage.setItem('mtd-full', '1'); else localStorage.removeItem('mtd-full'); } catch (e) {}
-  if (on && !was) { if (!$('#campaign').hidden) revealFull(); else pendingReveal = true; }
+  // bought on the campaign: the thank-you card, then the stages' reveal; bought anywhere else (a locked colour on the title or
+  // in the pause card): the thank-you card at once, and the reveal waits for the campaign (Jack)
+  if (on && !was) { if (!$('#campaign').hidden) revealFull(); else { pendingReveal = true; thanksCard(); } }
   else if (!$('#campaign').hidden) { buildDeck(); layoutDeck(false); openStage(cSel); }
   renderColours(); syncTitleCrown();
 }
@@ -26,16 +28,17 @@ var REVEAL = new Set(), pendingReveal = false;
 function coverOn(i) { return i >= FREE_N && (!fullOwned() || REVEAL.has(i)); }
 // the thank-you card (Jack): it fades in slowly, its words are typed out one line after another, the seal is stamped, then it
 // fades out by itself and the stages are revealed; a tap skips straight to the reveal
-function revealFull() {
-  for (let i = FREE_N; i < CAMPAIGN.length; i++) REVEAL.add(i);
-  buildDeck(); selectStage(FREE_N, true);
+function revealFull() { revealStart(); thanksCard(revealSweep); }
+// every stage from the fourth on gets its cover back for the sweep to lift
+function revealStart() { for (let i = FREE_N; i < CAMPAIGN.length; i++) REVEAL.add(i); buildDeck(); selectStage(FREE_N, true); }
+function thanksCard(after) {
   const w = $('#fullWrap'), seal = $('#fullSeal'), lines = [...w.querySelectorAll('.ty')], T = [];
   if (!seal.firstChild) seal.innerHTML = sealIco('full');
   lines.forEach(l => { l.dataset.t = l.dataset.t || l.textContent; l.textContent = ''; });
   w.classList.remove('stamped', 'out', 'sealed'); w.hidden = false; void w.offsetWidth; w.classList.add('stamped');
   let done = false; const finish = () => { if (done) return; done = true; T.forEach(clearTimeout);
     lines.forEach(l => l.textContent = l.dataset.t); w.classList.add('out');
-    setTimeout(() => { w.hidden = true; w.classList.remove('out'); revealSweep(); }, 700); w.onclick = null; };
+    setTimeout(() => { w.hidden = true; w.classList.remove('out'); if (after) after(); }, 700); w.onclick = null; };
   let t = 1100;
   lines.forEach((l, k) => { const txt = l.dataset.t, gap = k < 2 ? 70 : 42;
     for (let c = 1; c <= txt.length; c++) T.push(setTimeout(() => { l.textContent = txt.slice(0, c); }, t + c * gap));

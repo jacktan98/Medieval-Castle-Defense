@@ -803,8 +803,8 @@ function openCampaign(i) {
   achCheck();
   // opens on the given stage (Restart / Play again) or where the player is
   cSel = i !== undefined ? i : cCur; cDrag = 0; layoutDeck(false); openStage(cSel);
-  // the full game was bought or restored away from the campaign: its reveal plays now
-  if (pendingReveal) { pendingReveal = false; revealFull(); }
+  // the full game was bought or restored away from the campaign (its thank-you card already shown there): the reveal plays now
+  if (pendingReveal) { pendingReveal = false; revealStart(); revealSweep(); }
 }
 $('#campBtn').addEventListener('click', () => { sfx('click'); openCampaign(); });
 // a stage just unlocked by the last win (Jack): its card starts grey with the padlock, the padlock springs open and fades, and the

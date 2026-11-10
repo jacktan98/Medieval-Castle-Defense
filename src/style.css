@@ -906,7 +906,7 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 .cCard.revealing .cCover{animation:coverOff 1.1s ease-out forwards} @keyframes coverOff{to{opacity:0}}
 .cCard.revealing{border-color:rgba(212,168,78,.85)!important;animation:unlockGlow 1.8s both}
 /* the seal card after buying: parchment, the seal stamped down onto it */
-.fullWrap{position:absolute;inset:0;z-index:30;background:rgba(6,7,5,.6);display:flex;align-items:center;justify-content:center}
+.fullWrap{position:fixed;inset:0;z-index:85;background:rgba(6,7,5,.6);display:flex;align-items:center;justify-content:center}
 .fullCard{--cw:min(250px,72vw,62vh);position:relative;inset:auto;margin:0}
 .fullText{display:flex;flex-direction:column;justify-content:center;padding-bottom:calc(var(--cw) * .2)!important;text-align:center!important;font-size:clamp(13px,calc(var(--cw) * .066),17px)!important;line-height:1.35!important}
 .fullText h4{font-size:1.75em!important;margin-bottom:0!important} .fullText .fullSub{font-family:var(--display);color:#8a5a1c;letter-spacing:.12em;margin-bottom:.6em!important}
