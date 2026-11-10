@@ -178,7 +178,7 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 .modal.tome .colSw .sw{width:34px;height:34px;min-height:0!important;padding:0!important;border-radius:50%!important;background:var(--c)!important;border:2px solid rgba(255,240,200,.25)!important;box-shadow:inset 0 2px 4px rgba(255,255,255,.18),inset 0 -3px 5px rgba(0,0,0,.35)!important;position:relative}
 .modal.tome .colSw .sw.on{border-color:#f0c95a!important;box-shadow:0 0 0 2px rgba(240,201,90,.35),0 0 10px rgba(240,201,90,.55),inset 0 2px 4px rgba(255,255,255,.18)!important}
 .colSw .sw.on::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;text-shadow:0 1px 2px #000}
-.colSw .sw.taken{opacity:.3} .colSw .sw.taken::after{content:"";position:absolute;left:50%;top:3px;bottom:3px;width:2px;background:#f4e3b2;transform:translateX(-50%) rotate(45deg)}
+.colSw .sw.taken{opacity:.55}
 .pCols{display:flex;flex-direction:column;gap:8px;margin-top:4px}
 .pCols .colRow>span{font-size:12px}
 .pCols .colSw{gap:8px} .colSw .sw{cursor:pointer}
@@ -9088,8 +9088,8 @@ document.addEventListener('click', e => {
   const b = e.target.closest('.colSw .sw'); if (!b) return;
   const side = b.dataset.side, c = b.dataset.c, other = side === 'town' ? 'foe' : 'town';
   if (b.classList.contains('shut')) { showOffer(); return; }
-  if (TEAM[other] === c) { sfx('nope'); return; }
-  sfx('click'); TEAM = { ...TEAM, [side]: c }; applyTeams(); renderColours();
+  // the other side's colour: the two sides swap (Jack: with only Blue and Red free, a free player could never switch)
+  sfx('click'); TEAM = TEAM[other] === c ? { ...TEAM, [side]: c, [other]: TEAM[side] } : { ...TEAM, [side]: c }; applyTeams(); renderColours();
   try { localStorage.setItem('mtd-colours', JSON.stringify(TEAM)); } catch (e) {}
 });
 renderColours();
@@ -10209,7 +10209,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '5a90183aab'; var updateWait = false, updateT = 0;
+const BUILD = '38f441d4d8'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
