@@ -8,7 +8,11 @@ var FULL_ID = 'com.jacktan.castledefense.fullgame', FREE_N = 3, fullPrice = '', 
 var STORE = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Store || null;
 function fullOwned() { if (devOn) return true; try { return localStorage.getItem('mtd-full') === '1'; } catch (e) { return false; } }
 function paidStage(i) { return i >= FREE_N && !fullOwned(); }
-function setFull(on) {
+function testFree() { try { return TEST_SKIP && localStorage.getItem('mtd-testfree') === '1'; } catch (e) { return false; } }
+function setFull(on, user) {
+  // test switch (TEST_SKIP): after "forget purchase" the App Store's own record is ignored until a Buy or Restore
+  if (on && !user && testFree()) return;
+  if (on) try { localStorage.removeItem('mtd-testfree'); } catch (e) {}
   const was = fullOwned();
   try { if (on) localStorage.setItem('mtd-full', '1'); else localStorage.removeItem('mtd-full'); } catch (e) {}
   if (on && !was) { if (!$('#campaign').hidden) revealFull(); else pendingReveal = true; }
@@ -69,7 +73,7 @@ function buyFull() {
   if (buying) return; buying = true; openStage(cSel);
   STORE.buy({ id: FULL_ID }).then(r => {
     buying = false;
-    if (r && r.state === 'bought') setFull(true);
+    if (r && r.state === 'bought') setFull(true, true);
     else { openStage(cSel); if (r && r.state === 'pending') buyMsg('Waiting for approval'); else if (r && r.state === 'failed') buyMsg('Purchase failed'); }
   }).catch(() => { buying = false; openStage(cSel); buyMsg('Store not available'); });
 }
@@ -78,7 +82,7 @@ function restoreFull(btn) {
   if (!STORE || btn.disabled) return;
   const say = t => { btn.textContent = t; clearTimeout(btn._t); btn._t = setTimeout(() => { btn.textContent = 'Restore purchases'; btn.disabled = false; }, 2200); };
   btn.disabled = true; btn.textContent = 'Restoring…';
-  STORE.restore().then(r => { const ok = !!(r && r.ids && r.ids.includes(FULL_ID)); if (ok) setFull(true); say(ok ? 'Restored' : 'Nothing to restore'); })
+  STORE.restore().then(r => { const ok = !!(r && r.ids && r.ids.includes(FULL_ID)); if (ok) setFull(true, true); say(ok ? 'Restored' : 'Nothing to restore'); })
     .catch(() => say('Store not available'));
 }
 $('#fullWrap').addEventListener('pointerdown', e => e.stopPropagation());
@@ -91,12 +95,14 @@ if (STORE) {
 }
 
 // TEMPORARY, for testing the purchase on a phone (Jack): five quick taps on the campaign's "N / 12 stages" line mark Stages 1
-// to 3 won (1 star each) and turn the deck to Stage 4. Set TEST_SKIP to false (or remove this) before the App Store release.
+// to 3 won (1 star each) and turn the deck to Stage 4; with the full game owned, five taps forget it instead (the free version
+// again, kept across restarts in mtd-testfree until Unlock or Restore). Set TEST_SKIP to false before the App Store release.
 var TEST_SKIP = true;
 if (TEST_SKIP) { let n = 0, t0 = 0;
   $('#campStars').addEventListener('click', () => {
     const now = performance.now(); if (now - t0 > 3000) n = 0; if (!n) t0 = now;
     if (++n < 5) return; n = 0;
+    if (fullOwned() && !devOn) { try { localStorage.setItem('mtd-testfree', '1'); } catch (e) {} setFull(false); sfx('nope'); return; }
     for (const c of CAMPAIGN.slice(0, FREE_N)) STARS[c.map] = Math.max(STARS[c.map] || 0, 1);
     try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {}
     sfx('unlock'); openCampaign(FREE_N);
