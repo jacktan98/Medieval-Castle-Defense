@@ -1872,7 +1872,19 @@ const bossCamps = () => MAP === 'hold' ? HOLD_CAMPS : MAP === 'keep' ? KEEP_CAMP
 const campProp = (x, z) => bossCamps().some(c => (c.fire && Math.hypot(x - c.fire[0], z - c.fire[1]) < .9) || (c.props || []).some(([, a, b, , r]) => Math.hypot(x - a, z - b) < (r || .8)));
 const sceneryAt = (x, z) => (MAP === 'hold' || MAP === 'keep') && campProp(x, z) ? true : MAP === 'hold' && HOLD_TOWERS.some(([a, b]) => Math.hypot(x - a, z - b) < 1.2) ? true : MAP === 'keep' ? inPoly(KEEP_POLY, x, z) || KEEP_RUINS.some(([a, b]) => Math.hypot(x - a, z - b) < 1.7) : MAP === 'hold' ? inPoly(HOLD_POLY, x, z) : false;
 // the maps with ground nobody may walk or build on (Mountain pass's mountains, Greenvale's hills)
-const mapOpen = (x, z) => MAP === 'pass' ? passOpen(x, z) : MAP === 'vale' ? valeOpen(x, z) : MAP === 'hold' ? holdOpen(x, z) : true;
+const mapOpenRaw = (x, z) => MAP === 'pass' ? passOpen(x, z) : MAP === 'vale' ? valeOpen(x, z) : MAP === 'hold' ? holdOpen(x, z) : true;
+// asked for every step every unit takes (canStand), and each answer walks the whole mountain line: on Warlord's Hold it was a
+// third of the game's step. The answers are kept on a 25 cm grid, filled as they are asked for and emptied with each new ground
+const OPEN_Q = 4, OPEN_W = N_MAX * CELL * OPEN_Q, openGrid = new Uint8Array(OPEN_W * OPEN_W); var openMap = '';
+function mapOpen(x, z) {
+  if (MAP !== 'pass' && MAP !== 'vale' && MAP !== 'hold') return true;
+  if (openMap !== MAP) { openGrid.fill(0); openMap = MAP; }
+  const i = Math.floor(x * OPEN_Q), j = Math.floor(z * OPEN_Q);
+  if (i < 0 || j < 0 || i >= OPEN_W || j >= OPEN_W) return mapOpenRaw(x, z);
+  const k = j * OPEN_W + i; let v = openGrid[k];
+  if (!v) v = openGrid[k] = mapOpenRaw((i + .5) / OPEN_Q, (j + .5) / OPEN_Q) ? 1 : 2;
+  return v === 1;
+}
 function genHeight(x, z) {
   if (MAP === 'pass') return passHeight(x, z);
   if (MAP === 'vale') return valeHeight(x, z);
@@ -1924,6 +1936,7 @@ function setMapSize(n) {
   CAM_LIM.hi = SIZE;
 }
 function genTerrain() {
+  openMap = '';
   for (let j = 0; j < V; j++) for (let i = 0; i < V; i++) { const k = idx(i, j); H[k] = genHeight(i, j); gvar[k] = fbm(i * .21 + 40, j * .21); dvar[k] = fbm(i * .09 + 70, j * .09 + 30); }
   dirt.fill(0); lock.fill(0); road.fill(0); occB = new Array(N * N).fill(null);
 }
@@ -2012,6 +2025,9 @@ function cacheCells() {
 // ---------- three setup ----------
 const canvas = $('#c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+// three asks the GPU for every new shader's error log, which makes the phone wait for the compile to finish (a hitch the first
+// time each material is seen); only wanted while debugging
+renderer.debug.checkShaderErrors = /[?&]debug\b/.test(location.search);
 // Graphics (Jack: Low / High in Settings and the pause card, kept in 'mtd-gfx'): High renders at the screen's full sharpness (phones
 // are 3×; adaptResolution steps it down if frames get slow), Low at most 1.5 pixels a point, with no shadows and a third of the weather
 var gfxLow = false; try { gfxLow = localStorage.getItem('mtd-gfx') === 'low'; } catch (e) {}
@@ -2416,7 +2432,56 @@ for (const fm of [M.flag, M.banner]) fm.onBeforeCompile = sh => {
     transformed.z += sin(uTime * 5.0 - fu * 6.0 + fph) * .07 * fu + sin(uTime * 8.3 - fu * 9.0 + fph) * .02 * fu;
     transformed.y += sin(uTime * 3.1 - fu * 4.0 + fph) * .025 * fu;`);
 };
+for (const m of [M.flame, M.flameMid, M.flameCore, M.thatchOld, M.thatch, M.logGable, M.drape, M.flag, M.banner]) m.userData.noMerge = true;
 const FLOWER = ['#d4483b', '#f0c84a', '#9a5ad0', '#f2efe6', '#e27aa8'].map(mat);
+// ---------- merging a model's still parts ----------
+// A building is 30 to 90 little boxes, each its own draw call (and another for its shadow): a town was 1,000 to 2,000 calls,
+// Warlord's Hold's fort 640 on its own. mergeStatic(root) joins every still mesh of one material into one mesh, in root's own
+// frame. Left alone: anything with userData or under a group with userData (how the game marks and finds moving parts: door
+// leaves, turrets, arms, carts, stall horses, ropes), anything hidden or see-through, and materials whose shader reads a part's
+// own shape (userData.noMerge: flags, drapes, flames, straw and log roofs). ?nomerge turns it off, to compare.
+const MERGE_OFF = /[?&]nomerge\b/.test(location.search);
+function mergeStatic(root) {
+  if (MERGE_OFF) return root;
+  root.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(root.matrixWorld).invert(), sets = new Map();
+  const plain = o => { for (const k in o.userData) return false; return true; };
+  const walk = o => {
+    for (const c of o.children) {
+      if (!c.visible || !plain(c)) continue;
+      if (c.isMesh) {
+        const m = c.material, g = c.geometry;
+        if (c.isInstancedMesh || c.children.length || Array.isArray(m) || m.transparent || m.userData.noMerge || c.renderOrder || !g.attributes.normal || g.attributes.color || g.morphAttributes.position) continue;
+        const key = m.uuid + (c.castShadow ? 's' : '-') + (c.receiveShadow ? 'r' : '-');
+        if (!sets.has(key)) sets.set(key, []); sets.get(key).push(c);
+      } else if (c.type === 'Group' || c.type === 'Object3D') walk(c);
+    }
+  };
+  walk(root);
+  const v = new THREE.Vector3(), mx = new THREE.Matrix4(), nm = new THREE.Matrix3();
+  for (const list of sets.values()) {
+    if (list.length < 2) continue;
+    const uvOn = list.every(c => c.geometry.attributes.uv); if (!uvOn && list[0].material.map) continue;
+    let count = 0; for (const c of list) count += c.geometry.index ? c.geometry.index.count : c.geometry.attributes.position.count;
+    const P = new Float32Array(count * 3), Q = new Float32Array(count * 3), U = uvOn ? new Float32Array(count * 2) : null; let w = 0;
+    for (const c of list) {
+      const g = c.geometry, pos = g.attributes.position, nor = g.attributes.normal, uv = g.attributes.uv, ix = g.index, n = ix ? ix.count : pos.count;
+      mx.multiplyMatrices(inv, c.matrixWorld); nm.getNormalMatrix(mx); const flip = mx.determinant() < 0;   // a mirrored part: its triangles wound the other way
+      for (let t = 0; t + 2 < n; t += 3) for (let q = 0; q < 3; q++) {
+        const at = t + (flip ? 2 - q : q), i = ix ? ix.getX(at) : at;
+        v.fromBufferAttribute(pos, i).applyMatrix4(mx); P[w * 3] = v.x; P[w * 3 + 1] = v.y; P[w * 3 + 2] = v.z;
+        v.fromBufferAttribute(nor, i).applyMatrix3(nm).normalize(); Q[w * 3] = v.x; Q[w * 3 + 1] = v.y; Q[w * 3 + 2] = v.z;
+        if (U) { U[w * 2] = uv.getX(i); U[w * 2 + 1] = uv.getY(i); }
+        w++;
+      }
+      c.parent.remove(c);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(P, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(Q, 3)); if (U) geo.setAttribute('uv', new THREE.BufferAttribute(U, 2));
+    const mesh = new THREE.Mesh(geo, list[0].material); mesh.castShadow = list[0].castShadow; mesh.receiveShadow = list[0].receiveShadow; root.add(mesh);
+  }
+  return root;
+}
 function box(w, h, d, m, x, y, z) { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; return o; }
 function drapeBox(w, h, d, m, x, y, z) { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d, 2, 10, 1), m); o.position.set(x, y, z); o.castShadow = true; return o; }
 // every flag on a roof is the same size: a 1 m pole from y up, the town's flag at its top; k undoes a scaled parent (crossbow towers)
@@ -3634,7 +3699,7 @@ function makeStoneBridge(b) {
 }
 // the raiders' red flag, waving like the town's (M.flag's shader); the grand bridge's flags fly the same way as the hold's
 let _rfm = null; const raiderFlagM = () => { if (!_rfm) { _rfm = M.flag.clone(); _rfm.onBeforeCompile = M.flag.onBeforeCompile; teamMat(_rfm, 'foe', '#8e1d16'); } return _rfm; };
-function buildBridges() { for (const b of bridges) { b.g = makeBridge(b); scene.add(b.g); } }
+function buildBridges() { for (const b of bridges) { b.g = mergeStatic(makeBridge(b)); scene.add(b.g); } }
 
 // ---------- the other economy picks: forester, mine, farmhouse ----------
 const mineRockM = mat('#79746b'), penM = mat('#7c6b4a'), henM = mat('#efe8da'), combM = mat('#c23a2a'), beakM = mat('#e2a43a'),
@@ -4162,7 +4227,7 @@ const makeModel = (type, tier, plinth, mask, rot = 0, fixed = false) => {
   // shade per tier so neighbouring bases join without a seam
   const fp = DEF[type].size * CELL, isBase = o => o.geometry.parameters && Math.abs(o.geometry.parameters.width - fp) < .01 && o.position.y < 0;
   g.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = !o.userData.noShadow; if (!NO_TINT.has(o.material)) o.material = tinted(o.material, tt, isBase(o) ? 0 : (n++ * 5 + Math.floor(Math.random() * 3)) % 6); } });
-  return g;
+  return mergeStatic(g);
 };
 
 // stone bases fill their tiles exactly; this is how far each one's top sits above the building's ground level
@@ -4981,7 +5046,10 @@ function makeHelm(kind) {
   return h;
 }
 const UNIT_K = .78;   // everyone drawn a little smaller so they fit through doors
-const EYE_GEO = new THREE.BoxGeometry(.028, .04, .02), eyeM = new THREE.MeshLambertMaterial({ color: '#1d1611' });
+// both eyes are one mesh (one draw call a face, not two)
+const EYE_GEO = (() => { const g = new THREE.BufferGeometry(), P = [], Q = [], one = new THREE.BoxGeometry(.028, .04, .02).toNonIndexed();
+  for (const sx of [-1, 1]) for (let i = 0; i < one.attributes.position.count; i++) { P.push(one.attributes.position.getX(i) + sx * .046, one.attributes.position.getY(i), one.attributes.position.getZ(i)); Q.push(one.attributes.normal.getX(i), one.attributes.normal.getY(i), one.attributes.normal.getZ(i)); }
+  g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(Q, 3)); return g; })(), eyeM = new THREE.MeshLambertMaterial({ color: '#1d1611' });
 function makePerson(opts) {
   const g = new THREE.Group(), body = new THREE.Group();
   const legs = [-.09, .09].map(x => { const l = box(.1, .4, .12, legM, x, 0, 0); l.geometry.translate(0, -.2, 0); l.position.y = .4; body.add(l); return l; });
@@ -4995,7 +5063,7 @@ function makePerson(opts) {
   });
   const head = new THREE.Mesh(new THREE.SphereGeometry(.13, 8, 6), skin); head.position.y = 1.03; head.castShadow = true; body.add(head);
   // two small dark eyes (Jack: faces were blank up close); helms and hoods that cover the face sit over them
-  for (const sx of [-1, 1]) { const e = new THREE.Mesh(EYE_GEO, eyeM); e.position.set(sx * .046, 1.045, .119); body.add(e); }
+  { const e = new THREE.Mesh(EYE_GEO, eyeM); e.position.set(0, 1.045, .119); body.add(e); }
   body.add(makeHair(opts.hair || hairs[Math.floor(Math.random() * hairs.length)]));
   let hatG = null; if (opts.helm) { hatG = makeHelm(opts.helm); body.add(hatG); }
   let pivot = null;
@@ -8727,6 +8795,8 @@ function placeBossScenery() {
   const g = new THREE.Group(), Y = (x, z) => hAt(x, z);
   if (MAP === 'keep') buildRaiderKeep(g); else buildWarlordsHold(g);
   darkFort(g);
+  // the fort never moves: its hundreds of pieces become a few (its crews, camp raiders and ruins are added after)
+  mergeStatic(g);
   if (MAP === 'keep') KEEP_RUINS.forEach(([x, z, fire], i) => {   // the burned village: ruined watchtowers, burnt, some still burning
     const r = makeRuin(i + 1, !!fire); r.rotation.y = hash(x, z) * 6.3; r.position.set(x, Y(x, z) - .1, z); g.add(r); r.updateMatrixWorld(true); ruinFires(r);
   });
@@ -10423,7 +10493,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '699e6bc0c4'; var updateWait = false, updateT = 0;
+const BUILD = 'a79d79abbe'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

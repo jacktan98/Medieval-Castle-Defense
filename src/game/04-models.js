@@ -610,7 +610,7 @@ function makeStoneBridge(b) {
 }
 // the raiders' red flag, waving like the town's (M.flag's shader); the grand bridge's flags fly the same way as the hold's
 let _rfm = null; const raiderFlagM = () => { if (!_rfm) { _rfm = M.flag.clone(); _rfm.onBeforeCompile = M.flag.onBeforeCompile; teamMat(_rfm, 'foe', '#8e1d16'); } return _rfm; };
-function buildBridges() { for (const b of bridges) { b.g = makeBridge(b); scene.add(b.g); } }
+function buildBridges() { for (const b of bridges) { b.g = mergeStatic(makeBridge(b)); scene.add(b.g); } }
 
 // ---------- the other economy picks: forester, mine, farmhouse ----------
 const mineRockM = mat('#79746b'), penM = mat('#7c6b4a'), henM = mat('#efe8da'), combM = mat('#c23a2a'), beakM = mat('#e2a43a'),
@@ -1138,7 +1138,7 @@ const makeModel = (type, tier, plinth, mask, rot = 0, fixed = false) => {
   // shade per tier so neighbouring bases join without a seam
   const fp = DEF[type].size * CELL, isBase = o => o.geometry.parameters && Math.abs(o.geometry.parameters.width - fp) < .01 && o.position.y < 0;
   g.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = !o.userData.noShadow; if (!NO_TINT.has(o.material)) o.material = tinted(o.material, tt, isBase(o) ? 0 : (n++ * 5 + Math.floor(Math.random() * 3)) % 6); } });
-  return g;
+  return mergeStatic(g);
 };
 
 // stone bases fill their tiles exactly; this is how far each one's top sits above the building's ground level

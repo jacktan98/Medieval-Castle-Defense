@@ -302,7 +302,19 @@ const bossCamps = () => MAP === 'hold' ? HOLD_CAMPS : MAP === 'keep' ? KEEP_CAMP
 const campProp = (x, z) => bossCamps().some(c => (c.fire && Math.hypot(x - c.fire[0], z - c.fire[1]) < .9) || (c.props || []).some(([, a, b, , r]) => Math.hypot(x - a, z - b) < (r || .8)));
 const sceneryAt = (x, z) => (MAP === 'hold' || MAP === 'keep') && campProp(x, z) ? true : MAP === 'hold' && HOLD_TOWERS.some(([a, b]) => Math.hypot(x - a, z - b) < 1.2) ? true : MAP === 'keep' ? inPoly(KEEP_POLY, x, z) || KEEP_RUINS.some(([a, b]) => Math.hypot(x - a, z - b) < 1.7) : MAP === 'hold' ? inPoly(HOLD_POLY, x, z) : false;
 // the maps with ground nobody may walk or build on (Mountain pass's mountains, Greenvale's hills)
-const mapOpen = (x, z) => MAP === 'pass' ? passOpen(x, z) : MAP === 'vale' ? valeOpen(x, z) : MAP === 'hold' ? holdOpen(x, z) : true;
+const mapOpenRaw = (x, z) => MAP === 'pass' ? passOpen(x, z) : MAP === 'vale' ? valeOpen(x, z) : MAP === 'hold' ? holdOpen(x, z) : true;
+// asked for every step every unit takes (canStand), and each answer walks the whole mountain line: on Warlord's Hold it was a
+// third of the game's step. The answers are kept on a 25 cm grid, filled as they are asked for and emptied with each new ground
+const OPEN_Q = 4, OPEN_W = N_MAX * CELL * OPEN_Q, openGrid = new Uint8Array(OPEN_W * OPEN_W); var openMap = '';
+function mapOpen(x, z) {
+  if (MAP !== 'pass' && MAP !== 'vale' && MAP !== 'hold') return true;
+  if (openMap !== MAP) { openGrid.fill(0); openMap = MAP; }
+  const i = Math.floor(x * OPEN_Q), j = Math.floor(z * OPEN_Q);
+  if (i < 0 || j < 0 || i >= OPEN_W || j >= OPEN_W) return mapOpenRaw(x, z);
+  const k = j * OPEN_W + i; let v = openGrid[k];
+  if (!v) v = openGrid[k] = mapOpenRaw((i + .5) / OPEN_Q, (j + .5) / OPEN_Q) ? 1 : 2;
+  return v === 1;
+}
 function genHeight(x, z) {
   if (MAP === 'pass') return passHeight(x, z);
   if (MAP === 'vale') return valeHeight(x, z);
@@ -354,6 +366,7 @@ function setMapSize(n) {
   CAM_LIM.hi = SIZE;
 }
 function genTerrain() {
+  openMap = '';
   for (let j = 0; j < V; j++) for (let i = 0; i < V; i++) { const k = idx(i, j); H[k] = genHeight(i, j); gvar[k] = fbm(i * .21 + 40, j * .21); dvar[k] = fbm(i * .09 + 70, j * .09 + 30); }
   dirt.fill(0); lock.fill(0); road.fill(0); occB = new Array(N * N).fill(null);
 }

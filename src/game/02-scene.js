@@ -1,6 +1,9 @@
 // ---------- three setup ----------
 const canvas = $('#c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+// three asks the GPU for every new shader's error log, which makes the phone wait for the compile to finish (a hitch the first
+// time each material is seen); only wanted while debugging
+renderer.debug.checkShaderErrors = /[?&]debug\b/.test(location.search);
 // Graphics (Jack: Low / High in Settings and the pause card, kept in 'mtd-gfx'): High renders at the screen's full sharpness (phones
 // are 3×; adaptResolution steps it down if frames get slow), Low at most 1.5 pixels a point, with no shadows and a third of the weather
 var gfxLow = false; try { gfxLow = localStorage.getItem('mtd-gfx') === 'low'; } catch (e) {}
@@ -405,7 +408,56 @@ for (const fm of [M.flag, M.banner]) fm.onBeforeCompile = sh => {
     transformed.z += sin(uTime * 5.0 - fu * 6.0 + fph) * .07 * fu + sin(uTime * 8.3 - fu * 9.0 + fph) * .02 * fu;
     transformed.y += sin(uTime * 3.1 - fu * 4.0 + fph) * .025 * fu;`);
 };
+for (const m of [M.flame, M.flameMid, M.flameCore, M.thatchOld, M.thatch, M.logGable, M.drape, M.flag, M.banner]) m.userData.noMerge = true;
 const FLOWER = ['#d4483b', '#f0c84a', '#9a5ad0', '#f2efe6', '#e27aa8'].map(mat);
+// ---------- merging a model's still parts ----------
+// A building is 30 to 90 little boxes, each its own draw call (and another for its shadow): a town was 1,000 to 2,000 calls,
+// Warlord's Hold's fort 640 on its own. mergeStatic(root) joins every still mesh of one material into one mesh, in root's own
+// frame. Left alone: anything with userData or under a group with userData (how the game marks and finds moving parts: door
+// leaves, turrets, arms, carts, stall horses, ropes), anything hidden or see-through, and materials whose shader reads a part's
+// own shape (userData.noMerge: flags, drapes, flames, straw and log roofs). ?nomerge turns it off, to compare.
+const MERGE_OFF = /[?&]nomerge\b/.test(location.search);
+function mergeStatic(root) {
+  if (MERGE_OFF) return root;
+  root.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(root.matrixWorld).invert(), sets = new Map();
+  const plain = o => { for (const k in o.userData) return false; return true; };
+  const walk = o => {
+    for (const c of o.children) {
+      if (!c.visible || !plain(c)) continue;
+      if (c.isMesh) {
+        const m = c.material, g = c.geometry;
+        if (c.isInstancedMesh || c.children.length || Array.isArray(m) || m.transparent || m.userData.noMerge || c.renderOrder || !g.attributes.normal || g.attributes.color || g.morphAttributes.position) continue;
+        const key = m.uuid + (c.castShadow ? 's' : '-') + (c.receiveShadow ? 'r' : '-');
+        if (!sets.has(key)) sets.set(key, []); sets.get(key).push(c);
+      } else if (c.type === 'Group' || c.type === 'Object3D') walk(c);
+    }
+  };
+  walk(root);
+  const v = new THREE.Vector3(), mx = new THREE.Matrix4(), nm = new THREE.Matrix3();
+  for (const list of sets.values()) {
+    if (list.length < 2) continue;
+    const uvOn = list.every(c => c.geometry.attributes.uv); if (!uvOn && list[0].material.map) continue;
+    let count = 0; for (const c of list) count += c.geometry.index ? c.geometry.index.count : c.geometry.attributes.position.count;
+    const P = new Float32Array(count * 3), Q = new Float32Array(count * 3), U = uvOn ? new Float32Array(count * 2) : null; let w = 0;
+    for (const c of list) {
+      const g = c.geometry, pos = g.attributes.position, nor = g.attributes.normal, uv = g.attributes.uv, ix = g.index, n = ix ? ix.count : pos.count;
+      mx.multiplyMatrices(inv, c.matrixWorld); nm.getNormalMatrix(mx); const flip = mx.determinant() < 0;   // a mirrored part: its triangles wound the other way
+      for (let t = 0; t + 2 < n; t += 3) for (let q = 0; q < 3; q++) {
+        const at = t + (flip ? 2 - q : q), i = ix ? ix.getX(at) : at;
+        v.fromBufferAttribute(pos, i).applyMatrix4(mx); P[w * 3] = v.x; P[w * 3 + 1] = v.y; P[w * 3 + 2] = v.z;
+        v.fromBufferAttribute(nor, i).applyMatrix3(nm).normalize(); Q[w * 3] = v.x; Q[w * 3 + 1] = v.y; Q[w * 3 + 2] = v.z;
+        if (U) { U[w * 2] = uv.getX(i); U[w * 2 + 1] = uv.getY(i); }
+        w++;
+      }
+      c.parent.remove(c);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(P, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(Q, 3)); if (U) geo.setAttribute('uv', new THREE.BufferAttribute(U, 2));
+    const mesh = new THREE.Mesh(geo, list[0].material); mesh.castShadow = list[0].castShadow; mesh.receiveShadow = list[0].receiveShadow; root.add(mesh);
+  }
+  return root;
+}
 function box(w, h, d, m, x, y, z) { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; return o; }
 function drapeBox(w, h, d, m, x, y, z) { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d, 2, 10, 1), m); o.position.set(x, y, z); o.castShadow = true; return o; }
 // every flag on a roof is the same size: a 1 m pole from y up, the town's flag at its top; k undoes a scaled parent (crossbow towers)

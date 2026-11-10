@@ -406,6 +406,8 @@ function placeBossScenery() {
   const g = new THREE.Group(), Y = (x, z) => hAt(x, z);
   if (MAP === 'keep') buildRaiderKeep(g); else buildWarlordsHold(g);
   darkFort(g);
+  // the fort never moves: its hundreds of pieces become a few (its crews, camp raiders and ruins are added after)
+  mergeStatic(g);
   if (MAP === 'keep') KEEP_RUINS.forEach(([x, z, fire], i) => {   // the burned village: ruined watchtowers, burnt, some still burning
     const r = makeRuin(i + 1, !!fire); r.rotation.y = hash(x, z) * 6.3; r.position.set(x, Y(x, z) - .1, z); g.add(r); r.updateMatrixWorld(true); ruinFires(r);
   });

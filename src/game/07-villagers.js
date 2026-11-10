@@ -116,7 +116,10 @@ function makeHelm(kind) {
   return h;
 }
 const UNIT_K = .78;   // everyone drawn a little smaller so they fit through doors
-const EYE_GEO = new THREE.BoxGeometry(.028, .04, .02), eyeM = new THREE.MeshLambertMaterial({ color: '#1d1611' });
+// both eyes are one mesh (one draw call a face, not two)
+const EYE_GEO = (() => { const g = new THREE.BufferGeometry(), P = [], Q = [], one = new THREE.BoxGeometry(.028, .04, .02).toNonIndexed();
+  for (const sx of [-1, 1]) for (let i = 0; i < one.attributes.position.count; i++) { P.push(one.attributes.position.getX(i) + sx * .046, one.attributes.position.getY(i), one.attributes.position.getZ(i)); Q.push(one.attributes.normal.getX(i), one.attributes.normal.getY(i), one.attributes.normal.getZ(i)); }
+  g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(Q, 3)); return g; })(), eyeM = new THREE.MeshLambertMaterial({ color: '#1d1611' });
 function makePerson(opts) {
   const g = new THREE.Group(), body = new THREE.Group();
   const legs = [-.09, .09].map(x => { const l = box(.1, .4, .12, legM, x, 0, 0); l.geometry.translate(0, -.2, 0); l.position.y = .4; body.add(l); return l; });
@@ -130,7 +133,7 @@ function makePerson(opts) {
   });
   const head = new THREE.Mesh(new THREE.SphereGeometry(.13, 8, 6), skin); head.position.y = 1.03; head.castShadow = true; body.add(head);
   // two small dark eyes (Jack: faces were blank up close); helms and hoods that cover the face sit over them
-  for (const sx of [-1, 1]) { const e = new THREE.Mesh(EYE_GEO, eyeM); e.position.set(sx * .046, 1.045, .119); body.add(e); }
+  { const e = new THREE.Mesh(EYE_GEO, eyeM); e.position.set(0, 1.045, .119); body.add(e); }
   body.add(makeHair(opts.hair || hairs[Math.floor(Math.random() * hairs.length)]));
   let hatG = null; if (opts.helm) { hatG = makeHelm(opts.helm); body.add(hatG); }
   let pivot = null;
