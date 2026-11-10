@@ -665,18 +665,20 @@ function layoutDeck(anim = true) {
   // would cut the front card's gold glow into a hard line (Jack saw it)
   // sideways (Jack: bigger cards, the arrows level with their middle) the card takes all the height from GAP_TOP under the deck's top
   // down to just above the round buttons, and the arrows follow it (--cy on the deck's wrapper); its gold glow is smaller there
-  const sideways = innerHeight <= 520, deck = $('#campMap'), GAP_TOP = 22;
+  // rects are as drawn and the deck's own sizes as laid out: on a tablet the campaign is scaled by z, so rect gaps are divided by it
+  // (Jack, iPad Air 13-inch upright: the card ran over the round buttons until something laid the deck out again)
+  const sideways = innerHeight <= 520, deck = $('#campMap'), GAP_TOP = 22, z = uiZ($('#campaign'));
   let room = deck.clientHeight - 16, cy = 0;
   // measured from the top of the round buttons or the stars badge on the Upgrades one, whichever is higher, with 16 px clear
   // (Jack, a big phone sideways: the bigger card came close to the badge as it pulses)
   if (sideways) { const dr = deck.getBoundingClientRect(), sr = $('.campSide').getBoundingClientRect(), bg = $('#campUpN'), bt = bg && bg.offsetParent ? bg.getBoundingClientRect().top - 3 : sr.top;
-    room = Math.min(sr.top, bt) - dr.top - 16 - GAP_TOP; }
+    room = (Math.min(sr.top, bt) - dr.top) / z - 16 - GAP_TOP; }
   const W = Math.min(deck.clientWidth * (deck.clientWidth > deck.clientHeight * 1.2 ? .48 : .62), room, 480), f = cSel + cDrag;
   if (sideways) cy = GAP_TOP + Math.max(120, W) / 2 - deck.clientHeight / 2;
   // upright the card is centred between the deck's top and the round buttons (Jack: up more; centred on the whole deck, which
   // runs down behind the buttons, it left a gap above it), the arrows with it
   else { const dr = deck.getBoundingClientRect(), sr = $('.campSide').getBoundingClientRect();
-    if (sr.height && sr.top > dr.top + 120 && sr.top < dr.bottom + 4) cy = Math.min(0, (sr.top - dr.top) / 2 - deck.clientHeight / 2); }
+    if (sr.height && sr.top > dr.top + 120 * z && sr.top < dr.bottom + 4 * z) cy = Math.min(0, (sr.top - dr.top) / z / 2 - deck.clientHeight / 2); }
   deck.parentElement.style.setProperty('--cy', cy.toFixed(1) + 'px');
   deck.style.setProperty('--cw', Math.max(120, W) + 'px');
   document.querySelectorAll('#cCards .cCard').forEach(el => {
@@ -893,7 +895,7 @@ function tabletScale() {
   document.body.classList.toggle('tablet', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3)); uiK = k;
   // the HUD's panels and the paused overlay grow by k with a CSS scale (uiScale), each from the corner or edge it is pinned to
   for (const [sel, o, full] of [['.panel', '0 0'], ['.dock', '0 100%'], ['.corner', '100% 100%'], ['#pauseBtn', '100% 0'], ['#pausedTag', '0 0', 1], ['#tipPill', '0 100%'], ['#offerWrap', '0 0', 1], ['#fullWrap', '0 0', 1],
-    ['#banner', '0 0'], ['#achToast', '0 0'], ['#wavePop', '0 0'], ['#statTip', '0 0']])
+    ['#banner', '0 0'], ['#achToast', '0 0'], ['#wavePop', '0 0'], ['#statTip', '0 0'], ['#powers', '0 0'], ['#bossBar', '0 0']])
     document.querySelectorAll(sel).forEach(el => uiScale(el, k, o, full));
   // every menu at k; the town picker and the three screens are then fitted to the height below
   document.querySelectorAll('.modal').forEach(m => uiScale(m, k, '0 0', 1));
@@ -1164,7 +1166,7 @@ function updateBossBar() {
   const B = enemies.find(e => !e.dead && !e.dormant && ENEMY[e.kind].boss), el = $('#bossBar');
   el.hidden = !B || gameOver || menuOn(); if (el.hidden) return;
   // under the top panel when it spans the screen (upright), else beside it, clear of its right edge (sideways)
-  const top = document.querySelector('.panel').getBoundingClientRect(), wide = top.right > innerWidth * .6, w = el.offsetWidth;
+  const top = document.querySelector('.panel').getBoundingClientRect(), wide = top.right > innerWidth * .6, w = el.offsetWidth * uiZ(el);
   // a phone held sideways: under the row of buttons at the top middle
   const side = matchMedia('(max-height:520px)').matches;
   el.style.top = (wide ? top.bottom + 8 : (side ? 54 : 10) + safeTop()) + 'px'; el.style.left = (wide ? innerWidth / 2 : Math.max(innerWidth / 2, top.right + 14 + w / 2)) + 'px';

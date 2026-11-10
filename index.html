@@ -243,6 +243,9 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
   #mapPick .mapSub{font-size:15px;width:min(460px,50vw)}
   #mapPick #campBtn{font-size:clamp(19px,1.5vw,25px);padding:12px 34px}
 }
+/* a tablet held sideways matches the laptop rule above, but its menus are already scaled up by --uiK, so the title grew twice
+   (Jack, iPad Air 13-inch): keep the phone sizes there and let the scale do the growing */
+body.tablet #mapPick .mapSheet{width:min(1100px,92%)} body.tablet #mapPick .gameTitle{font-size:52px} body.tablet #mapPick .mapSub{width:min(460px,50%)} body.tablet #mapPick #campBtn{font-size:19px}
 /* the campaign carousel */
 #campaign{padding:10px 12px;overflow:hidden}
 #campaign .campSheet{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:6px;width:min(1100px,100%);height:100%;max-height:100%}
@@ -959,7 +962,9 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 .offerList i{width:22px;height:22px;flex:none;display:flex;align-items:center;justify-content:center;color:#f0c95a}
 .offerList i svg{width:22px;height:22px} .offerList i .lockIco{fill:none;stroke:#f0c95a;stroke-width:2.2}
 .offerAct{position:relative;display:flex;justify-content:center}
-#offerBuy{display:flex;align-items:center;gap:6px;padding:6px 22px;font-size:16px;border-radius:8px;animation:buyGlow 2.4s ease-in-out infinite}
+#offerBuy{display:flex;align-items:center;gap:6px;padding:6px 22px;font-size:16px;border-radius:8px;position:relative;overflow:hidden;animation:buyGlow 2.2s ease-in-out infinite alternate}
+/* the stage's Unlock's slow shine too (Jack): the offer card sits outside the menus, so the menus' rule never reached it */
+#offerBuy::after{content:'';position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,250,225,.22),transparent);animation:shine 4.5s ease-in-out infinite;pointer-events:none}
 #offerBuy .upLk{display:flex;align-items:center;gap:6px} #offerBuy small{display:inline;font-size:13px;color:#4a2f0a!important;opacity:1;font-weight:700;margin-left:4px}
 #offerBuy .lockIco{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2}
 #offerBuy:disabled{opacity:.6}
@@ -988,7 +993,7 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
   body.tablet .achSheet .upDet .upTx{width:100%} body.tablet .cxTiers,body.tablet .cxStats{justify-content:center}
 }
 /* tablets: the small labels a little bigger, so they keep up with the tiles (Jack: the text looked small next to the boxes) */
-body.tablet .achName{font-size:14px} body.tablet .upBan div{font-size:14px} body.tablet .upOf{font-size:14px}
+body.tablet .achName{font-size:14px} body.tablet .upBan div{font-size:12.5px} body.tablet .upOf{font-size:14px}
 body.tablet .upTx h3{font-size:23px} body.tablet .upTx p{font-size:17px} body.tablet .cxStats .stat{font-size:15px;gap:4px} body.tablet .cxStats .stat .ico{width:16px;height:16px} body.tablet .cxStats .ico svg{width:16px;height:16px}
 body.tablet .achP{font-size:15px} body.tablet .upSec{font-size:19px} body.tablet .upRs button{font-size:14px!important}
 body.tablet .modal.tome .cxTiers .seg{font-size:14px!important;padding:3px 12px!important}
@@ -8932,18 +8937,20 @@ function layoutDeck(anim = true) {
   // would cut the front card's gold glow into a hard line (Jack saw it)
   // sideways (Jack: bigger cards, the arrows level with their middle) the card takes all the height from GAP_TOP under the deck's top
   // down to just above the round buttons, and the arrows follow it (--cy on the deck's wrapper); its gold glow is smaller there
-  const sideways = innerHeight <= 520, deck = $('#campMap'), GAP_TOP = 22;
+  // rects are as drawn and the deck's own sizes as laid out: on a tablet the campaign is scaled by z, so rect gaps are divided by it
+  // (Jack, iPad Air 13-inch upright: the card ran over the round buttons until something laid the deck out again)
+  const sideways = innerHeight <= 520, deck = $('#campMap'), GAP_TOP = 22, z = uiZ($('#campaign'));
   let room = deck.clientHeight - 16, cy = 0;
   // measured from the top of the round buttons or the stars badge on the Upgrades one, whichever is higher, with 16 px clear
   // (Jack, a big phone sideways: the bigger card came close to the badge as it pulses)
   if (sideways) { const dr = deck.getBoundingClientRect(), sr = $('.campSide').getBoundingClientRect(), bg = $('#campUpN'), bt = bg && bg.offsetParent ? bg.getBoundingClientRect().top - 3 : sr.top;
-    room = Math.min(sr.top, bt) - dr.top - 16 - GAP_TOP; }
+    room = (Math.min(sr.top, bt) - dr.top) / z - 16 - GAP_TOP; }
   const W = Math.min(deck.clientWidth * (deck.clientWidth > deck.clientHeight * 1.2 ? .48 : .62), room, 480), f = cSel + cDrag;
   if (sideways) cy = GAP_TOP + Math.max(120, W) / 2 - deck.clientHeight / 2;
   // upright the card is centred between the deck's top and the round buttons (Jack: up more; centred on the whole deck, which
   // runs down behind the buttons, it left a gap above it), the arrows with it
   else { const dr = deck.getBoundingClientRect(), sr = $('.campSide').getBoundingClientRect();
-    if (sr.height && sr.top > dr.top + 120 && sr.top < dr.bottom + 4) cy = Math.min(0, (sr.top - dr.top) / 2 - deck.clientHeight / 2); }
+    if (sr.height && sr.top > dr.top + 120 * z && sr.top < dr.bottom + 4 * z) cy = Math.min(0, (sr.top - dr.top) / z / 2 - deck.clientHeight / 2); }
   deck.parentElement.style.setProperty('--cy', cy.toFixed(1) + 'px');
   deck.style.setProperty('--cw', Math.max(120, W) + 'px');
   document.querySelectorAll('#cCards .cCard').forEach(el => {
@@ -9160,7 +9167,7 @@ function tabletScale() {
   document.body.classList.toggle('tablet', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3)); uiK = k;
   // the HUD's panels and the paused overlay grow by k with a CSS scale (uiScale), each from the corner or edge it is pinned to
   for (const [sel, o, full] of [['.panel', '0 0'], ['.dock', '0 100%'], ['.corner', '100% 100%'], ['#pauseBtn', '100% 0'], ['#pausedTag', '0 0', 1], ['#tipPill', '0 100%'], ['#offerWrap', '0 0', 1], ['#fullWrap', '0 0', 1],
-    ['#banner', '0 0'], ['#achToast', '0 0'], ['#wavePop', '0 0'], ['#statTip', '0 0']])
+    ['#banner', '0 0'], ['#achToast', '0 0'], ['#wavePop', '0 0'], ['#statTip', '0 0'], ['#powers', '0 0'], ['#bossBar', '0 0']])
     document.querySelectorAll(sel).forEach(el => uiScale(el, k, o, full));
   // every menu at k; the town picker and the three screens are then fitted to the height below
   document.querySelectorAll('.modal').forEach(m => uiScale(m, k, '0 0', 1));
@@ -9431,7 +9438,7 @@ function updateBossBar() {
   const B = enemies.find(e => !e.dead && !e.dormant && ENEMY[e.kind].boss), el = $('#bossBar');
   el.hidden = !B || gameOver || menuOn(); if (el.hidden) return;
   // under the top panel when it spans the screen (upright), else beside it, clear of its right edge (sideways)
-  const top = document.querySelector('.panel').getBoundingClientRect(), wide = top.right > innerWidth * .6, w = el.offsetWidth;
+  const top = document.querySelector('.panel').getBoundingClientRect(), wide = top.right > innerWidth * .6, w = el.offsetWidth * uiZ(el);
   // a phone held sideways: under the row of buttons at the top middle
   const side = matchMedia('(max-height:520px)').matches;
   el.style.top = (wide ? top.bottom + 8 : (side ? 54 : 10) + safeTop()) + 'px'; el.style.left = (wide ? innerWidth / 2 : Math.max(innerWidth / 2, top.right + 14 + w / 2)) + 'px';
@@ -10311,7 +10318,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'cfb02d470b'; var updateWait = false, updateT = 0;
+const BUILD = 'e102b0b5a7'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

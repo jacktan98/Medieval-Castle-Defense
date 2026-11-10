@@ -226,6 +226,9 @@ body.showcase #app > :not(#c):not(.modal){visibility:hidden}
   #mapPick .mapSub{font-size:15px;width:min(460px,50vw)}
   #mapPick #campBtn{font-size:clamp(19px,1.5vw,25px);padding:12px 34px}
 }
+/* a tablet held sideways matches the laptop rule above, but its menus are already scaled up by --uiK, so the title grew twice
+   (Jack, iPad Air 13-inch): keep the phone sizes there and let the scale do the growing */
+body.tablet #mapPick .mapSheet{width:min(1100px,92%)} body.tablet #mapPick .gameTitle{font-size:52px} body.tablet #mapPick .mapSub{width:min(460px,50%)} body.tablet #mapPick #campBtn{font-size:19px}
 /* the campaign carousel */
 #campaign{padding:10px 12px;overflow:hidden}
 #campaign .campSheet{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:6px;width:min(1100px,100%);height:100%;max-height:100%}
@@ -942,7 +945,9 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 .offerList i{width:22px;height:22px;flex:none;display:flex;align-items:center;justify-content:center;color:#f0c95a}
 .offerList i svg{width:22px;height:22px} .offerList i .lockIco{fill:none;stroke:#f0c95a;stroke-width:2.2}
 .offerAct{position:relative;display:flex;justify-content:center}
-#offerBuy{display:flex;align-items:center;gap:6px;padding:6px 22px;font-size:16px;border-radius:8px;animation:buyGlow 2.4s ease-in-out infinite}
+#offerBuy{display:flex;align-items:center;gap:6px;padding:6px 22px;font-size:16px;border-radius:8px;position:relative;overflow:hidden;animation:buyGlow 2.2s ease-in-out infinite alternate}
+/* the stage's Unlock's slow shine too (Jack): the offer card sits outside the menus, so the menus' rule never reached it */
+#offerBuy::after{content:'';position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,250,225,.22),transparent);animation:shine 4.5s ease-in-out infinite;pointer-events:none}
 #offerBuy .upLk{display:flex;align-items:center;gap:6px} #offerBuy small{display:inline;font-size:13px;color:#4a2f0a!important;opacity:1;font-weight:700;margin-left:4px}
 #offerBuy .lockIco{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2}
 #offerBuy:disabled{opacity:.6}
@@ -971,7 +976,7 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
   body.tablet .achSheet .upDet .upTx{width:100%} body.tablet .cxTiers,body.tablet .cxStats{justify-content:center}
 }
 /* tablets: the small labels a little bigger, so they keep up with the tiles (Jack: the text looked small next to the boxes) */
-body.tablet .achName{font-size:14px} body.tablet .upBan div{font-size:14px} body.tablet .upOf{font-size:14px}
+body.tablet .achName{font-size:14px} body.tablet .upBan div{font-size:12.5px} body.tablet .upOf{font-size:14px}
 body.tablet .upTx h3{font-size:23px} body.tablet .upTx p{font-size:17px} body.tablet .cxStats .stat{font-size:15px;gap:4px} body.tablet .cxStats .stat .ico{width:16px;height:16px} body.tablet .cxStats .ico svg{width:16px;height:16px}
 body.tablet .achP{font-size:15px} body.tablet .upSec{font-size:19px} body.tablet .upRs button{font-size:14px!important}
 body.tablet .modal.tome .cxTiers .seg{font-size:14px!important;padding:3px 12px!important}
