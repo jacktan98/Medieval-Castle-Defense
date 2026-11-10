@@ -35,10 +35,11 @@ function thanksCard(after) {
   const w = $('#fullWrap'), seal = $('#fullSeal'), lines = [...w.querySelectorAll('.ty')], T = [];
   if (!seal.firstChild) seal.innerHTML = sealIco('full');
   lines.forEach(l => { l.dataset.t = l.dataset.t || l.textContent; l.textContent = ''; });
+  duck(true, .8);
   w.classList.remove('stamped', 'out', 'sealed'); w.hidden = false; void w.offsetWidth; w.classList.add('stamped');
   let done = false; const finish = () => { if (done) return; done = true; T.forEach(clearTimeout);
     lines.forEach(l => l.textContent = l.dataset.t); w.classList.add('out');
-    setTimeout(() => { w.hidden = true; w.classList.remove('out'); if (after) after(); }, 700); w.onclick = null; };
+    setTimeout(() => { w.hidden = true; w.classList.remove('out'); if (after) after(); else duck(false, 2); }, 700); w.onclick = null; };
   let t = 1100;
   lines.forEach((l, k) => { const txt = l.dataset.t, gap = k < 2 ? 70 : 42;
     for (let c = 1; c <= txt.length; c++) T.push(setTimeout(() => { l.textContent = txt.slice(0, c); }, t + c * gap));
@@ -49,6 +50,7 @@ function thanksCard(after) {
 }
 function revealSweep() {
   const idx = [...REVEAL].sort((a, b) => a - b), STEP = 650, T0 = 500;
+  duck(true, .8);
   idx.forEach((i, k) => setTimeout(() => {
     if ($('#campaign').hidden) { REVEAL.clear(); return; }
     if (k) selectStage(i, true);
@@ -61,7 +63,7 @@ function revealSweep() {
       sfx('star', null, .55);
     }, 260);
   }, T0 + k * STEP));
-  setTimeout(() => { REVEAL.clear(); if ($('#campaign').hidden) return; buildDeck(); selectStage(FREE_N, true); }, T0 + idx.length * STEP + 1400);
+  setTimeout(() => { REVEAL.clear(); duck(false, 2); if ($('#campaign').hidden) return; buildDeck(); selectStage(FREE_N, true); }, T0 + idx.length * STEP + 1400);
 }
 // a gold crown beside the title on the title screen once the full game is owned (Jack; it sat on the showcase castle's flag pole):
 // a classic crown in the title's style, five points with round tips over a separate band

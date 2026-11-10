@@ -293,12 +293,20 @@ var muted = false; try { muted = devOn && localStorage.getItem('mtd-muted') === 
 // music and sounds each have their own loudness (the pause card's two sliders, 0 to 1; all the way down is off); the corner
 // button still mutes everything. Stored as numbers ('mtd-music', 'mtd-sfx'; the old on/off toggles stored '1' and '0')
 var musicVol = 1, sfxVol = 1, musicOff = false, sfxOff = false, musicBus = null, sfxBus = null;
+// birdsong and the ambience loops run through their own bus (bedBus) into the effects' one, so they can be faded with the music
+// while the effects play on: duck(true) while the full game's thank-you card and the stages' reveal play (Jack: only the
+// animation's own sounds then), duck(false) fades it all back
+var bedBus = null, ducked = false;
+function duck(on, s) {
+  if (!actx || !musicBus || !bedBus || ducked === on) return; ducked = on; const t = actx.currentTime;
+  for (const [g, v] of [[musicBus.gain, musicVol], [bedBus.gain, 1]]) { g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(on ? 0 : v, t + s); }
+}
 try { const m = localStorage.getItem('mtd-music'), f = localStorage.getItem('mtd-sfx'); if (m !== null) musicVol = clamp(+m || 0, 0, 1); if (f !== null) sfxVol = clamp(+f || 0, 0, 1); } catch (e) {}
 musicOff = musicVol === 0; sfxOff = sfxVol === 0;
 // var: sfx()/setMusic() can run during the startup reset, before this block executes
 var loopWanted = {}, loopNode = {}, ambK = { fire: 0, river: 0, gallop: 0, rain: 0, wind: 0 }, AMB_KEYS = ['fire', 'river', 'gallop', 'rain', 'wind'], actx = null, master = null, audioUnlocked = false, musicWant = 'day', dayTrack = 'music', clips = {}, sfxLast = {}, lastPick = {}, loopEl = {}, stinger = null;
 try { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = MASTER; master.connect(actx.destination);
-  musicBus = actx.createGain(); musicBus.gain.value = musicVol; musicBus.connect(master); sfxBus = actx.createGain(); sfxBus.gain.value = sfxVol; sfxBus.connect(master); } catch (e) { actx = null; }
+  musicBus = actx.createGain(); musicBus.gain.value = musicVol; musicBus.connect(master); sfxBus = actx.createGain(); sfxBus.gain.value = sfxVol; sfxBus.connect(master); bedBus = actx.createGain(); bedBus.connect(sfxBus); } catch (e) { actx = null; }
 // loudness = RMS of the loudest LOUD_WINDOW; the gain brings it to TARGET_LOUD x trim without the peak passing the ceiling
 function levelOf(b, from = 0, to = b.length) {
   const d = b.getChannelData(0), win = Math.max(1, Math.min(to - from, Math.round(LOUD_WINDOW * b.sampleRate))), hop = Math.round(.05 * b.sampleRate);
@@ -353,7 +361,7 @@ function makeLoop(k) {
   if (day) el.addEventListener('ended', () => { dayTrack = k === 'music' ? 'music2' : 'music'; el.currentTime = 0; syncMusic(); });
   let node = loopNode[k];
   if (actx && node !== null) try {
-    if (!node) { node = actx.createGain(); node.gain.value = LOOPS[k].amb ? 0 : LOOPS[k].vol; node.connect(MUSIC_LOOPS.includes(k) ? musicBus : sfxBus); }
+    if (!node) { node = actx.createGain(); node.gain.value = LOOPS[k].amb ? 0 : LOOPS[k].vol; node.connect(MUSIC_LOOPS.includes(k) ? musicBus : bedBus || sfxBus); }
     const src = actx.createMediaElementSource(el); src.connect(node);
     // the themes are listened to (musicWatch): iOS can leave an element playing while nothing of it reaches Web Audio
     if (MUSIC_LOOPS.includes(k)) { const an = actx.createAnalyser(); an.fftSize = 512; src.connect(an); loopAn[k] = an; }

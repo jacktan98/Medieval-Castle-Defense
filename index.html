@@ -9491,10 +9491,11 @@ function thanksCard(after) {
   const w = $('#fullWrap'), seal = $('#fullSeal'), lines = [...w.querySelectorAll('.ty')], T = [];
   if (!seal.firstChild) seal.innerHTML = sealIco('full');
   lines.forEach(l => { l.dataset.t = l.dataset.t || l.textContent; l.textContent = ''; });
+  duck(true, .8);
   w.classList.remove('stamped', 'out', 'sealed'); w.hidden = false; void w.offsetWidth; w.classList.add('stamped');
   let done = false; const finish = () => { if (done) return; done = true; T.forEach(clearTimeout);
     lines.forEach(l => l.textContent = l.dataset.t); w.classList.add('out');
-    setTimeout(() => { w.hidden = true; w.classList.remove('out'); if (after) after(); }, 700); w.onclick = null; };
+    setTimeout(() => { w.hidden = true; w.classList.remove('out'); if (after) after(); else duck(false, 2); }, 700); w.onclick = null; };
   let t = 1100;
   lines.forEach((l, k) => { const txt = l.dataset.t, gap = k < 2 ? 70 : 42;
     for (let c = 1; c <= txt.length; c++) T.push(setTimeout(() => { l.textContent = txt.slice(0, c); }, t + c * gap));
@@ -9505,6 +9506,7 @@ function thanksCard(after) {
 }
 function revealSweep() {
   const idx = [...REVEAL].sort((a, b) => a - b), STEP = 650, T0 = 500;
+  duck(true, .8);
   idx.forEach((i, k) => setTimeout(() => {
     if ($('#campaign').hidden) { REVEAL.clear(); return; }
     if (k) selectStage(i, true);
@@ -9517,7 +9519,7 @@ function revealSweep() {
       sfx('star', null, .55);
     }, 260);
   }, T0 + k * STEP));
-  setTimeout(() => { REVEAL.clear(); if ($('#campaign').hidden) return; buildDeck(); selectStage(FREE_N, true); }, T0 + idx.length * STEP + 1400);
+  setTimeout(() => { REVEAL.clear(); duck(false, 2); if ($('#campaign').hidden) return; buildDeck(); selectStage(FREE_N, true); }, T0 + idx.length * STEP + 1400);
 }
 // a gold crown beside the title on the title screen once the full game is owned (Jack; it sat on the showcase castle's flag pole):
 // a classic crown in the title's style, five points with round tips over a separate band
@@ -10087,12 +10089,20 @@ var muted = false; try { muted = devOn && localStorage.getItem('mtd-muted') === 
 // music and sounds each have their own loudness (the pause card's two sliders, 0 to 1; all the way down is off); the corner
 // button still mutes everything. Stored as numbers ('mtd-music', 'mtd-sfx'; the old on/off toggles stored '1' and '0')
 var musicVol = 1, sfxVol = 1, musicOff = false, sfxOff = false, musicBus = null, sfxBus = null;
+// birdsong and the ambience loops run through their own bus (bedBus) into the effects' one, so they can be faded with the music
+// while the effects play on: duck(true) while the full game's thank-you card and the stages' reveal play (Jack: only the
+// animation's own sounds then), duck(false) fades it all back
+var bedBus = null, ducked = false;
+function duck(on, s) {
+  if (!actx || !musicBus || !bedBus || ducked === on) return; ducked = on; const t = actx.currentTime;
+  for (const [g, v] of [[musicBus.gain, musicVol], [bedBus.gain, 1]]) { g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(on ? 0 : v, t + s); }
+}
 try { const m = localStorage.getItem('mtd-music'), f = localStorage.getItem('mtd-sfx'); if (m !== null) musicVol = clamp(+m || 0, 0, 1); if (f !== null) sfxVol = clamp(+f || 0, 0, 1); } catch (e) {}
 musicOff = musicVol === 0; sfxOff = sfxVol === 0;
 // var: sfx()/setMusic() can run during the startup reset, before this block executes
 var loopWanted = {}, loopNode = {}, ambK = { fire: 0, river: 0, gallop: 0, rain: 0, wind: 0 }, AMB_KEYS = ['fire', 'river', 'gallop', 'rain', 'wind'], actx = null, master = null, audioUnlocked = false, musicWant = 'day', dayTrack = 'music', clips = {}, sfxLast = {}, lastPick = {}, loopEl = {}, stinger = null;
 try { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = MASTER; master.connect(actx.destination);
-  musicBus = actx.createGain(); musicBus.gain.value = musicVol; musicBus.connect(master); sfxBus = actx.createGain(); sfxBus.gain.value = sfxVol; sfxBus.connect(master); } catch (e) { actx = null; }
+  musicBus = actx.createGain(); musicBus.gain.value = musicVol; musicBus.connect(master); sfxBus = actx.createGain(); sfxBus.gain.value = sfxVol; sfxBus.connect(master); bedBus = actx.createGain(); bedBus.connect(sfxBus); } catch (e) { actx = null; }
 // loudness = RMS of the loudest LOUD_WINDOW; the gain brings it to TARGET_LOUD x trim without the peak passing the ceiling
 function levelOf(b, from = 0, to = b.length) {
   const d = b.getChannelData(0), win = Math.max(1, Math.min(to - from, Math.round(LOUD_WINDOW * b.sampleRate))), hop = Math.round(.05 * b.sampleRate);
@@ -10147,7 +10157,7 @@ function makeLoop(k) {
   if (day) el.addEventListener('ended', () => { dayTrack = k === 'music' ? 'music2' : 'music'; el.currentTime = 0; syncMusic(); });
   let node = loopNode[k];
   if (actx && node !== null) try {
-    if (!node) { node = actx.createGain(); node.gain.value = LOOPS[k].amb ? 0 : LOOPS[k].vol; node.connect(MUSIC_LOOPS.includes(k) ? musicBus : sfxBus); }
+    if (!node) { node = actx.createGain(); node.gain.value = LOOPS[k].amb ? 0 : LOOPS[k].vol; node.connect(MUSIC_LOOPS.includes(k) ? musicBus : bedBus || sfxBus); }
     const src = actx.createMediaElementSource(el); src.connect(node);
     // the themes are listened to (musicWatch): iOS can leave an element playing while nothing of it reaches Web Audio
     if (MUSIC_LOOPS.includes(k)) { const an = actx.createAnalyser(); an.fftSize = 512; src.connect(an); loopAn[k] = an; }
@@ -10322,7 +10332,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'e243263942'; var updateWait = false, updateT = 0;
+const BUILD = '7b3561b9ef'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
