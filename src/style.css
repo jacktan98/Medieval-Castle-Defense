@@ -945,3 +945,30 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 #offerBuy .lockIco{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2}
 #offerBuy:disabled{opacity:.6}
 .offerAct .buyMsg{bottom:calc(100% + 6px)}
+
+/* a tablet held sideways (Jack, iPad: the three screens were shrunk to fit the height and left the sides empty, and their text was
+   small): they use the width instead. Upgrades: Economy and the Castle side by side, Defences and the details under them; Achievements
+   and Archive: the list on the left, the details in a column on the right; all three sheets one width, so their Back buttons line up */
+@media (orientation:landscape){
+  body.tablet .upSheet{max-width:min(100%,940px)!important}
+  .upWide .upGrids{display:grid;grid-template-columns:8fr 4fr;gap:4px 14px;align-items:start}
+  .upWide .upGrid.g0{grid-column:1;grid-row:1} .upWide .upGrid.g2{grid-column:2;grid-row:1} .upWide .upGrid.g1{grid-column:1;grid-row:2}
+  .upWide .upGrid.g2{grid-template-columns:repeat(4,1fr)}
+  .upWide .upSide{grid-column:2;grid-row:2;padding:30px 0 0;align-self:stretch}
+  .upWide .upSide .upDet{flex-direction:column;text-align:center;gap:8px;padding:12px}
+  .upWide .upSide .upBig{width:72px;height:72px} .upWide .upSide .upBig svg{width:46px;height:46px}
+  .upWide .upSide .upTx{min-width:0;width:100%}
+  .upWide .upSide .upRs{justify-content:center}
+  body.tablet .achSheet{display:grid!important;grid-template-columns:minmax(0,1fr) 270px;grid-template-rows:auto auto minmax(0,1fr);column-gap:16px;align-items:start}
+  body.tablet .achSheet > *{grid-column:1} body.tablet .achSheet > .upTop{grid-column:1/-1}
+  body.tablet .achSheet .achGrid{grid-row:auto/span 2;align-self:stretch;margin:0;padding-right:7px}
+  body.tablet .achSheet:not(.cxSheet) .achGrid{grid-row:2/span 2}
+  body.tablet .achSheet > .upDet{grid-column:2;grid-row:2/span 2;max-width:none;align-self:start;margin-top:0;flex-direction:column;text-align:center;gap:8px;padding:14px 12px}
+  body.tablet .achSheet .upDet .upBig{width:96px;height:96px} body.tablet .achSheet .upDet .upBig svg{width:64px;height:64px}
+  body.tablet .cxDet .cxView{width:220px;height:220px}
+  body.tablet .achSheet .upDet .upTx{width:100%} body.tablet .cxTiers,body.tablet .cxStats{justify-content:center}
+}
+/* tablets: the small labels a little bigger, so they keep up with the tiles (Jack: the text looked small next to the boxes) */
+body.tablet .achName{font-size:12px} body.tablet .upBan div{font-size:12px} body.tablet .upOf{font-size:12.5px}
+body.tablet .upTx p{font-size:15px} body.tablet .cxStats{font-size:14px} body.tablet .achP{font-size:13px}
+body.tablet .modal.tome .cxTiers .seg{font-size:13px!important;padding:3px 11px!important}

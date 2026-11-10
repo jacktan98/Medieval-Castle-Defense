@@ -151,6 +151,9 @@ const upPadOrder = rows => {
   return r;
 };
 const upAllOn = () => document.body.classList.contains('tablet');
+// a tablet held sideways (Jack: the three rows left the sides empty and shrank everything to fit the height): Economy and the
+// Castle side by side, then Defences and the details, so the screen fills at full size
+function upWideOn() { return document.body.classList.contains('tablet') && innerWidth > innerHeight; }
 function renderUpgrades() {
   const all = upAllOn(), rows = all ? UP_TABS.flatMap(t => t[1]) : UP_TABS[upTab][1], left = upLeft(), tc = TEAM_PAL[TEAM.town], dk = new THREE.Color(); dk.setStyle(tc); dk.multiplyScalar(.45);
   if (!upSel || !rows.some(r => r[2].some(u => u[0] === upSel))) upSel = rows[0][2][0][0];
@@ -166,7 +169,8 @@ function renderUpgrades() {
   const tree = ([n, ic, ups]) => `<div class="upTree"><div class="upBan">${upRowIco(ic)}<div>${n}</div></div>${ups.map(([id, name], j) => {
       const sj = st(id); return `${j ? `<div class="upChain${st(ups[j - 1][0]) === 2 ? ' on' : ''}"></div>` : ''}<button class="upNode s${sj}${id === upSel ? ' sel' : ''}" data-up="${id}" aria-label="${name}">${upIco(name)}${sj === 2 ? '<span class="upTick">✓</span>' : '<span class="upCost">★1</span>'}</button>`; }).join('')}</div>`;
   const top = `<div class="upTop"><button class="upBack campBack" id="upBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Upgrades</h2><div class="upBank"><i class="upStar">★</i><b>${left}</b></div></div>`;
-  if (all) { sh.innerHTML = top + `<div class="upGrids">${UP_TABS.map(([t, tabRows], ti) => [t, upPadOrder(tabRows)]).map(([t, tabRows], ti) => `<div class="upGrid"><div class="upSec">${t}</div>${tabRows.map(tree).join('')}${ti === UP_TABS.length - 1 ? `<div class="upSide">${det}${reset}</div>` : ''}</div>`).join('')}</div>`; return; }
+  const wide = upWideOn(); sh.classList.toggle('upWide', wide);
+  if (all) { sh.innerHTML = top + `<div class="upGrids">${UP_TABS.map(([t, tabRows], ti) => [t, upPadOrder(tabRows)]).map(([t, tabRows], ti) => `<div class="upGrid g${ti}"><div class="upSec">${t}</div>${tabRows.map(tree).join('')}${ti === UP_TABS.length - 1 && !wide ? `<div class="upSide">${det}${reset}</div>` : ''}</div>`).join('')}${wide ? `<div class="upSide">${det}${reset}</div>` : ''}</div>`; return; }
   sh.innerHTML = top + `
     <div class="upTabs">${UP_TABS.map(([t], i) => `<button class="upTab${i === upTab ? ' on' : ''}" data-tab="${i}">${t}</button>`).join('')}</div>
     <div class="upGrids">${UP_TABS.map(([, tabRows], ti) => `<div class="upGrid${ti === upTab ? '' : ' off'}"${ti === upTab ? '' : ' inert'}>${tabRows.map(tree).join('')}</div>`).join('')}</div>

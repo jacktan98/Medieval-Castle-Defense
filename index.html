@@ -962,6 +962,33 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 #offerBuy .lockIco{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2}
 #offerBuy:disabled{opacity:.6}
 .offerAct .buyMsg{bottom:calc(100% + 6px)}
+
+/* a tablet held sideways (Jack, iPad: the three screens were shrunk to fit the height and left the sides empty, and their text was
+   small): they use the width instead. Upgrades: Economy and the Castle side by side, Defences and the details under them; Achievements
+   and Archive: the list on the left, the details in a column on the right; all three sheets one width, so their Back buttons line up */
+@media (orientation:landscape){
+  body.tablet .upSheet{max-width:min(100%,940px)!important}
+  .upWide .upGrids{display:grid;grid-template-columns:8fr 4fr;gap:4px 14px;align-items:start}
+  .upWide .upGrid.g0{grid-column:1;grid-row:1} .upWide .upGrid.g2{grid-column:2;grid-row:1} .upWide .upGrid.g1{grid-column:1;grid-row:2}
+  .upWide .upGrid.g2{grid-template-columns:repeat(4,1fr)}
+  .upWide .upSide{grid-column:2;grid-row:2;padding:30px 0 0;align-self:stretch}
+  .upWide .upSide .upDet{flex-direction:column;text-align:center;gap:8px;padding:12px}
+  .upWide .upSide .upBig{width:72px;height:72px} .upWide .upSide .upBig svg{width:46px;height:46px}
+  .upWide .upSide .upTx{min-width:0;width:100%}
+  .upWide .upSide .upRs{justify-content:center}
+  body.tablet .achSheet{display:grid!important;grid-template-columns:minmax(0,1fr) 270px;grid-template-rows:auto auto minmax(0,1fr);column-gap:16px;align-items:start}
+  body.tablet .achSheet > *{grid-column:1} body.tablet .achSheet > .upTop{grid-column:1/-1}
+  body.tablet .achSheet .achGrid{grid-row:auto/span 2;align-self:stretch;margin:0;padding-right:7px}
+  body.tablet .achSheet:not(.cxSheet) .achGrid{grid-row:2/span 2}
+  body.tablet .achSheet > .upDet{grid-column:2;grid-row:2/span 2;max-width:none;align-self:start;margin-top:0;flex-direction:column;text-align:center;gap:8px;padding:14px 12px}
+  body.tablet .achSheet .upDet .upBig{width:96px;height:96px} body.tablet .achSheet .upDet .upBig svg{width:64px;height:64px}
+  body.tablet .cxDet .cxView{width:220px;height:220px}
+  body.tablet .achSheet .upDet .upTx{width:100%} body.tablet .cxTiers,body.tablet .cxStats{justify-content:center}
+}
+/* tablets: the small labels a little bigger, so they keep up with the tiles (Jack: the text looked small next to the boxes) */
+body.tablet .achName{font-size:12px} body.tablet .upBan div{font-size:12px} body.tablet .upOf{font-size:12.5px}
+body.tablet .upTx p{font-size:15px} body.tablet .cxStats{font-size:14px} body.tablet .achP{font-size:13px}
+body.tablet .modal.tome .cxTiers .seg{font-size:13px!important;padding:3px 11px!important}
 </style>
 
 <!-- shown from the first paint until the game is ready (three.js comes from a CDN; on a slow phone that takes a while) -->
@@ -9122,6 +9149,7 @@ function tabletScale() {
   const W = innerWidth, H = innerHeight, tab = (navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches) && Math.min(W, H) >= 700;
   const k = !tab ? 1 : Math.max(1, Math.min(1.6, W < H ? Math.min(W / 430, H / 900) : Math.min(W / 900, H / 560)));
   document.body.classList.toggle('tablet', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3));
+  const up = $('#upPick'), us = up && up.querySelector('.upSheet'); if (us && !up.hidden && us.classList.contains('upWide') !== upWideOn()) renderUpgrades();
   fitModal($('#loadPick')); fitModal($('#upPick')); if (typeof renderUpgrades === 'function') { matchUpZoom($('#achPick')); matchUpZoom($('#codexPick')); }
 }
 // a tall sheet (the town picker, the Upgrades screen) is zoomed to fit the screen's height: on a short phone a little smaller than
@@ -9151,7 +9179,7 @@ function matchUpZoom(m) {
   if (m.hidden) return;
   const u = $('#upPick'), was = u.hidden;
   if (was) { u.style.visibility = 'hidden'; u.hidden = false; }
-  if (!u.querySelector('.upSheet')) renderUpgrades();
+  const us = u.querySelector('.upSheet'); if (!us || us.classList.contains('upWide') !== upWideOn()) renderUpgrades();
   fitModal(u); const z = u.style.zoom;
   if (was) { u.hidden = true; u.style.visibility = ''; }
   m.style.zoom = z;
@@ -9667,6 +9695,9 @@ const upPadOrder = rows => {
   return r;
 };
 const upAllOn = () => document.body.classList.contains('tablet');
+// a tablet held sideways (Jack: the three rows left the sides empty and shrank everything to fit the height): Economy and the
+// Castle side by side, then Defences and the details, so the screen fills at full size
+function upWideOn() { return document.body.classList.contains('tablet') && innerWidth > innerHeight; }
 function renderUpgrades() {
   const all = upAllOn(), rows = all ? UP_TABS.flatMap(t => t[1]) : UP_TABS[upTab][1], left = upLeft(), tc = TEAM_PAL[TEAM.town], dk = new THREE.Color(); dk.setStyle(tc); dk.multiplyScalar(.45);
   if (!upSel || !rows.some(r => r[2].some(u => u[0] === upSel))) upSel = rows[0][2][0][0];
@@ -9682,7 +9713,8 @@ function renderUpgrades() {
   const tree = ([n, ic, ups]) => `<div class="upTree"><div class="upBan">${upRowIco(ic)}<div>${n}</div></div>${ups.map(([id, name], j) => {
       const sj = st(id); return `${j ? `<div class="upChain${st(ups[j - 1][0]) === 2 ? ' on' : ''}"></div>` : ''}<button class="upNode s${sj}${id === upSel ? ' sel' : ''}" data-up="${id}" aria-label="${name}">${upIco(name)}${sj === 2 ? '<span class="upTick">✓</span>' : '<span class="upCost">★1</span>'}</button>`; }).join('')}</div>`;
   const top = `<div class="upTop"><button class="upBack campBack" id="upBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12H5.5M11.5 5.5L5 12l6.5 6.5"/></svg></button><h2>Upgrades</h2><div class="upBank"><i class="upStar">★</i><b>${left}</b></div></div>`;
-  if (all) { sh.innerHTML = top + `<div class="upGrids">${UP_TABS.map(([t, tabRows], ti) => [t, upPadOrder(tabRows)]).map(([t, tabRows], ti) => `<div class="upGrid"><div class="upSec">${t}</div>${tabRows.map(tree).join('')}${ti === UP_TABS.length - 1 ? `<div class="upSide">${det}${reset}</div>` : ''}</div>`).join('')}</div>`; return; }
+  const wide = upWideOn(); sh.classList.toggle('upWide', wide);
+  if (all) { sh.innerHTML = top + `<div class="upGrids">${UP_TABS.map(([t, tabRows], ti) => [t, upPadOrder(tabRows)]).map(([t, tabRows], ti) => `<div class="upGrid g${ti}"><div class="upSec">${t}</div>${tabRows.map(tree).join('')}${ti === UP_TABS.length - 1 && !wide ? `<div class="upSide">${det}${reset}</div>` : ''}</div>`).join('')}${wide ? `<div class="upSide">${det}${reset}</div>` : ''}</div>`; return; }
   sh.innerHTML = top + `
     <div class="upTabs">${UP_TABS.map(([t], i) => `<button class="upTab${i === upTab ? ' on' : ''}" data-tab="${i}">${t}</button>`).join('')}</div>
     <div class="upGrids">${UP_TABS.map(([, tabRows], ti) => `<div class="upGrid${ti === upTab ? '' : ' off'}"${ti === upTab ? '' : ' inert'}>${tabRows.map(tree).join('')}</div>`).join('')}</div>
@@ -10245,7 +10277,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '4ce49b2108'; var updateWait = false, updateT = 0;
+const BUILD = '523f5b5ac8'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
