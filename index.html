@@ -355,7 +355,7 @@ body.showcase #campaign.modal.tome,body.showcase #loadPick.modal.tome{background
 .bar .tools button{background:rgba(10,8,4,.45)!important;border-color:rgba(212,168,78,.3)!important}
 .tools button[aria-pressed="true"]{background:linear-gradient(180deg,rgba(150,112,52,.6),rgba(100,74,34,.6))!important;border-color:#f0c95a!important;box-shadow:0 0 8px rgba(240,200,90,.3)}
 .ncCard h3,.card h3,.cardName{color:#ffe2a0}
-.ncCard button.primary,.pauseCard button.primary,#summary button.primary{background:linear-gradient(180deg,#e9c463 0%,#c7962f 55%,#a47422 100%)!important;color:#2a1a06!important;border-color:#f2d27a!important;font-weight:700}
+.ncCard button.primary,.pauseCard button.primary,#summary button.primary,#offerBuy{background:linear-gradient(180deg,#e9c463 0%,#c7962f 55%,#a47422 100%)!important;color:#2a1a06!important;border-color:#f2d27a!important;font-weight:700}
 /* the card's Upgrade is a dark bronze plate with a gold rim, gold chevrons and costs (Jack preferred it to the gold-filled button) */
 .card .row button.primary{background:linear-gradient(180deg,#3d3220 0%,#2a2216 100%);border:1px solid #c9a03e;color:var(--gold)}
 .pauseCard button:not(.primary),#summary button:not(.primary),.card .row button:not(.primary):not(.danger){background:linear-gradient(180deg,#4a3c22 0%,#2e2515 100%);border:1px solid #c9a03e;color:#f4e3b2}
@@ -925,13 +925,16 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 /* the seal card after buying: parchment, the seal stamped down onto it */
 .fullWrap{position:absolute;inset:0;z-index:30;background:rgba(6,7,5,.6);display:flex;align-items:center;justify-content:center}
 .fullCard{--cw:min(250px,72vw,62vh);position:relative;inset:auto;margin:0}
-.fullText{display:flex;flex-direction:column;justify-content:center;padding-bottom:calc(var(--cw) * .08)!important;text-align:center!important;font-size:clamp(11px,calc(var(--cw) * .052),15px)!important;line-height:1.3!important}
-.fullText h4{font-size:1.75em!important;margin-bottom:.4em!important}
+.fullText{display:flex;flex-direction:column;justify-content:center;padding-bottom:calc(var(--cw) * .2)!important;text-align:center!important;font-size:clamp(13px,calc(var(--cw) * .066),17px)!important;line-height:1.35!important}
+.fullText h4{font-size:1.75em!important;margin-bottom:0!important} .fullText .fullSub{font-family:var(--display);color:#8a5a1c;letter-spacing:.12em;margin-bottom:.6em!important}
 .fullText p{margin:0 0 .3em!important} .fullThanks{font-style:italic;color:#6b4520}
 .fullText .cSp1,.fullText .cSp2{display:none}
 .fullCard .cSeal{width:24%}
-.fullWrap.stamped .fullCard{animation:fullIn .5s ease-out both}
-.fullWrap.stamped .cSeal{animation:sealStamp .45s .45s cubic-bezier(.3,1.6,.5,1) both}
+.fullWrap.stamped{animation:fadeIn .9s ease-out both} .fullWrap.stamped .fullCard{animation:fullIn 1s ease-out both}
+.fullWrap .cSeal{opacity:0} .fullWrap.sealed .cSeal{animation:sealStamp .45s cubic-bezier(.3,1.6,.5,1) both}
+.fullWrap.out{animation:fadeOut .7s ease-in both}
+.fullText .ty{min-height:1.3em} .fullText h4.ty{min-height:1.1em} .fullAwait{font-weight:700;color:#5a3a16;margin-top:.4em!important}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}} @keyframes fadeOut{from{opacity:1}to{opacity:0}}
 @keyframes fullIn{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
 @keyframes sealStamp{from{opacity:0;transform:rotate(-40deg) scale(2.4)}to{opacity:1;transform:rotate(-12deg) scale(1)}}
 /* the Unlock button glows softly (Jack) */
@@ -942,6 +945,23 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 .modal.tome .colSw .sw{width:30px;height:30px} .colSw{gap:7px}
 .pauseCard .colSw .sw{width:26px;height:26px} .pCols .colSw{gap:6px}
 .cCard.paid.cur.front{animation:none}
+
+/* the full game's offer card (Jack): what Unlock brings, over everything, with the same Unlock below */
+.offerWrap{position:fixed;inset:0;z-index:80;background:rgba(6,7,5,.62);display:flex;align-items:center;justify-content:center;padding:12px}
+.offerCard{position:relative;width:min(280px,86vw);border-radius:12px;border:2px solid rgba(212,168,78,.85);background:linear-gradient(180deg,#3a2d16 0%,#1f180c 100%);box-shadow:0 8px 30px rgba(0,0,0,.65);overflow:hidden;padding-bottom:14px;text-align:center}
+.offerWrap.pop .offerCard{animation:fullIn .35s ease-out both}
+.offerCard h3{margin:0;padding:8px 10px 7px;font-family:var(--display);font-weight:400;font-size:20px;color:#ffe2a0;text-shadow:0 1px 2px rgba(0,0,0,.7);background:linear-gradient(90deg,rgba(150,112,52,.5),rgba(190,145,70,.62) 50%,rgba(150,112,52,.5));border-bottom:1px solid rgba(212,168,78,.55)}
+.offerX{position:absolute;top:6px;right:6px;width:26px;height:26px;padding:0!important;border-radius:50%;border:1px solid rgba(212,168,78,.5)!important;background:rgba(0,0,0,.35)!important;color:#f3dfae;font-size:12px;line-height:1;min-height:0!important;box-shadow:none!important}
+.offerList{list-style:none;margin:12px 18px 14px;padding:0;display:flex;flex-direction:column;gap:8px;text-align:left}
+.offerList li{display:flex;align-items:center;gap:10px;font-size:14.5px;color:#f3e4c0}
+.offerList i{width:22px;height:22px;flex:none;display:flex;align-items:center;justify-content:center;color:#f0c95a}
+.offerList i svg{width:22px;height:22px} .offerList i .lockIco{fill:none;stroke:#f0c95a;stroke-width:2.2}
+.offerAct{position:relative;display:flex;justify-content:center}
+#offerBuy{display:flex;align-items:center;gap:6px;padding:6px 22px;font-size:16px;border-radius:8px;animation:buyGlow 2.4s ease-in-out infinite}
+#offerBuy .upLk{display:flex;align-items:center;gap:6px} #offerBuy small{font-size:12px;opacity:.75;margin-left:3px}
+#offerBuy .lockIco{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2}
+#offerBuy:disabled{opacity:.6}
+.offerAct .buyMsg{bottom:calc(100% + 6px)}
 </style>
 
 <!-- shown from the first paint until the game is ready (three.js comes from a CDN; on a slow phone that takes a while) -->
@@ -1104,7 +1124,7 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
     </div>
     <!-- the full game bought (Jack): a parchment card stamped with the seal, then every stage's picture is revealed in turn -->
     <div class="fullWrap" id="fullWrap" hidden><div class="credCard fullCard" id="fullCard"><div class="credText fullText"><span class="cSp1"></span><span class="cSp2"></span>
-      <h4>Full Game</h4><p>The whole kingdom is yours</p><p>Twelve more stages to win</p><p>Bosses, bonus stages and new colours</p><p class="fullThanks">Thank you for your support, my lord</p>
+      <h4 class="ty">Full Game</h4><p class="fullSub ty">Unlocked</p><p class="fullThanks ty">Thank you for your support</p><p class="fullAwait ty">Your castle awaits!</p>
     </div><div class="cSeal" id="fullSeal"></div></div></div>
   </div>
   <div class="modal" id="newCards" hidden>
@@ -1149,6 +1169,10 @@ addEventListener('error', () => ldFail('Something went wrong'));
 // (on https, i.e. the live site; ?sw turns it on for a local test server)
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || /[?&]sw\b/.test(location.search))) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 </script>
+  <!-- what the full game brings (Jack): pops up from Unlock, a covered stage and a locked colour, with the same Unlock below -->
+  <div class="offerWrap" id="offerWrap" hidden><div class="offerCard" id="offerCard"><button class="offerX" id="offerX" aria-label="Close">&#x2715;</button>
+    <h3>Unlock Full Game</h3><ul class="offerList" id="offerList"></ul>
+    <div class="offerAct"><span id="offerBtn"></span><span class="diffLock buyMsg" id="offerMsg" hidden></span></div></div></div>
 <script src="vendor/three.min.js" onerror="ldFail('No connection')"></script>
 <script>
 (() => {
@@ -8941,7 +8965,7 @@ function openStage(i) {
   $('#stPlay').innerHTML = c.map ? `<button class="primary${shut ? ' shut' : ''}${paid ? ' buy' : ''}" id="campPlay"${buying ? ' disabled' : ''}>${shut ? LOCK_ICO : paid ? `<span class="upLk">${UNLOCK_ICO}Unlock${fullPrice ? `<small>${fullPrice}</small>` : ''}</span>` : 'Play'}</button>` : '';
   if (c.map) $('#campPlay').addEventListener('click', () => {
     if (shut) { sfx('nope'); return; }
-    if (paid) { sfx('click'); buyFull(); return; }
+    if (paid) { sfx('click'); showOffer(); return; }
     sfx('click');
     MAP = c.map; $('#mapPick').hidden = true; hardOn = c.bonus || (hardSel && (STARS[c.map] || 0) >= 3);
     if (stagePicks(MAP)) { $('#campaign').hidden = true; showLoadPick(MAP); return; }   // more decor than fits: choose four first
@@ -8986,7 +9010,8 @@ $('#dHard').addEventListener('click', () => {
     if (moved > 6) selectStage(Math.round(cSel + cDrag));
     else { const hit = document.elementFromPoint(e.clientX, e.clientY), card = hit?.closest('.cCard'); if (!card) return;
       // the ! (or anywhere on a card showing its story) flips the front card; on a side card the ! brings it forward and flips it
-      if (card.classList.contains('locked') || card.classList.contains('preUnlock') || card.classList.contains('paid')) { if (+card.dataset.i !== cSel) selectStage(+card.dataset.i); }
+      if (card.classList.contains('paid') && +card.dataset.i === cSel) { sfx('click'); showOffer(); }
+      else if (card.classList.contains('locked') || card.classList.contains('preUnlock') || card.classList.contains('paid')) { if (+card.dataset.i !== cSel) selectStage(+card.dataset.i); }
       else if (hit.closest('.cInfo') || card.classList.contains('flipped')) { const i = +card.dataset.i; if (i !== cSel) selectStage(i);
         sfx('click'); flipCard(card, !card.classList.contains('flipped')); }
       else selectStage(+card.dataset.i); } };
@@ -9062,7 +9087,8 @@ $('#credCard').addEventListener('click', () => { sfx('click'); $('#credCard').hi
 document.addEventListener('click', e => {
   const b = e.target.closest('.colSw .sw'); if (!b) return;
   const side = b.dataset.side, c = b.dataset.c, other = side === 'town' ? 'foe' : 'town';
-  if (TEAM[other] === c || b.classList.contains('shut')) { sfx('nope'); return; }
+  if (b.classList.contains('shut')) { showOffer(); return; }
+  if (TEAM[other] === c) { sfx('nope'); return; }
   sfx('click'); TEAM = { ...TEAM, [side]: c }; applyTeams(); renderColours();
   try { localStorage.setItem('mtd-colours', JSON.stringify(TEAM)); } catch (e) {}
 });
@@ -9381,15 +9407,25 @@ function setFull(on, user) {
 // sweeps through them and each picture is revealed in turn; a gold crown beside the title; four more colours (green, purple, black, gold)
 var REVEAL = new Set(), pendingReveal = false;
 function coverOn(i) { return i >= FREE_N && (!fullOwned() || REVEAL.has(i)); }
+// the thank-you card (Jack): it fades in slowly, its words are typed out one line after another, the seal is stamped, then it
+// fades out by itself and the stages are revealed; a tap skips straight to the reveal
 function revealFull() {
   for (let i = FREE_N; i < CAMPAIGN.length; i++) REVEAL.add(i);
   buildDeck(); selectStage(FREE_N, true);
-  const w = $('#fullWrap'), seal = $('#fullSeal');
+  const w = $('#fullWrap'), seal = $('#fullSeal'), lines = [...w.querySelectorAll('.ty')], T = [];
   if (!seal.firstChild) seal.innerHTML = sealIco('full');
-  w.hidden = false; w.classList.remove('stamped'); void w.offsetWidth; w.classList.add('stamped');
-  setTimeout(() => sfx('unlock'), 350);
-  w.onclick = () => { if (w._t && performance.now() - w._t < 900) return; w.hidden = true; w.onclick = null; sfx('click'); revealSweep(); };
-  w._t = performance.now();
+  lines.forEach(l => { l.dataset.t = l.dataset.t || l.textContent; l.textContent = ''; });
+  w.classList.remove('stamped', 'out', 'sealed'); w.hidden = false; void w.offsetWidth; w.classList.add('stamped');
+  let done = false; const finish = () => { if (done) return; done = true; T.forEach(clearTimeout);
+    lines.forEach(l => l.textContent = l.dataset.t); w.classList.add('out');
+    setTimeout(() => { w.hidden = true; w.classList.remove('out'); revealSweep(); }, 700); w.onclick = null; };
+  let t = 1100;
+  lines.forEach((l, k) => { const txt = l.dataset.t, gap = k < 2 ? 70 : 42;
+    for (let c = 1; c <= txt.length; c++) T.push(setTimeout(() => { l.textContent = txt.slice(0, c); }, t + c * gap));
+    t += txt.length * gap + (k === 1 ? 450 : 300); });
+  T.push(setTimeout(() => { w.classList.add('sealed'); sfx('unlock'); }, t));
+  T.push(setTimeout(finish, t + 2200));
+  w.onclick = () => { sfx('click'); finish(); };
 }
 function revealSweep() {
   const idx = [...REVEAL].sort((a, b) => a - b), STEP = 650, T0 = 500;
@@ -9411,15 +9447,15 @@ function revealSweep() {
 function syncTitleCrown() { const c = $('#titleCrown'); if (!c) return; if (!c.firstChild) c.innerHTML = CROWN_ICO; c.hidden = !fullOwned(); }
 syncTitleCrown();
 // a short line in the small black strip over the details' button (like Hard's "Win 3 stars to unlock")
-function buyMsg(t) { const p = $('#buyMsg'); if (!p) return; p.textContent = t; p.hidden = true; void p.offsetWidth; p.hidden = false; clearTimeout(p._t); p._t = setTimeout(() => p.hidden = true, 2200); }
+function buyMsg(t) { const p = $(!$('#offerWrap').hidden ? '#offerMsg' : '#buyMsg'); if (!p) return; p.textContent = t; p.hidden = true; void p.offsetWidth; p.hidden = false; clearTimeout(p._t); p._t = setTimeout(() => p.hidden = true, 2200); }
 function buyFull() {
   if (!STORE) { sfx('nope'); buyMsg('Full game in the app'); return; }
-  if (buying) return; buying = true; openStage(cSel);
+  if (buying) return; buying = true; openStage(cSel); syncOfferBtn();
   STORE.buy({ id: FULL_ID }).then(r => {
-    buying = false;
-    if (r && r.state === 'bought') setFull(true, true);
+    buying = false; syncOfferBtn();
+    if (r && r.state === 'bought') { hideOffer(); setFull(true, true); }
     else { openStage(cSel); if (r && r.state === 'pending') buyMsg('Waiting for approval'); else if (r && r.state === 'failed') buyMsg('Purchase failed'); }
-  }).catch(() => { buying = false; openStage(cSel); buyMsg('Store not available'); });
+  }).catch(() => { buying = false; syncOfferBtn(); openStage(cSel); buyMsg('Store not available'); });
 }
 // Restore purchases (Apple requires it), in Settings; only in the app (the website can't buy)
 function restoreFull(btn) {
@@ -9429,6 +9465,27 @@ function restoreFull(btn) {
   STORE.restore().then(r => { const ok = !!(r && r.ids && r.ids.includes(FULL_ID)); if (ok) setFull(true, true); say(ok ? 'Restored' : 'Nothing to restore'); })
     .catch(() => say('Store not available'));
 }
+// the offer card: what the full game brings, and the same Unlock (Jack)
+var OFFER_DOTS = '<svg viewBox="0 0 24 24" stroke-linejoin="round"><path d="M12 2.8 C6 2.8 2 6.8 2 11.6 C2 16.6 6.2 20.8 11.4 20.8 C13.2 20.8 13.6 19.6 13 18.4 C12.3 17 13.2 15.6 14.8 15.6 H17.6 C20.2 15.6 22 13.8 22 11.2 C22 6.4 17.6 2.8 12 2.8 Z" fill="#c99a5c" stroke="#5a3a16" stroke-width="1.2"/><circle cx="7.4" cy="13.6" r="1.7" fill="#3f8f3a" stroke="#1f4a1c" stroke-width=".6"/><circle cx="7.6" cy="8.4" r="1.7" fill="#7b4fb0" stroke="#3d2466" stroke-width=".6"/><circle cx="12.2" cy="6.4" r="1.7" fill="#262626" stroke="#000" stroke-width=".6"/><circle cx="16.8" cy="8.4" r="1.7" fill="#e2b445" stroke="#7a5a10" stroke-width=".6"/><circle cx="17.2" cy="12.6" r="1.25" fill="#7a5530" stroke="#5a3a16" stroke-width=".7"/></svg>';
+var MAP_ICO = '<svg viewBox="0 0 24 24" stroke="#4a3518" stroke-width="1.3" stroke-linejoin="round"><path d="M3 6 L9 4 V18 L3 20 Z" fill="#e8d6a8"/><path d="M9 4 L15 6 V20 L9 18 Z" fill="#d6c08c"/><path d="M15 6 L21 4 V18 L15 20 Z" fill="#e8d6a8"/><path d="M4.5 15 C6 12 7 13 7.6 10" fill="none" stroke="#4f8f3c" stroke-width="1.4"/><path d="M10.5 9 C12 11 13 8 13.6 12" fill="none" stroke="#3f7fc0" stroke-width="1.4"/><path d="M17 15 L18 12 L19.5 14" fill="none" stroke="#7a6a50" stroke-width="1.2"/><circle cx="18.4" cy="8.6" r="1.3" fill="#c0392b" stroke="none"/></svg>';
+var RED_CROWN = '<svg viewBox="0 0 24 24" stroke-linejoin="round"><path d="M2.5 7.5 L7.2 12 L12 4 L16.8 12 L21.5 7.5 L19.4 17.5 H4.6 Z" fill="#c8372b" stroke="#5a1410" stroke-width="1.2"/><path d="M5.6 13.8 L12 6.6 L18.4 13.8" fill="none" stroke="#e8685a" stroke-width=".9" opacity=".8"/><rect x="4.4" y="17" width="15.2" height="3.4" rx=".8" fill="#8e1f17" stroke="#5a1410" stroke-width="1.1"/><circle cx="12" cy="18.7" r="1.05" fill="#f0c95a"/><circle cx="7.6" cy="18.7" r=".8" fill="#f0c95a"/><circle cx="16.4" cy="18.7" r=".8" fill="#f0c95a"/><circle cx="2.5" cy="7.5" r="1.3" fill="#f0c95a" stroke="#5a1410" stroke-width=".8"/><circle cx="12" cy="4" r="1.4" fill="#f0c95a" stroke="#5a1410" stroke-width=".8"/><circle cx="21.5" cy="7.5" r="1.3" fill="#f0c95a" stroke="#5a1410" stroke-width=".8"/></svg>';
+var GOLD_LOCK = '<svg viewBox="0 0 24 24"><path d="M8 11 V8 a4 4 0 0 1 7.6-1.7" fill="none" stroke="#b9bcc2" stroke-width="2.4" stroke-linecap="round"/><rect x="5" y="11" width="14" height="10" rx="2" fill="#e2b445" stroke="#8a6418" stroke-width="1.2"/><circle cx="12" cy="15.4" r="1.4" fill="#5a3e10"/><path d="M12 16 V18.2" stroke="#5a3e10" stroke-width="1.4"/></svg>';
+var BONUS_ICO = '<svg viewBox="0 0 24 24" stroke-linejoin="round"><path d="M5 2.5 V22" stroke="#5a3a16" stroke-width="2" stroke-linecap="round"/><circle cx="5" cy="2.6" r="1.4" fill="#f0c95a" stroke="#5a3a16" stroke-width=".8"/><path d="M6 4 H20 L17 8.6 L20 13.2 H6 Z" fill="#8a5cd0" stroke="#3d2466" stroke-width="1.2"/><path d="M6 4 H20 L18.6 6.2 H6 Z" fill="#a983e6" stroke="none"/><path d="M12.2 5.6 L13.1 7.5 L15.2 7.7 L13.6 9.1 L14.1 11.1 L12.2 10.1 L10.3 11.1 L10.8 9.1 L9.2 7.7 L11.3 7.5 Z" fill="#f0c95a" stroke="#7a5a10" stroke-width=".5"/></svg>';
+function syncOfferBtn() {
+  const b = $('#offerBtn'); if (!b) return;
+  b.innerHTML = `<button class="primary buy" id="offerBuy"${buying ? ' disabled' : ''}><span class="upLk">${UNLOCK_ICO}Unlock${fullPrice ? `<small>${fullPrice}</small>` : ''}</span></button>`;
+  $('#offerBuy').addEventListener('click', () => { sfx('click'); buyFull(); });
+}
+function showOffer() {
+  if (fullOwned()) return;
+  $('#offerList').innerHTML = [[MAP_ICO, '9 campaign stages'], [RED_CROWN, '2 boss battles'], [BONUS_ICO, '3 bonus stages'], [OFFER_DOTS, '4 new colours'], [GOLD_LOCK, 'One-time purchase']]
+    .map(([i, t]) => `<li><i>${i}</i>${t}</li>`).join('');
+  syncOfferBtn(); $('#offerMsg').hidden = true;
+  const w = $('#offerWrap'); w.hidden = false; w.classList.remove('pop'); void w.offsetWidth; w.classList.add('pop'); sfx('alert');
+}
+function hideOffer() { $('#offerWrap').hidden = true; }
+$('#offerX').addEventListener('click', () => { sfx('click'); hideOffer(); });
+$('#offerWrap').addEventListener('click', e => { if (e.target.id === 'offerWrap') hideOffer(); });
 $('#fullWrap').addEventListener('pointerdown', e => e.stopPropagation());
 if ($('#setRestore')) { $('#setRestoreRow').hidden = !STORE; $('#setRestore').addEventListener('click', e => restoreFull(e.currentTarget)); }
 if (STORE) {
@@ -10148,7 +10205,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'faefd013e8'; var updateWait = false, updateT = 0;
+const BUILD = '17bee66808'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

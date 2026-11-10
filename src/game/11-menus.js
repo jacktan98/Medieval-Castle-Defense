@@ -734,7 +734,7 @@ function openStage(i) {
   $('#stPlay').innerHTML = c.map ? `<button class="primary${shut ? ' shut' : ''}${paid ? ' buy' : ''}" id="campPlay"${buying ? ' disabled' : ''}>${shut ? LOCK_ICO : paid ? `<span class="upLk">${UNLOCK_ICO}Unlock${fullPrice ? `<small>${fullPrice}</small>` : ''}</span>` : 'Play'}</button>` : '';
   if (c.map) $('#campPlay').addEventListener('click', () => {
     if (shut) { sfx('nope'); return; }
-    if (paid) { sfx('click'); buyFull(); return; }
+    if (paid) { sfx('click'); showOffer(); return; }
     sfx('click');
     MAP = c.map; $('#mapPick').hidden = true; hardOn = c.bonus || (hardSel && (STARS[c.map] || 0) >= 3);
     if (stagePicks(MAP)) { $('#campaign').hidden = true; showLoadPick(MAP); return; }   // more decor than fits: choose four first
@@ -779,7 +779,8 @@ $('#dHard').addEventListener('click', () => {
     if (moved > 6) selectStage(Math.round(cSel + cDrag));
     else { const hit = document.elementFromPoint(e.clientX, e.clientY), card = hit?.closest('.cCard'); if (!card) return;
       // the ! (or anywhere on a card showing its story) flips the front card; on a side card the ! brings it forward and flips it
-      if (card.classList.contains('locked') || card.classList.contains('preUnlock') || card.classList.contains('paid')) { if (+card.dataset.i !== cSel) selectStage(+card.dataset.i); }
+      if (card.classList.contains('paid') && +card.dataset.i === cSel) { sfx('click'); showOffer(); }
+      else if (card.classList.contains('locked') || card.classList.contains('preUnlock') || card.classList.contains('paid')) { if (+card.dataset.i !== cSel) selectStage(+card.dataset.i); }
       else if (hit.closest('.cInfo') || card.classList.contains('flipped')) { const i = +card.dataset.i; if (i !== cSel) selectStage(i);
         sfx('click'); flipCard(card, !card.classList.contains('flipped')); }
       else selectStage(+card.dataset.i); } };
@@ -855,7 +856,8 @@ $('#credCard').addEventListener('click', () => { sfx('click'); $('#credCard').hi
 document.addEventListener('click', e => {
   const b = e.target.closest('.colSw .sw'); if (!b) return;
   const side = b.dataset.side, c = b.dataset.c, other = side === 'town' ? 'foe' : 'town';
-  if (TEAM[other] === c || b.classList.contains('shut')) { sfx('nope'); return; }
+  if (b.classList.contains('shut')) { showOffer(); return; }
+  if (TEAM[other] === c) { sfx('nope'); return; }
   sfx('click'); TEAM = { ...TEAM, [side]: c }; applyTeams(); renderColours();
   try { localStorage.setItem('mtd-colours', JSON.stringify(TEAM)); } catch (e) {}
 });
