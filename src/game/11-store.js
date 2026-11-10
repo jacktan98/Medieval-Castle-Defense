@@ -17,10 +17,10 @@ function setFull(on) {
 }
 // ---------- what the full game brings (Jack): until bought, Stages 4 to 15 show no picture on the campaign, only a dark cover
 // with the padlock and a grey edge, and their back a teaser; once bought, a parchment card stamped with the seal, then the deck
-// sweeps through them and each picture is revealed in turn; a gold crown on the title's castle; gold and white colours
+// sweeps through them and each picture is revealed in turn; a gold crown on the title's castle; four more colours (green, purple, black, gold)
 var REVEAL = new Set(), pendingReveal = false;
 function coverOn(i) { return i >= FREE_N && (!fullOwned() || REVEAL.has(i)); }
-var TEASE = '<b class="tzH">Full Game</b><span class="tz">Stages 4 to 12</span><span class="tz">Two bosses</span><span class="tz">Three bonus stages</span><span class="tz">Gold and white colours</span><span class="tz">One purchase, yours to keep</span>';
+var TEASE = '<b class="tzH">Full Game</b><span class="tz">Stages 4 to 12</span><span class="tz">Two bosses</span><span class="tz">Three bonus stages</span><span class="tz">Four more colours</span><span class="tz">One purchase, yours to keep</span>';
 function revealFull() {
   for (let i = FREE_N; i < CAMPAIGN.length; i++) REVEAL.add(i);
   buildDeck(); selectStage(FREE_N, true);

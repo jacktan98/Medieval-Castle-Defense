@@ -838,7 +838,7 @@ function unlockCard(list) {
 }
 // ---------- Colours (Jack): the town's and the raiders' colours, five each, in the title's Settings (gear); a colour one side
 // has is greyed out for the other; a tap recolours at once (the title's town shows it) and is kept ('mtd-colours')
-const COL_NAME = { blue: 'Blue', red: 'Red', green: 'Green', purple: 'Purple', black: 'Black', gold: 'Gold', white: 'White' };
+const COL_NAME = { blue: 'Blue', red: 'Red', green: 'Green', purple: 'Purple', black: 'Black', gold: 'Gold' };
 function renderColours() {
   for (const el of document.querySelectorAll('.colSw[data-side]')) {
     const side = el.dataset.side, other = side === 'town' ? TEAM.foe : TEAM.town;

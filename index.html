@@ -2161,9 +2161,9 @@ const mat = c => new THREE.MeshStandardMaterial({ color: c, roughness: .9, flatS
 // has by default (`teamMat`); `teamColor` maps that default onto the picked colour, keeping its offset in hue, saturation and
 // lightness from the side's default (so a darker drape stays darker than the flag); tinted copies (`tinted`) and the boss forts'
 // darkened copies (`darkFort`) register themselves too; the quilted gambesons get a newly drawn texture (`quiltTex`)
-const TEAM_PAL = { blue: '#3466b0', red: '#a32a22', green: '#2f8a3e', purple: '#6b3fa0', black: '#34343b', gold: '#c9962f', white: '#d8d3c4' };
-// gold and white come with the full game (Jack): a padlock on their swatches before (renderColours, 11-store.js)
-const TEAM_DEF = { town: '#3466b0', foe: '#a32a22' }, TEAM_NAMES = ['blue', 'red', 'green', 'purple', 'black', 'gold', 'white'], FULL_COLS = ['gold', 'white'];
+const TEAM_PAL = { blue: '#3466b0', red: '#a32a22', green: '#2f8a3e', purple: '#6b3fa0', black: '#34343b', gold: '#c9962f' };
+// only blue and red are free; green, purple, black and gold come with the full game (Jack): a padlock on their swatches before (renderColours, 11-store.js)
+const TEAM_DEF = { town: '#3466b0', foe: '#a32a22' }, TEAM_NAMES = ['blue', 'red', 'green', 'purple', 'black', 'gold'], FULL_COLS = ['green', 'purple', 'black', 'gold'];
 var TEAM = { town: 'blue', foe: 'red' };
 try { const t = JSON.parse(localStorage.getItem('mtd-colours') || 'null'); if (t && TEAM_PAL[t.town] && TEAM_PAL[t.foe] && t.town !== t.foe) TEAM = t; } catch (e) {}
 const teamMats = [];
@@ -9047,7 +9047,7 @@ function unlockCard(list) {
 }
 // ---------- Colours (Jack): the town's and the raiders' colours, five each, in the title's Settings (gear); a colour one side
 // has is greyed out for the other; a tap recolours at once (the title's town shows it) and is kept ('mtd-colours')
-const COL_NAME = { blue: 'Blue', red: 'Red', green: 'Green', purple: 'Purple', black: 'Black', gold: 'Gold', white: 'White' };
+const COL_NAME = { blue: 'Blue', red: 'Red', green: 'Green', purple: 'Purple', black: 'Black', gold: 'Gold' };
 function renderColours() {
   for (const el of document.querySelectorAll('.colSw[data-side]')) {
     const side = el.dataset.side, other = side === 'town' ? TEAM.foe : TEAM.town;
@@ -9376,10 +9376,10 @@ function setFull(on) {
 }
 // ---------- what the full game brings (Jack): until bought, Stages 4 to 15 show no picture on the campaign, only a dark cover
 // with the padlock and a grey edge, and their back a teaser; once bought, a parchment card stamped with the seal, then the deck
-// sweeps through them and each picture is revealed in turn; a gold crown on the title's castle; gold and white colours
+// sweeps through them and each picture is revealed in turn; a gold crown on the title's castle; four more colours (green, purple, black, gold)
 var REVEAL = new Set(), pendingReveal = false;
 function coverOn(i) { return i >= FREE_N && (!fullOwned() || REVEAL.has(i)); }
-var TEASE = '<b class="tzH">Full Game</b><span class="tz">Stages 4 to 12</span><span class="tz">Two bosses</span><span class="tz">Three bonus stages</span><span class="tz">Gold and white colours</span><span class="tz">One purchase, yours to keep</span>';
+var TEASE = '<b class="tzH">Full Game</b><span class="tz">Stages 4 to 12</span><span class="tz">Two bosses</span><span class="tz">Three bonus stages</span><span class="tz">Four more colours</span><span class="tz">One purchase, yours to keep</span>';
 function revealFull() {
   for (let i = FREE_N; i < CAMPAIGN.length; i++) REVEAL.add(i);
   buildDeck(); selectStage(FREE_N, true);
@@ -10158,7 +10158,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'caca8676e0'; var updateWait = false, updateT = 0;
+const BUILD = '7fad99843b'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
