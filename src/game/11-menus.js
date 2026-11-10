@@ -890,19 +890,34 @@ islandSide(); addEventListener('resize', islandSide);
 function tabletScale() {
   const W = innerWidth, H = innerHeight, tab = (navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches) && Math.min(W, H) >= 700;
   const k = !tab ? 1 : Math.max(1, Math.min(1.6, W < H ? Math.min(W / 430, H / 900) : Math.min(W / 900, H / 560)));
-  document.body.classList.toggle('tablet', tab); document.documentElement.classList.toggle('tabletDoc', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3));
-  // the zoom as a plain number, not var(--uiK): Safari zoomed the boxes but not most of the text with the variable
-  let zr = document.getElementById('uiKRule'); if (!zr) { zr = document.createElement('style'); zr.id = 'uiKRule'; document.head.appendChild(zr); }
-  const zs = `body.tablet .modal,body.tablet .panel,body.tablet .dock,body.tablet .corner,body.tablet #pauseBtn,body.tablet #pausedTag,body.tablet .tipPill{zoom:${k.toFixed(3)}}`;
-  if (zr.textContent !== zs) zr.textContent = zs;
+  document.body.classList.toggle('tablet', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3)); uiK = k;
+  // the HUD's panels and the paused overlay grow by k with a CSS scale (uiScale), each from the corner or edge it is pinned to
+  for (const [sel, o, full] of [['.panel', '0 0'], ['.dock', '0 100%'], ['.corner', '100% 100%'], ['#pauseBtn', '100% 0'], ['#pausedTag', '0 0', 1], ['#tipPill', '0 100%']])
+    document.querySelectorAll(sel).forEach(el => uiScale(el, k, o, full));
+  // every menu at k; the town picker and the three screens are then fitted to the height below
+  document.querySelectorAll('.modal').forEach(m => uiScale(m, k, '0 0', 1));
   const up = $('#upPick'), us = up && up.querySelector('.upSheet'); if (us && !up.hidden && us.classList.contains('upWide') !== upWideOn()) renderUpgrades();
   fitModal($('#loadPick')); fitModal($('#upPick')); if (typeof renderUpgrades === 'function') { matchUpZoom($('#achPick')); matchUpZoom($('#codexPick')); }
 }
 // a tall sheet (the town picker, the Upgrades screen) is zoomed to fit the screen's height: on a short phone a little smaller than
 // designed (Jack's iPhone SE had Start below the screen), on a tablet only as far up as fits (sideways the upright layout was cut off)
+// tablets grow the menus and the HUD with a CSS scale, not zoom (Jack, iPad Air 13-inch and A16: Safari on an iPad zoomed every box
+// but drew the text phone-sized, "Goals" 42 px wide where Chromium draws 60; a scale enlarges the text with everything else in
+// every browser); a full-screen layer (a menu, the paused overlay) is laid out 1/k of the screen and scaled up from its top-left
+// corner, so it still fills it. Phones keep CSS zoom for their own fitting, as tuned before. The scale is read back from data-z.
+let uiK = 1;
+function uiScale(el, k, origin, full) {
+  if (!el) return;
+  const tab = document.body.classList.contains('tablet');
+  el.dataset.z = k;
+  if (!tab) { el.style.scale = el.style.transformOrigin = ''; if (full) el.style.width = el.style.height = el.style.right = el.style.bottom = ''; el.style.zoom = k === 1 ? '' : k; return; }
+  el.style.zoom = ''; el.style.scale = k === 1 ? '' : k; el.style.transformOrigin = origin;
+  if (full) { const p = k === 1 ? '' : (100 / k) + '%'; el.style.width = el.style.height = p; el.style.right = el.style.bottom = p ? 'auto' : ''; }
+}
+const uiZ = el => parseFloat(el.dataset.z) || 1;
 function fitModal(m) {
   if (!m || m.hidden || !m.firstElementChild) return;
-  m.style.zoom = ''; const k = parseFloat(getComputedStyle(m).zoom) || 1; m.style.zoom = 1;
+  const k = document.body.classList.contains('tablet') ? uiK : 1; uiScale(m, 1, '0 0', 1);
   // measured unstretched: the Upgrades sheet is at least the screen's height and pushes its details to the bottom, which read as no room to grow
   const sh = m.firstElementChild; sh.style.minHeight = '0'; sh.style.height = 'auto';
   // from the sheet's own top (it sits centred on the screen), with its padding
@@ -915,7 +930,7 @@ function fitModal(m) {
   sh.style.minHeight = sh.style.height = '';
   // a phone held sideways may zoom past 1 when the height allows (Jack: the three screens looked smaller than the room there was)
   const cap = !document.body.classList.contains('tablet') && innerHeight <= 520 && innerWidth > innerHeight ? 1.3 : k;
-  m.style.zoom = Math.max(.7, Math.min(cap, innerHeight / need)).toFixed(3);
+  uiScale(m, +Math.max(.7, Math.min(cap, innerHeight / need)).toFixed(3), '0 0', 1);
 }
 // the Achievements and Archive take the Upgrades screen's zoom, so all three sheets are one size and their Back buttons sit in
 // one place (Jack; first on a tablet, then on a phone too: held sideways the Upgrades is shrunk to fit and its Back was smaller and
@@ -926,13 +941,13 @@ function matchUpZoom(m) {
   const u = $('#upPick'), was = u.hidden;
   if (was) { u.style.visibility = 'hidden'; u.hidden = false; }
   const us = u.querySelector('.upSheet'); if (!us || us.classList.contains('upWide') !== upWideOn()) renderUpgrades();
-  fitModal(u); const z = u.style.zoom;
+  fitModal(u); const z = uiZ(u);
   if (was) { u.hidden = true; u.style.visibility = ''; }
-  m.style.zoom = z;
+  uiScale(m, z, '0 0', 1);
 }
 tabletScale(); addEventListener('resize', tabletScale);
-// one line for Xcode's console on a tablet: how wide the Goals word and its panel are drawn, to tell whether text follows the UI zoom
-if (document.body.classList.contains('tablet')) setTimeout(() => { const g = $('#goalHead'), p = $('.panel'); if (g && p) console.log(`ui zoom ${parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--uiK')).toFixed(2)}: Goals word ${g.getBoundingClientRect().width.toFixed(1)} px wide, panel ${p.getBoundingClientRect().width.toFixed(0)} px`); }, 4000);
+// one line for Xcode's console on a tablet: how wide the Goals word and its panel are drawn, to tell whether text follows the UI scale
+if (document.body.classList.contains('tablet')) setTimeout(() => { const g = $('#goalHead'), p = $('.panel'); if (g && p) console.log(`ui scale ${uiK.toFixed(2)}: Goals word ${g.getBoundingClientRect().width.toFixed(1)} px wide, panel ${p.getBoundingClientRect().width.toFixed(0)} px`); }, 4000);
 // the HUD tick that places the night powers and the boss bar stops while paused: place them again whenever the screen turns
 // (Jack turned the phone while paused and the powers stayed where the sideways layout had them)
 addEventListener('resize', () => { markRect = null; updatePowers(); updateBossBar(); if (typeof sideHints === 'function') sideHints(); }); addEventListener('orientationchange', () => setTimeout(islandSide, 100));
