@@ -75,12 +75,13 @@ input{-webkit-user-select:text;user-select:text}
 .chip.low{border-color:var(--bad)} .chip.low b{color:var(--bad)}
 details summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
 details summary::-webkit-details-marker{display:none}
-details[open] summary::after{content:"Hide"} details:not([open]) summary::after{content:"Show"}
+/* Show / Hide are real text, not ::after content: Safari on an iPad zoomed the CSS-added word again on top of the panel's zoom, so "Show" stood 1.5 times "Goals" (Jack) */
+details[open] .glShow,details:not([open]) .glHide{display:none}
 #log{max-height:34vh;overflow:auto;margin:5px 0 0;padding-left:16px;display:flex;flex-direction:column;gap:2px;font-size:13px;line-height:1.35}
 #goalList{list-style:none;margin:5px 0 0;padding:0;display:flex;flex-direction:column;gap:3px;font-size:13px;line-height:1.3;color:#f4e3b2}
 #goalList li{display:flex;gap:7px;align-items:flex-start} #goalList li span{flex:1} #goalList li i{font-style:normal;font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap;margin-left:6px} #goalList li.ok i{color:#f0c95a} #goalList b{width:10px;color:var(--muted)} #goalList li.ok b{color:#f0c95a}
 .glHead{display:inline-flex;align-items:center;gap:6px} .glTicks{color:#f0c95a;letter-spacing:.12em;font-size:13px;text-shadow:0 0 6px rgba(255,205,90,.5)}
-#ledger.hard summary{cursor:default;pointer-events:none;color:#ff9a80} #ledger.hard summary::after{content:""!important} #ledger.hard #goalList{display:none}
+#ledger.hard summary{cursor:default;pointer-events:none;color:#ff9a80} #ledger.hard .glTog{display:none} #ledger.hard #goalList{display:none}
 #log li::marker{color:var(--gold)}
 #log .warn{color:var(--bad)} #log .good{color:var(--ok)}
 .dock{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;
@@ -1022,7 +1023,7 @@ body.tablet .modal.tome .cxTiers .seg{font-size:14px!important;padding:3px 12px!
       <div class="chip" id="cPop" title="Idle"><span class="ico" data-ico="pop"></span><b>0</b></div>
     </div>
     <details id="ledger">
-      <summary><span class="glHead"><span id="goalHead">Goals</span><span class="glTicks" id="goalTicks"></span></span></summary>
+      <summary><span class="glHead"><span id="goalHead">Goals</span><span class="glTicks" id="goalTicks"></span></span><span class="glTog"><span class="glShow">Show</span><span class="glHide">Hide</span></span></summary>
       <ol id="goalList"></ol>
     </details>
     <ol id="log" hidden></ol>
@@ -10283,7 +10284,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'fef13b2779'; var updateWait = false, updateT = 0;
+const BUILD = 'ba43714a57'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
