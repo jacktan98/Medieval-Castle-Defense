@@ -163,7 +163,7 @@ function renderUpgrades() {
   // the sheet stays put (a new one replayed the menus' rise animation and the whole screen flickered on every tap: Jack)
   let sh = el.querySelector('.upSheet'); if (!sh) { sh = document.createElement('div'); sh.className = 'upSheet'; el.replaceChildren(sh); }
   sh.classList.toggle('upAll', all);
-  const reset = `<div class="upRs"><button id="upReset" ${spent ? '' : 'disabled'}>${UP_RESET}Reset ${all ? 'all' : UP_TABS[upTab][0]}</button></div>`;
+  const reset = `<div class="upRs"><button id="upReset" ${spent ? '' : 'disabled'}>${UP_RESET}<span class="rsT">Reset <span class="rsW">${all ? 'all' : UP_TABS[upTab][0]}</span></span></button></div>`;
   const det = `<div class="upDet"><div class="upBig${s === 2 ? '' : ' dim'}">${upIco(sel.u[1])}</div><div class="upTx"><div class="upOf">${sel.row}</div><h3>${sel.u[1]}</h3><p>${sel.u[2]}</p></div>
       <button class="primary upBuy" id="upBuy" ${s === 1 && left > 0 && !upShut(upSel) ? '' : 'disabled'}>${upBuyLabel(upSel, s)}</button></div>`;
   const tree = ([n, ic, ups]) => `<div class="upTree"><div class="upBan">${upRowIco(ic)}<div>${n}</div></div>${ups.map(([id, name], j) => {

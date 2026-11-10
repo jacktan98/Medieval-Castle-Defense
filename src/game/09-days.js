@@ -128,9 +128,14 @@ function sideHints() {
   }
   const bar = document.querySelector('.bar').getBoundingClientRect(), pn = document.querySelector('.panel').getBoundingClientRect();
   const right = (innerWidth - bar.left + 8) + 'px', maxW = Math.max(160, bar.left - pn.right - 24) + 'px';
+  // below the top panel (and the night powers under it) a pill may reach left to the panel's own edge, so on a small phone
+  // (iPhone SE) the guide and tips don't wrap into a narrow, cramped column beside the panel (Jack)
+  const pw = $('#powers'), clear = Math.max(pn.bottom, pw && !pw.hidden ? pw.getBoundingClientRect().bottom : 0) + 6;
+  const wideW = Math.max(160, bar.left - pn.left - 8) + 'px';
   let bottom = 8;
   for (const el of [$('#hint'), $('#guide'), $('#tipPill')]) {
-    el.style.right = right; el.style.maxWidth = maxW; el.style.top = 'auto'; el.style.bottom = bottom + 'px';
+    el.style.right = right; el.style.top = 'auto'; el.style.bottom = bottom + 'px'; el.style.maxWidth = wideW;
+    if (!el.hidden && el.offsetHeight && innerHeight - bottom - el.offsetHeight < clear) el.style.maxWidth = maxW;
     if (!el.hidden && el.offsetHeight) bottom += el.offsetHeight + 6;
   }
 }

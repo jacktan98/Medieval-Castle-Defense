@@ -690,6 +690,8 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 .upRs{margin-top:auto;padding-top:12px;width:100%;display:flex;justify-content:flex-end;margin-bottom:8px}
 .modal.tome .upRs button{display:flex!important;flex-direction:row!important;align-items:center;gap:4px;min-height:0!important;padding:4px 10px!important;border-radius:16px!important;border:1.5px solid rgba(217,176,78,.6)!important;background:#1f170b!important;color:#d9c08a!important;font-size:12px!important;font-weight:700;box-shadow:none!important;white-space:nowrap}
 .modal.tome .upRs button:disabled{opacity:.45}
+/* a small phone held sideways (iPhone SE: 667 wide): "Reset Defences" ran under the details, so the tab's name goes on a second line (Jack) */
+@media (max-height:520px) and (max-width:740px){ .upRs .rsT{text-align:left;line-height:1.1} .upRs .rsW{display:block} #upPick .upRs{margin-bottom:-37.4px} }
 .upRs svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .upDet{width:100%;border:2px solid #d9b04e;border-radius:12px;background:linear-gradient(#5a4428,#2a1f0e);display:flex;gap:12px;padding:8px 12px;align-items:center;box-sizing:border-box}
 .upBig{width:56px;height:56px;flex:0 0 auto;border-radius:12px;border:2px solid #f0c95a;background:radial-gradient(circle at 50% 35%,#6a4f22,#2a1e0c);display:grid;place-items:center} .upBig svg{width:36px;height:36px}
@@ -7256,9 +7258,14 @@ function sideHints() {
   }
   const bar = document.querySelector('.bar').getBoundingClientRect(), pn = document.querySelector('.panel').getBoundingClientRect();
   const right = (innerWidth - bar.left + 8) + 'px', maxW = Math.max(160, bar.left - pn.right - 24) + 'px';
+  // below the top panel (and the night powers under it) a pill may reach left to the panel's own edge, so on a small phone
+  // (iPhone SE) the guide and tips don't wrap into a narrow, cramped column beside the panel (Jack)
+  const pw = $('#powers'), clear = Math.max(pn.bottom, pw && !pw.hidden ? pw.getBoundingClientRect().bottom : 0) + 6;
+  const wideW = Math.max(160, bar.left - pn.left - 8) + 'px';
   let bottom = 8;
   for (const el of [$('#hint'), $('#guide'), $('#tipPill')]) {
-    el.style.right = right; el.style.maxWidth = maxW; el.style.top = 'auto'; el.style.bottom = bottom + 'px';
+    el.style.right = right; el.style.top = 'auto'; el.style.bottom = bottom + 'px'; el.style.maxWidth = wideW;
+    if (!el.hidden && el.offsetHeight && innerHeight - bottom - el.offsetHeight < clear) el.style.maxWidth = maxW;
     if (!el.hidden && el.offsetHeight) bottom += el.offsetHeight + 6;
   }
 }
@@ -9754,7 +9761,7 @@ function renderUpgrades() {
   // the sheet stays put (a new one replayed the menus' rise animation and the whole screen flickered on every tap: Jack)
   let sh = el.querySelector('.upSheet'); if (!sh) { sh = document.createElement('div'); sh.className = 'upSheet'; el.replaceChildren(sh); }
   sh.classList.toggle('upAll', all);
-  const reset = `<div class="upRs"><button id="upReset" ${spent ? '' : 'disabled'}>${UP_RESET}Reset ${all ? 'all' : UP_TABS[upTab][0]}</button></div>`;
+  const reset = `<div class="upRs"><button id="upReset" ${spent ? '' : 'disabled'}>${UP_RESET}<span class="rsT">Reset <span class="rsW">${all ? 'all' : UP_TABS[upTab][0]}</span></span></button></div>`;
   const det = `<div class="upDet"><div class="upBig${s === 2 ? '' : ' dim'}">${upIco(sel.u[1])}</div><div class="upTx"><div class="upOf">${sel.row}</div><h3>${sel.u[1]}</h3><p>${sel.u[2]}</p></div>
       <button class="primary upBuy" id="upBuy" ${s === 1 && left > 0 && !upShut(upSel) ? '' : 'disabled'}>${upBuyLabel(upSel, s)}</button></div>`;
   const tree = ([n, ic, ups]) => `<div class="upTree"><div class="upBan">${upRowIco(ic)}<div>${n}</div></div>${ups.map(([id, name], j) => {
@@ -10332,7 +10339,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '7b3561b9ef'; var updateWait = false, updateT = 0;
+const BUILD = '0a4284e0e2'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
