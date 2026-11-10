@@ -861,6 +861,8 @@ body.tablet .upSheet{max-width:min(100%,760px)!important} body.tablet #upPick .u
 :root{--safeT:env(safe-area-inset-top,0px)}
 .panel{top:calc(8px + var(--safeT))}
 #pauseBtn{top:calc(8px + var(--safeT))}
+/* an iPad's screen has rounded corners: the top panel and Pause sit further in there (Jack: the moon and Pause were close to the corners) */
+body.tablet .panel{top:calc(18px + var(--safeT));left:max(18px,env(safe-area-inset-left,0px))} body.tablet #pauseBtn{top:calc(18px + var(--safeT));right:max(18px,env(safe-area-inset-right,0px))}
 .modal{padding-top:calc(16px + var(--safeT))}
 #campaign{padding-top:calc(10px + var(--safeT))}
 .pausedTag{padding-top:calc(18vh + var(--safeT))}
