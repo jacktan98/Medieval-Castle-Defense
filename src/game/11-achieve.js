@@ -67,7 +67,8 @@ function achToastNext() {
   if (achToastOn || !achToastQ.length) return; const a = achToastQ.shift(), el = $('#achToast'); achToastOn = true;
   el.innerHTML = `<span class="atIco">${achIco(a)}</span><span class="atTx"><small>Achievement</small><b>${a.name}</b></span>`; el.hidden = false;
   // a tablet's scaled top panel reaches past the pill's usual spot, so it sits just under the panel there (Jack saw it over the chips)
-  el.style.top = document.body.classList.contains('tablet') ? (document.querySelector('.panel').getBoundingClientRect().bottom + 10) + 'px' : '';
+  // (and on a phone held upright, where the panel runs across the top: the pill lay over its chips and Goals line)
+  { const r = document.querySelector('.panel').getBoundingClientRect(); el.style.top = r.width && (document.body.classList.contains('tablet') || r.width > innerWidth * .5) ? (r.bottom + 10) + 'px' : ''; }
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); sfx('achieve');
   setTimeout(() => { el.classList.remove('show'); setTimeout(() => { el.hidden = true; achToastOn = false; achToastNext(); }, 400); }, 3200);
 }

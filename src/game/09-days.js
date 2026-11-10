@@ -321,7 +321,7 @@ function endGame(won) {
   const el = (performance.now() - stats.t0) / 1000;
   $('#sumTitle').textContent = won ? 'The town holds' : 'The castle has fallen';
   $('#sumTitle').className = won ? '' : 'lost';
-  $('#sumText').textContent = won ? `All ${NIGHTS} waves held.` : `Fell on night ${PH.wave}.`;
+  $('#sumText').textContent = won ? `All ${NIGHTS} waves held` : `Fell on night ${PH.wave}`;
   // only the numbers that tell the story (it listed twelve: built, standing, wood, stone, food... were noise)
   const rows = [['Raiders slain', stats.slain], ['Buildings lost', stats.lost], ['Soldiers lost', stats.fallen], ['Gold earned', stats.gold], ['Time', fmt(stats.playT || el)]];
   $('#sumStats').innerHTML = rows.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('');

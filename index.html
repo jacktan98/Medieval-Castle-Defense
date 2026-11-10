@@ -4845,7 +4845,7 @@ function completeSite(B) {
     B.built = true; B.group.scale.y = 1; soddenPop(B); stats.built++; stats.made[B.type] = (stats.made[B.type] || 0) + 1; codexUse(B.type, B.tier); achAdd('built'); if (B.type === 'wall') achAdd('walls'); if (B.type !== 'castle' || stats.built > 1) sfx('build', c);
     if (B.type !== 'wall') log(`<b>${T.tiers[0]}</b> built${T.residents ? ` · +${T.residents[0]}` : ''}`, 'good');
     // the first of a kind: a one-line tip for what it can do
-    if (T.soldiers) tipOnce('rally', 'Tap the <b>Barracks</b>, then <b>Rally</b> to send soldiers to a spot');
+    if (T.soldiers) tipOnce('rally', T.cavalry ? 'Tap the <b>Stables</b>, then <b>Rally</b> to send riders to a spot' : 'Tap the <b>Barracks</b>, then <b>Rally</b> to send soldiers to a spot');
     else if (T.movable) tipOnce('move', 'Tap the <b>Catapult</b>, then <b>Move</b> to roll it somewhere new');
     else if (B.type === 'market') tipOnce('market', 'Tap the <b>Market</b> to <b>Trade</b>');
     else if (DEF_FXT(B.type)) tipOnce('decor', '<b>Decor</b> helps what stands near it');
@@ -7557,7 +7557,7 @@ function endGame(won) {
   const el = (performance.now() - stats.t0) / 1000;
   $('#sumTitle').textContent = won ? 'The town holds' : 'The castle has fallen';
   $('#sumTitle').className = won ? '' : 'lost';
-  $('#sumText').textContent = won ? `All ${NIGHTS} waves held.` : `Fell on night ${PH.wave}.`;
+  $('#sumText').textContent = won ? `All ${NIGHTS} waves held` : `Fell on night ${PH.wave}`;
   // only the numbers that tell the story (it listed twelve: built, standing, wood, stone, food... were noise)
   const rows = [['Raiders slain', stats.slain], ['Buildings lost', stats.lost], ['Soldiers lost', stats.fallen], ['Gold earned', stats.gold], ['Time', fmt(stats.playT || el)]];
   $('#sumStats').innerHTML = rows.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('');
@@ -8171,7 +8171,8 @@ function achToastNext() {
   if (achToastOn || !achToastQ.length) return; const a = achToastQ.shift(), el = $('#achToast'); achToastOn = true;
   el.innerHTML = `<span class="atIco">${achIco(a)}</span><span class="atTx"><small>Achievement</small><b>${a.name}</b></span>`; el.hidden = false;
   // a tablet's scaled top panel reaches past the pill's usual spot, so it sits just under the panel there (Jack saw it over the chips)
-  el.style.top = document.body.classList.contains('tablet') ? (document.querySelector('.panel').getBoundingClientRect().bottom + 10) + 'px' : '';
+  // (and on a phone held upright, where the panel runs across the top: the pill lay over its chips and Goals line)
+  { const r = document.querySelector('.panel').getBoundingClientRect(); el.style.top = r.width && (document.body.classList.contains('tablet') || r.width > innerWidth * .5) ? (r.bottom + 10) + 'px' : ''; }
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); sfx('achieve');
   setTimeout(() => { el.classList.remove('show'); setTimeout(() => { el.hidden = true; achToastOn = false; achToastNext(); }, 400); }, 3200);
 }
@@ -9007,17 +9008,17 @@ const sealIco = i => SEAL_ICO.replace(/(id="|url\(#)(s[a-z]+)/g, `$1$2${i}`);
 var STORY_READ = {}; try { STORY_READ = JSON.parse(localStorage.getItem('mtd-story') || '{}'); } catch (e) {}
 const STORY = {
   vale: 'Long ago your family ruled these lands in peace, until the Warlord came with his raiders. The King, your father, fell defending the castle, and you escaped as a boy. Years of training later, you are back. Greenvale is a quiet valley at the edge of the old kingdom, and its people still remember your family. Build them a home worth defending.',
-  bridge: 'Stonebridge guards the only crossing on the great river. The townsfolk started a wall to keep the raiders out, but lost their nerve halfway through. When the young prince rides in with a plan, the blacksmith grins and hands out spears. Finish the wall, train some soldiers, and hold the bridge.',
+  bridge: 'Stonebridge guards the only crossing on the great river. The townsfolk started a wall to keep the raiders out, but lost their nerve halfway through. When you ride in with a plan, the blacksmith grins and hands out spears. Finish the wall, train some soldiers, and hold the bridge.',
   cross: 'Two old roads meet at a worn stone cross, and merchants have traded there for a hundred years. Business has been awful since the raiders came, and there is hardly a rock in sight to build with. The merchants make you an offer: keep the roads safe, and they will trade you all the stone you need.',
   watch: 'Your father once kept watch over the dry hills from a tall stone tower. The raiders burned it the year he fell, and it still smoulders. The hill gives the best view for miles, so it is the perfect spot for a ballista. Your father would like that.',
   dune: 'Dunewell is an oasis on the old caravan road, and the only water for days in any direction. The desert folk are friendly but careful: trees are precious here, and they will not let you cut down theirs. Plant a grove of your own, dig a well, and the caravans might just come back.',
   bend: 'At Riverbend the river splits in two, with the town on the island between. The Warlord\'s raiders have learned a new trick: attacking over both bridges at once. Luckily the town\'s crossbowmen are the best in the land, and they have been waiting for someone to lead them.',
   crag: 'Ironwood\'s trees are so thick that the sun barely reaches the ground. There is not a loose rock anywhere, but the woodsfolk say the old crag is full of good stone. Dig a mine, raise your banners high, and let the whole forest know the prince has come.',
   ford: 'The Warlord is worried now, and he is sending catapults and rams down the highland valley. An old stone wall still guards the river, a bit crumbly but standing. If they bring siege engines, you will build bigger ones.',
-  mere: 'Meadowmere was once famous for its golden wheat. The Warlord\'s men spoiled the soil as they passed, and now crops rot in the marsh. The farmers have not given up, though: hens and pigs do not mind a bit of blight. Build farmhouses and keep the town fed.',
+  mere: 'Meadowmere was once famous for its golden wheat. Then a blight crept out of the marsh, and now the crops rot in the fields. The farmers have not given up, though: hens and pigs do not mind a bit of blight. Build farmhouses and keep the town fed.',
   plains: 'The finest horses in the kingdom graze on these open plains, and the Warlord wants them all for his riders. There are no hills to hide behind and no walls to lean on. Raise stables, train your own knights, and meet his horsemen head on.',
   keep: 'The Raider Chief helped the Warlord take your father\'s throne. He sits in a palisade keep above a burned village, his raiders camped all around. Leave the camps quiet and they will leave you alone, until the Chief himself marches out. Then it is the fight you have trained for.',
-  hold: 'Far north in the snow stands the Warlord\'s hold, the last thing between you and your father\'s crown. Every town you have freed has sent its best: archers, knights, engineers and a few very brave farmers. Cross the great bridge, break his army, and bring the crown home.',
+  hold: 'Far north in the snow stands the Warlord\'s hold, the last thing between you and your father\'s crown. Every town you have freed has sent its best: archers, knights, engineers and a few very brave farmers. Hold the great bridge, break his army, and bring the crown home.',
   meadow: 'Peace at last, and the new King\'s first summer is the driest anyone can remember. The river has shrunk to cracked mud and the trees have withered, and the Warlord\'s leftover raiders smell an opportunity. Rule wisely with what little there is.',
   isle: 'A blight has crept onto the river isle and the fields are failing. Hungry raiders are circling the island, hoping the King\'s town is too weak to fight. Show them that a full henhouse and a sharp arrow beat a blight any day.',
   pass: 'The longest winter in memory has buried the mountain pass in snow. The Warlord\'s last loyal captains have gathered every raider they could find for one final march. Hold the pass, keep the fires burning, and the kingdom will see spring.',
@@ -10493,7 +10494,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'a79d79abbe'; var updateWait = false, updateT = 0;
+const BUILD = 'de49c7c0c1'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
