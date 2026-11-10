@@ -195,7 +195,7 @@ function place(type, ci, cj, opts = {}) {
   if (WALLY[type]) refreshWalls();
   if (opts.instant) syncTerrain(); else rebuildRoads();
   villagers.forEach(v => v.path = null); regionDirty = true;
-  if (!opts.quiet) log(`<b>${T.tiers[0]}</b> placed`);
+  if (!opts.quiet) { log(`<b>${T.tiers[0]}</b> placed`); buzz('light'); }
   return B;
 }
 // ---------- construction ----------

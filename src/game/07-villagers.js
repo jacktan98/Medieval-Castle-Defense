@@ -116,6 +116,7 @@ function makeHelm(kind) {
   return h;
 }
 const UNIT_K = .78;   // everyone drawn a little smaller so they fit through doors
+const EYE_GEO = new THREE.BoxGeometry(.028, .04, .02), eyeM = new THREE.MeshLambertMaterial({ color: '#1d1611' });
 function makePerson(opts) {
   const g = new THREE.Group(), body = new THREE.Group();
   const legs = [-.09, .09].map(x => { const l = box(.1, .4, .12, legM, x, 0, 0); l.geometry.translate(0, -.2, 0); l.position.y = .4; body.add(l); return l; });
@@ -128,6 +129,8 @@ function makePerson(opts) {
     body.add(a); return a;
   });
   const head = new THREE.Mesh(new THREE.SphereGeometry(.13, 8, 6), skin); head.position.y = 1.03; head.castShadow = true; body.add(head);
+  // two small dark eyes (Jack: faces were blank up close); helms and hoods that cover the face sit over them
+  for (const sx of [-1, 1]) { const e = new THREE.Mesh(EYE_GEO, eyeM); e.position.set(sx * .046, 1.045, .119); body.add(e); }
   body.add(makeHair(opts.hair || hairs[Math.floor(Math.random() * hairs.length)]));
   let hatG = null; if (opts.helm) { hatG = makeHelm(opts.helm); body.add(hatG); }
   let pivot = null;
@@ -910,7 +913,7 @@ function updateVillagers(dt, now) {
     v.arms[1].rotation.z = ease(v.arms[1].rotation.z, twoLogs ? 2.3 : logC ? .28 : 0); v.body.rotation.x = ease(v.body.rotation.x, lean);
     if (v.soldier) (v.toolKind === 'spear' ? spearPose : swordPose)(v, v.attackT || 0, swing);   // exact: eased, the strikes go soft
     smoothPos(v, dt, now); v.g.position.set(v.rx, walkY(v.rx, v.rz), v.rz);
-    if (v.sbar) { const on = v.soldier && v.hp < v.maxHp; v.sbar.grp.visible = on; if (on) { v.sbar.set(v.hp / v.maxHp); v.sbar.grp.position.set(v.rx, v.g.position.y + 1.5 * UNIT_K, v.rz); } }
+    if (v.sbar) { const on = v.soldier && v.hp < v.maxHp && barOn(v.hitAt); v.sbar.grp.visible = on; if (on) { v.sbar.set(v.hp / v.maxHp); v.sbar.grp.position.set(v.rx, v.g.position.y + 1.5 * UNIT_K, v.rz); } }
   }
 }
 function updateTrees(now) {

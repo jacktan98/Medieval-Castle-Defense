@@ -21,11 +21,36 @@ function sweepGeo() {
 }
 renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
 const scene = new THREE.Scene();
-const SKY_DAY = new THREE.Color('#9db1b5'), SKY_NIGHT = new THREE.Color('#2a3b63'), SKY_DUSK = new THREE.Color('#c98a5a');
+const SKY_DAY = new THREE.Color('#96b3c9'), SKY_NIGHT = new THREE.Color('#2a3b63'), SKY_DUSK = new THREE.Color('#c98a5a');
 const SKY_R = 280, skyGeo = new THREE.SphereGeometry(SKY_R, 32, 14);
 skyGeo.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(skyGeo.attributes.position.count * 3), 3));
 const sky = new THREE.Mesh(skyGeo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false }));
 sky.renderOrder = -1; scene.add(sky);
+// drifting clouds (Jack: the sky was a flat, empty colour): soft sprites in a wide ring round the map, white on top and grey
+// beneath, tinted by the sky (dusk, night, the weather) in updateLight and turning slowly about the map's middle
+const cloudG = new THREE.Group(), cloudCol = new THREE.Color(), CLOUD_WHITE = new THREE.Color(1, 1, 1);
+(() => {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 256; const x = cv.getContext('2d');
+  for (let i = 0; i < 14; i++) {
+    const cx = 60 + Math.random() * 136, cy = 110 + Math.random() * 50, r = 30 + Math.random() * 40, gr = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+    gr.addColorStop(0, 'rgba(255,255,255,.9)'); gr.addColorStop(.6, 'rgba(250,250,252,.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = gr; x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fill();
+  }
+  x.globalCompositeOperation = 'source-atop'; const sh = x.createLinearGradient(0, 90, 0, 200);
+  sh.addColorStop(0, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(150,160,178,.75)'); x.fillStyle = sh; x.fillRect(0, 0, 256, 256);
+  const tex = new THREE.CanvasTexture(cv);
+  for (let i = 0; i < 44; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: cloudCol, transparent: true, opacity: .5 + Math.random() * .35, fog: false, depthWrite: false, toneMapped: false }));
+    s.material.color = cloudCol;
+    const a = Math.random() * Math.PI * 2, R = 125 + Math.random() * 85, k = 60 + Math.random() * 70;
+    s.position.set(Math.cos(a) * R, 9 + Math.random() * 36, Math.sin(a) * R); s.scale.set(k, k * .45, 1); cloudG.add(s);
+  }
+  scene.add(cloudG);
+})();
+function updateClouds(dt) {
+  cloudG.position.set(SIZE / 2, 0, SIZE / 2); cloudG.rotation.y += dt * .006;
+  cloudCol.copy(skyHorizon).lerp(CLOUD_WHITE, .22 + .62 * light);
+}
 const skyHorizon = new THREE.Color(), skyZenith = new THREE.Color(), skyTmp = new THREE.Color(), ZENITH_TINT = new THREE.Color(.5, .64, .95);
 function paintSky() {
   const pos = skyGeo.attributes.position, col = skyGeo.attributes.color;

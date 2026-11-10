@@ -493,7 +493,7 @@ function engineWreck(e, y) {
 const BOOST_KEY = { crossbow: 'rangeArch', catapult: 'siegeRate' };
 const DEF_FXT = t => !!DECOR_FX[t];
 function hurtEnemy(e, d, by) {
-  if (e.dead) return; e.hp -= d; e.flashT = .14;
+  if (e.dead) return; e.hp -= d; e.flashT = .14; e.hitAt = performance.now();
   if (e.hp <= 0) {
     e.dead = true; e.bar.grp.visible = false; stats.slain++; const y = walkY(e.x, e.z);
     // achievements (campaign only): every raider slain, burning ones, those a rider struck down, engines and the two bosses
@@ -806,7 +806,7 @@ function updateEnemies(dt) {
     }
     smoothPos(e, dt, performance.now()); const y = walkY(e.rx, e.rz);
     e.g.position.set(e.rx, y < 0 ? y * .4 - .2 : y, e.rz);
-    e.bar.grp.visible = e.hp < e.max; e.bar.set(e.hp / e.max); e.bar.grp.position.set(e.rx, e.g.position.y + e.barY, e.rz);
+    e.bar.grp.visible = e.hp < e.max && (!!ENEMY[e.kind].boss || barOn(e.hitAt)); e.bar.set(e.hp / e.max); e.bar.grp.position.set(e.rx, e.g.position.y + e.barY, e.rz);
   }
 }
 // ---------- night watch: villagers walk to the castle and towers and shoot from the top ----------
@@ -993,7 +993,7 @@ function updateUnkit(v, dt) {
 }
 function hurtSoldier(v, d) {
   if (!v.soldier) return;
-  v.hp -= d;
+  v.hp -= d; v.hitAt = performance.now();
   if (v.hp > 0) return;
   // fallen: out of the town's count; a villager comes back to the same home after 60 s of daylight
   if (v.horse) stripKit(v);

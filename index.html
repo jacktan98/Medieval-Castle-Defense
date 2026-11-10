@@ -2032,11 +2032,36 @@ function sweepGeo() {
 }
 renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
 const scene = new THREE.Scene();
-const SKY_DAY = new THREE.Color('#9db1b5'), SKY_NIGHT = new THREE.Color('#2a3b63'), SKY_DUSK = new THREE.Color('#c98a5a');
+const SKY_DAY = new THREE.Color('#96b3c9'), SKY_NIGHT = new THREE.Color('#2a3b63'), SKY_DUSK = new THREE.Color('#c98a5a');
 const SKY_R = 280, skyGeo = new THREE.SphereGeometry(SKY_R, 32, 14);
 skyGeo.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(skyGeo.attributes.position.count * 3), 3));
 const sky = new THREE.Mesh(skyGeo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false }));
 sky.renderOrder = -1; scene.add(sky);
+// drifting clouds (Jack: the sky was a flat, empty colour): soft sprites in a wide ring round the map, white on top and grey
+// beneath, tinted by the sky (dusk, night, the weather) in updateLight and turning slowly about the map's middle
+const cloudG = new THREE.Group(), cloudCol = new THREE.Color(), CLOUD_WHITE = new THREE.Color(1, 1, 1);
+(() => {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 256; const x = cv.getContext('2d');
+  for (let i = 0; i < 14; i++) {
+    const cx = 60 + Math.random() * 136, cy = 110 + Math.random() * 50, r = 30 + Math.random() * 40, gr = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+    gr.addColorStop(0, 'rgba(255,255,255,.9)'); gr.addColorStop(.6, 'rgba(250,250,252,.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = gr; x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fill();
+  }
+  x.globalCompositeOperation = 'source-atop'; const sh = x.createLinearGradient(0, 90, 0, 200);
+  sh.addColorStop(0, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(150,160,178,.75)'); x.fillStyle = sh; x.fillRect(0, 0, 256, 256);
+  const tex = new THREE.CanvasTexture(cv);
+  for (let i = 0; i < 44; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: cloudCol, transparent: true, opacity: .5 + Math.random() * .35, fog: false, depthWrite: false, toneMapped: false }));
+    s.material.color = cloudCol;
+    const a = Math.random() * Math.PI * 2, R = 125 + Math.random() * 85, k = 60 + Math.random() * 70;
+    s.position.set(Math.cos(a) * R, 9 + Math.random() * 36, Math.sin(a) * R); s.scale.set(k, k * .45, 1); cloudG.add(s);
+  }
+  scene.add(cloudG);
+})();
+function updateClouds(dt) {
+  cloudG.position.set(SIZE / 2, 0, SIZE / 2); cloudG.rotation.y += dt * .006;
+  cloudCol.copy(skyHorizon).lerp(CLOUD_WHITE, .22 + .62 * light);
+}
 const skyHorizon = new THREE.Color(), skyZenith = new THREE.Color(), skyTmp = new THREE.Color(), ZENITH_TINT = new THREE.Color(.5, .64, .95);
 function paintSky() {
   const pos = skyGeo.attributes.position, col = skyGeo.attributes.color;
@@ -2450,7 +2475,7 @@ function cutaway(sh) {
     #endif`);
   sh.fragmentShader = 'uniform vec3 uCam; uniform vec3 uTgt; varying vec3 vTreeP;\n' + sh.fragmentShader.replace('void main() {', `void main() {
     vec3 ct = uTgt - uCam; float tt = clamp(dot(vTreeP - uCam, ct) / dot(ct, ct), 0.0, 1.0);
-    float cutK = (1.0 - smoothstep(1.4, 2.8, length(vTreeP - uCam - ct * tt))) * (1.0 - smoothstep(.8, .93, tt)) * .9;
+    float cutK = (1.0 - smoothstep(1.4, 2.8, length(vTreeP - uCam - ct * tt))) * (1.0 - smoothstep(.8, .93, tt)) * 1.25;
     if (cutK > fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(.06711056, .00583715))))) discard;`);
 }
 crowns.material.onBeforeCompile = sh => {
@@ -3785,8 +3810,14 @@ function makeCrossbowTower(tier, plinth) {
   const t = new THREE.Group(); t.scale.setScalar(XBOW_K); g.add(t);   // drawn at XBOW_K: squat beside the archers' lookout, not bigger than it
   if (tier === 1) {
     t.add(box(1.5, top - .12, 1.5, M.log, 0, (top - .12) / 2 + .06, 0));
-    for (const sx of [-1, 1]) t.add(box(.06, .3, .02, M.dark, sx * .35, 1.2, .76));
+    // Jack: it read as a plain dark box: log courses (dark gaps between them), lighter corner posts, arrow slits on the
+    // front and sides, and a straw roof on four posts over the fighting top, as the lookout has
+    for (let y = .42; y < top - .3; y += .36) t.add(box(1.53, .035, 1.53, M.dark, 0, y, 0));
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) t.add(box(.16, top - .1, .16, M.rough, sx * .74, (top - .1) / 2 + .05, sz * .74));
+    for (const sx of [-1, 1]) { t.add(box(.06, .3, .02, M.dark, sx * .35, 1.2, .775)); for (const sd of [-1, 1]) t.add(box(.02, .3, .06, M.dark, sd * .775, 1.2, sx * .3)); }
     t.add(box(1.8, .12, 1.8, M.rough, 0, top - .06, 0));
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) t.add(box(.08, HEAD, .08, M.rough, sx * .82, top + HEAD / 2, sz * .82));
+    t.add(pyramid(1.42, .62, 1, M.thatchOld, top + HEAD + .31));
     for (const [x, z, w, d] of [[0, .87, 1.8, .06], [0, -.87, 1.8, .06], [.87, 0, .06, 1.8], [-.87, 0, .06, 1.8]]) t.add(box(w, .5, d, M.rough, x, top + .25, z));
     // a ladder up the back: two rails clear of the deck's edge, rising past the parapet, rungs between them
     const LZ = -.97, LH = top + .45;
@@ -4215,6 +4246,10 @@ function drapeDisc(m, cx, cz, r) {
 }
 
 // ---------- sprites: health bars + floating text ----------
+// a health bar shows only for a few seconds after a hit (Jack: every damaged unit and building kept its bar, and a big fight
+// was all bars); a selected building and a boss keep theirs
+const BAR_SHOW = 4000;
+function barOn(t) { return !!t && performance.now() - t < BAR_SHOW; }
 function makeBar(w) {
   const mk = c => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ color: c, depthTest: false, transparent: true, toneMapped: false })); s.renderOrder = 20; return s; };
   const bg = mk('#1a1410'), fg = mk('#8cc46e');
@@ -4678,7 +4713,7 @@ function place(type, ci, cj, opts = {}) {
   if (WALLY[type]) refreshWalls();
   if (opts.instant) syncTerrain(); else rebuildRoads();
   villagers.forEach(v => v.path = null); regionDirty = true;
-  if (!opts.quiet) log(`<b>${T.tiers[0]}</b> placed`);
+  if (!opts.quiet) { log(`<b>${T.tiers[0]}</b> placed`); buzz('light'); }
   return B;
 }
 // ---------- construction ----------
@@ -4946,6 +4981,7 @@ function makeHelm(kind) {
   return h;
 }
 const UNIT_K = .78;   // everyone drawn a little smaller so they fit through doors
+const EYE_GEO = new THREE.BoxGeometry(.028, .04, .02), eyeM = new THREE.MeshLambertMaterial({ color: '#1d1611' });
 function makePerson(opts) {
   const g = new THREE.Group(), body = new THREE.Group();
   const legs = [-.09, .09].map(x => { const l = box(.1, .4, .12, legM, x, 0, 0); l.geometry.translate(0, -.2, 0); l.position.y = .4; body.add(l); return l; });
@@ -4958,6 +4994,8 @@ function makePerson(opts) {
     body.add(a); return a;
   });
   const head = new THREE.Mesh(new THREE.SphereGeometry(.13, 8, 6), skin); head.position.y = 1.03; head.castShadow = true; body.add(head);
+  // two small dark eyes (Jack: faces were blank up close); helms and hoods that cover the face sit over them
+  for (const sx of [-1, 1]) { const e = new THREE.Mesh(EYE_GEO, eyeM); e.position.set(sx * .046, 1.045, .119); body.add(e); }
   body.add(makeHair(opts.hair || hairs[Math.floor(Math.random() * hairs.length)]));
   let hatG = null; if (opts.helm) { hatG = makeHelm(opts.helm); body.add(hatG); }
   let pivot = null;
@@ -5740,7 +5778,7 @@ function updateVillagers(dt, now) {
     v.arms[1].rotation.z = ease(v.arms[1].rotation.z, twoLogs ? 2.3 : logC ? .28 : 0); v.body.rotation.x = ease(v.body.rotation.x, lean);
     if (v.soldier) (v.toolKind === 'spear' ? spearPose : swordPose)(v, v.attackT || 0, swing);   // exact: eased, the strikes go soft
     smoothPos(v, dt, now); v.g.position.set(v.rx, walkY(v.rx, v.rz), v.rz);
-    if (v.sbar) { const on = v.soldier && v.hp < v.maxHp; v.sbar.grp.visible = on; if (on) { v.sbar.set(v.hp / v.maxHp); v.sbar.grp.position.set(v.rx, v.g.position.y + 1.5 * UNIT_K, v.rz); } }
+    if (v.sbar) { const on = v.soldier && v.hp < v.maxHp && barOn(v.hitAt); v.sbar.grp.visible = on; if (on) { v.sbar.set(v.hp / v.maxHp); v.sbar.grp.position.set(v.rx, v.g.position.y + 1.5 * UNIT_K, v.rz); } }
   }
 }
 function updateTrees(now) {
@@ -6248,7 +6286,7 @@ function engineWreck(e, y) {
 const BOOST_KEY = { crossbow: 'rangeArch', catapult: 'siegeRate' };
 const DEF_FXT = t => !!DECOR_FX[t];
 function hurtEnemy(e, d, by) {
-  if (e.dead) return; e.hp -= d; e.flashT = .14;
+  if (e.dead) return; e.hp -= d; e.flashT = .14; e.hitAt = performance.now();
   if (e.hp <= 0) {
     e.dead = true; e.bar.grp.visible = false; stats.slain++; const y = walkY(e.x, e.z);
     // achievements (campaign only): every raider slain, burning ones, those a rider struck down, engines and the two bosses
@@ -6561,7 +6599,7 @@ function updateEnemies(dt) {
     }
     smoothPos(e, dt, performance.now()); const y = walkY(e.rx, e.rz);
     e.g.position.set(e.rx, y < 0 ? y * .4 - .2 : y, e.rz);
-    e.bar.grp.visible = e.hp < e.max; e.bar.set(e.hp / e.max); e.bar.grp.position.set(e.rx, e.g.position.y + e.barY, e.rz);
+    e.bar.grp.visible = e.hp < e.max && (!!ENEMY[e.kind].boss || barOn(e.hitAt)); e.bar.set(e.hp / e.max); e.bar.grp.position.set(e.rx, e.g.position.y + e.barY, e.rz);
   }
 }
 // ---------- night watch: villagers walk to the castle and towers and shoot from the top ----------
@@ -6748,7 +6786,7 @@ function updateUnkit(v, dt) {
 }
 function hurtSoldier(v, d) {
   if (!v.soldier) return;
-  v.hp -= d;
+  v.hp -= d; v.hitAt = performance.now();
   if (v.hp > 0) return;
   // fallen: out of the town's count; a villager comes back to the same home after 60 s of daylight
   if (v.horse) stripKit(v);
@@ -7528,7 +7566,7 @@ function updateLight(dt, now) {
   light += (target - light) * Math.min(1, dt * (endDawn ? .45 : 1.2));   // the win's dawn comes up slowly
   const dusk = PH.kind === 'day' ? clamp(sstep(DUSK, 0, PH.t) * (1 - Math.abs(light - .55) * 1.1), 0, 1) : 0;
   skyHorizon.copy(SKY_NIGHT).lerp(SKY_DAY, light).lerp(SKY_DUSK, Math.min(dusk, .6)); weatherSky(skyHorizon); scene.fog.color.copy(skyHorizon);
-  if ((skyT -= dt) <= 0) { skyT = .15; paintSky(); } sky.position.copy(camera.position);
+  if ((skyT -= dt) <= 0) { skyT = .15; paintSky(); } sky.position.copy(camera.position); updateClouds(dt);
   windU.value = now / 1000;
   sun.intensity = lerp(.68, 1.05, light); sun.color.copy(SUN_NIGHT).lerp(SUN_DAY, light).lerp(SUN_DUSK, Math.min(dusk, .7));
   hemi.intensity = lerp(.52, .72, light); hemi.color.copy(HEMI_NIGHT).lerp(HEMI_DAY, light);
@@ -8791,13 +8829,15 @@ function dormantStep(e, dt) {
 }
 // paths laid along polylines, cell by cell, diagonal steps joined so they stay connected
 function layRoads(list) {
+  // a road runs on into a bridge's end cells, up to the deck (Jack: it stopped a cell short, leaving grass before the bridge)
+  const shut = n => bridgeCell[n] && !bridges[bridgeCell[n] - 1].ends.has(n);
   for (const pts of list) {
     let prev = -1;
     for (let i = 0; i < pts.length - 1; i++) for (let t = 0; t <= 1; t += .05) {
       const x = clamp(lerp(pts[i][0], pts[i + 1][0], t), .5, SIZE - .5), z = clamp(lerp(pts[i][1], pts[i + 1][1], t), .5, SIZE - .5), n = cellAt(x, z);
       if (n === prev) continue;
-      if (prev >= 0 && n % N !== prev % N && ((n / N) | 0) !== ((prev / N) | 0)) { const m = ((prev / N) | 0) * N + n % N; if (!occB[m] && !bridgeCell[m]) road[m] = 1; }   // a diagonal step: join it
-      if (!occB[n] && !bridgeCell[n]) road[n] = 1; prev = n;
+      if (prev >= 0 && n % N !== prev % N && ((n / N) | 0) !== ((prev / N) | 0)) { const m = ((prev / N) | 0) * N + n % N; if (!occB[m] && !shut(m)) road[m] = 1; }   // a diagonal step: join it
+      if (!occB[n] && !shut(n)) road[n] = 1; prev = n;
     }
   }
 }
@@ -10237,8 +10277,22 @@ setInterval(() => {
     }
   }
 }, 1500);
+// haptics in the app (Jack): a light tap when a building is placed or finished and a star pops, a firmer one when a building
+// falls or an upgrade is bought, a heavy one at nightfall's horn, the system's success and failure buzzes for achievements,
+// unlocks, victory and defeat; through Capacitor's Haptics plugin, nothing on the website; they follow the sounds' events
+// (also when the sound is turned down), at most one every 80 ms
+var HAPT = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Haptics || null, buzzAt = 0;
+var BUZZ = { build: 'light', star: 'light', trade: 'light', destroyed: 'medium', upgrade: 'medium', horn: 'heavy', achieve: 'ok', unlock: 'ok', victory: 'ok', defeat: 'bad' };
+function buzz(k) {
+  if (!HAPT || !k || document.hidden) return; const now = performance.now(); if (now - buzzAt < 80) return; buzzAt = now;
+  try {
+    const p = k === 'ok' ? HAPT.notification({ type: 'SUCCESS' }) : k === 'bad' ? HAPT.notification({ type: 'ERROR' }) : HAPT.impact({ style: k === 'heavy' ? 'HEAVY' : k === 'medium' ? 'MEDIUM' : 'LIGHT' });
+    if (p && p.catch) p.catch(() => {});
+  } catch (e) {}
+}
 // at: a world point; world sounds fade with distance from what the camera looks at, and when zoomed far out
 function sfx(name, at, vol = 1) {
+  if (BUZZ && BUZZ[name] && typeof menuOn === 'function') buzz(BUZZ[name]);
   if (muted || !actx) return;
   if (actx.state !== 'running') { if (audioUnlocked && !document.hidden && actx.state !== 'closed') actx.resume().catch(() => {}); return; }
   if (name === 'victory' || name === 'defeat' ? musicOff : sfxOff) return;
@@ -10369,7 +10423,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '4e16bb3ee1'; var updateWait = false, updateT = 0;
+const BUILD = '699e6bc0c4'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
@@ -10604,7 +10658,7 @@ function tick(dt, now) {
     if (B.pop) { const t = clamp((now - B.pop) / 450, 0, 1), k = 1 + .09 * Math.sin(t * Math.PI) * (1 - t); B.group.scale.x = B.group.scale.z = k; if (t >= 1) { B.group.scale.x = B.group.scale.z = 1; B.pop = 0; } }
     if (B.rise) { const t = clamp((now - B.rise.t0) / 420, 0, 1); B.group.scale.y = Math.max(.001, lerp(B.rise.from, 1, easeOut(t))); if (t >= 1) B.rise = null; }
     const c = center(B);
-    B.bar.grp.visible = B.hp < B.max; B.bar.set(B.hp / B.max); B.bar.grp.position.set(c.x, B.group.position.y + barTop(B), c.z);
+    B.bar.grp.visible = B.hp < B.max && (selected === B || barOn(B.hitT)); B.bar.set(B.hp / B.max); B.bar.grp.position.set(c.x, B.group.position.y + barTop(B), c.z);
   }
   for (let n = floats.length - 1; n >= 0; n--) { const f = floats[n]; const L = f.life || 1.8; f.t += dt; f.sp.position.y += dt * (L > 2 ? .25 : .9); f.sp.material.opacity = L > 2 ? 1 - sstep(L - 1.5, L, f.t) : 1 - f.t / L; if (f.t > L) { scene.remove(f.sp); f.sp.material.dispose(); floats.splice(n, 1); } }
 }

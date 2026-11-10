@@ -398,7 +398,7 @@ function updateLight(dt, now) {
   light += (target - light) * Math.min(1, dt * (endDawn ? .45 : 1.2));   // the win's dawn comes up slowly
   const dusk = PH.kind === 'day' ? clamp(sstep(DUSK, 0, PH.t) * (1 - Math.abs(light - .55) * 1.1), 0, 1) : 0;
   skyHorizon.copy(SKY_NIGHT).lerp(SKY_DAY, light).lerp(SKY_DUSK, Math.min(dusk, .6)); weatherSky(skyHorizon); scene.fog.color.copy(skyHorizon);
-  if ((skyT -= dt) <= 0) { skyT = .15; paintSky(); } sky.position.copy(camera.position);
+  if ((skyT -= dt) <= 0) { skyT = .15; paintSky(); } sky.position.copy(camera.position); updateClouds(dt);
   windU.value = now / 1000;
   sun.intensity = lerp(.68, 1.05, light); sun.color.copy(SUN_NIGHT).lerp(SUN_DAY, light).lerp(SUN_DUSK, Math.min(dusk, .7));
   hemi.intensity = lerp(.52, .72, light); hemi.color.copy(HEMI_NIGHT).lerp(HEMI_DAY, light);

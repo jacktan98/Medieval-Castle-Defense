@@ -786,8 +786,14 @@ function makeCrossbowTower(tier, plinth) {
   const t = new THREE.Group(); t.scale.setScalar(XBOW_K); g.add(t);   // drawn at XBOW_K: squat beside the archers' lookout, not bigger than it
   if (tier === 1) {
     t.add(box(1.5, top - .12, 1.5, M.log, 0, (top - .12) / 2 + .06, 0));
-    for (const sx of [-1, 1]) t.add(box(.06, .3, .02, M.dark, sx * .35, 1.2, .76));
+    // Jack: it read as a plain dark box: log courses (dark gaps between them), lighter corner posts, arrow slits on the
+    // front and sides, and a straw roof on four posts over the fighting top, as the lookout has
+    for (let y = .42; y < top - .3; y += .36) t.add(box(1.53, .035, 1.53, M.dark, 0, y, 0));
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) t.add(box(.16, top - .1, .16, M.rough, sx * .74, (top - .1) / 2 + .05, sz * .74));
+    for (const sx of [-1, 1]) { t.add(box(.06, .3, .02, M.dark, sx * .35, 1.2, .775)); for (const sd of [-1, 1]) t.add(box(.02, .3, .06, M.dark, sd * .775, 1.2, sx * .3)); }
     t.add(box(1.8, .12, 1.8, M.rough, 0, top - .06, 0));
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) t.add(box(.08, HEAD, .08, M.rough, sx * .82, top + HEAD / 2, sz * .82));
+    t.add(pyramid(1.42, .62, 1, M.thatchOld, top + HEAD + .31));
     for (const [x, z, w, d] of [[0, .87, 1.8, .06], [0, -.87, 1.8, .06], [.87, 0, .06, 1.8], [-.87, 0, .06, 1.8]]) t.add(box(w, .5, d, M.rough, x, top + .25, z));
     // a ladder up the back: two rails clear of the deck's edge, rising past the parapet, rungs between them
     const LZ = -.97, LH = top + .45;

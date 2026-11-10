@@ -18,7 +18,7 @@ function cutaway(sh) {
     #endif`);
   sh.fragmentShader = 'uniform vec3 uCam; uniform vec3 uTgt; varying vec3 vTreeP;\n' + sh.fragmentShader.replace('void main() {', `void main() {
     vec3 ct = uTgt - uCam; float tt = clamp(dot(vTreeP - uCam, ct) / dot(ct, ct), 0.0, 1.0);
-    float cutK = (1.0 - smoothstep(1.4, 2.8, length(vTreeP - uCam - ct * tt))) * (1.0 - smoothstep(.8, .93, tt)) * .9;
+    float cutK = (1.0 - smoothstep(1.4, 2.8, length(vTreeP - uCam - ct * tt))) * (1.0 - smoothstep(.8, .93, tt)) * 1.25;
     if (cutK > fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(.06711056, .00583715))))) discard;`);
 }
 crowns.material.onBeforeCompile = sh => {

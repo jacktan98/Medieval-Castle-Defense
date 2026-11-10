@@ -421,8 +421,22 @@ setInterval(() => {
     }
   }
 }, 1500);
+// haptics in the app (Jack): a light tap when a building is placed or finished and a star pops, a firmer one when a building
+// falls or an upgrade is bought, a heavy one at nightfall's horn, the system's success and failure buzzes for achievements,
+// unlocks, victory and defeat; through Capacitor's Haptics plugin, nothing on the website; they follow the sounds' events
+// (also when the sound is turned down), at most one every 80 ms
+var HAPT = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Haptics || null, buzzAt = 0;
+var BUZZ = { build: 'light', star: 'light', trade: 'light', destroyed: 'medium', upgrade: 'medium', horn: 'heavy', achieve: 'ok', unlock: 'ok', victory: 'ok', defeat: 'bad' };
+function buzz(k) {
+  if (!HAPT || !k || document.hidden) return; const now = performance.now(); if (now - buzzAt < 80) return; buzzAt = now;
+  try {
+    const p = k === 'ok' ? HAPT.notification({ type: 'SUCCESS' }) : k === 'bad' ? HAPT.notification({ type: 'ERROR' }) : HAPT.impact({ style: k === 'heavy' ? 'HEAVY' : k === 'medium' ? 'MEDIUM' : 'LIGHT' });
+    if (p && p.catch) p.catch(() => {});
+  } catch (e) {}
+}
 // at: a world point; world sounds fade with distance from what the camera looks at, and when zoomed far out
 function sfx(name, at, vol = 1) {
+  if (BUZZ && BUZZ[name] && typeof menuOn === 'function') buzz(BUZZ[name]);
   if (muted || !actx) return;
   if (actx.state !== 'running') { if (audioUnlocked && !document.hidden && actx.state !== 'closed') actx.resume().catch(() => {}); return; }
   if (name === 'victory' || name === 'defeat' ? musicOff : sfxOff) return;
@@ -788,7 +802,7 @@ function tick(dt, now) {
     if (B.pop) { const t = clamp((now - B.pop) / 450, 0, 1), k = 1 + .09 * Math.sin(t * Math.PI) * (1 - t); B.group.scale.x = B.group.scale.z = k; if (t >= 1) { B.group.scale.x = B.group.scale.z = 1; B.pop = 0; } }
     if (B.rise) { const t = clamp((now - B.rise.t0) / 420, 0, 1); B.group.scale.y = Math.max(.001, lerp(B.rise.from, 1, easeOut(t))); if (t >= 1) B.rise = null; }
     const c = center(B);
-    B.bar.grp.visible = B.hp < B.max; B.bar.set(B.hp / B.max); B.bar.grp.position.set(c.x, B.group.position.y + barTop(B), c.z);
+    B.bar.grp.visible = B.hp < B.max && (selected === B || barOn(B.hitT)); B.bar.set(B.hp / B.max); B.bar.grp.position.set(c.x, B.group.position.y + barTop(B), c.z);
   }
   for (let n = floats.length - 1; n >= 0; n--) { const f = floats[n]; const L = f.life || 1.8; f.t += dt; f.sp.position.y += dt * (L > 2 ? .25 : .9); f.sp.material.opacity = L > 2 ? 1 - sstep(L - 1.5, L, f.t) : 1 - f.t / L; if (f.t > L) { scene.remove(f.sp); f.sp.material.dispose(); floats.splice(n, 1); } }
 }

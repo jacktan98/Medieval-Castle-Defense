@@ -47,6 +47,10 @@ function drapeDisc(m, cx, cz, r) {
 }
 
 // ---------- sprites: health bars + floating text ----------
+// a health bar shows only for a few seconds after a hit (Jack: every damaged unit and building kept its bar, and a big fight
+// was all bars); a selected building and a boss keep theirs
+const BAR_SHOW = 4000;
+function barOn(t) { return !!t && performance.now() - t < BAR_SHOW; }
 function makeBar(w) {
   const mk = c => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ color: c, depthTest: false, transparent: true, toneMapped: false })); s.renderOrder = 20; return s; };
   const bg = mk('#1a1410'), fg = mk('#8cc46e');

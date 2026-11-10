@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@capacitor/core": "^8.0.0",
+    "@capacitor/haptics": "^8.0.2",
     "@capacitor/ios": "^8.0.0",
     "@capacitor/preferences": "^8.0.0",
     "castle-store": "file:plugins/store"

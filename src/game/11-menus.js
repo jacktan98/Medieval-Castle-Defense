@@ -508,13 +508,15 @@ function dormantStep(e, dt) {
 }
 // paths laid along polylines, cell by cell, diagonal steps joined so they stay connected
 function layRoads(list) {
+  // a road runs on into a bridge's end cells, up to the deck (Jack: it stopped a cell short, leaving grass before the bridge)
+  const shut = n => bridgeCell[n] && !bridges[bridgeCell[n] - 1].ends.has(n);
   for (const pts of list) {
     let prev = -1;
     for (let i = 0; i < pts.length - 1; i++) for (let t = 0; t <= 1; t += .05) {
       const x = clamp(lerp(pts[i][0], pts[i + 1][0], t), .5, SIZE - .5), z = clamp(lerp(pts[i][1], pts[i + 1][1], t), .5, SIZE - .5), n = cellAt(x, z);
       if (n === prev) continue;
-      if (prev >= 0 && n % N !== prev % N && ((n / N) | 0) !== ((prev / N) | 0)) { const m = ((prev / N) | 0) * N + n % N; if (!occB[m] && !bridgeCell[m]) road[m] = 1; }   // a diagonal step: join it
-      if (!occB[n] && !bridgeCell[n]) road[n] = 1; prev = n;
+      if (prev >= 0 && n % N !== prev % N && ((n / N) | 0) !== ((prev / N) | 0)) { const m = ((prev / N) | 0) * N + n % N; if (!occB[m] && !shut(m)) road[m] = 1; }   // a diagonal step: join it
+      if (!occB[n] && !shut(n)) road[n] = 1; prev = n;
     }
   }
 }
