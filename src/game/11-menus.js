@@ -890,7 +890,7 @@ islandSide(); addEventListener('resize', islandSide);
 function tabletScale() {
   const W = innerWidth, H = innerHeight, tab = (navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches) && Math.min(W, H) >= 700;
   const k = !tab ? 1 : Math.max(1, Math.min(1.6, W < H ? Math.min(W / 430, H / 900) : Math.min(W / 900, H / 560)));
-  document.body.classList.toggle('tablet', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3));
+  document.body.classList.toggle('tablet', tab); document.documentElement.classList.toggle('tabletDoc', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3));
   // the zoom as a plain number, not var(--uiK): Safari zoomed the boxes but not most of the text with the variable
   let zr = document.getElementById('uiKRule'); if (!zr) { zr = document.createElement('style'); zr.id = 'uiKRule'; document.head.appendChild(zr); }
   const zs = `body.tablet .modal,body.tablet .panel,body.tablet .dock,body.tablet .corner,body.tablet #pauseBtn,body.tablet #pausedTag,body.tablet .tipPill{zoom:${k.toFixed(3)}}`;
@@ -931,6 +931,8 @@ function matchUpZoom(m) {
   m.style.zoom = z;
 }
 tabletScale(); addEventListener('resize', tabletScale);
+// one line for Xcode's console on a tablet: how wide the Goals word and its panel are drawn, to tell whether text follows the UI zoom
+if (document.body.classList.contains('tablet')) setTimeout(() => { const g = $('#goalHead'), p = $('.panel'); if (g && p) console.log(`ui zoom ${parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--uiK')).toFixed(2)}: Goals word ${g.getBoundingClientRect().width.toFixed(1)} px wide, panel ${p.getBoundingClientRect().width.toFixed(0)} px`); }, 4000);
 // the HUD tick that places the night powers and the boss bar stops while paused: place them again whenever the screen turns
 // (Jack turned the phone while paused and the powers stayed where the sideways layout had them)
 addEventListener('resize', () => { markRect = null; updatePowers(); updateBossBar(); if (typeof sideHints === 'function') sideHints(); }); addEventListener('orientationchange', () => setTimeout(islandSide, 100));

@@ -1,6 +1,9 @@
 /* iPhone Safari enlarges text on its own when the phone is turned sideways; keep every size as written (Jack saw the town
    picker's rows come out uneven and bigger than designed) */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* not on tablets (tabletScale marks <html>): on an iPad Safari zoomed every box with the UI zoom but left the text phone-sized (Jack,
+   iPad Air 13-inch and A16), and text-size-adjust is the one setting that acts on text alone */
+html.tabletDoc{-webkit-text-size-adjust:auto;text-size-adjust:auto}
 /* Layout: full-bleed 3D field; town ledger top-left, tabbed build dock at the bottom, banners centred. Single dark look by choice. */
 :root{
   --bg:#141a17; --panel:linear-gradient(180deg,rgba(44,34,18,.92) 0%,rgba(26,20,11,.93) 100%); --line:rgba(212,168,78,.4); --parch:#ece2c8; --muted:#a69e87;

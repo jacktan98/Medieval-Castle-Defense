@@ -18,6 +18,9 @@
 /* iPhone Safari enlarges text on its own when the phone is turned sideways; keep every size as written (Jack saw the town
    picker's rows come out uneven and bigger than designed) */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* not on tablets (tabletScale marks <html>): on an iPad Safari zoomed every box with the UI zoom but left the text phone-sized (Jack,
+   iPad Air 13-inch and A16), and text-size-adjust is the one setting that acts on text alone */
+html.tabletDoc{-webkit-text-size-adjust:auto;text-size-adjust:auto}
 /* Layout: full-bleed 3D field; town ledger top-left, tabbed build dock at the bottom, banners centred. Single dark look by choice. */
 :root{
   --bg:#141a17; --panel:linear-gradient(180deg,rgba(44,34,18,.92) 0%,rgba(26,20,11,.93) 100%); --line:rgba(212,168,78,.4); --parch:#ece2c8; --muted:#a69e87;
@@ -9151,7 +9154,7 @@ islandSide(); addEventListener('resize', islandSide);
 function tabletScale() {
   const W = innerWidth, H = innerHeight, tab = (navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches) && Math.min(W, H) >= 700;
   const k = !tab ? 1 : Math.max(1, Math.min(1.6, W < H ? Math.min(W / 430, H / 900) : Math.min(W / 900, H / 560)));
-  document.body.classList.toggle('tablet', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3));
+  document.body.classList.toggle('tablet', tab); document.documentElement.classList.toggle('tabletDoc', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3));
   // the zoom as a plain number, not var(--uiK): Safari zoomed the boxes but not most of the text with the variable
   let zr = document.getElementById('uiKRule'); if (!zr) { zr = document.createElement('style'); zr.id = 'uiKRule'; document.head.appendChild(zr); }
   const zs = `body.tablet .modal,body.tablet .panel,body.tablet .dock,body.tablet .corner,body.tablet #pauseBtn,body.tablet #pausedTag,body.tablet .tipPill{zoom:${k.toFixed(3)}}`;
@@ -9192,6 +9195,8 @@ function matchUpZoom(m) {
   m.style.zoom = z;
 }
 tabletScale(); addEventListener('resize', tabletScale);
+// one line for Xcode's console on a tablet: how wide the Goals word and its panel are drawn, to tell whether text follows the UI zoom
+if (document.body.classList.contains('tablet')) setTimeout(() => { const g = $('#goalHead'), p = $('.panel'); if (g && p) console.log(`ui zoom ${parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--uiK')).toFixed(2)}: Goals word ${g.getBoundingClientRect().width.toFixed(1)} px wide, panel ${p.getBoundingClientRect().width.toFixed(0)} px`); }, 4000);
 // the HUD tick that places the night powers and the boss bar stops while paused: place them again whenever the screen turns
 // (Jack turned the phone while paused and the powers stayed where the sideways layout had them)
 addEventListener('resize', () => { markRect = null; updatePowers(); updateBossBar(); if (typeof sideHints === 'function') sideHints(); }); addEventListener('orientationchange', () => setTimeout(islandSide, 100));
@@ -10284,7 +10289,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'ba43714a57'; var updateWait = false, updateT = 0;
+const BUILD = 'f0b405b6b9'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
