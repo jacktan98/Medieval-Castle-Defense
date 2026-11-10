@@ -9173,10 +9173,13 @@ function tabletScale() {
 // but drew the text phone-sized, "Goals" 42 px wide where Chromium draws 60; a scale enlarges the text with everything else in
 // every browser); a full-screen layer (a menu, the paused overlay) is laid out 1/k of the screen and scaled up from its top-left
 // corner, so it still fills it. Phones keep CSS zoom for their own fitting, as tuned before. The scale is read back from data-z.
+// phones now use the scale too (Jack: the town picker and the three screens are shrunk on a small iPhone and grown on a big one
+// held sideways, and with zoom Safari would leave the text its own size). To go back to zoom on phones, set PHONE_ZOOM to true.
+const PHONE_ZOOM = false;
 let uiK = 1;
 function uiScale(el, k, origin, full) {
   if (!el) return;
-  const tab = document.body.classList.contains('tablet');
+  const tab = !PHONE_ZOOM || document.body.classList.contains('tablet');
   el.dataset.z = k;
   if (!tab) { el.style.scale = el.style.transformOrigin = ''; if (full) el.style.width = el.style.height = el.style.right = el.style.bottom = ''; el.style.zoom = k === 1 ? '' : k; return; }
   el.style.zoom = ''; el.style.scale = k === 1 ? '' : k; el.style.transformOrigin = origin;
@@ -10308,7 +10311,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'd1ff5d612a'; var updateWait = false, updateT = 0;
+const BUILD = 'cfb02d470b'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

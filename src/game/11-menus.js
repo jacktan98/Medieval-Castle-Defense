@@ -906,10 +906,13 @@ function tabletScale() {
 // but drew the text phone-sized, "Goals" 42 px wide where Chromium draws 60; a scale enlarges the text with everything else in
 // every browser); a full-screen layer (a menu, the paused overlay) is laid out 1/k of the screen and scaled up from its top-left
 // corner, so it still fills it. Phones keep CSS zoom for their own fitting, as tuned before. The scale is read back from data-z.
+// phones now use the scale too (Jack: the town picker and the three screens are shrunk on a small iPhone and grown on a big one
+// held sideways, and with zoom Safari would leave the text its own size). To go back to zoom on phones, set PHONE_ZOOM to true.
+const PHONE_ZOOM = false;
 let uiK = 1;
 function uiScale(el, k, origin, full) {
   if (!el) return;
-  const tab = document.body.classList.contains('tablet');
+  const tab = !PHONE_ZOOM || document.body.classList.contains('tablet');
   el.dataset.z = k;
   if (!tab) { el.style.scale = el.style.transformOrigin = ''; if (full) el.style.width = el.style.height = el.style.right = el.style.bottom = ''; el.style.zoom = k === 1 ? '' : k; return; }
   el.style.zoom = ''; el.style.scale = k === 1 ? '' : k; el.style.transformOrigin = origin;
