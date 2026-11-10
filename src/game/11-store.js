@@ -60,8 +60,10 @@ function revealSweep() {
   }, T0 + k * STEP));
   setTimeout(() => { REVEAL.clear(); if ($('#campaign').hidden) return; buildDeck(); selectStage(FREE_N, true); }, T0 + idx.length * STEP + 1400);
 }
-// a gold crown beside the title on the title screen once the full game is owned (Jack; it sat on the showcase castle's flag pole)
-function syncTitleCrown() { const c = $('#titleCrown'); if (!c) return; if (!c.firstChild) c.innerHTML = CROWN_ICO; c.hidden = !fullOwned(); }
+// a gold crown beside the title on the title screen once the full game is owned (Jack; it sat on the showcase castle's flag pole):
+// a classic crown in the title's style, five points with round tips over a separate band
+var TITLE_CROWN = '<svg viewBox="0 0 28 24"><path d="M3.2 9.2 L8.6 13.6 L14 5.2 L19.4 13.6 L24.8 9.2 L22.6 18.6 H5.4 Z"/><rect x="5" y="19.4" width="18" height="2.6" rx=".4"/><circle cx="3.2" cy="7.6" r="1.6"/><circle cx="14" cy="3.4" r="1.8"/><circle cx="24.8" cy="7.6" r="1.6"/><circle cx="8.6" cy="12" r="1.1"/><circle cx="19.4" cy="12" r="1.1"/></svg>';
+function syncTitleCrown() { const c = $('#titleCrown'); if (!c) return; if (!c.firstChild) c.innerHTML = TITLE_CROWN; c.hidden = !fullOwned(); }
 // a short line in the small black strip over the details' button (like Hard's "Win 3 stars to unlock")
 function buyMsg(t) { const p = $(!$('#offerWrap').hidden ? '#offerMsg' : '#buyMsg'); if (!p) return; p.textContent = t; p.hidden = true; void p.offsetWidth; p.hidden = false; clearTimeout(p._t); p._t = setTimeout(() => p.hidden = true, 2200); }
 function buyFull() {
