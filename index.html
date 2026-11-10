@@ -10170,9 +10170,20 @@ if (actx) for (const k in SND) {
 }
 // each loop is an <audio> element routed into Web Audio; makeLoop builds (or rebuilds) one onto the loop's gain node
 var loopAn = {}, MUSIC_LOOPS = ['music', 'music2', 'night'];
+// inside the app (Jack: no music on his iPhone, effects fine, the website fine) a loop's file is read like the effects' (fetch)
+// and played from a blob: address, as WebKit may not stream an <audio> from the app's own capacitor:// files into Web Audio;
+// read once per loop and kept (about 11 MB), so a rebuild reuses it
+var IN_APP = location.protocol === 'capacitor:', loopUrl = {};
+function loopSrc(k) {
+  if (loopUrl[k]) return loopUrl[k];
+  const mp3 = 'audio/' + LOOPS[k].file, m4a = mp3.replace(/\.mp3$/, '.m4a');
+  return loopUrl[k] = sfxBytes(m4a).then(ab => ab ? [ab, 'audio/mp4'] : sfxBytes(mp3).then(b => b && [b, 'audio/mpeg']))
+    .then(r => r ? URL.createObjectURL(new Blob([r[0]], { type: r[1] })) : null).catch(() => null);
+}
 function makeLoop(k) {
   const day = k === 'music' || k === 'music2';
-  const el = new Audio('audio/' + LOOPS[k].file); el.loop = !day; el.preload = k === 'music' ? 'auto' : 'none'; el.crossOrigin = 'anonymous';
+  const el = IN_APP ? new Audio() : new Audio('audio/' + LOOPS[k].file); el.loop = !day; el.preload = k === 'music' || IN_APP ? 'auto' : 'none';
+  if (!IN_APP) el.crossOrigin = 'anonymous';
   // a day theme played to its end hands over to the other one
   if (day) el.addEventListener('ended', () => { dayTrack = k === 'music' ? 'music2' : 'music'; el.currentTime = 0; syncMusic(); });
   let node = loopNode[k];
@@ -10187,9 +10198,14 @@ function makeLoop(k) {
   // phones only start downloading after the first tap, so a compact AAC copy (.m4a, ~60% smaller) is tried first;
   // if it is missing or can't play, the original .mp3 takes over, and if that fails too the loop is dropped
   const mp3 = 'audio/' + LOOPS[k].file, m4a = mp3.replace(/\.mp3$/, '.m4a');
-  if (el.canPlayType('audio/mp4; codecs="mp4a.40.2"')) el.src = m4a;
-  el.addEventListener('error', () => {
+  if (IN_APP) loopSrc(k).then(u => {
     if (el !== loopEl[k]) return;
+    if (!u) { console.log('loop ' + k + ' failed to load: no file'); delete loopEl[k]; syncMusic(); return; }
+    el.src = u; if (loopWanted[k]) el.play().catch(e => console.log('loop ' + k + ' did not play: ' + (e && e.name) + ' · audio ' + (actx && actx.state)));
+  });
+  else if (el.canPlayType('audio/mp4; codecs="mp4a.40.2"')) el.src = m4a;
+  el.addEventListener('error', () => {
+    if (el !== loopEl[k] || !el.getAttribute('src')) return;
     if (el.src.endsWith('.m4a')) { const was = !el.paused; el.src = mp3; el.load(); if (was || loopWanted[k]) el.play().catch(() => {}); return; }
     console.log('loop ' + k + ' failed to load: ' + el.src.split('/').pop() + ' (' + (el.error && el.error.code) + ')'); delete loopEl[k]; syncMusic();
   });
@@ -10206,6 +10222,7 @@ setInterval(() => {
   if (!actx || actx.state !== 'running' || document.hidden || muted || musicOff || !audioUnlocked) return;
   for (const k of MUSIC_LOOPS) {
     const el = loopEl[k], an = loopAn[k]; if (!el || !an) continue;
+    if (!el.getAttribute('src')) continue;
     if (loopWanted[k] && el.paused) { el.play().catch(() => {}); continue; }
     if (el.paused || el.readyState < 3) { musicQuiet[k] = 0; continue; }
     const t = el.currentTime, ran = t - (musicLastT[k] || 0) > .5; musicLastT[k] = t;
@@ -10326,7 +10343,7 @@ function syncMusic() {
   const want = { music: dayOn && dayK === 'music', music2: dayOn && dayK === 'music2', night: mu && !!nightOn, birds: fx && musicWant === 'day' && !birdless(), fire: fx && !end && ambK.fire > .01, river: fx && !end && ambK.river > .01, gallop: fx && !end && ambK.gallop > .01, rain: fx && !end && ambK.rain > .01, wind: fx && !end && ambK.wind > .01 };
   loopWanted = want;
   // a loop that refuses to play says why in the console (Xcode shows it in the app: Jack heard no music there)
-  for (const k in loopEl) { const el = loopEl[k]; if (want[k] && el.paused) el.play().catch(e => { if (!loopFail[k]) { loopFail[k] = 1; console.log('loop ' + k + ' did not play: ' + (e && e.name) + ' · audio ' + (actx && actx.state)); } }); else if (!want[k] && !el.paused) el.pause(); }
+  for (const k in loopEl) { const el = loopEl[k]; if (!el.getAttribute('src')) continue; if (want[k] && el.paused) el.play().catch(e => { if (!loopFail[k]) { loopFail[k] = 1; console.log('loop ' + k + ' did not play: ' + (e && e.name) + ' · audio ' + (actx && actx.state)); } }); else if (!want[k] && !el.paused) el.pause(); }
   if (on && end && !stinger) stinger = sfx(musicWant) || 1;
   if (!end) stinger = null;
 }
@@ -10352,7 +10369,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '9b212f18fc'; var updateWait = false, updateT = 0;
+const BUILD = '4e16bb3ee1'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
