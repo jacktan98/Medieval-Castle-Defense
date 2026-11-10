@@ -650,9 +650,9 @@ function buildDeck() {
   const { won, cur, locked } = campState(); cCur = cur;
   $('#cCards').innerHTML = CAMPAIGN.map((c, i) => { const st = won[i] ? 'won' : i === cur ? 'cur' : locked[i] ? 'locked' : '';
     // a stage the full game opens (11-store.js): no picture yet, only a dark cover and the padlock, a grey edge, and a teaser on
-    // its back instead of the story (Jack); the picture is revealed once bought (revealFull)
+    // no story scroll (Jack: the teaser on its back was dropped); the picture is revealed once bought (revealFull)
     const cov = coverOn(i), mark = locked[i] || cov ? `<i class="jLock">${LOCK_SVG}</i>` : '';
-    const back = cov ? `<i class="cInfo" aria-label="Full game">${SCROLL_ICO}</i><span class="cBack"><span class="cStory cTease"><i class="cSp1"></i><i class="cSp2"></i>${TEASE}</span><i class="cSeal">${sealIco(i)}</i></span>`
+    const back = cov ? ''
       : STORY[c.map] ? `<i class="cInfo${STORY_READ[c.map] ? '' : ' unread'}" aria-label="Story">${SCROLL_ICO}</i><span class="cBack"><span class="cStory"><i class="cSp1"></i><i class="cSp2"></i>${STORY[c.map]}</span><i class="cSeal">${sealIco(i)}</i></span>` : '';
     return `<button class="cCard ${st}${c.boss ? ' boss' : ''}${c.bonus ? ' bonus' : ''}${cov ? ' paid' : ''}" data-i="${i}" tabindex="-1"><span class="cPic"${cov ? '' : ` style="background-image:url(maps/thumb/${c.map}.jpg)"`}></span>${cov ? '<span class="cCover"></span>' : ''}
       <span class="cName"><small>${c.boss ? 'Boss · ' : c.bonus ? 'Bonus · ' : ''}Stage ${i + 1}${won[i] && !c.bonus ? ' ' + starsHTML(STARS[c.map] || 0) : ''}${CROWNS[c.map] ? `<span class="crown">${CROWN_ICO}</span>` : ''}</small><b>${c.name}</b></span>${mark}${back}</button>`; }).join('');
@@ -779,7 +779,7 @@ $('#dHard').addEventListener('click', () => {
     if (moved > 6) selectStage(Math.round(cSel + cDrag));
     else { const hit = document.elementFromPoint(e.clientX, e.clientY), card = hit?.closest('.cCard'); if (!card) return;
       // the ! (or anywhere on a card showing its story) flips the front card; on a side card the ! brings it forward and flips it
-      if ((card.classList.contains('locked') || card.classList.contains('preUnlock')) && !card.classList.contains('paid')) { if (+card.dataset.i !== cSel) selectStage(+card.dataset.i); }
+      if (card.classList.contains('locked') || card.classList.contains('preUnlock') || card.classList.contains('paid')) { if (+card.dataset.i !== cSel) selectStage(+card.dataset.i); }
       else if (hit.closest('.cInfo') || card.classList.contains('flipped')) { const i = +card.dataset.i; if (i !== cSel) selectStage(i);
         sfx('click'); flipCard(card, !card.classList.contains('flipped')); }
       else selectStage(+card.dataset.i); } };

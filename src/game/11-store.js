@@ -17,14 +17,13 @@ function setFull(on, user) {
   try { if (on) localStorage.setItem('mtd-full', '1'); else localStorage.removeItem('mtd-full'); } catch (e) {}
   if (on && !was) { if (!$('#campaign').hidden) revealFull(); else pendingReveal = true; }
   else if (!$('#campaign').hidden) { buildDeck(); layoutDeck(false); openStage(cSel); }
-  renderColours();
+  renderColours(); syncTitleCrown();
 }
 // ---------- what the full game brings (Jack): until bought, Stages 4 to 15 show no picture on the campaign, only a dark cover
-// with the padlock and a grey edge, and their back a teaser; once bought, a parchment card stamped with the seal, then the deck
-// sweeps through them and each picture is revealed in turn; a gold crown on the title's castle; four more colours (green, purple, black, gold)
+// with the padlock and a grey edge; once bought, a parchment card stamped with the seal, then the deck
+// sweeps through them and each picture is revealed in turn; a gold crown beside the title; four more colours (green, purple, black, gold)
 var REVEAL = new Set(), pendingReveal = false;
 function coverOn(i) { return i >= FREE_N && (!fullOwned() || REVEAL.has(i)); }
-var TEASE = '<b class="tzH">Full Game</b><span class="tz">Stages 4 to 12</span><span class="tz">Two bosses</span><span class="tz">Three bonus stages</span><span class="tz">Four more colours</span><span class="tz">One purchase, yours to keep</span>';
 function revealFull() {
   for (let i = FREE_N; i < CAMPAIGN.length; i++) REVEAL.add(i);
   buildDeck(); selectStage(FREE_N, true);
@@ -51,21 +50,9 @@ function revealSweep() {
   }, T0 + k * STEP));
   setTimeout(() => { REVEAL.clear(); if ($('#campaign').hidden) return; buildDeck(); selectStage(FREE_N, true); }, T0 + idx.length * STEP + 1400);
 }
-// a gold crown on top of the castle's flag pole on the title's showcase (only the tier-3 castle has one there)
-var crownM = null;
-function crownCastle(K) {
-  if (!K || !K.group) return; let pole = null;
-  K.group.traverse(o => { if (!pole && o.isMesh && o.geometry.parameters && Math.abs((o.geometry.parameters.height || 0) - 1.8) < .01 && Math.abs((o.geometry.parameters.width || 0) - .07) < .01 && o.position.y > 5) pole = o; });
-  if (!pole) return;
-  if (!crownM) crownM = new THREE.MeshStandardMaterial({ color: '#e8b53c', metalness: .55, roughness: .32, emissive: '#5a3a08', emissiveIntensity: .35 });
-  const c = new THREE.Group(), R = .3;
-  const band = new THREE.Mesh(new THREE.CylinderGeometry(R, R * .9, .2, 18, 1, true), crownM); band.material.side = THREE.DoubleSide; c.add(band);
-  for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2, pt = new THREE.Mesh(new THREE.ConeGeometry(.075, .24, 6), crownM);
-    pt.position.set(Math.cos(a) * R * .97, .2, Math.sin(a) * R * .97); c.add(pt);
-    const ball = new THREE.Mesh(new THREE.SphereGeometry(.045, 8, 6), crownM); ball.position.set(Math.cos(a) * R * .97, .34, Math.sin(a) * R * .97); c.add(ball); }
-  c.position.set(pole.position.x, pole.position.y + .9 + .1, pole.position.z); c.userData.noShadow = true;
-  pole.parent.add(c);
-}
+// a gold crown beside the title on the title screen once the full game is owned (Jack; it sat on the showcase castle's flag pole)
+function syncTitleCrown() { const c = $('#titleCrown'); if (!c) return; if (!c.firstChild) c.innerHTML = CROWN_ICO; c.hidden = !fullOwned(); }
+syncTitleCrown();
 // a short line in the small black strip over the details' button (like Hard's "Win 3 stars to unlock")
 function buyMsg(t) { const p = $('#buyMsg'); if (!p) return; p.textContent = t; p.hidden = true; void p.offsetWidth; p.hidden = false; clearTimeout(p._t); p._t = setTimeout(() => p.hidden = true, 2200); }
 function buyFull() {
