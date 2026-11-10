@@ -995,7 +995,9 @@ body.tablet .panel{top:calc(18px + var(--safeT));left:max(18px,env(safe-area-ins
   body.tablet .achSheet .upDet .upTx{width:100%} body.tablet .cxTiers,body.tablet .cxStats{justify-content:center}
 }
 /* tablets: the small labels a little bigger, so they keep up with the tiles (Jack: the text looked small next to the boxes) */
-body.tablet .achName{font-size:14px} body.tablet .upBan div{font-size:12.5px} body.tablet .upOf{font-size:14px}
+body.tablet .achName{font-size:14px} body.tablet #achPick .achName{min-height:2.3em}
+/* every row of achievements has room for two-line names (Jack); sideways a column a little narrower keeps the whole list on the iPad Pro 13-inch without scrolling */
+@media (orientation:landscape){ body.tablet #achPick .achGrid{grid-template-columns:repeat(auto-fill,minmax(70px,1fr))} } body.tablet .upBan div{font-size:12.5px} body.tablet .upOf{font-size:14px}
 body.tablet .upTx h3{font-size:23px} body.tablet .upTx p{font-size:17px} body.tablet .cxStats .stat{font-size:15px;gap:4px} body.tablet .cxStats .stat .ico{width:16px;height:16px} body.tablet .cxStats .ico svg{width:16px;height:16px}
 body.tablet .achP{font-size:15px} body.tablet .upSec{font-size:19px} body.tablet .upRs button{font-size:14px!important}
 body.tablet .modal.tome .cxTiers .seg{font-size:14px!important;padding:3px 12px!important}
@@ -10320,7 +10322,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'd8fa311f03'; var updateWait = false, updateT = 0;
+const BUILD = 'e243263942'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

@@ -53,6 +53,23 @@ Stages 1 to 3 are free; Stage 4 on shows **Unlock** with the price in place of P
 5. Take a screenshot of the Unlock button for the purchase's **Review Information** in App Store Connect, and send the
    purchase for review together with the first app version (the purchase can't be reviewed on its own).
 
+### In the Simulator (a local test purchase, to see the unlock animation)
+
+The Simulator can buy from a **StoreKit test file** that lives only on the Mac: no Apple account, no App Store, nothing charged.
+
+1. In Xcode: **File → New → File from Template…**, search **StoreKit Configuration File**, Next. Name it `Products`,
+   tick **Sync this file with an app in App Store Connect**, pick Castle Defense, and save it in `ios/App`.
+   (If the sync box isn't offered: make it unsynced, then the **+** at the bottom left → **Add Non-Consumable In-App
+   Purchase**, Reference Name `Full Game`, Product ID `com.jacktan.castledefense.fullgame`, Price 4.99.)
+2. **Product → Scheme → Edit Scheme… → Run → Options → StoreKit Configuration** → pick `Products.storekit` → Close.
+3. Run the app in the Simulator, tap the "N / 12 stages" line five times to reach Stage 4, tap **Unlock**, then
+   **Purchase** on the test sheet: the thank-you card and the stages' reveal play.
+4. To see it again: tap the "N / 12 stages" line five times (forgets it in the game), or delete the purchase in Xcode
+   (**Debug → StoreKit → Manage Transactions**, select it, the delete button) and run again.
+
+Only runs started from Xcode use the test file; TestFlight and App Store builds always use the real App Store. Before
+testing the real purchase on your iPhone, set step 2 back to **None**, or the phone buys from the test file too.
+
 ## Sending a build to TestFlight / the App Store
 
 1. In Xcode, pick **Any iOS Device (arm64)** at the top.

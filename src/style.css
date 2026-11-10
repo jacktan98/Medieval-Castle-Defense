@@ -978,7 +978,9 @@ body.tablet .panel{top:calc(18px + var(--safeT));left:max(18px,env(safe-area-ins
   body.tablet .achSheet .upDet .upTx{width:100%} body.tablet .cxTiers,body.tablet .cxStats{justify-content:center}
 }
 /* tablets: the small labels a little bigger, so they keep up with the tiles (Jack: the text looked small next to the boxes) */
-body.tablet .achName{font-size:14px} body.tablet .upBan div{font-size:12.5px} body.tablet .upOf{font-size:14px}
+body.tablet .achName{font-size:14px} body.tablet #achPick .achName{min-height:2.3em}
+/* every row of achievements has room for two-line names (Jack); sideways a column a little narrower keeps the whole list on the iPad Pro 13-inch without scrolling */
+@media (orientation:landscape){ body.tablet #achPick .achGrid{grid-template-columns:repeat(auto-fill,minmax(70px,1fr))} } body.tablet .upBan div{font-size:12.5px} body.tablet .upOf{font-size:14px}
 body.tablet .upTx h3{font-size:23px} body.tablet .upTx p{font-size:17px} body.tablet .cxStats .stat{font-size:15px;gap:4px} body.tablet .cxStats .stat .ico{width:16px;height:16px} body.tablet .cxStats .ico svg{width:16px;height:16px}
 body.tablet .achP{font-size:15px} body.tablet .upSec{font-size:19px} body.tablet .upRs button{font-size:14px!important}
 body.tablet .modal.tome .cxTiers .seg{font-size:14px!important;padding:3px 12px!important}
