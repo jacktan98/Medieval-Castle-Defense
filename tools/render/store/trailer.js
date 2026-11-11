@@ -75,15 +75,17 @@ if(want('siege')){const p=await L.open(env,'plains',W,H,D);
   const E=buildings.filter(B=>B.type==='catapult'||B.type==='ballista');let x=0,z=0;for(const B of E){const c=center(B);x+=c.x;z+=c.z;}x/=E.length;z/=E.length;const fz=z-13;
   SH.clearTrees(x,z-6,26);for(const r of rocks)if(Math.hypot(r.x-x,r.z-z+8)<12)r.amount=0;seatRocks();cacheCells();
   SH.spawn('catapult',3,x-4,fz-1);SH.spawn('catapult',2,x+4.5,fz-.5);SH.spawn('ballista',3,x+1,fz+2.5);SH.spawn('ram',3,x-1.5,fz+3.5);
-  const K=['spear','sword','spear','lancer','sword','xbow','spear','rider'];for(let i=0;i<24;i++){const ex=x-9+Math.random()*18,ez=fz-3+Math.random()*7;if(canStand(ex,ez,2))SH.spawn(K[i%K.length],2+(i%2),ex,ez);}
   SH.run(.5);assignPosts();
   for(const B of buildings)if(B.type==='barracks'||B.type==='stables'){const sd=B.type==='stables'?3.5:(center(B).x<x?-3.5:0);setRally(B,{x:x+sd,z:z-5});}
   const aim=()=>{const f=SH.foe(e=>ENEMY[e.kind].engine)||SH.foe();if(!f)return;for(const B of E){const q=center(B);if(B.turret)B.turret.rotation.y=Math.atan2(f.x-q.x,f.z-q.z)-B.group.rotation.y;}};
-  for(let k=0;k<10;k++){aim();SH.run(.5);}for(const B of buildings)if(B.rallyFlag)B.rallyFlag.visible=false;
+  for(let k=0;k<8;k++){aim();SH.run(.5);}
+  // the foot come on behind their engines, still on their way when the clip starts
+  const K=['spear','sword','spear','lancer','sword','xbow','spear','rider'];for(let i=0;i<24;i++){const ex=x-9+Math.random()*18,ez=fz-2-Math.random()*8;if(canStand(ex,ez,2))SH.spawn(K[i%K.length],2+(i%2),ex,ez);}
+  for(let k=0;k<2;k++){aim();SH.run(.3);}for(const B of buildings)if(B.rallyFlag)B.rallyFlag.visible=false;
   for(const B of buildings)if(B.bar)B.bar.grp.visible=false;const lo=updateLight;updateLight=(dt,now)=>{light=1;lo(dt,now);};
   const mx=x,mz=z-6.5;window.__ok=[x,z,SIZE].join(' ');
   // from the raiders' side, looking in toward the town: the map's edge stays behind the camera
-  window.__tick=t=>SH.look(mx,mz,{yaw:Math.PI+.55-t*.35,pitch:.68,dist:20-t*2,y:1.5});})()`);
+  window.__tick=t=>SH.look(mx,mz,{yaw:Math.PI+.5-t*.35,pitch:.9,dist:21-t*2,y:1.5});})()`);
  console.log('siege at',await G(p,'window.__ok'));await clip(p,'5-siege',7,{k:.8});await p.close();}
 // 5 the title over the Blighted Isle, and "Your castle awaits" under it, big and gold
 if(want('title')){const p=await L.open(env,SC.title.map,W,H,D);await G(p,SC.title.code);await p.waitForTimeout(3000);
