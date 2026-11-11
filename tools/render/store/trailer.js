@@ -76,6 +76,8 @@ if(want('siege')){const p=await L.open(env,'plains',W,H,D);
   SH.clearTrees(x,z-6,26);for(const r of rocks)if(Math.hypot(r.x-x,r.z-z+8)<12)r.amount=0;seatRocks();cacheCells();
   SH.spawn('catapult',3,x-4,fz-1);SH.spawn('catapult',2,x+4.5,fz-.5);SH.spawn('ballista',3,x+1,fz+2.5);SH.spawn('ram',3,x-1.5,fz+3.5);
   SH.run(.5);assignPosts();
+  // the riders start at their stables' door, so they are mounted by the time the clip begins
+  for(const v of villagers)if(v.post&&v.post.B.type==='stables'){const d=doorPoint(v.post.B);v.x=v.rx=d.x;v.z=v.rz=d.z;}
   // the houses out in front are already battered, so the raiders tear them down in the clip
   for(const B of buildings)if(B.type==='house'&&center(B).z<z-10){B.hp=B.max*.3;}
   // riders wait behind the engines, then charge out at the clip's start to keep the raiders off the trebuchets
