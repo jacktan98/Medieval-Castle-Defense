@@ -1059,7 +1059,7 @@ function updatePush(v, dt) {
     v.push = null; v.pushOn = false; v.pushIn = false; v.path = null; v.stuck = 0; v.prog = null; if (v.job) v.state = 'commute'; return;
   }
   if (!B.turret) return;
-  const R = CATA_RIG[B.tier - 1], sp = engPt(B, R.push[0], 0, R.push[1]);
+  const sp = engPt(B, 0, 0, pushRig(B.tier - 1).z);
   if (!v.pushOn) {
     const d = Math.hypot(sp.x - v.x, sp.z - v.z);
     if (!v.pushIn) { const q = standNear(sp.x, sp.z); if (walkTo(v, q.x, q.z, dt, 1, .15) || Math.hypot(q.x - v.x, q.z - v.z) < .3 || (d < 1.6 && v.noProg > 1.5)) v.pushIn = true; return; }
@@ -1202,7 +1202,7 @@ function catapultCrew(B, k, crew, moving, dt, best) {
   }
   if (G && G.crewOf && G.crewT > 0) { place(G, ...R.gunner); changing(G); }
   else if (G) {
-    if (roll) { place(G, ...R.push); if (!G.stepping) G.g.rotation.y = engYaw(B, [0, 0, 0], [0, 0, 1]); walkLegs(G, moving || G.stepping); const s = G.stepping ? Math.sin(now * 9) * .4 : 0; if (G.stepping) { G.arms[0].rotation.set(s, 0, 0); G.arms[1].rotation.set(-s, 0, 0); G.body.rotation.x = 0; } else { G.arms[0].rotation.set(-1.45, 0, .15); G.arms[1].rotation.set(-1.45, 0, -.15); G.body.rotation.x = .12; } }
+    if (roll) { const pr = pushRig(k); place(G, 0, pr.z); if (!G.stepping) G.g.rotation.y = engYaw(B, [0, 0, 0], [0, 0, 1]); walkLegs(G, moving || G.stepping); const s = G.stepping ? Math.sin(now * 9) * .4 : 0; if (G.stepping) { G.arms[0].rotation.set(s, 0, 0); G.arms[1].rotation.set(-s, 0, 0); G.body.rotation.x = 0; } else { G.arms[0].rotation.set(pr.arm, 0, .15); G.arms[1].rotation.set(pr.arm, 0, -.15); G.body.rotation.x = pr.lean; } }
     else {
       place(G, ...R.gunner); if (!G.stepping) G.g.rotation.y = engYaw(B, [R.gunner[0], 0, R.gunner[1]], R.catch); walkLegs(G, G.stepping);
       const yank = B.fireT > 0 ? Math.sin(Math.PI * clamp(1 - B.fireT / .35, 0, 1)) : 0;     // a sharp pull on the line looses the arm

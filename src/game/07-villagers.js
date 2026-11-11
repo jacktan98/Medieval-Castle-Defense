@@ -921,7 +921,7 @@ function updateVillagers(dt, now) {
     v.body.rotation.y += (twist - v.body.rotation.y) * Math.min(1, dt * 14);
     const ease = (o, t) => o + (t - o) * Math.min(1, dt * 14);    // poses blend over ~0.1 s, so switching task never snaps
     if (v.pivot) { v.pivot.visible = !logC && !stoneC && !(v.changing && v.toolOff); v.pivot.rotation.x = ease(v.pivot.rotation.x, tilt); }
-    if (v.pushing) { L = Rt = -1.45; lean = .1; }                    // both hands on the engine's back beam
+    if (v.pushing && v.push) { const pr = pushRig(v.push.tier - 1); L = Rt = pr.arm; lean = pr.lean; }   // both hands on the engine's winch drum
     if (cheer) { L = -2.9 + Math.sin(now / 1000 * 9) * .2; Rt = -2.9 - Math.sin(now / 1000 * 9) * .2; lean = 0; }
     v.arms[0].rotation.x = ease(v.arms[0].rotation.x, L); v.arms[1].rotation.x = ease(v.arms[1].rotation.x, Rt);
     // out and up: the hand round the bundle's outer log; with one log a little out too, the hand on its outer side (Jack)

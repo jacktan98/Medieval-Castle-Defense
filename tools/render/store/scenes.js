@@ -3,6 +3,7 @@ module.exports={
 // 1 Build your town: Market Cross, a big tier-3 walled town round the castle, a grid of roads, by day
 hero:{map:'cross',code:`(()=>{for(const B of buildings.slice())removeBuilding(B,false,true);for(const v of villagers)scene.remove(v.g);villagers.length=0;road.fill(0);rebuildRoads();cacheCells();regionDirty=true;
   const ev0=findValid('castle',Math.floor(N/2)-1,Math.floor(N/2)-1,{free:true});const K=place('castle',ev0.ci,ev0.cj,{instant:true,free:true,quiet:true});for(let n=0;n<3;n++)makeVillager(K);SH.face(K,0);const c=center(K),ci=Math.floor(c.x/CELL),cj=Math.floor(c.z/CELL);SH.clearTrees(c.x+2,c.z,20);
+  for(const r of rocks){const a=Math.floor(r.x/CELL),b=Math.floor(r.z/CELL);const onW=(a===ci-7||a===ci+9)&&b>=cj-8&&b<=cj+7||(b===cj-8||b===cj+7)&&a>=ci-7&&a<=ci+9;if(onW)r.amount=0;}seatRocks();cacheCells();
   SH.walls([[ci-7,cj-8],[ci+9,cj-8],[ci+9,cj+7],[ci-7,cj+7],[ci-7,cj-8]],3,[[ci+1,cj+7],[ci+9,cj]]);
   for(const [a,b] of [[ci-7,cj-8],[ci+9,cj-8],[ci+9,cj+7],[ci-7,cj+7]]){}
   SH.town([['tower',-6,-7,3,0],['tower',8,-7,3,0],['tower',-6,6,3,0],['tower',8,6,3,0],['crossbow',4,-7,3,0],['crossbow',8,2,3,0],

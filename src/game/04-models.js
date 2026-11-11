@@ -906,10 +906,18 @@ const CATA_ARM = [[-1.35, .15], [-1.35, .2], [-2.2, .35]];
 // crank's x and throw, the arm point the winch rope pulls, the loader at the crank, the gunner by the release catch, where the
 // gunner pushes from (behind) and where the loader walks (beside) on a move
 const CATA_RIG = [
-  { drum: [0, .36, -.72], dr: .055, dl: .6, cx: .46, cr: .11, armR: .5, catch: [-.33, .42, -.5], loader: [.78, -.72], gunner: [-.9, -.25], push: [0, -1.0], walk: [.9, 0] },
-  { drum: [0, .36, -.72], dr: .06, dl: .6, cx: .46, cr: .11, armR: .5, catch: [-.33, .42, -.5], loader: [.78, -.72], gunner: [-.9, -.25], push: [0, -1.0], walk: [.9, 0] },
-  { drum: [0, .38, -.85], dr: .09, dl: .76, cx: .6, cr: .14, armR: 1.5, catch: [-.5, .28, -.7], loader: [.98, -.85], gunner: [-1.05, -.3], push: [0, -1.4], walk: [1.1, 0] },
+  { drum: [0, .36, -.72], dr: .055, dl: .6, cx: .46, cr: .11, armR: .5, catch: [-.33, .42, -.5], loader: [.78, -.72], gunner: [-.9, -.25], push: [0, -1.0], hand: [.36, -.78], walk: [.9, 0] },
+  { drum: [0, .36, -.72], dr: .06, dl: .6, cx: .46, cr: .11, armR: .5, catch: [-.33, .42, -.5], loader: [.78, -.72], gunner: [-.9, -.25], push: [0, -1.0], hand: [.36, -.79], walk: [.9, 0] },
+  { drum: [0, .38, -.85], dr: .09, dl: .76, cx: .6, cr: .14, armR: 1.5, catch: [-.5, .28, -.7], loader: [.98, -.85], gunner: [-1.05, -.3], push: [0, -1.4], hand: [.38, -.95], walk: [1.1, 0] },
 ];   // the arm's angle about x: cocked, and at the end of the throw
+// a pusher's hands on the winch drum at the back (Jack: their hands stopped short of the engine): leaning in at .7 rad, the arms
+// angled down to the drum's height (hand: [height, z] in the engine's frame); where to stand and the pose follow from it
+function pushRig(k) {
+  // measured on the figure: the shoulder .67 m from the lean's pivot and .05 above it, the hand's middle .26 m down the arm; a lean
+  // forward tips a hanging arm back by as much, so the arm turns forward by the lean and its own angle from straight down
+  const R = CATA_RIG[k], S = .67, A = .26, ph = .7, sy = .05 + S * Math.cos(ph), th = Math.acos(clamp((sy - R.hand[0]) / A, -1, 1));
+  return { z: R.hand[1] - .035 - (S * Math.sin(ph) + A * Math.sin(th)), lean: ph, arm: -(th + ph) };
+}
 function makeCatapult(tier) {
   const g = new THREE.Group(), e = new THREE.Group(); e.userData.turret = true; g.add(e);
   const arm = new THREE.Group(); arm.userData.arm = true;

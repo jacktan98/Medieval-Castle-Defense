@@ -3997,10 +3997,18 @@ const CATA_ARM = [[-1.35, .15], [-1.35, .2], [-2.2, .35]];
 // crank's x and throw, the arm point the winch rope pulls, the loader at the crank, the gunner by the release catch, where the
 // gunner pushes from (behind) and where the loader walks (beside) on a move
 const CATA_RIG = [
-  { drum: [0, .36, -.72], dr: .055, dl: .6, cx: .46, cr: .11, armR: .5, catch: [-.33, .42, -.5], loader: [.78, -.72], gunner: [-.9, -.25], push: [0, -1.0], walk: [.9, 0] },
-  { drum: [0, .36, -.72], dr: .06, dl: .6, cx: .46, cr: .11, armR: .5, catch: [-.33, .42, -.5], loader: [.78, -.72], gunner: [-.9, -.25], push: [0, -1.0], walk: [.9, 0] },
-  { drum: [0, .38, -.85], dr: .09, dl: .76, cx: .6, cr: .14, armR: 1.5, catch: [-.5, .28, -.7], loader: [.98, -.85], gunner: [-1.05, -.3], push: [0, -1.4], walk: [1.1, 0] },
+  { drum: [0, .36, -.72], dr: .055, dl: .6, cx: .46, cr: .11, armR: .5, catch: [-.33, .42, -.5], loader: [.78, -.72], gunner: [-.9, -.25], push: [0, -1.0], hand: [.36, -.78], walk: [.9, 0] },
+  { drum: [0, .36, -.72], dr: .06, dl: .6, cx: .46, cr: .11, armR: .5, catch: [-.33, .42, -.5], loader: [.78, -.72], gunner: [-.9, -.25], push: [0, -1.0], hand: [.36, -.79], walk: [.9, 0] },
+  { drum: [0, .38, -.85], dr: .09, dl: .76, cx: .6, cr: .14, armR: 1.5, catch: [-.5, .28, -.7], loader: [.98, -.85], gunner: [-1.05, -.3], push: [0, -1.4], hand: [.38, -.95], walk: [1.1, 0] },
 ];   // the arm's angle about x: cocked, and at the end of the throw
+// a pusher's hands on the winch drum at the back (Jack: their hands stopped short of the engine): leaning in at .7 rad, the arms
+// angled down to the drum's height (hand: [height, z] in the engine's frame); where to stand and the pose follow from it
+function pushRig(k) {
+  // measured on the figure: the shoulder .67 m from the lean's pivot and .05 above it, the hand's middle .26 m down the arm; a lean
+  // forward tips a hanging arm back by as much, so the arm turns forward by the lean and its own angle from straight down
+  const R = CATA_RIG[k], S = .67, A = .26, ph = .7, sy = .05 + S * Math.cos(ph), th = Math.acos(clamp((sy - R.hand[0]) / A, -1, 1));
+  return { z: R.hand[1] - .035 - (S * Math.sin(ph) + A * Math.sin(th)), lean: ph, arm: -(th + ph) };
+}
 function makeCatapult(tier) {
   const g = new THREE.Group(), e = new THREE.Group(); e.userData.turret = true; g.add(e);
   const arm = new THREE.Group(); arm.userData.arm = true;
@@ -5853,7 +5861,7 @@ function updateVillagers(dt, now) {
     v.body.rotation.y += (twist - v.body.rotation.y) * Math.min(1, dt * 14);
     const ease = (o, t) => o + (t - o) * Math.min(1, dt * 14);    // poses blend over ~0.1 s, so switching task never snaps
     if (v.pivot) { v.pivot.visible = !logC && !stoneC && !(v.changing && v.toolOff); v.pivot.rotation.x = ease(v.pivot.rotation.x, tilt); }
-    if (v.pushing) { L = Rt = -1.45; lean = .1; }                    // both hands on the engine's back beam
+    if (v.pushing && v.push) { const pr = pushRig(v.push.tier - 1); L = Rt = pr.arm; lean = pr.lean; }   // both hands on the engine's winch drum
     if (cheer) { L = -2.9 + Math.sin(now / 1000 * 9) * .2; Rt = -2.9 - Math.sin(now / 1000 * 9) * .2; lean = 0; }
     v.arms[0].rotation.x = ease(v.arms[0].rotation.x, L); v.arms[1].rotation.x = ease(v.arms[1].rotation.x, Rt);
     // out and up: the hand round the bundle's outer log; with one log a little out too, the hand on its outer side (Jack)
@@ -6935,7 +6943,7 @@ function updatePush(v, dt) {
     v.push = null; v.pushOn = false; v.pushIn = false; v.path = null; v.stuck = 0; v.prog = null; if (v.job) v.state = 'commute'; return;
   }
   if (!B.turret) return;
-  const R = CATA_RIG[B.tier - 1], sp = engPt(B, R.push[0], 0, R.push[1]);
+  const sp = engPt(B, 0, 0, pushRig(B.tier - 1).z);
   if (!v.pushOn) {
     const d = Math.hypot(sp.x - v.x, sp.z - v.z);
     if (!v.pushIn) { const q = standNear(sp.x, sp.z); if (walkTo(v, q.x, q.z, dt, 1, .15) || Math.hypot(q.x - v.x, q.z - v.z) < .3 || (d < 1.6 && v.noProg > 1.5)) v.pushIn = true; return; }
@@ -7078,7 +7086,7 @@ function catapultCrew(B, k, crew, moving, dt, best) {
   }
   if (G && G.crewOf && G.crewT > 0) { place(G, ...R.gunner); changing(G); }
   else if (G) {
-    if (roll) { place(G, ...R.push); if (!G.stepping) G.g.rotation.y = engYaw(B, [0, 0, 0], [0, 0, 1]); walkLegs(G, moving || G.stepping); const s = G.stepping ? Math.sin(now * 9) * .4 : 0; if (G.stepping) { G.arms[0].rotation.set(s, 0, 0); G.arms[1].rotation.set(-s, 0, 0); G.body.rotation.x = 0; } else { G.arms[0].rotation.set(-1.45, 0, .15); G.arms[1].rotation.set(-1.45, 0, -.15); G.body.rotation.x = .12; } }
+    if (roll) { const pr = pushRig(k); place(G, 0, pr.z); if (!G.stepping) G.g.rotation.y = engYaw(B, [0, 0, 0], [0, 0, 1]); walkLegs(G, moving || G.stepping); const s = G.stepping ? Math.sin(now * 9) * .4 : 0; if (G.stepping) { G.arms[0].rotation.set(s, 0, 0); G.arms[1].rotation.set(-s, 0, 0); G.body.rotation.x = 0; } else { G.arms[0].rotation.set(pr.arm, 0, .15); G.arms[1].rotation.set(pr.arm, 0, -.15); G.body.rotation.x = pr.lean; } }
     else {
       place(G, ...R.gunner); if (!G.stepping) G.g.rotation.y = engYaw(B, [R.gunner[0], 0, R.gunner[1]], R.catch); walkLegs(G, G.stepping);
       const yank = B.fireT > 0 ? Math.sin(Math.PI * clamp(1 - B.fireT / .35, 0, 1)) : 0;     // a sharp pull on the line looses the arm
@@ -10518,7 +10526,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'c3ad41cf98'; var updateWait = false, updateT = 0;
+const BUILD = '323c881348'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
