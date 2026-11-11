@@ -4,11 +4,11 @@ const want=s=>!only.length||only.includes(s);
 const snap=async(p,name,wait=3000)=>{await p.waitForTimeout(wait);await p.screenshot({path:`${PRE}-${name}.png`});console.log('shot',name,p.errs.slice(0,2));};
 const G=(p,code)=>p.evaluate(c=>G(c),code);
 (async()=>{const env=await L.start();
-const SC=require('./scenes');const NAME={hero:'1hero',wall:'2wall',siege:'3siege',boss:'4boss'};
-for(const k of ['hero','wall','siege','boss'])if(want(k)){const S=SC[k];const p=await L.open(env,S.map,W,H,D);await p.evaluate(c=>G(c),S.code);await snap(p,NAME[k],S.wait||3500);await p.close();}
+const SC=require('./scenes');const NAME={title:'1title',hero:'2town',wall:'3wall',siege:'4siege'};
+for(const k of ['title','hero','wall','siege'])if(want(k)){const S=SC[k];const p=await L.open(env,S.map,W,H,D);await p.evaluate(c=>G(c),S.code);await snap(p,NAME[k],S.wait||3500);await p.close();}
 const STARS={vale:3,bridge:3,cross:3,watch:2,dune:3,bend:2};
-if(want('camp')){const p=await env.b.newPage({viewport:{width:W,height:H},deviceScaleFactor:D,hasTouch:true});p.errs=[];
+if(want('upgrades')){const p=await env.b.newPage({viewport:{width:W,height:H},deviceScaleFactor:D,hasTouch:true});p.errs=[];
  await p.goto(env.base);await p.evaluate(s=>{localStorage.clear();localStorage.setItem('mtd-stars',JSON.stringify(s));localStorage.setItem('mtd-full','1');localStorage.setItem('mtd-cards',JSON.stringify(Object.keys(s)));localStorage.setItem('mtd-upg',JSON.stringify(['tax','homes','seed','axes','qvolley']));localStorage.setItem('mtd-story',JSON.stringify(Object.fromEntries(Object.keys(s).map(k=>[k,1]))));},STARS);
- await p.goto(env.base);await p.waitForTimeout(5000);await p.click('#campBtn');await p.waitForTimeout(1200);await p.click('#cPrev').catch(()=>{});await p.waitForTimeout(600);await p.click('#cPrev').catch(()=>{});await p.waitForTimeout(1500);await snap(p,'5camp');
- await p.click('#campUpBtn');await p.waitForTimeout(800);await p.evaluate(()=>{});await snap(p,'6upgrades');await p.close();}
+ await p.goto(env.base);await p.waitForTimeout(5000);await p.click('#campBtn');await p.waitForTimeout(1200);await p.click('#cPrev').catch(()=>{});await p.waitForTimeout(600);await p.click('#cPrev').catch(()=>{});await p.waitForTimeout(1500);await p.waitForTimeout(300);
+ await p.click('#campUpBtn');await p.waitForTimeout(800);await p.evaluate(()=>{});await snap(p,'5upgrades');await p.close();}
 await env.b.close();env.server.close();})();
