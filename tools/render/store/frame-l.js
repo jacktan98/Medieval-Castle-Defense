@@ -11,7 +11,7 @@ for(const k of Object.keys(CAP)){const f=path.resolve(`${PRE}-${k}.png`);if(!fs.
  html,body{margin:0;width:${W}px;height:${H}px;overflow:hidden;background:#000}
  img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
  .fade{position:absolute;left:0;bottom:0;width:70%;height:55%;background:radial-gradient(ellipse at 0% 100%,rgba(10,6,2,.75) 0%,rgba(10,6,2,.35) 45%,rgba(10,6,2,0) 75%)}
- .fade.deep{width:62%;height:62%;background:radial-gradient(ellipse at 0% 100%,rgba(8,5,2,.97) 0%,rgba(8,5,2,.9) 38%,rgba(8,5,2,.5) 62%,rgba(8,5,2,0) 82%)}
+ .fade.deep{width:62%;height:62%;background:radial-gradient(ellipse at 0% 100%,rgba(8,5,2,.85) 0%,rgba(8,5,2,.65) 35%,rgba(8,5,2,.3) 58%,rgba(8,5,2,0) 80%)}
  .cap{position:absolute;left:${Math.round(u*.045)}px;bottom:${Math.round(u*.04)}px;font-family:'IM Fell English SC',serif;color:#f6d77a;line-height:.92;
   text-shadow:0 0 2px #2a1606,0 ${Math.round(u*.004)}px 0 #2a1606,0 ${Math.round(u*.008)}px ${Math.round(u*.018)}px rgba(0,0,0,.85);-webkit-text-stroke:${Math.max(2,Math.round(u*.0022))}px #3a2009;paint-order:stroke fill}
  .cap b{display:block;font-weight:400;font-size:${Math.round(u*.085)}px}.cap span{display:block;font-size:${Math.round(u*.06)}px;color:#fff1c8}
