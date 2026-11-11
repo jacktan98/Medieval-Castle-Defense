@@ -1,7 +1,7 @@
 // node trailer.js W H DSF out-dir [part...]: the ~30 s landscape trailer (Jack): a black title card before each part, then the town
 // growing and upgrading into dusk, holding the line, siege against siege, the title. 30 fps frames stepped by hand; every
 // game sound played while a part renders is logged (<part>.json: [frame, sound, gain]) for mix.js, which builds the soundtrack and
-// joins everything into the video. Parts: cards town wall siege title
+// joins everything into the video. Parts: cards town wall siege black title
 const L=require('./lib');const SC=require('./scenes');const fs=require('fs');
 const [W,H,D,OUT]=[+process.argv[2],+process.argv[3],+process.argv[4],process.argv[5]];const only=process.argv.slice(6);
 const FPS=30;fs.mkdirSync(OUT,{recursive:true});
@@ -64,19 +64,22 @@ if(want('town')){const p=await L.open(env,SC.hero.map,W,H,D);
  await clip(p,'1-town',8.5);await p.close();}
 // 2 hold the line: Raider Keep at night, a wave right at the wall and the gate, the towers shooting (at .8 speed)
 if(want('wall')){const p=await L.open(env,SC.wall.map,W,H,D);await G(p,SC.wall.code);
- await G(p,`(()=>{paused=false;const Gt=buildings.find(B=>B.type==='gate'),q=center(Gt);const K=['spear','sword','spear','sword','archer','spear','xbow','sword'];for(let i=0;i<22;i++){const x=q.x-10+Math.random()*20,z=q.z-3-Math.random()*6;if(canStand(x,z,2))SH.spawn(K[i%K.length],1+(i%3),x,z);}SH.spawn('ram',3,q.x,q.z-5);SH.run(2.5);
+ await G(p,`(()=>{paused=false;const Gt=buildings.find(B=>B.type==='gate'),q=center(Gt);const K=['spear','sword','spear','sword','archer','spear','xbow','sword'];for(let i=0;i<22;i++){const x=q.x-10+Math.random()*20,z=q.z-3-Math.random()*6;if(canStand(x,z,2))SH.spawn(K[i%K.length],1+(i%3),x,z);}SH.spawn('ram',3,q.x,q.z-2.4);SH.run(2.5);
   window.__tick=t=>SH.look(q.x,q.z-3.5-t*.8,{yaw:-.2+t*.3,pitch:.92,dist:17-t*2,y:1});})()`);
  await clip(p,'3-wall',6.5,{k:.8});await p.close();}
 // 3 siege against siege by day: the town's engines already turned on the raiders' engines, the barracks' and stables' troops out in
 // front of them holding off the raiders rushing them (at .8 speed)
 if(want('siege')){const p=await L.open(env,'plains',W,H,D);
- await G(p,`(()=>{SH.town([['catapult',-4,-1,3,2],['catapult',4,-1,2,2],['catapult',0,-3,3,2],['ballista',-7,0,3,2],['ballista',7,0,2,2],['tower',-5,3,3],['tower',5,3,3],['house',-3,3,3],['house',3,3,3],['stores',-2,-3,1],['stores',2,-3,1],['torch',0,3,1],['barracks',-9,2,3],['stables',9,2,3],['barracks',0,6,3]],44);
+ await G(p,`(()=>{SH.town([['catapult',-4,-1,3,2],['catapult',4,-1,3,2],['catapult',0,-3,3,2],['catapult',-7,0,3,2],['ballista',-3,-5,3,2],['ballista',3,-5,3,2],['tower',-5,3,3],['tower',5,3,3],['house',-3,3,3],['house',3,3,3],['stores',-2,-3,1],['stores',2,-3,1],['torch',0,3,1],['stables',-9,2,3],['stables',9,2,3],['barracks',0,6,3],['house',-6,-8,2],['house',6,-8,2],['house',-1,-9,2],['house',4,-10,1]],50);UPK.lance=true;
   SH.run(5);SH.hud(false);for(const v of villagers){v.sleeping=false;v.hunger=0;}res.food=999;
   const E=buildings.filter(B=>B.type==='catapult'||B.type==='ballista');let x=0,z=0;for(const B of E){const c=center(B);x+=c.x;z+=c.z;}x/=E.length;z/=E.length;const fz=z-13;
   SH.clearTrees(x,z-6,26);for(const r of rocks)if(Math.hypot(r.x-x,r.z-z+8)<12)r.amount=0;seatRocks();cacheCells();
   SH.spawn('catapult',3,x-4,fz-1);SH.spawn('catapult',2,x+4.5,fz-.5);SH.spawn('ballista',3,x+1,fz+2.5);SH.spawn('ram',3,x-1.5,fz+3.5);
   SH.run(.5);assignPosts();
-  for(const B of buildings)if(B.type==='barracks'||B.type==='stables'){const sd=B.type==='stables'?3.5:(center(B).x<x?-3.5:0);setRally(B,{x:x+sd,z:z-5});}
+  // the houses out in front are already battered, so the raiders tear them down in the clip
+  for(const B of buildings)if(B.type==='house'&&center(B).z<z-10){B.hp=B.max*.3;}
+  // riders wait behind the engines, then charge out at the clip's start to keep the raiders off the trebuchets
+  const ST=buildings.filter(B=>B.type==='stables');for(const B of buildings)if(B.type==='barracks'||B.type==='stables')setRally(B,{x:x+(B.type==='stables'?(center(B).x<x?-2.5:2.5):0),z:z+1.5});
   const aim=()=>{const f=SH.foe(e=>ENEMY[e.kind].engine)||SH.foe();if(!f)return;for(const B of E){const q=center(B);if(B.turret)B.turret.rotation.y=Math.atan2(f.x-q.x,f.z-q.z)-B.group.rotation.y;}};
   for(let k=0;k<8;k++){aim();SH.run(.5);}
   // the foot come on behind their engines, still on their way when the clip starts
@@ -85,13 +88,16 @@ if(want('siege')){const p=await L.open(env,'plains',W,H,D);
   for(const B of buildings)if(B.bar)B.bar.grp.visible=false;const lo=updateLight;updateLight=(dt,now)=>{light=1;lo(dt,now);};
   const mx=x,mz=z-6.5;window.__ok=[x,z,SIZE].join(' ');
   // from the town's side, behind its engines (Jack), looking down steeply so little sky and none of the map's edge shows
-  window.__tick=t=>SH.look(mx,mz+1,{yaw:.35-t*.3,pitch:1.0,dist:20-t*2,y:1.5});})()`);
+  let rushed=0;window.__tick=t=>{if(!rushed&&t>.06){rushed=1;window.__ev.push([window.__fi||0,'rush',1]);for(const B of ST)setRally(B,{x:x+(center(B).x<x?-2.5:2.5),z:z-11});for(const B of buildings)if(B.rallyFlag)B.rallyFlag.visible=false;}SH.look(mx,mz+1,{yaw:.35-t*.3,pitch:1.0,dist:20-t*2,y:1.5});};})()`);
  console.log('siege at',await G(p,'window.__ok'));await clip(p,'5-siege',7,{k:.8});await p.close();}
+// a short black screen between the siege and the ending
+if(want('black')){const p=await env.b.newPage({viewport:{width:W,height:H},deviceScaleFactor:D});await p.setContent('<html><body style="margin:0;background:#000"></body></html>');
+ for(let i=0;i<15;i++)await shot(p,'6-black',i);fs.writeFileSync(`${OUT}/6-black.json`,'[]');console.log('black 15');await p.close();}
 // 5 the title over the Blighted Isle, and "Your castle awaits" under it, big and gold
 if(want('title')){const p=await L.open(env,SC.title.map,W,H,D);await G(p,SC.title.code);await p.waitForTimeout(3000);
  await p.evaluate(()=>{const t=document.querySelector('.gameTitle'),cs=getComputedStyle(t),d=document.createElement('div');d.id='awaits';d.innerHTML='<span>Your castle awaits</span>';
   d.style.cssText='position:fixed;left:0;right:0;bottom:0;height:36%;display:flex;align-items:center;justify-content:center;z-index:9998;opacity:0;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.55) 45%,rgba(0,0,0,.7))';
   const s=d.firstChild;s.style.cssText=`display:inline-block;font-family:${cs.fontFamily};color:#f6d77a;font-size:${parseFloat(cs.fontSize)*1.05}px;letter-spacing:.03em;-webkit-text-stroke:2px #3a2009;paint-order:stroke fill;text-shadow:0 3px 14px rgba(0,0,0,.9),0 0 22px rgba(243,207,110,.35)`;document.body.appendChild(d);});
  await G(p,`window.__tick=t=>{const d=document.getElementById('awaits');if(d){const k=Math.min(1,Math.max(0,(t-.22)/.25));d.style.opacity=k;d.firstChild.style.transform='scale('+(1.08-.08*k)+')';}}`);
- await clip(p,'8-title',3.5,{fout:0});await p.close();}
+ await clip(p,'8-title',3,{fin:20,fout:0});await p.close();}
 await env.b.close();env.server.close();})();
