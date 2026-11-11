@@ -916,7 +916,7 @@ function pushRig(k) {
   // measured on the figure: the shoulder .67 m from the lean's pivot and .05 above it, the hand's middle .26 m down the arm; a lean
   // forward tips a hanging arm back by as much, so the arm turns forward by the lean and its own angle from straight down
   const R = CATA_RIG[k], S = .67, A = .26, ph = .7, sy = .05 + S * Math.cos(ph), th = Math.acos(clamp((sy - R.hand[0]) / A, -1, 1));
-  return { z: R.hand[1] - .035 - (S * Math.sin(ph) + A * Math.sin(th)), lean: ph, arm: -(th + ph) };
+  return { z: R.hand[1] + .04 - (S * Math.sin(ph) + A * Math.sin(th)), lean: ph, arm: -(th + ph) };
 }
 function makeCatapult(tier) {
   const g = new THREE.Group(), e = new THREE.Group(); e.userData.turret = true; g.add(e);

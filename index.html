@@ -4007,7 +4007,7 @@ function pushRig(k) {
   // measured on the figure: the shoulder .67 m from the lean's pivot and .05 above it, the hand's middle .26 m down the arm; a lean
   // forward tips a hanging arm back by as much, so the arm turns forward by the lean and its own angle from straight down
   const R = CATA_RIG[k], S = .67, A = .26, ph = .7, sy = .05 + S * Math.cos(ph), th = Math.acos(clamp((sy - R.hand[0]) / A, -1, 1));
-  return { z: R.hand[1] - .035 - (S * Math.sin(ph) + A * Math.sin(th)), lean: ph, arm: -(th + ph) };
+  return { z: R.hand[1] + .04 - (S * Math.sin(ph) + A * Math.sin(th)), lean: ph, arm: -(th + ph) };
 }
 function makeCatapult(tier) {
   const g = new THREE.Group(), e = new THREE.Group(); e.userData.turret = true; g.add(e);
@@ -10526,7 +10526,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '323c881348'; var updateWait = false, updateT = 0;
+const BUILD = '7c516eebb3'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
