@@ -93,6 +93,19 @@ exports.open=async(env,map,W,H,dsf,stars)=>{const p=await env.b.newPage({viewpor
   fov(F){Object.defineProperty(camera,'fov',{get:()=>F,set(){},configurable:true});camera.updateProjectionMatrix();updateCam();},
   // raiders in packs and a few alone: spots [x, z, count, spread]; ok(x, z) says where one may stand
   packs(spots,kinds,tier,ok){let n=0;const P=[];for(const [cx,cz,cnt,r] of spots){let m=0;for(let k=0;k<400&&m<cnt;k++){const a=Math.random()*6.28,d=Math.sqrt(Math.random())*r,x=cx+Math.cos(a)*d,z=cz+Math.sin(a)*d;if(!canStand(x,z,2)||(ok&&!ok(x,z))||P.some(p=>Math.hypot(p[0]-x,p[1]-z)<.85))continue;P.push([x,z]);SH.spawn(kinds[n%kinds.length],tier?tier(n):1+(n%3),x,z);n++;m++;}}return n;},
+
+  // a wall run from cell to cell (straight lines between the corners), tier t; gates at the listed cells
+  walls(pts,t,gates){gates=gates||[];const isG=(a,b)=>gates.some(g=>g[0]===a&&g[1]===b);const out=[];
+   for(let i=0;i+1<pts.length;i++){let [a,b]=pts[i];const [a1,b1]=pts[i+1];for(;;){if(a>=0&&b>=0&&a<N&&b<N&&!occB[b*N+a]){const B=place(isG(a,b)?'gate':'wall',a,b,{instant:true,free:true,quiet:true});if(B)out.push(B);}if(a===a1&&b===b1)break;a+=Math.sign(a1-a);b+=Math.sign(b1-b);}}
+   for(const B of out){B.tier=t;B.max=DEF[B.type].hp[t-1];B.hp=B.max;}refreshWalls();for(const B of out)swapModel(B);return out.length;},
+  // turn a placed building to face f (0 +z, 1 +x, 2 -z, 3 -x)
+  face(B,f){B.face=f;B.door=DEF[B.type].noRoad?null:doorCell(B.ev,B.type,f);B.group.rotation.y=f*Math.PI/2;rebuildRoads();regionDirty=true;},
+  // the Archive's own model of an entry, drawn big with the Archive's lights, grass and camera, onto a full-screen canvas
+  archive(side,id,tier,ang,zoom){const W=innerWidth,H=innerHeight;codexRenderer();const R=new THREE.WebGLRenderer({antialias:true,alpha:true});R.setPixelRatio(devicePixelRatio);R.setSize(W,H);
+   R.outputEncoding=cxR.outputEncoding;R.toneMapping=cxR.toneMapping;R.toneMappingExposure=cxR.toneMappingExposure;R.shadowMap.enabled=true;R.localClippingEnabled=true;R.clippingPlanes=cxR.clippingPlanes;
+   const m=codexModel(side,id,tier);codexFrame(m);if(m.p&&typeof galPose==='function')try{galPose(m.p,0)}catch(e){}codexStage(m);
+   const cam=cxCam.clone();cam.aspect=W/H;cam.updateProjectionMatrix();const d=m.d*(zoom||1);cam.position.set(m.look.x+Math.sin(ang)*d*.9,m.look.y+d*.42,m.look.z+Math.cos(ang)*d*.9);cam.lookAt(m.look);
+   R.render(cxScene,cam);R.domElement.style.cssText='position:fixed;inset:0;z-index:999;background:transparent';document.body.appendChild(R.domElement);window.__arch={R,cam,m};},
   sky(col){SKY_DAY.set(col);},
   clearTrees(x,z,r){for(const t of trees)if(Math.hypot(t.x-x,t.z-z)<r){t.dead=true;t.k=0;}seatTrees();},
   hud(on){let s=document.getElementById('shotCss');if(!s){s=document.createElement('style');s.id='shotCss';document.head.appendChild(s);}s.textContent=on==='top'?'.cornerBtns,.guideCard,#log,.dock,#hint{display:none!important}':on?'.cornerBtns,.guideCard,#log{display:none!important}':'#app>:not(canvas){visibility:hidden!important}';}

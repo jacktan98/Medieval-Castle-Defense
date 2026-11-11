@@ -1,42 +1,36 @@
+// the four game scenes for the store pictures (landscape), each rebuilt from Jack's own reference screenshot
 module.exports={
-hero:{map:'vale',code:`(()=>{const K=castleB();{K.face=1;K.door=doorCell(K.ev,'castle',1);K.group.rotation.y=Math.PI/2;rebuildRoads();regionDirty=true;}
-  const c=center(K);
-  // the quarry by the nearest rocks to the west, the lumber camp by the woods to the south
-  const YW=1.95,R=(t,f,sd,tier)=>[t,Math.round(f*Math.sin(YW)+sd*Math.cos(YW)),Math.round(f*Math.cos(YW)-sd*Math.sin(YW)),tier,1];
-  SH.town([R('tower',2,-3,3),R('tower',2,3,3),R('market',4,-3,3),R('well',3,0,1),R('banner',2,-1,1),R('statue',2,1,1),R('farm',6,4,3),R('lodge',5,-6,3),R('quarry',9,5,3),R('farm',9,-5,2),R('house',6,0,3),R('house',7,2,2),R('house',7,-2,3),R('house',10,1,3),R('house',10,-2,2),R('flowers',5,1,1),R('torch',4,1,1),R('campfire',12,0,1),R('house',0,5,3),R('house',0,-5,2),R('barracks',-3,4,3),R('house',12,3,3),R('house',12,-4,2)],20);
-  window.__ok=JSON.stringify(buildings.filter(B=>/farm|lodge|quarry|market/.test(B.type)).map(B=>{const q=center(B);return [B.type,Math.round(q.x-c.x),Math.round(q.z-c.z)]}));
-  layRoads([[[c.x+3.2,c.z],[c.x+22,c.z]],[[c.x+8,c.z-12],[c.x+8,c.z+12]],[[c.x+15,c.z-10],[c.x+15,c.z+10]],[[c.x-6,c.z+8],[c.x+8,c.z+8]],[[c.x-6,c.z-8],[c.x+8,c.z-8]]]);rebuildRoads();cacheCells();
-  for(const k of [20,28,36])SH.clearTrees(c.x+Math.sin(1.95)*k,c.z+Math.cos(1.95)*k,8);SH.run(45);SH.hud(false);SH.freeze(1);SH.cam({yaw:1.95,pitch:.42,dist:34,dx:Math.sin(1.95)*7,dz:Math.cos(1.95)*7,y:2});SH.gameClouds(9,[.6,1]);})()`}};
-module.exports.wall={map:'bridge',code:`(()=>{const b=bridges[0],bci=Math.floor(b.ex/CELL);
-  for(const n of BANK_WALL){if(occB[n])continue;const ci=n%N,cj=(n/N)|0;place(ci===bci?'gate':'wall',ci,cj,{instant:true,free:true,quiet:true});}
-  for(const B of buildings)if(B.type==='wall'||B.type==='gate'){B.tier=2;B.max=DEF[B.type].hp[1];B.hp=B.max;swapModel(B);}
-  SH.town([['tower',-2,-6,3],['crossbow',2,-6,3],['crossbow',-5,-6,3],['tower',5,-6,3],['house',-3,1,2],['house',3,1,2],['house',-3,3,3],['house',3,3,3],['house',-5,2,2],['house',5,2,2],['barracks',0,4,2],['torch',-1,-3,1],['torch',1,-3,1],['banner',-2,-2,1],['campfire',1,-5,1]],56);
-  SH.run(4);SH.hud(false);{const c=center(castleB());const h=SH.spawn('spear',1,c.x,1.5);h.speed=0;h.hp=h.max=1e9;h.g.visible=false;window.__hold=h;}for(const v of villagers){v.sleeping=false;v.hunger=0;}res.food=999;SH.run(2);assignPosts();SH.run(15);assignPosts();SH.run(20);
-  const K0=castleB(),c0=center(K0);SH.clearTrees(c0.x,c0.z-6,7);{const rz=stoneRiverZ(c0.x);SH.clearTrees(c0.x,rz-9,11);SH.clearTrees(c0.x-11,rz-8,7);SH.clearTrees(c0.x+11,rz-8,7);}
-  {const Gt=buildings.find(B=>B.type==='gate'),q=center(Gt);for(const B of buildings)if(B.type==='barracks')setRally(B,{x:q.x+.5,z:q.z+3.2});}SH.run(13);for(const B of buildings)if(B.rallyFlag)B.rallyFlag.visible=false;
-  const kinds=['spear','spear','sword','spear','sword','lancer','rider','archer','spear','xbow'];let n=0;
-  const bx=b.x0+b.dx*b.L*.5;SH.packs([[c0.x-9,stoneRiverZ(c0.x-9)-5,11,2.2],[c0.x+9,stoneRiverZ(c0.x+9)-6,9,2],[c0.x+1,stoneRiverZ(c0.x)-11,8,2.4],[bx,stoneRiverZ(bx),7,1.6],[c0.x,stoneRiverZ(c0.x)-6,10,14]],kinds);SH.run(.6);window.__ok=villagers.filter(v=>v.post&&v.post.B.type==="barracks").length+" soldiers";{const h=window.__hold;h.dead=true;scene.remove(h.g);if(h.bar)h.bar.grp.visible=false;enemies.splice(enemies.indexOf(h),1);}
-  {const F=buildings.find(B=>B.type==='campfire'),q=center(F);const G=[];for(const [a,r,t,turn] of [[.4,1.35,2,0],[2.3,1.4,3,0],[4.4,1.5,2,.9]]){const x=q.x+Math.sin(a)*r,z=q.z+Math.cos(a)*r;G.push([x,z,t,Math.atan2(q.x-x,q.z-z)+turn]);}SH.guards(G);}
-  SH.freeze(1);SH.back({wood:150,hk:1.3,trees:16000,treeH:30});
-  const K=castleB(),c=center(K);SH.look(c.x,c.z-24,{yaw:.05,pitch:.27,dist:36,y:3.5});SH.gameClouds(14);})()`};
-module.exports.siege={map:'plains',code:`(()=>{const K=castleB(),c=center(K);
-  SH.town([['catapult',-3,-5,3,2],['ballista',-1,-7,2,2],['catapult',-4,-8,2,2],['catapult',-2,-10,2,2],['ballista',-5,-11,3,2],['catapult',1,-12,1,2],['tower',6,-8,3],['stores',-1,-4,1],['stores',-6,-6,1],['torch',1,-5,1],['house',-4,3,3],['house',4,3,2],['barracks',2,-3,3],['stables',-8,-4,3],['house',-2,3,3],['house',2,3,3]],64);
-  SH.run(3);SH.hud(false);{const h=SH.spawn('spear',1,c.x,2);h.speed=0;h.hp=h.max=1e9;h.g.visible=false;window.__hold=h;}for(const v of villagers){v.sleeping=false;v.hunger=0;}res.food=999;SH.run(2);assignPosts();SH.run(10);assignPosts();SH.run(25);assignPosts();SH.run(30);const E=buildings.find(B=>B.type==='catapult'),BL=buildings.find(B=>B.type==='ballista'),ENG=buildings.filter(B=>B.type==='catapult'||B.type==='ballista');const ce=center(E),cb=center(BL);
-  const mx=ce.x,mz=ce.z;const dx=0,dz=-1,l=1;SH.clearTrees(mx,mz-16,14);for(const B of buildings){if(B.type==='barracks')setRally(B,{x:mx+1.5,z:mz-9});if(B.type==='stables')setRally(B,{x:mx-3,z:mz-10});}SH.run(14);for(const B of buildings)if(B.rallyFlag)B.rallyFlag.visible=false;
-  const kinds=['spear','sword','spear','lancer','sword','rider','spear','archer'];let n=0;
-  SH.packs([[mx-6,mz-16,9,2],[mx+6,mz-19,8,2],[mx,mz-24,9,2.4],[mx+1,mz-15,9,11]],kinds,n=>2+(n%2));SH.run(.7);
-  {const f=SH.foe();for(const B of ENG){B.cd=Math.random()*1.5;const q=center(B);if(B.turret)B.turret.rotation.y=Math.atan2(f.x-q.x,f.z-q.z)-B.group.rotation.y;}}{const h=window.__hold;h.dead=true;h.hp=0;scene.remove(h.g);if(h.bar)h.bar.grp.visible=false;enemies.splice(enemies.indexOf(h),1);}
-  let ok=0;for(let k=0;k<80;k++){const st=arrows.filter(a=>a.kind==='stone'&&a.t>.3&&a.t<.55).length;if(st){ok=1;break;}SH.run(.05);}window.__ok=ok+" foes "+enemies.filter(e=>!e.dead).length+" rd "+JSON.stringify([...Array(N*N).keys()].filter(k=>road[k]&&((k/N)|0)<14).map(k=>[k%N,(k/N)|0]));
-  SH.freeze(1);
-  {const z0=mz-28;SH.clearTrees(mx,mz-14,12);for(const t of trees)if(!t.dead&&t.z>z0&&Math.abs(t.x-mx)<30)continue;}{let i0=-1,i1=-1;for(let i=0;i<N;i++)if(road[i]){if(i0<0)i0=i;i1=i;}window.__rx=i0<0?28*MK:(i0+i1+1)/2*CELL;{const cA=tGeo.attributes.color,rx=window.__rx;let zEnd=0;for(let j=0;j<=12;j++)for(let i=Math.floor(rx-2);i<=Math.ceil(rx+2);i++){const q=j*V+i,k=clamp(1.6-Math.abs(i-rx),0,1)*clamp((9-j)/3,0,1);if(k>0){const r=cA.getX(q),g=cA.getY(q),bb=cA.getZ(q);cA.setXYZ(q,r+(C.dirt.r-r)*k,g+(C.dirt.g-g)*k,bb+(C.dirt.b-bb)*k);}}cA.needsUpdate=true;}}SH.back({wood:150,hk:1.3,trees:16000,treeH:30,road:window.__rx});
-  SH.look(c.x-3,c.z-23,{yaw:-.35,pitch:.32,dist:34,y:2.5});SH.gameClouds(14);})()`};
-module.exports.boss={map:'hold',code:`(()=>{SH.run(2);SH.hud(false);for(const e of enemies.slice())if(e.dormant&&Math.hypot(e.x-HOLD_GATE[0],e.z-HOLD_GATE[1]-16.5)<16){scene.remove(e.g);enemies.splice(enemies.indexOf(e),1);}
-  const gx=HOLD_GATE[0],gz=HOLD_GATE[1]+16.5,YB=.15;const L=[];
-  {const g0=hAt(gx-7,gz);for(let j=0;j<V;j++)for(let i=0;i<V;i++){if(i<26&&j<4)continue;const zz=j,xl=28+(26-28)*clamp((zz-4.5)/10.5,0,1),xr=52+(54-52)*clamp((zz-4.5)/10.5,0,1),dIn=Math.max(xl-i,i-xr,4.5-zz,zz-15),k=sstep(-.6,.6,dIn)*sstep(48,40,j);if(k>0){const q=j*V+i,tg=dIn<2.5?Math.min(H[q],6.2):g0+.6+1.2*fbm(i*.1,j*.1);H[q]=H[q]+(Math.min(H[q],tg)-H[q])*k;}}syncTerrain();for(const t of trees)if(t.deco&&t.z<44){t.dead=true;t.k=0;}{const g=new THREE.Group();buildWarlordsHold(g);darkFort(g);mergeStatic(g);if(bossMesh)scene.remove(bossMesh);bossMesh=g;scene.add(g);}for(const r of rocks)if(r.x<25&&r.z<44&&r.mesh)r.mesh.visible=false;seatTrees();}
-  for(const m of darkMats.values())if(m.color&&!(m.userData&&m.userData.team))m.color.multiplyScalar(2.3);
-  const w=SH.spawn('warlord',3,gx,gz);L.push(w);
-  const F=[[0,0]];for(const [k,t,dx,dz] of [['rider',3,-1.7,-1.8],['rider',3,1.7,-1.8],['sword',3,-.8,-3.2],['sword',3,.9,-3.3],['lancer',3,-2.9,-4],['lancer',3,2.9,-4],['spear',2,-1.8,-5],['spear',2,0,-5.2],['spear',2,1.8,-5],['archer',2,-.9,-6.5],['xbow',2,.9,-6.5],['catapult',3,-2.5,-9],['ram',3,0,-10.5],['ballista',3,2.6,-9],['spear',2,-4.2,-2.5],['sword',2,4.3,-2.2],['spear',3,-3.4,-7],['sword',3,3.6,-6.8],['archer',2,-1.6,-8],['spear',2,1.7,-8.2],['xbow',3,-5,-5.6],['spear',2,5.2,-5.2],...[...Array(16).keys()].map(k=>[['spear','sword','archer','xbow'][k%4],2+(k%2),-5.5+(k%8)*1.55+(k>7?.7:0),-11.8-(k>7?1.4:0)])]){F.push([dx,dz]);L.push(SH.spawn(k,t,gx+dx,gz+dz));}
-  for(const e of L){e.speed=0;e.fresh=false;}
-  SH.run(.6);L.forEach((e,i)=>{e.x=e.rx=gx+F[i][0];e.z=e.rz=gz+F[i][1];const ry=YB+Math.PI*0+(i<3?0:(Math.random()-.5)*.5);e.hx=Math.sin(ry);e.hz=Math.cos(ry);e.g.rotation.y=ry;e.g.position.set(e.x,walkY(e.x,e.z),e.z);});window.__L=L.map(e=>[e.kind,e.x.toFixed(1),e.z.toFixed(1),e.dead,e.g.visible]);
-  for(const b of bridges)if(b.g)b.g.visible=false;SH.thaw();SH.back({hk:.25,wood:90,trees:9000});SH.freeze(1);updateWeather=()=>{wxPts.visible=wxLines.visible=false;};SH.clouds(40,"#d8dde6");SH.fog(60,140);
-  SH.look(gx,gz-4,{yaw:YB,pitch:.1,dist:20,y:walkY(gx,gz)+4.6});})()`};
+// 1 Build your town: Market Cross, a big tier-3 walled town round the castle, a grid of roads, by day
+hero:{map:'cross',code:`(()=>{const K=castleB();SH.face(K,0);const c=center(K),ci=Math.floor(c.x/CELL),cj=Math.floor(c.z/CELL);
+  SH.walls([[ci-7,cj-8],[ci+9,cj-8],[ci+9,cj+7],[ci-7,cj+7],[ci-7,cj-8]],3,[[ci+1,cj+7],[ci+9,cj]]);
+  for(const [a,b] of [[ci-7,cj-8],[ci+9,cj-8],[ci+9,cj+7],[ci-7,cj+7]]){}
+  SH.town([['tower',-6,-7,3,0],['tower',8,-7,3,0],['tower',-6,6,3,0],['tower',8,6,3,0],['crossbow',4,-7,3,0],['crossbow',8,2,3,0],
+   ['house',-3,3,3,0],['house',3,3,3,0],['house',-4,-3,3,0],['house',4,-4,2,0],['house',6,4,3,0],['house',-5,0,2,0],['house',6,-1,3,0],['house',1,-6,3,0],
+   ['farm',4,0,3,0],['market',2,5,3,0],['lodge',-4,5,3,0],['quarry',-3,-6,2,0],['statue',-2,2,1,0],['flowers',-2,-2,1,0],['flowers',2,-2,1,0],['flowers',7,4,1,0],
+   ['torch',-2,3,1,0],['torch',2,3,1,0],['torch',5,-3,1,0],['well',6,-4,1,0],['barracks',-5,-5,3,0]],30);
+  layRoads([[[c.x,c.z+3.2],[c.x,c.z+15]],[[c.x-12,c.z+6],[c.x+18,c.z+6]],[[c.x+7,c.z-12],[c.x+7,c.z+12]],[[c.x-8,c.z-6],[c.x+14,c.z-6]],[[c.x+7,c.z],[c.x+18,c.z]]]);rebuildRoads();cacheCells();
+  SH.run(40);SH.hud(false);SH.freeze(1);SH.cam({yaw:.4,pitch:1,dist:24,dx:2.5,dz:2,y:1});})()`},
+// 2 Hold the walls: Raider Keep at night, the wall and gatehouse with manned towers, troops rallied behind the gate, raider siege coming
+wall:{map:'keep',code:`(()=>{const K=castleB(),c=center(K),ci=Math.floor(c.x/CELL),cj=Math.floor(c.z/CELL),wj=cj-7;
+  SH.walls([[ci-7,wj],[ci+7,wj]],3,[[ci,wj]]);
+  SH.town([['tower',-3,-6,3,0],['tower',3,-6,3,0],['crossbow',-6,-6,3,0],['crossbow',6,-6,3,0],['barracks',-3,-3,3,0],['stables',3,-3,3,0],['butts',-6,-3,1,0],['stores',-7,-3,1,0],['banner',6,-4,1,0],['torch',-1,-5,1,0],['torch',1,-5,1,0]],40);
+  SH.run(3);SH.hud(false);const h=SH.spawn('spear',1,c.x,c.z-40);h.speed=0;h.hp=h.max=1e9;h.g.visible=false;
+  for(const v of villagers){v.sleeping=false;v.hunger=0;}res.food=999;SH.run(1);assignPosts();SH.run(10);assignPosts();SH.run(15);
+  const gx=(ci+.5)*CELL,gz=wj*CELL;for(const B of buildings)if(B.type==='barracks'||B.type==='stables')setRally(B,{x:gx+(B.type==='stables'?1.2:-1),z:gz+4.5});SH.run(14);for(const B of buildings)if(B.rallyFlag)B.rallyFlag.visible=true;
+  SH.spawn('catapult',3,gx-2.5,gz-9);SH.spawn('ballista',3,gx-6,gz-7.5);SH.spawn('ram',3,gx+2.5,gz-6);for(const [k,x,z] of [['sword',gx+1,gz-4.5],['spear',gx-2,gz-5],['spear',gx+5,gz-7],['archer',gx-5,gz-10],['rider',gx+6,gz-10],['sword',gx+.5,gz-8]])SH.spawn(k,3,x,z);
+  SH.run(.6);h.dead=true;scene.remove(h.g);enemies.splice(enemies.indexOf(h),1);
+  SH.freeze(.2);SH.look(gx,gz-1.5,{yaw:0,pitch:.62,dist:17,y:1});})()`},
+// 3 Raise siege engines: Siegeford by day by the river, catapult, mangonel and trebuchet side by side, crewed and loosing
+siege:{map:'ford',code:`(()=>{const K=castleB(),c=center(K);let bz=c.z;while(bz>2&&hAt(c.x,bz)>.35)bz-=.5;const ci=Math.floor(c.x/CELL),bj=Math.floor((bz+5)/CELL),cj=Math.floor(c.z/CELL),dj=bj-cj+1;
+  SH.town([['catapult',-2,dj,1,2],['catapult',0,dj,2,2],['catapult',2,dj,3,2],['tower',4,dj-1,3,0],['banner',-4,dj,1,0],['banner',5,dj+1,1,0],['stores',-3,dj+1,1,0]],30);
+  
+  SH.run(3);SH.hud(false);const h=SH.spawn('spear',1,c.x,2);h.speed=0;h.hp=h.max=1e9;h.g.visible=false;
+  for(const v of villagers){v.sleeping=false;v.hunger=0;}res.food=999;SH.run(1);assignPosts();SH.run(12);assignPosts();SH.run(25);assignPosts();SH.run(20);
+  for(const [k,dx,dz] of [['spear',-4,-13],['sword',0,-14],['spear',3,-15],['lancer',-1,-17],['spear',6,-16]])SH.spawn(k,2,c.x+dx,bz+dz);
+  const ENG=buildings.filter(B=>B.type==='catapult');{const f=SH.foe();for(const B of ENG){B.cd=Math.random()*.8;const q=center(B);if(B.turret)B.turret.rotation.y=Math.atan2(f.x-q.x,f.z-q.z)-B.group.rotation.y;}}
+  h.dead=true;scene.remove(h.g);enemies.splice(enemies.indexOf(h),1);
+  let ok=0;for(let k=0;k<80;k++){if(arrows.some(a=>a.kind==='stone'&&a.t>.25&&a.t<.5)){ok=1;break;}SH.run(.05);}window.__ok='stone '+ok+' crews '+ENG.map(B=>(B.manned||[]).filter(Boolean).length).join(',')+' pos '+JSON.stringify(buildings.filter(B=>/cat|tower/.test(B.type)).map(B=>{const q=center(B);return [B.type,(q.x-c.x).toFixed(0),(q.z-c.z).toFixed(0)]}))+' bz '+(bz-c.z).toFixed(1);
+  const E=ENG[1],q=center(E);for(const B of buildings)if((B.type==='wall'||B.type==='gate')){const w=center(B);if(Math.abs(w.x-q.x)<9&&w.z>q.z-1)B.group.visible=false;}SH.clearTrees(q.x,q.z+2,8);SH.freeze(1);SH.look(q.x+.5,q.z+.5,{yaw:-.15,pitch:.48,dist:9.5,y:hAt(q.x,q.z)+1.4});})()`},
+// 4 Defeat the Warlord: his model as the Archive shows it, big
+boss:{map:'vale',code:`(()=>{SH.hud(false);document.querySelector('canvas').style.visibility='hidden';document.body.style.background='radial-gradient(ellipse at 50% 40%,#4a3820 0%,#21180c 60%,#0e0904 100%)';SH.archive('r','warlord',3,.55,.72);})()`},
+};
