@@ -29,20 +29,26 @@ if(off['5-siege']!==undefined)bed('sfx/Bird_chirping.mp3',T('5-siege'),E('5-sieg
 // effects: the logged ones, with a little room between repeats of one sound
 // Jack: too many effects at once overwhelmed the viewer: each part keeps only a few telling sounds, one at a time, well spaced
 // the town: only the castle's upgrades (Jack); the wall: the ram, both grunts, arrows and siege; the siege: stones, bolts, falling houses and the riders' rush
-const KEEP={'1-town':['castleUp'],'3-wall':['ramHit','grunt','arrow','qbolt','rockFire','rockHit','bolt'],'5-siege':['rockFire','rockHit','bolt','clash','destroyed','rush'],'8-title':[]};
+const KEEP={'1-town':['castleUp'],'3-wall':['ramHit','kill','arrow','qbolt','rockFire','rockHit','bolt'],'5-siege':['rockFire','rockHit','bolt','clash','destroyed','rush','kill'],'8-title':[]};
 // these play whatever else is sounding (still kept apart from their own repeats)
-const LOUD={ramHit:1,grunt:1,rockHit:1,destroyed:1};
+const LOUD={ramHit:1,grunt:1,rockHit:1,destroyed:1,bolt:1};
+// a little louder than the game levels them (Jack): the ram's blow and the stones landing
+const BOOST={ramHit:1.6,rockHit:1.5};
 // a part's own spacing between any two effects (the wall: more arrows and siege, Jack)
 const ALLP={'3-wall':.32};
-const GAP={grunt:1.3,arrow:.55,qbolt:.7,ramHit:1.2,build:.7,upgrade:.9,rockFire:.9,rockHit:.6,bolt:1,clash:1.3,destroyed:1.5},last={};let ALL=.55,lastAny=-9,n=0,skip=0;
+const GAP={grunt:.6,arrow:.55,qbolt:.7,ramHit:1.2,build:.7,upgrade:.9,rockFire:.9,rockHit:.6,bolt:1,clash:1.3,destroyed:1.5},last={};let ALL=.55,lastAny=-9,n=0,skip=0;
 const turn={};const fx=(name,t,g,force)=>{const S=SND[name];if(!S||!S.files.length)return;if(!force&&(t-(last[name]??-9)<(GAP[name]??.5)||(!LOUD[name]&&t-lastAny<ALL))){skip++;return;}last[name]=t;lastAny=t;
- turn[name]=(turn[name]??-1)+1;let a=pcm(S.files[turn[name]%S.files.length]);if(S.strikes)a=strike(a);const k=Math.min(6,Math.max(.1,.09*S.trim/loud(a)));put(a,t,k*Math.min(1,g)*.65,0,.15);n++;};
+ turn[name]=(turn[name]??-1)+1;let a=pcm(S.files[turn[name]%S.files.length]);if(S.strikes)a=strike(a);const k=Math.min(6,Math.max(.1,.09*S.trim/loud(a)));put(a,t,k*Math.min(1,g)*.65*(BOOST[name]||1),0,.15);n++;};
+// one more blow of the ram at the wall, a swing (2 s) after its last logged one, if it still falls inside the part
+if(off['3-wall']!==undefined&&fs.existsSync(`${DIR}/3-wall.json`)){const r=JSON.parse(fs.readFileSync(`${DIR}/3-wall.json`)).filter(e=>e[1]==='ramHit');if(r.length){const t=(off['3-wall']+r[r.length-1][0])/FPS+2/.8;if(t<E('3-wall')-.3)fx('ramHit',t,1,1);}}
 // the wave horn as the wall part begins (Jack)
 if(off['3-wall']!==undefined)fx('horn',T('3-wall')+.1,1,1);
 for(const p of parts){const f=`${DIR}/${p}.json`;if(!fs.existsSync(f))continue;const keep=KEEP[p]||[];ALL=ALLP[p]??.55;for(const [fr,name,g] of JSON.parse(fs.readFileSync(f)).sort((a,b)=>a[0]-b[0]))if(keep.includes(name)){const t=(off[p]+fr)/FPS;
   // a building's upgrade in the game plays the built sound (the upgrade sound is only the menu's star upgrades: Jack);
   // the castle's upgrade two built sounds, one after the other
-  if(name==='castleUp'){fx('build',t,1,1);fx('build',t+.4,.8,1);continue;}
+  if(name==='castleUp'){fx('build',t,1,1);continue;}
+  // a raider falling: a grunt, the two recordings in turn
+  if(name==='kill'){fx('grunt',t,Math.max(.5,g));continue;}
   // the riders' charge: a neigh and the gallop under it for a few seconds
   if(name==='rush'){fx('neigh',t+.1,1,1);bed('sfx/Horse_gallop.mp3',t,t+3.2,1.2,.3,.9);continue;}
   fx(name,t,g);}}

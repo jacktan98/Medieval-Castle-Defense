@@ -14,16 +14,16 @@ const hear=p=>G(p,`(()=>{if(window.__heard)return;window.__heard=1;window.__ev=[
 const fade=(p,o)=>p.evaluate(o=>{let d=document.getElementById('fadeDiv');if(!d){d=document.createElement('div');d.id='fadeDiv';d.style.cssText='position:fixed;inset:0;background:#000;z-index:9999;pointer-events:none';document.body.appendChild(d);}d.style.opacity=o;},o);
 const shot=(p,name,i)=>p.screenshot({path:`${OUT}/${name}-${String(i).padStart(4,'0')}.png`});
 const save=async(p,name,extra=[])=>{const ev=await p.evaluate(()=>window.__ev||[]);fs.writeFileSync(`${OUT}/${name}.json`,JSON.stringify(ev.concat(extra)));};
-async function clip(p,name,secs,{fin=10,fout=10,k=1}={}){await own(p);await hear(p);await p.waitForTimeout(300);await step(p,k);const n=Math.round(secs*FPS);
+async function clip(p,name,secs,{fin=10,fout=10,k=1}={}){await own(p);await hear(p);await G(p,`barOn=()=>false;for(const e of enemies)if(e.dead)e.__g=1;`);await p.waitForTimeout(300);await step(p,k);const n=Math.round(secs*FPS);
  await p.evaluate(()=>{window.__ev=[];});
- for(let i=0;i<n;i++){const t=i/(n-1);await p.evaluate(([t,i])=>{window.__fi=i;G('window.__tick&&__tick('+t+')');},[t,i]);await step(p,k);
+ for(let i=0;i<n;i++){const t=i/(n-1);await p.evaluate(([t,i])=>{window.__fi=i;G('window.__tick&&__tick('+t+');for(const e of enemies)if(e.dead&&!e.__g){e.__g=1;window.__ev.push([window.__fi,\'kill\',1]);}');},[t,i]);await step(p,k);
   await fade(p,Math.max(0,fin?1-i/fin:0,fout?1-(n-1-i)/fout:0));await shot(p,name,i);}
  await save(p,name);console.log('clip',name,n,p.errs.slice(0,2));}
 const want=s=>!only.length||only.includes(s);
 (async()=>{const env=await L.start();
 // title cards: the part's name in gold on black, fading in and out
 if(want('cards')){const p=await env.b.newPage({viewport:{width:W,height:H},deviceScaleFactor:D});
- const CARDS={'0-card':['Build','your town'],'2-card':['Hold','the line'],'4-card':['Control','siege engines']};
+ const CARDS={'0-card':['Build','your town'],'2-card':['Hold','the line'],'4-card':['Rally','your army']};
  await p.setContent(`<!doctype html><html><head><link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&display=block" rel="stylesheet"><style>
   html,body{margin:0;width:${W}px;height:${H}px;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
   #c{text-align:center;font-family:'IM Fell English SC',serif;color:#f3cf6e;text-shadow:0 0 ${H*.04}px rgba(243,207,110,.25)}
@@ -70,7 +70,8 @@ if(want('wall')){const p=await L.open(env,SC.wall.map,W,H,D);await G(p,SC.wall.c
 // 3 siege against siege by day: the town's engines already turned on the raiders' engines, the barracks' and stables' troops out in
 // front of them holding off the raiders rushing them (at .8 speed)
 if(want('siege')){const p=await L.open(env,'plains',W,H,D);
- await G(p,`(()=>{SH.town([['catapult',-4,-1,3,2],['catapult',4,-1,3,2],['catapult',0,-3,3,2],['catapult',-7,0,3,2],['ballista',-3,-5,3,2],['ballista',3,-5,3,2],['tower',-5,3,3],['tower',5,3,3],['house',-3,3,3],['house',3,3,3],['stores',-2,-3,1],['stores',2,-3,1],['torch',0,3,1],['stables',-9,2,3],['stables',9,2,3],['barracks',0,6,3],['house',-6,-8,2],['house',6,-8,2],['house',-1,-9,2],['house',4,-10,1]],50);UPK.lance=true;
+ await G(p,`(()=>{SH.town([['catapult',-4,-1,3,2],['catapult',4,-1,3,2],['catapult',0,-3,3,2],['catapult',-7,0,3,2],['ballista',-3,-5,3,2],['ballista',3,-5,3,2],['tower',-5,3,3],['tower',5,3,3],['house',-3,3,3],['house',3,3,3],['stores',-2,-3,1],['stores',2,-3,1],['torch',0,3,1],['stables',-9,2,3],['stables',9,2,3],['barracks',0,6,3],['house',-7,-3,2],['house',7,-3,2],['house',-6,-1,1]],50);UPK.lance=true;
+  {const K=castleB(),c=center(K),ci=Math.floor(c.x/CELL),cj=Math.floor(c.z/CELL);SH.walls([[ci-17,cj-5],[ci-4,cj-5]],3);SH.walls([[ci+4,cj-5],[ci+17,cj-5]],3);}
   SH.run(5);SH.hud(false);for(const v of villagers){v.sleeping=false;v.hunger=0;}res.food=999;
   const E=buildings.filter(B=>B.type==='catapult'||B.type==='ballista');let x=0,z=0;for(const B of E){const c=center(B);x+=c.x;z+=c.z;}x/=E.length;z/=E.length;const fz=z-13;
   SH.clearTrees(x,z-6,26);for(const r of rocks)if(Math.hypot(r.x-x,r.z-z+8)<12)r.amount=0;seatRocks();cacheCells();
@@ -78,8 +79,8 @@ if(want('siege')){const p=await L.open(env,'plains',W,H,D);
   SH.run(.5);assignPosts();
   // the riders start at their stables' door, so they are mounted by the time the clip begins
   for(const v of villagers)if(v.post&&v.post.B.type==='stables'){const d=doorPoint(v.post.B);v.x=v.rx=d.x;v.z=v.rz=d.z;}
-  // the houses out in front are already battered, so the raiders tear them down in the clip
-  for(const B of buildings)if(B.type==='house'&&center(B).z<z-10){B.hp=B.max*.3;}
+  // the houses just inside the wall are already battered, so the raiders tear them down in the clip
+  for(const B of buildings)if(B.type==='house'&&center(B).z<z+1){B.hp=B.max*.3;}
   // riders wait behind the engines, then charge out at the clip's start to keep the raiders off the trebuchets
   const ST=buildings.filter(B=>B.type==='stables');for(const B of buildings)if(B.type==='barracks'||B.type==='stables')setRally(B,{x:x+(B.type==='stables'?(center(B).x<x?-2.5:2.5):0),z:z+1.5});
   const aim=()=>{const f=SH.foe(e=>ENEMY[e.kind].engine)||SH.foe();if(!f)return;for(const B of E){const q=center(B);if(B.turret)B.turret.rotation.y=Math.atan2(f.x-q.x,f.z-q.z)-B.group.rotation.y;}};
@@ -100,6 +101,6 @@ if(want('title')){const p=await L.open(env,SC.title.map,W,H,D);await G(p,SC.titl
  await p.evaluate(()=>{const t=document.querySelector('.gameTitle'),cs=getComputedStyle(t),d=document.createElement('div');d.id='awaits';d.innerHTML='<span>Your castle awaits</span>';
   d.style.cssText='position:fixed;left:0;right:0;bottom:0;height:36%;display:flex;align-items:center;justify-content:center;z-index:9998;opacity:0;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.55) 45%,rgba(0,0,0,.7))';
   const s=d.firstChild;s.style.cssText=`display:inline-block;font-family:${cs.fontFamily};color:#f6d77a;font-size:${parseFloat(cs.fontSize)*1.05}px;letter-spacing:.03em;-webkit-text-stroke:2px #3a2009;paint-order:stroke fill;text-shadow:0 3px 14px rgba(0,0,0,.9),0 0 22px rgba(243,207,110,.35)`;document.body.appendChild(d);});
- await G(p,`window.__tick=t=>{const d=document.getElementById('awaits');if(d){const k=Math.min(1,Math.max(0,(t-.22)/.25));d.style.opacity=k;d.firstChild.style.transform='scale('+(1.08-.08*k)+')';}}`);
+ await G(p,`window.__tick=t=>{const d=document.getElementById('awaits');if(d){const k=Math.min(1,Math.max(0,(t-.5)/.25));d.style.opacity=k;d.firstChild.style.transform='scale('+(1.08-.08*k)+')';}}`);
  await clip(p,'8-title',3,{fin:20,fout:0});await p.close();}
 await env.b.close();env.server.close();})();
