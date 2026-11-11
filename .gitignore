@@ -4,3 +4,4 @@ www/
 tools/render/store/*.png
 tools/render/store/*.log
 tools/render/store/vframes/
+tools/render/store/tframes/
