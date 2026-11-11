@@ -21,18 +21,22 @@ const put=(a,t,g,fi=0,fo=0)=>{const s=Math.round(t*SR);for(let i=0;i<a.length&&s
 const bed=(file,t0,t1,g,fi=.5,fo=.8)=>{const a=pcm(file),n=Math.round((t1-t0)*SR),b=new Float32Array(n);for(let i=0;i<n;i++)b[i]=a[i%a.length];put(b,t0,g,fi,fo);};
 const T=p=>off[p]/FPS,E=p=>(off[p]+fs.readdirSync(DIR).filter(f=>f.startsWith(p+'-')&&f.endsWith('.png')).length)/FPS,end=F/FPS;
 // music under everything, ambience by part
-bed('music/Medieval_theme_music.mp3',0,end,.21,.6,1.6);
+bed('music/Medieval_theme_music.mp3',0,end,.14,.6,1.6);
 if(off['1-town']!==undefined)bed('sfx/Bird_chirping.mp3',T('1-town'),E('1-town'),.28);
 if(off['3-wall']!==undefined){bed('sfx/Fire_sound.mp3',T('3-wall'),E('3-wall'),1.6);}
 if(off['5-siege']!==undefined)bed('sfx/Bird_chirping.mp3',T('5-siege'),E('5-siege'),.18);
 // effects: the logged ones, with a little room between repeats of one sound
 // Jack: too many effects at once overwhelmed the viewer: each part keeps only a few telling sounds, one at a time, well spaced
-const KEEP={'1-town':['build','upgrade'],'3-wall':['ramHit','grunt','arrow'],'5-siege':['rockFire','rockHit','bolt','clash'],'7-upgrades':['click','upgrade'],'8-title':['star']};
-const GAP={grunt:1.4,arrow:1.1,ramHit:1.2,build:.7,upgrade:.9,rockFire:1,rockHit:1,bolt:1.2,clash:1.3,click:.3},ALL=.55,last={};let lastAny=-9,n=0,skip=0;
+const KEEP={'1-town':['build','upgrade','castleUp'],'3-wall':['ramHit','grunt','arrow','qbolt','rockFire','rockHit','bolt'],'5-siege':['rockFire','rockHit','bolt','clash','ramHit'],'8-title':['star']};
+// a part's own spacing between any two effects (the wall: more arrows and siege, Jack)
+const ALLP={'3-wall':.32};
+const GAP={grunt:1.4,arrow:.55,qbolt:.7,ramHit:1.2,build:.7,upgrade:.9,rockFire:.9,rockHit:.9,bolt:1,clash:1.3},last={};let ALL=.55,lastAny=-9,n=0,skip=0;
 const fx=(name,t,g,force)=>{const S=SND[name];if(!S||!S.files.length)return;if(!force&&(t-(last[name]??-9)<(GAP[name]??.5)||t-lastAny<ALL)){skip++;return;}last[name]=t;lastAny=t;
  let a=pcm(S.files[Math.floor(Math.random()*S.files.length)]);if(S.strikes)a=strike(a);const k=Math.min(6,Math.max(.1,.09*S.trim/loud(a)));put(a,t,k*Math.min(1,g)*.65,0,.15);n++;};
 if(off['2-card']!==undefined)fx('horn',E('2-card')-.9,1,1);
-for(const p of parts){const f=`${DIR}/${p}.json`;if(!fs.existsSync(f))continue;const keep=KEEP[p]||[];for(const [fr,name,g] of JSON.parse(fs.readFileSync(f)).sort((a,b)=>a[0]-b[0]))if(keep.includes(name))fx(name,(off[p]+fr)/FPS,g,p==='8-title');}
+for(const p of parts){const f=`${DIR}/${p}.json`;if(!fs.existsSync(f))continue;const keep=KEEP[p]||[];ALL=ALLP[p]??.55;for(const [fr,name,g] of JSON.parse(fs.readFileSync(f)).sort((a,b)=>a[0]-b[0]))if(keep.includes(name)){const t=(off[p]+fr)/FPS;
+  // the castle's upgrade: the upgrade sound and a building's built sound, one after the other (Jack)
+  if(name==='castleUp'){fx('upgrade',t,1,1);fx('build',t+.35,1,1);continue;}fx(name,t,g,p==='8-title');}}
 // a soft limiter, then 16-bit stereo
 let pk=0;for(const v of mix)pk=Math.max(pk,Math.abs(v));const buf=Buffer.alloc(44+len*4);
 buf.write('RIFF',0);buf.writeUInt32LE(36+len*4,4);buf.write('WAVEfmt ',8);buf.writeUInt32LE(16,16);buf.writeUInt16LE(1,20);buf.writeUInt16LE(2,22);buf.writeUInt32LE(SR,24);buf.writeUInt32LE(SR*4,28);buf.writeUInt16LE(4,32);buf.writeUInt16LE(16,34);buf.write('data',36);buf.writeUInt32LE(len*4,40);

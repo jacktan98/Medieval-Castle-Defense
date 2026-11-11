@@ -610,7 +610,10 @@ function unstick(v, mode) {
     if (Math.max(Math.abs(da), Math.abs(db)) !== r) continue;
     const a = a0 + da, b = b0 + db; if (a < 0 || b < 0 || a >= N || b >= N || !cellPass(b * N + a, mode)) continue;
     const x = (a + .5) * CELL, z = (b + .5) * CELL;
-    if (canStand(x, z, mode) && (r > 0 || Math.hypot(x - v.x, z - v.z) > .4)) { v.x = x; v.z = z; return; }
+    // never hop corner-wise past two blocked sides (a rider stuck in a gate was drawn sliding across the wall beside it: Jack)
+    if (r === 1 && da && db && !cellPass(b0 * N + a, mode) && !cellPass(b * N + a0, mode)) continue;
+    // the hop is drawn as a jump, not eased across whatever stands between (smoothPos)
+    if (canStand(x, z, mode) && (r > 0 || Math.hypot(x - v.x, z - v.z) > .4)) { v.x = x; v.z = z; if (v.rx !== undefined) { v.rx = x; v.rz = z; } return; }
   }
 }
 // v.noProg: seconds since the unit last got 0.25 m closer to this target (unstick resets v.stuck, never this),

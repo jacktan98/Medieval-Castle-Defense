@@ -5550,7 +5550,10 @@ function unstick(v, mode) {
     if (Math.max(Math.abs(da), Math.abs(db)) !== r) continue;
     const a = a0 + da, b = b0 + db; if (a < 0 || b < 0 || a >= N || b >= N || !cellPass(b * N + a, mode)) continue;
     const x = (a + .5) * CELL, z = (b + .5) * CELL;
-    if (canStand(x, z, mode) && (r > 0 || Math.hypot(x - v.x, z - v.z) > .4)) { v.x = x; v.z = z; return; }
+    // never hop corner-wise past two blocked sides (a rider stuck in a gate was drawn sliding across the wall beside it: Jack)
+    if (r === 1 && da && db && !cellPass(b0 * N + a, mode) && !cellPass(b * N + a0, mode)) continue;
+    // the hop is drawn as a jump, not eased across whatever stands between (smoothPos)
+    if (canStand(x, z, mode) && (r > 0 || Math.hypot(x - v.x, z - v.z) > .4)) { v.x = x; v.z = z; if (v.rx !== undefined) { v.rx = x; v.rz = z; } return; }
   }
 }
 // v.noProg: seconds since the unit last got 0.25 m closer to this target (unstick resets v.stuck, never this),
@@ -10526,7 +10529,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '7c516eebb3'; var updateWait = false, updateT = 0;
+const BUILD = '74ff7363c0'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

@@ -1,7 +1,7 @@
 // node trailer.js W H DSF out-dir [part...]: the ~30 s landscape trailer (Jack): a black title card before each part, then the town
-// growing and upgrading, holding the line, siege against siege, the Upgrades screen, the title. 30 fps frames stepped by hand; every
+// growing and upgrading into dusk, holding the line, siege against siege, the title. 30 fps frames stepped by hand; every
 // game sound played while a part renders is logged (<part>.json: [frame, sound, gain]) for mix.js, which builds the soundtrack and
-// joins everything into the video. Parts: cards town wall siege upgrades title
+// joins everything into the video. Parts: cards town wall siege title
 const L=require('./lib');const SC=require('./scenes');const fs=require('fs');
 const [W,H,D,OUT]=[+process.argv[2],+process.argv[3],+process.argv[4],process.argv[5]];const only=process.argv.slice(6);
 const FPS=30;fs.mkdirSync(OUT,{recursive:true});
@@ -23,7 +23,7 @@ const want=s=>!only.length||only.includes(s);
 (async()=>{const env=await L.start();
 // title cards: the part's name in gold on black, fading in and out
 if(want('cards')){const p=await env.b.newPage({viewport:{width:W,height:H},deviceScaleFactor:D});
- const CARDS={'0-card':['Build','your town'],'2-card':['Hold','the line'],'4-card':['Control','siege engines'],'6-card':['Earn','and upgrade']};
+ const CARDS={'0-card':['Build','your town'],'2-card':['Hold','the line'],'4-card':['Control','siege engines']};
  await p.setContent(`<!doctype html><html><head><link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&display=block" rel="stylesheet"><style>
   html,body{margin:0;width:${W}px;height:${H}px;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
   #c{text-align:center;font-family:'IM Fell English SC',serif;color:#f3cf6e;text-shadow:0 0 ${H*.04}px rgba(243,207,110,.25)}
@@ -36,50 +36,55 @@ if(want('cards')){const p=await env.b.newPage({viewport:{width:W,height:H},devic
  await p.close();}
 // 1 the town grows round a tier-1 castle while the camera slowly circles; buildings come up one by one and are upgraded now and then,
 // each on its own time, until the castle and the rest stand at their final tier
-if(want('town')){const p=await L.open(env,SC.hero.map,W,H,D);await G(p,SC.hero.code);
+if(want('town')){const p=await L.open(env,SC.hero.map,W,H,D);
+ await G(p,`(()=>{for(const B of buildings.slice())removeBuilding(B,false,true);for(const v of villagers)scene.remove(v.g);villagers.length=0;road.fill(0);rebuildRoads();cacheCells();regionDirty=true;
+  const ev0=findValid('castle',Math.floor(N/2)-1,Math.floor(N/2)-1,{free:true});const K=place('castle',ev0.ci,ev0.cj,{instant:true,free:true,quiet:true});SH.face(K,0);const c=center(K),ci=Math.floor(c.x/CELL),cj=Math.floor(c.z/CELL);SH.clearTrees(c.x,c.z,19);
+  for(const r of rocks){const a=Math.floor(r.x/CELL),b=Math.floor(r.z/CELL);if(Math.abs(a-ci)<=6&&Math.abs(b-cj)<=6)r.amount=0;}seatRocks();cacheCells();
+  SH.walls([[ci-6,cj-6],[ci+6,cj-6],[ci+6,cj+6],[ci-6,cj+6],[ci-6,cj-6]],3,[[ci,cj+6],[ci+6,cj]]);
+  SH.town([['tower',-5,-5,3,0],['tower',5,-5,3,0],['tower',-5,5,3,0],['tower',5,5,3,0],
+   ['house',-2,3,3,0],['house',2,3,2,0],['house',-4,2,3,0],['house',3,-3,3,0],['house',-3,-3,2,0],['house',0,-4,3,0],
+   ['farm',-4,-1,3,0],['market',3,1,3,0],['lodge',-3,4,2,0],['barracks',3,4,3,0],
+   ['well',2,-2,1,0],['torch',-1,3,1,0],['torch',1,3,1,0],['flowers',-2,-2,1,0],['banner',-2,2,1,0],['campfire',4,-1,1,0]],12);
+  for(const B of buildings.slice())if(B.type!=='wall'&&B.type!=='gate'&&B!==K){const q=center(B);if(Math.abs(q.x-c.x)>11||Math.abs(q.z-c.z)>11)removeBuilding(B,false,true);}
+  const gz=(cj+6.5)*CELL,gx=(ci+6.5)*CELL;layRoads([[[c.x,c.z+3.2],[c.x,gz+5]],[[c.x+3.2,c.z],[gx+5,c.z]]]);rebuildRoads();cacheCells();
+  SH.run(40);SH.hud(false);})()`);
  await G(p,`(()=>{const K=castleB(),c=center(K);let s=7;const R=()=>{s=(s*16807)%2147483647;return s/2147483647;};
   const L=buildings.filter(B=>B!==K).map(B=>({B,t:B.tier,d:Math.hypot(center(B).x-c.x,center(B).z-c.z)+(B.type==='wall'||B.type==='gate'?6:0)})).sort((a,b)=>a.d-b.d);
   L.forEach((o,i)=>{o.a=.02+.5*i/L.length;o.u2=o.t>=2?Math.min(.93,o.a+.12+R()*.4):9;o.u3=o.t>=3?Math.min(.97,o.u2+.1+R()*.3):9;});
-  const pop=(B,up)=>{B.pop=window.__T;const q=center(B);for(let n=0;n<6;n++){const a=n/6*6.283;dustAt(q.x+Math.cos(a)*1.2,hAt(q.x,q.z),q.z+Math.sin(a)*1.2);}if(B.type!=='wall'&&B.type!=='gate')sfx(up?'upgrade':'build',{x:q.x,z:q.z},up?.55:.7);};
+  const pop=(B,up)=>{B.pop=window.__T;const q=center(B);for(let n=0;n<6;n++){const a=n/6*6.283;dustAt(q.x+Math.cos(a)*1.2,hAt(q.x,q.z),q.z+Math.sin(a)*1.2);}
+   if(B===K){window.__ev.push([window.__fi||0,'castleUp',1]);return;}if(B.type!=='wall'&&B.type!=='gate')sfx(up?'upgrade':'build',{x:q.x,z:q.z},up?.55:.7);};
   const set=(B,t)=>{if(B.tier>=t)return;B.tier=t;B.max=DEF[B.type].hp[t-1];B.hp=B.max;swapModel(B);pop(B,1);};
   for(const o of L){o.B.tier=1;o.B.max=DEF[o.B.type].hp[0];o.B.hp=o.B.max;swapModel(o.B);o.B.group.visible=false;}K.tier=1;swapModel(K);refreshWalls();for(const o of L)if(o.B.type==='wall'||o.B.type==='gate')o.B.group.visible=false;
-  paused=false;const lo=updateLight;updateLight=(dt,now)=>{light=1;lo(0,now);};
+  paused=false;PH.kind='day';const lo=updateLight;updateLight=(dt,now)=>{light=PH.t<DUSK?.25+.75*sstep(0,DUSK,PH.t):1;lo(dt,now);};
   window.__tick=t=>{for(const o of L){if(t>=o.a&&!o.B.group.visible){o.B.group.visible=true;pop(o.B,0);}if(t>=o.u2)set(o.B,2);if(t>=o.u3)set(o.B,3);}
    if(t>=.42)set(K,2);if(t>=.74)set(K,3);
-   SH.cam({yaw:-.3+t*.55,pitch:.95-t*.1,dist:25-t*3,dx:0,dz:-1,y:1});};})()`);
- await clip(p,'1-town',7.5);await p.close();}
+   // morning slides toward dusk, as the next part is night
+   const k=Math.min(1,Math.max(0,(t-.2)/.8));PH.t=DUSK+6-(DUSK*.8+6)*k*k*(3-2*k);
+   SH.cam({yaw:-.3+t*.55,pitch:.95-t*.1,dist:26-t*3,dx:0,dz:0,y:1});};})()`);
+ await clip(p,'1-town',8.5);await p.close();}
 // 2 hold the line: Raider Keep at night, a wave right at the wall and the gate, the towers shooting (at .8 speed)
 if(want('wall')){const p=await L.open(env,SC.wall.map,W,H,D);await G(p,SC.wall.code);
  await G(p,`(()=>{paused=false;const Gt=buildings.find(B=>B.type==='gate'),q=center(Gt);const K=['spear','sword','spear','sword','archer','spear','xbow','sword'];for(let i=0;i<22;i++){const x=q.x-10+Math.random()*20,z=q.z-3-Math.random()*6;if(canStand(x,z,2))SH.spawn(K[i%K.length],1+(i%3),x,z);}SH.spawn('ram',3,q.x,q.z-5);SH.run(2.5);
   window.__tick=t=>SH.look(q.x,q.z-3.5-t*.8,{yaw:-.2+t*.3,pitch:.92,dist:17-t*2,y:1});})()`);
- await clip(p,'3-wall',4.5,{k:.8});await p.close();}
+ await clip(p,'3-wall',6.5,{k:.8});await p.close();}
 // 3 siege against siege by day: the town's engines already turned on the raiders' engines, the barracks' and stables' troops out in
 // front of them holding off the raiders rushing them (at .8 speed)
 if(want('siege')){const p=await L.open(env,'plains',W,H,D);
- await G(p,`(()=>{SH.town([['catapult',-3,-4,3,2],['catapult',3,-4,2,2],['catapult',0,-6,3,2],['ballista',-6,-3,3,2],['ballista',6,-3,2,2],['tower',-4,-1,3],['tower',4,-1,3],['house',-3,2,3],['house',3,2,3],['house',-5,3,3],['house',5,3,3],['stores',-1,-3,1],['stores',1,-3,1],['torch',0,3,1],['barracks',-6,1,3],['stables',6,1,3],['barracks',0,5,3]],44);
-  SH.run(5);SH.hud(false);SPAWN_GAP=.3;
-  spawnRaiders([['catapult',3],['ballista',3],['ram',3],['catapult',2],['ballista',2]].concat([...Array(14)].map(()=>['spear',2]),[...Array(8)].map(()=>['sword',3]),[...Array(4)].map(()=>['lancer',2]),[...Array(4)].map(()=>['xbow',2])));
-  for(const v of villagers){v.sleeping=false;v.hunger=0;}res.food=999;SH.run(1);assignPosts();
-  const E=buildings.filter(B=>B.type==='catapult'||B.type==='ballista');let x=0,z=0;for(const B of E){const c=center(B);x+=c.x;z+=c.z;}x/=E.length;z/=E.length;
-  SH.run(6);const f0=SH.foe()||{x,z:z-20},dx=f0.x-x,dz=f0.z-z,l=Math.hypot(dx,dz)||1,px=-dz/l,pz=dx/l;
-  for(const B of buildings)if(B.type==='barracks'||B.type==='stables'){const sd=B.type==='stables'?3:-3;setRally(B,{x:x+dx/l*7+px*sd,z:z+dz/l*7+pz*sd});}
+ await G(p,`(()=>{SH.town([['catapult',-4,-1,3,2],['catapult',4,-1,2,2],['catapult',0,-3,3,2],['ballista',-7,0,3,2],['ballista',7,0,2,2],['tower',-5,3,3],['tower',5,3,3],['house',-3,3,3],['house',3,3,3],['stores',-2,-3,1],['stores',2,-3,1],['torch',0,3,1],['barracks',-9,2,3],['stables',9,2,3],['barracks',0,6,3]],44);
+  SH.run(5);SH.hud(false);for(const v of villagers){v.sleeping=false;v.hunger=0;}res.food=999;
+  const E=buildings.filter(B=>B.type==='catapult'||B.type==='ballista');let x=0,z=0;for(const B of E){const c=center(B);x+=c.x;z+=c.z;}x/=E.length;z/=E.length;const fz=z-13;
+  SH.clearTrees(x,z-6,26);for(const r of rocks)if(Math.hypot(r.x-x,r.z-z+8)<12)r.amount=0;seatRocks();cacheCells();
+  SH.spawn('catapult',3,x-4,fz-1);SH.spawn('catapult',2,x+4.5,fz-.5);SH.spawn('ballista',3,x+1,fz+2.5);SH.spawn('ram',3,x-1.5,fz+3.5);
+  const K=['spear','sword','spear','lancer','sword','xbow','spear','rider'];for(let i=0;i<24;i++){const ex=x-9+Math.random()*18,ez=fz-3+Math.random()*7;if(canStand(ex,ez,2))SH.spawn(K[i%K.length],2+(i%2),ex,ez);}
+  SH.run(.5);assignPosts();
+  for(const B of buildings)if(B.type==='barracks'||B.type==='stables'){const sd=B.type==='stables'?3.5:(center(B).x<x?-3.5:0);setRally(B,{x:x+sd,z:z-5});}
   const aim=()=>{const f=SH.foe(e=>ENEMY[e.kind].engine)||SH.foe();if(!f)return;for(const B of E){const q=center(B);if(B.turret)B.turret.rotation.y=Math.atan2(f.x-q.x,f.z-q.z)-B.group.rotation.y;}};
-  for(let k=0;k<12;k++){aim();SH.run(.5);}for(const B of buildings)if(B.rallyFlag)B.rallyFlag.visible=false;
-  for(const B of buildings)if(B.bar)B.bar.grp.visible=false;const lo=updateLight;updateLight=(dt,now)=>{light=1;lo(0,now);};
-  const f=SH.foe(e=>ENEMY[e.kind].engine)||SH.foe(),a=Math.atan2(f.x-x,f.z-z)+Math.PI,mx=x*.5+f.x*.5,mz=z*.5+f.z*.5,dd=Math.hypot(f.x-x,f.z-z);SH.clearTrees(mx,mz,dd*.75);
-  window.__tick=t=>SH.look(mx,mz,{yaw:a+1.1-t*.25,pitch:.66,dist:dd*.7+5-t*2,y:1.5});})()`);
- await clip(p,'5-siege',4.5,{k:.8});await p.close();}
-// 4 the Upgrades screen: a moment on each tab, then one bought
-if(want('upgrades')){const p=await env.b.newPage({viewport:{width:W,height:H},deviceScaleFactor:D,hasTouch:true});p.errs=[];p.on('pageerror',e=>p.errs.push(e.message));
- const STARS={vale:3,bridge:3,cross:3,watch:2,dune:3,bend:2};
- await p.goto(env.base);await p.evaluate(s=>{localStorage.clear();localStorage.setItem('mtd-stars',JSON.stringify(s));localStorage.setItem('mtd-full','1');localStorage.setItem('mtd-cards',JSON.stringify(Object.keys(s)));localStorage.setItem('mtd-upg',JSON.stringify(['tax','homes','seed','axes','qvolley']));},STARS);
- await p.goto(env.base);await p.waitForTimeout(5000);await p.click('#campBtn');await p.waitForTimeout(1200);await p.click('#campUpBtn');await p.waitForTimeout(1200);
- const tap=async sel=>{await p.evaluate(s=>{const e=typeof s==='number'?document.querySelectorAll('#upPick .upTab')[s]:document.querySelector(s);if(e)e.click();},sel);await p.waitForTimeout(250);};
- const plan={38:1,76:2,96:'#upPick .upNode:not(.done)',108:'#upPick .upBuy'},n=120,ev=[];
- for(let i=0;i<n;i++){if(plan[i]!==undefined){await tap(plan[i]);ev.push([i,i===108?'upgrade':'click',i===108?.9:.8]);}
-  await p.evaluate(k=>{document.body.style.transform=`scale(${1+k*.04})`;document.body.style.transformOrigin='50% 45%';},i/n);
-  await fade(p,Math.max(0,1-i/10,1-(n-1-i)/10));await shot(p,'7-upgrades',i);}
- fs.writeFileSync(`${OUT}/7-upgrades.json`,JSON.stringify(ev));console.log('clip 7-upgrades',n,p.errs.slice(0,2));await p.close();}
+  for(let k=0;k<10;k++){aim();SH.run(.5);}for(const B of buildings)if(B.rallyFlag)B.rallyFlag.visible=false;
+  for(const B of buildings)if(B.bar)B.bar.grp.visible=false;const lo=updateLight;updateLight=(dt,now)=>{light=1;lo(dt,now);};
+  const mx=x,mz=z-6.5;window.__ok=[x,z,SIZE].join(' ');
+  // from the raiders' side, looking in toward the town: the map's edge stays behind the camera
+  window.__tick=t=>SH.look(mx,mz,{yaw:Math.PI+.55-t*.35,pitch:.68,dist:20-t*2,y:1.5});})()`);
+ console.log('siege at',await G(p,'window.__ok'));await clip(p,'5-siege',7,{k:.8});await p.close();}
 // 5 the title over the Blighted Isle, and "Your castle awaits" under it, big and gold
 if(want('title')){const p=await L.open(env,SC.title.map,W,H,D);await G(p,SC.title.code);await p.waitForTimeout(3000);
  await p.evaluate(()=>{const t=document.querySelector('.gameTitle'),cs=getComputedStyle(t),d=document.createElement('div');d.id='awaits';d.innerHTML='<span>Your castle awaits</span>';
