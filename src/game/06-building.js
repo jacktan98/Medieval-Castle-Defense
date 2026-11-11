@@ -342,6 +342,6 @@ let lastPaint = '', wallStroke = 0;
 function paintWall(a, b) {
   const key = a + ',' + b; if (key === lastPaint) return; lastPaint = key;
   const B = place('wall', a, b, { quiet: true });
-  if (B) { wallStroke++; sfx('click'); setHint('<b>Wall</b>', 'ok'); }
+  if (B) { wallStroke++; sfx('build', { x: (a + .5) * CELL, z: (b + .5) * CELL }, .5); setHint('<b>Wall</b>', 'ok'); }
 }
 

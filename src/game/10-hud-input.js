@@ -390,7 +390,9 @@ function tap(e) {
   const pt = pick(e); if (!pt) return;
   const [ci, cj] = cellFor(pt, ...dimsFor(tool, placeFace));
   if (e.pointerType !== 'mouse' && !(cur && cur.ci === ci && cur.cj === cj && cur.type === tool && ghosts[tool].visible)) { showGhostAt(pt); return; }
-  if (place(tool, ci, cj)) { sfx('click'); if (e.pointerType === 'mouse') showGhostAt(pt); else { hideGhost(); setHint('Placed'); } }
+  // placed: the building sound (Jack: it played the error sound with a mouse, as the outline shown again at once found the spot
+  // taken, a red "Occupied" within the tap's 80 ms; the tap's moment is cleared first so that hint stays quiet)
+  if (place(tool, ci, cj)) { sfx('build', { x: pt.x, z: pt.z }, .8); userActT = -1e9; if (e.pointerType === 'mouse') showGhostAt(pt); else { hideGhost(); setHint('Placed'); } }
 }
 const ROTATES = { wall: 1, gate: 1 };
 function rotatePlacement() {

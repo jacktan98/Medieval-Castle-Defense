@@ -210,6 +210,17 @@ function giveTool(v, kind) {
 }
 const JOB_TOOL = { lodge: 'axe', forester: 'axe', quarry: 'pick', mine: 'pick', farm: 'hoe', farmhouse: 'pail' };
 // down on one knee by c (0 standing … 1 kneeling): body lowered, front leg forward, back leg behind
+// the quick change (p 0–1): one full turn, eased in and out, over a small hop, both arms swung out to the sides
+function changePose(f, p) {
+  p = clamp(p, 0, 1); const k = Math.sin(Math.PI * p);
+  f.body.rotation.y = Math.PI * 2 * sstep(.08, .92, p); f.body.position.y = .17 * k; f.spun = true;
+  f.arms[0].rotation.z = -.9 * k; f.arms[1].rotation.z = .9 * k;
+}
+// the puff that hides the swap: dust round the feet and a few scraps of the old clothes flung off
+function changeFx(f) {
+  const x = f.rx !== undefined ? f.rx : f.g.position.x, z = f.rz !== undefined ? f.rz : f.g.position.z, y = f.g.position.y;
+  for (let i = 0; i < 6; i++) dustAt(x + Math.cos(i) * .25, y + .15 + (i % 3) * .2, z + Math.sin(i) * .25);
+}
 function kneel(p, c) { p.body.position.y = -.2 * c; p.legs[0].rotation.x = -1.3 * c; p.legs[1].rotation.x = .6 * c; }
 // working swings (t in seconds): right arm R, free arm L, tool tilt, body lean; w is the swing sine (a strike sounds as it passes +0.85)
 // one work stroke over a cycle p (0–1): a slow eased wind-up (w 0 → -1, tool raised), a fast strike (→ +1), a short hold at
@@ -895,10 +906,11 @@ function updateVillagers(dt, now) {
     else if (barrow) { L = Rt = -.75; lean = 0; }                     // both hands on the barrow's handles (upright, so they stay on them)
     else if (stoneC) { L = Rt = -1.2; }                               // block held against the chest
     else if (v.working && TOOL_POSE[kind]) { ({ w, R: Rt, L, tilt, lean, crouch = 0, twist = 0, big = false } = TOOL_POSE[kind](now / 1000 + v.seed, v.seed)); if (crouch) kneel(v, crouch); } else if (kind) { Rt = -.3 + swing * .25; tilt = -.25; }          // walking with the tool held low
-    if (v.changing) {                                                 // bending down to change: lean in and out, arms to the ground
-      // down on one knee and up again (the figure bends only at the ground, so it kneels rather than stoops), hands to the ground
-      const k = Math.sin(Math.PI * clamp(1 - v.changeT / CHANGE_T, 0, 1)); lean = .22 * k; L = Rt = -1.0 * k; tilt = -.2; kneel(v, k);
-      v.toolOff = k > .35;
+    if (v.changing) {
+      // a quick-change twirl (Jack wanted better than kneeling): a little hop and one full spin, arms flung out, and a puff of dust
+      // at the middle (changeFx) hides the swap of clothes and tool; set exactly below, after the pose easing
+      const k = Math.sin(Math.PI * clamp(1 - v.changeT / CHANGE_T, 0, 1)); lean = 0; L = Rt = -.5 * k; tilt = -.2;
+      v.toolOff = k > .55;
     }
     if (v.soldier) {                                                  // weapon carried upright; a thrust or a cut when striking
       const at = v.attackT || 0; L = -.55 - swing * .2; lean = 0;
@@ -914,6 +926,7 @@ function updateVillagers(dt, now) {
     v.arms[0].rotation.x = ease(v.arms[0].rotation.x, L); v.arms[1].rotation.x = ease(v.arms[1].rotation.x, Rt);
     // out and up: the hand round the bundle's outer log; with one log a little out too, the hand on its outer side (Jack)
     v.arms[1].rotation.z = ease(v.arms[1].rotation.z, twoLogs ? 2.3 : logC ? .28 : 0); v.body.rotation.x = ease(v.body.rotation.x, lean);
+    if (v.changing) changePose(v, 1 - v.changeT / CHANGE_T); else if (v.spun) { v.spun = false; v.body.rotation.y = 0; v.arms[0].rotation.z = v.arms[1].rotation.z = 0; }
     if (v.soldier) (v.toolKind === 'spear' ? spearPose : swordPose)(v, v.attackT || 0, swing);   // exact: eased, the strikes go soft
     smoothPos(v, dt, now); v.g.position.set(v.rx, walkY(v.rx, v.rz), v.rz);
     if (v.sbar) { const on = v.soldier && v.hp < v.maxHp && barOn(v.hitAt); v.sbar.grp.visible = on; if (on) { v.sbar.set(v.hp / v.maxHp); v.sbar.grp.position.set(v.rx, v.g.position.y + 1.5 * UNIT_K, v.rz); } }

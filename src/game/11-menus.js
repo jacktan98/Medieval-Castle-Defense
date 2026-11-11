@@ -562,7 +562,7 @@ const CAMPAIGN = [
 ];
 const MAIN = CAMPAIGN.filter(c => !c.bonus);
 // the storyline (Jack): read only on the back of each stage's card in the campaign (its ! button flips it), never in the game;
-// a young prince wins back his father's kingdom from the Warlord, light in tone; no short forms (Jack: "will", not "'ll")
+// the player, a young heir (never named a prince or princess: Jack wants it gender neutral), wins back their father's kingdom from the Warlord, light in tone; no short forms (Jack: "will", not "'ll")
 // the flip button's icon (Jack picked a rolled scroll): a sheet with a curl at each end and two lines of writing (lucide's scroll, ISC)
 const SCROLL_ICO = '<svg viewBox="0 0 24 24"><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/><path d="M15 8h-5M15 12h-5"/></svg>';
 // the story's red wax seal in the back's bottom-right corner (Jack: made realistic, the crown with depth): an uneven blob with two
@@ -617,20 +617,20 @@ const sealIco = i => SEAL_ICO.replace(/(id="|url\(#)(s[a-z]+)/g, `$1$2${i}`);
 // a stage's story not yet read: its scroll glows on the current stage's card with the card's own glow, until the card is flipped (Jack)
 var STORY_READ = {}; try { STORY_READ = JSON.parse(localStorage.getItem('mtd-story') || '{}'); } catch (e) {}
 const STORY = {
-  vale: 'Long ago your family ruled these lands in peace, until the Warlord came with his raiders. The King, your father, fell defending the castle, and you escaped as a boy. Years of training later, you are back. Greenvale is a quiet valley at the edge of the old kingdom, and its people still remember your family. Build them a home worth defending.',
+  vale: 'Long ago your family ruled these lands in peace, until the Warlord came with his raiders. The King, your father, fell defending the castle, and you escaped as a child. Years of training later, you are back. Greenvale is a quiet valley at the edge of the old kingdom, and its people still remember your family. Build them a home worth defending.',
   bridge: 'Stonebridge guards the only crossing on the great river. The townsfolk started a wall to keep the raiders out, but lost their nerve halfway through. When you ride in with a plan, the blacksmith grins and hands out spears. Finish the wall, train some soldiers, and hold the bridge.',
   cross: 'Two old roads meet at a worn stone cross, and merchants have traded there for a hundred years. Business has been awful since the raiders came, and there is hardly a rock in sight to build with. The merchants make you an offer: keep the roads safe, and they will trade you all the stone you need.',
   watch: 'Your father once kept watch over the dry hills from a tall stone tower. The raiders burned it the year he fell, and it still smoulders. The hill gives the best view for miles, so it is the perfect spot for a ballista. Your father would like that.',
   dune: 'Dunewell is an oasis on the old caravan road, and the only water for days in any direction. The desert folk are friendly but careful: trees are precious here, and they will not let you cut down theirs. Plant a grove of your own, dig a well, and the caravans might just come back.',
   bend: 'At Riverbend the river splits in two, with the town on the island between. The Warlord\'s raiders have learned a new trick: attacking over both bridges at once. Luckily the town\'s crossbowmen are the best in the land, and they have been waiting for someone to lead them.',
-  crag: 'Ironwood\'s trees are so thick that the sun barely reaches the ground. There is not a loose rock anywhere, but the woodsfolk say the old crag is full of good stone. Dig a mine, raise your banners high, and let the whole forest know the prince has come.',
+  crag: 'Ironwood\'s trees are so thick that the sun barely reaches the ground. There is not a loose rock anywhere, but the woodsfolk say the old crag is full of good stone. Dig a mine, raise your banners high, and let the whole wood know that the true heir has come.',
   ford: 'The Warlord is worried now, and he is sending catapults and rams down the highland valley. An old stone wall still guards the river, a bit crumbly but standing. If they bring siege engines, you will build bigger ones.',
   mere: 'Meadowmere was once famous for its golden wheat. Then a blight crept out of the marsh, and now the crops rot in the fields. The farmers have not given up, though: hens and pigs do not mind a bit of blight. Build farmhouses and keep the town fed.',
   plains: 'The finest horses in the kingdom graze on these open plains, and the Warlord wants them all for his riders. There are no hills to hide behind and no walls to lean on. Raise stables, train your own knights, and meet his horsemen head on.',
   keep: 'The Raider Chief helped the Warlord take your father\'s throne. He sits in a palisade keep above a burned village, his raiders camped all around. Leave the camps quiet and they will leave you alone, until the Chief himself marches out. Then it is the fight you have trained for.',
   hold: 'Far north in the snow stands the Warlord\'s hold, the last thing between you and your father\'s crown. Every town you have freed has sent its best: archers, knights, engineers and a few very brave farmers. Hold the great bridge, break his army, and bring the crown home.',
-  meadow: 'Peace at last, and the new King\'s first summer is the driest anyone can remember. The river has shrunk to cracked mud and the trees have withered, and the Warlord\'s leftover raiders smell an opportunity. Rule wisely with what little there is.',
-  isle: 'A blight has crept onto the river isle and the fields are failing. Hungry raiders are circling the island, hoping the King\'s town is too weak to fight. Show them that a full henhouse and a sharp arrow beat a blight any day.',
+  meadow: 'Peace at last, and your first summer on the throne is the driest anyone can remember. The river has shrunk to cracked mud and the trees have withered, and the Warlord\'s leftover raiders smell an opportunity. Rule wisely with what little there is.',
+  isle: 'A blight has crept onto the river isle and the fields are failing. Hungry raiders are circling the island, hoping your town is too weak to fight. Show them that a full henhouse and a sharp arrow beat a blight any day.',
   pass: 'The longest winter in memory has buried the mountain pass in snow. The Warlord\'s last loyal captains have gathered every raider they could find for one final march. Hold the pass, keep the fires burning, and the kingdom will see spring.',
 };
 // locked stages can't be played (Jack: win the one before first); set true to let a tester play every stage

@@ -100,7 +100,7 @@ function genTrees() {
     if (MAP === 'dune') {
       // the only wood: trees round the pool and a few in the oasis
       const p = ellD(x, z, DUNE_POOL), o = oasisD(x, z);
-      if (dk < 7.5 || polyDist(DUNE_ROAD, x, z) < 2.6 || p < 1.3) continue;
+      if (dk < 7.5 || polyDist(DUNE_ROAD, x, z) < 2.6 || p < 1.36) continue;   // none inside the pool's basin (closed: sceneryAt)
       if ((p < 2.2 && hash(x * 1.3, z * .7) < .33) || (o < .85 && hash(x * 2.1, z * 1.7) < .012)) trees.push({ x, z, s: .7 + hash(z, x) * .4, k: 1 });
       continue;
     }
