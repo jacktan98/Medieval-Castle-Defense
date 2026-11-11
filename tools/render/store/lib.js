@@ -44,6 +44,7 @@ exports.open=async(env,map,W,H,dsf,stars)=>{const p=await env.b.newPage({viewpor
    for(let j=0;j<n;j++)for(let i=0;i<n;i++){const x=ax[i],z=ax[j],h=hf(x,z);P.push(x,h,z);const d=out(x,z);
      c.copy(C.grass2).lerp(C.grass,clamp((fbm(x*.13+1,z*.13+2)-.25)*2,0,1));if(o.dry)c.lerp(C.dry,o.dry);c.lerp(C.dry,sstep(.55,.72,fbm(x*.05+9,z*.05+4))*.35);
      const sl=Math.abs(hf(x+1.5,z)-hf(x-1.5,z))/3+Math.abs(hf(x,z+1.5)-hf(x,z-1.5))/3;c.lerp(C.rock,clamp(sstep(.6,1.3,sl)*.85+sstep(10,20,h-base)*.6,0,1));
+     if(o.road!==undefined&&z<0&&Math.abs(x-o.road)<1.1)c.copy(C.dirt).multiplyScalar(.95);
      if(o.snow)c.lerp(SNOW_C,sstep(o.snow,o.snow+5,h-base)*.8);
      if(d<8){const vi=Math.round(Math.min(SIZE,Math.max(0,z)))*V+Math.round(Math.min(SIZE,Math.max(0,x)));ec.setRGB(tc.getX(vi),tc.getY(vi),tc.getZ(vi));c.lerp(ec,1-d/8);}
      Cc.push(c.r,c.g,c.b);}
@@ -51,8 +52,8 @@ exports.open=async(env,map,W,H,dsf,stars)=>{const p=await env.b.newPage({viewpor
    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(P,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(Cc,3));geo.setIndex(I);geo.computeVertexNormals();
    const m=new THREE.Mesh(geo,terrainMat);m.receiveShadow=true;g.add(m);
    // trees by the game's own rules: woods where a slow noise is high, lone trees, none high on the mountains
-   const T=[];for(let k=0;k<60000&&T.length<(o.trees||5000);k++){const x=-160+Math.random()*(SIZE+320),z=-160+Math.random()*(SIZE+320);const d=out(x,z);if(d<1.5)continue;const h=hf(x,z);if(h-base>(o.treeH||14))continue;
-     const sl=Math.abs(hf(x+1,z)-hf(x-1,z))/2+Math.abs(hf(x,z+1)-hf(x,z-1))/2;if(sl>.9)continue;const mask=fbm(x*.08+20,z*.08+11);if(!(mask>.48&&Math.random()<(mask-.42)*3.2)&&Math.random()>.03)continue;T.push([x,h,z,.75+Math.random()*.5]);}
+   const T=[];for(let k=0;k<60000&&T.length<(o.trees||5000);k++){const x=-160+Math.random()*(SIZE+320),z=-160+Math.random()*(SIZE+320);const d=out(x,z);if(d<1.5)continue;if(o.road!==undefined&&z<0&&Math.abs(x-o.road)<2)continue;const h=hf(x,z);if(h-base>(o.treeH||14))continue;
+     const sl=Math.abs(hf(x+1,z)-hf(x-1,z))/2+Math.abs(hf(x,z+1)-hf(x,z-1))/2;if(sl>.9)continue;const mask=fbm(x*.08+20,z*.08+11);if(!(d<(o.wood||0)&&Math.random()<.9)&&!(mask>.48&&Math.random()<(mask-.42)*3.2)&&Math.random()>.03)continue;T.push([x,h,z,.75+Math.random()*.5]);}
    const tr=new THREE.InstancedMesh(trunkGeo,trunks.material,T.length),cr=new THREE.InstancedMesh(crownGeo,crowns.material,T.length);cr.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(T.length*3),3);
    const du=new THREE.Object3D(),t2=new THREE.Color();T.forEach(([x,h,z,s],k)=>{du.position.set(x,h,z);du.scale.set(s,s,s);du.rotation.set(0,Math.random()*6,0);du.updateMatrix();tr.setMatrixAt(k,du.matrix);cr.setMatrixAt(k,du.matrix);
      const r=hash(x*3.3,z*1.1);t2.setHSL(.27+(r-.5)*.07,.3+r*.15,.16+hash(z,x*2)*.09);if(r<.05)t2.setHSL(.08,.35,.24);if(o.snow&&h-base>o.snow-4)t2.lerp(SNOW_C,.4);cr.setColorAt(k,t2);});
@@ -90,6 +91,8 @@ exports.open=async(env,map,W,H,dsf,stars)=>{const p=await env.b.newPage({viewpor
   thaw(col){const c=tGeo.attributes.color,to=new THREE.Color(col||'#6f6a5e');for(let i=0;i<c.count;i++){const r=c.getX(i),g=c.getY(i),b=c.getZ(i);const w=Math.min(r,g,b);if(w>.45){const k=Math.min(1,(w-.45)/.25);c.setXYZ(i,r+(to.r-r)*k,g+(to.g-g)*k,b+(to.b-b)*k);}}c.needsUpdate=true;},
   // a wider lens for a portrait shot (the frame loop keeps setting 45, so the setter is ignored)
   fov(F){Object.defineProperty(camera,'fov',{get:()=>F,set(){},configurable:true});camera.updateProjectionMatrix();updateCam();},
+  // raiders in packs and a few alone: spots [x, z, count, spread]; ok(x, z) says where one may stand
+  packs(spots,kinds,tier,ok){let n=0;const P=[];for(const [cx,cz,cnt,r] of spots){let m=0;for(let k=0;k<400&&m<cnt;k++){const a=Math.random()*6.28,d=Math.sqrt(Math.random())*r,x=cx+Math.cos(a)*d,z=cz+Math.sin(a)*d;if(!canStand(x,z,2)||(ok&&!ok(x,z))||P.some(p=>Math.hypot(p[0]-x,p[1]-z)<.85))continue;P.push([x,z]);SH.spawn(kinds[n%kinds.length],tier?tier(n):1+(n%3),x,z);n++;m++;}}return n;},
   sky(col){SKY_DAY.set(col);},
   clearTrees(x,z,r){for(const t of trees)if(Math.hypot(t.x-x,t.z-z)<r){t.dead=true;t.k=0;}seatTrees();},
   hud(on){let s=document.getElementById('shotCss');if(!s){s=document.createElement('style');s.id='shotCss';document.head.appendChild(s);}s.textContent=on==='top'?'.cornerBtns,.guideCard,#log,.dock,#hint{display:none!important}':on?'.cornerBtns,.guideCard,#log{display:none!important}':'#app>:not(canvas){visibility:hidden!important}';}
