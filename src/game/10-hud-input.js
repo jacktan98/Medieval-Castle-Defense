@@ -256,7 +256,7 @@ function showGhostAt(point) {
     for (const t in ghosts) ghosts[t].visible = false; ringLine.visible = reachLine.visible = boostDisc.visible = false;
     const ev = evaluateRoad(Math.floor(point.x / CELL), Math.floor(point.z / CELL));
     footLine.material.color.set(ev.ok ? '#8cc46e' : '#e2715b'); drape(footLine, ev.x0, ev.z0, ev.x1, ev.z1); cur = ev;
-    if (ev.ok) setHint(`<b>Path</b><i class="gap"></i>${costHTML(PATH_COST)}<i class="gap"></i><span class="cost" title="Walk speed"><span class="ico">${ICON.speed}</span>×${PATH_SPEED}</span>`, 'ok'); else setHint(ev.reason, 'bad');
+    if (ev.ok) setHint(`<b>Path</b><i class="gap"></i>${costHTML(PATH_COST)}<i class="gap"></i><span class="cost" title="Walk speed"><span class="ico">${ICON.speed}</span>×${PATH_SPEED}</span>`, 'ok'); else setHint(ev.reason, 'bad', true);
     return;
   }
   const T = DEF[tool], [ci, cj] = cellFor(point, ...dimsFor(tool, placeFace)), ev = evaluate(tool, ci, cj);
@@ -274,7 +274,10 @@ function showGhostAt(point) {
   const dr = T.decor ? BOOST_R : T.reach || (T.range && T.range[0]) || 0;
   if (dr) drapeDisc(boostDisc, cx, cz, dr); else boostDisc.visible = false;
   cur = ev;
-  if (!ev.ok) { setHint(ev.reason, 'bad'); return; }
+  // the outline's hints are a preview and stay silent (Jack heard the error sound laying paths: the outline, moved after a
+  // tap or a drag's end, found the tile just laid and said "Already a path" within the tap's 80 ms); a refused placement
+  // itself still sounds it (place, paintRoad, paintWall)
+  if (!ev.ok) { setHint(ev.reason, 'bad', true); return; }
   // short: name, cost, then only what matters for this spot, each as an icon and a number (no instructions, no dots)
   const it = (ico, txt, cls = '', name = '') => `<span class="cost${cls}" title="${name}"><span class="ico">${ICON[ico]}</span>${txt}</span>`;
   const parts = [`<b>${T.name}</b>`, costHTML(T.cost)];
