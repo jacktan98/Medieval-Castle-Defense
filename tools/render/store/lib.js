@@ -14,7 +14,7 @@ exports.open=async(env,map,W,H,dsf,stars)=>{const p=await env.b.newPage({viewpor
    for(let n=0;n<(pop||0);n++)makeVillager(K);assignJobs();return out.length;},
   run(s){for(let i=0;i<s*20;i++)tick(.05,performance.now()+i*50);},
   cam(o){const K=castleB(),c=center(K);target.set(c.x+(o.dx||0),o.y||1.5,c.z+(o.dz||0));yaw=o.yaw;pitch=o.pitch;dist=o.dist;updateCam();},
-  freeze(lv){paused=true;if(lv!==undefined){const o=updateLight;updateLight=(dt,now)=>{light=lv;o(0,now);};}},
+  freeze(lv){paused=true;for(const B of buildings)if(B.bar)B.bar.grp.visible=false;for(const e of enemies)if(e.bar&&!ENEMY[e.kind].boss)e.bar.grp.visible=false;for(const v of villagers)if(v.sbar)v.sbar.grp.visible=false;if(lv!==undefined){const o=updateLight;updateLight=(dt,now)=>{light=lv;o(0,now);};}},
   foe(f){const L=enemies.filter(e=>!e.dead&&!e.dormant&&(!f||f(e)));if(!L.length)return null;let x=0,z=0;for(const e of L){x+=e.x;z+=e.z;}return {x:x/L.length,z:z/L.length,n:L.length};},
   look(x,z,o){target.set(x,o.y||1,z);yaw=o.yaw;pitch=o.pitch;dist=o.dist;updateCam();},
   roads(){const K=castleB(),c=center(K);const R=12;layRoads([[[c.x-R,c.z+3.2],[c.x+R,c.z+3.2]],[[c.x,c.z+3.2],[c.x,c.z+R+4]],[[c.x-R,c.z-4],[c.x-R,c.z+3.2]],[[c.x+R,c.z-4],[c.x+R,c.z+3.2]]]);rebuildRoads();cacheCells();},
