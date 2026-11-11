@@ -1,20 +1,20 @@
-// node frame-l.js prefix W H -> framed-<prefix>-N.png: landscape store pictures; the title shot fills the frame, the others have
-// their caption on the left and the shot on the right in a gold frame
+// node frame-l.js prefix W H -> framed-<prefix>-N.png: landscape store pictures in the Clash of Clans way (Jack): the shot fills the
+// picture and a short caption sits over its bottom-left corner; the title shot has none (its own title is the caption)
 const {chromium}=require('playwright');const fs=require('fs'),path=require('path');
 const [PRE,W,H]=[process.argv[2],+process.argv[3],+process.argv[4]];
-const CAP={'1title':null,'2town':['Build your town','Houses, farms, markets and castles'],'3wall':['Hold the walls','Raiders storm in every night'],'4siege':['Raise siege engines','Catapults, mangonels and trebuchets'],'5upgrades':['Earn stars','Unlock upgrades for every building']};
+const CAP={'1title':null,'2town':['Build','your town'],'3wall':['Hold','the line'],'4siege':['Control','siege engines'],'5upgrades':['Earn','and upgrade']};
 (async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:W,height:H},deviceScaleFactor:1});
 for(const k of Object.keys(CAP)){const f=path.resolve(`${PRE}-${k}.png`);if(!fs.existsSync(f)){console.log('missing',k);continue;}
- const img='data:image/png;base64,'+fs.readFileSync(f).toString('base64');const c=CAP[k],pad=Math.round(H*.06),col=W/H<1.6;
- const body=c?`<div class="cap"><h1>${c[0]}</h1><p>${c[1]}</p></div><div class="shot"><img src="${img}"></div>`:`<img class="full" src="${img}">`;
- await p.setContent(`<!doctype html><html><head><link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Alegreya+Sans:wght@500&display=block" rel="stylesheet"><style>
- html,body{margin:0;width:${W}px;height:${H}px;overflow:hidden;background:radial-gradient(ellipse at 15% 50%,#5a4428 0%,#2a1f10 50%,#120c05 100%);display:flex;align-items:center;gap:${pad}px;padding:0 ${pad}px;box-sizing:border-box}
- .full{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
- ${col?`body{flex-direction:column;justify-content:center;gap:${Math.round(H*.035)}px;padding:${pad}px}.cap{flex:none!important}.cap h1{font-size:${Math.round(H*.075)}px!important}.cap h1 br{display:none}.cap p{font-size:${Math.round(H*.032)}px!important;margin-top:${Math.round(H*.008)}px!important}.shot{flex:none!important;height:${Math.round(H*.72)}px;width:auto}`:''}
- .cap{flex:0 0 ${Math.round(W*.2)}px;text-align:center}
- h1{margin:0;font-family:'IM Fell English SC',serif;font-weight:400;color:#f3cf6e;font-size:${Math.round(H*.1)}px;line-height:1.05;text-shadow:0 3px 12px rgba(0,0,0,.7)}
- p{margin:${Math.round(H*.03)}px 0 0;font-family:'Alegreya Sans',sans-serif;font-weight:500;color:#f4e3b2;font-size:${Math.round(H*.042)}px;opacity:.92}
- .shot{flex:1;aspect-ratio:${process.argv[5]||"956/440"};border-radius:${Math.round(H*.045)}px;overflow:hidden;border:${Math.max(3,Math.round(H*.007))}px solid #d9b04e;box-shadow:0 10px 40px rgba(0,0,0,.7)}
- .shot img{width:100%;height:100%;object-fit:cover;display:block}</style></head><body>${body}</body></html>`);
+ let buf=fs.readFileSync(f);
+ const img='data:image/png;base64,'+buf.toString('base64');const c=CAP[k],u=Math.min(W,H*1.6);let CR=1;if(k==='5upgrades'){const d=buf;CR=d.readUInt32BE(20)/d.readUInt32BE(16);}
+ await p.setContent(`<!doctype html><html><head><link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&display=block" rel="stylesheet"><style>
+ html,body{margin:0;width:${W}px;height:${H}px;overflow:hidden;background:#000}
+ img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+ .fade{position:absolute;left:0;bottom:0;width:70%;height:55%;background:radial-gradient(ellipse at 0% 100%,rgba(10,6,2,.75) 0%,rgba(10,6,2,.35) 45%,rgba(10,6,2,0) 75%)}
+ .fade.deep{width:62%;height:62%;background:radial-gradient(ellipse at 0% 100%,rgba(8,5,2,.97) 0%,rgba(8,5,2,.9) 38%,rgba(8,5,2,.5) 62%,rgba(8,5,2,0) 82%)}
+ .cap{position:absolute;left:${Math.round(u*.045)}px;bottom:${Math.round(u*.04)}px;font-family:'IM Fell English SC',serif;color:#f6d77a;line-height:.92;
+  text-shadow:0 0 2px #2a1606,0 ${Math.round(u*.004)}px 0 #2a1606,0 ${Math.round(u*.008)}px ${Math.round(u*.018)}px rgba(0,0,0,.85);-webkit-text-stroke:${Math.max(2,Math.round(u*.0022))}px #3a2009;paint-order:stroke fill}
+ .cap b{display:block;font-weight:400;font-size:${Math.round(u*.085)}px}.cap span{display:block;font-size:${Math.round(u*.06)}px;color:#fff1c8}
+ </style></head><body><img src="${img}">${c?`<div class="fade${k==='5upgrades'||k==='4siege'?' deep':''}"></div><div class="cap"><b>${c[0]}</b><span>${c[1]}</span></div>`:''}</body></html>`);
  await p.evaluate(()=>document.fonts.ready);await p.waitForTimeout(400);await p.screenshot({path:`framed-${PRE}-${k}.png`});console.log('framed',k);}
 await b.close();})();
