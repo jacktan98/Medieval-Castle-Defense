@@ -951,6 +951,20 @@ function stripKit(v) {
 }
 function nearestSoldier(x, z, r) { let best = null, bd = r; for (const v of villagers) if (v.soldier && v.g.visible) { const d = Math.hypot(v.x - x, v.z - z); if (d < bd) { bd = d; best = v; } } return best; }
 // hold the barracks door (or the rally flag); go for raiders that come within 6 m of it, give up on any that lead them 9 m away
+// a rider waits its turn at a gate someone is passing through, rather than squeezing past them in the opening (Jack saw horses
+// pushed half into the wall beside a gate); only outside the opening (over 1.3 m from its middle), heading through it, so two
+// riders never wait on each other
+function gateWait(v, tx, tz) {
+  if (!v.cav) return false;
+  for (const B of buildings) {
+    if (B.type !== 'gate' || !B.built) continue;
+    const c = center(B), d = Math.hypot(c.x - v.x, c.z - v.z);
+    if (d < 1.3 || d > 2.6 || Math.hypot(tx - v.x, tz - v.z) < d) continue;
+    if ((tx - v.x) * (c.x - v.x) + (tz - v.z) * (c.z - v.z) <= 0) continue;
+    if (villagers.some(u => u !== v && u.g.visible && !u.fallen && Math.hypot(u.x - c.x, u.z - c.z) < 1.2)) { v.walking = false; return true; }
+  }
+  return false;
+}
 function updateSoldier(v, dt) {
   const B = v.post.B, k = v.kitTier - 1, S = v.cav ? RIDER : SOLDIER, walkK = 1 + decorFx(v.x, v.z, 'troopWalk'), ride = (v.cav ? RIDER.speed : 1) * walkK;
   v.attackT = Math.max(0, (v.attackT || 0) - dt); v.cool = (v.cool || 0) - dt;
@@ -965,11 +979,11 @@ function updateSoldier(v, dt) {
     // a charge: the castle's riders always know it, the stables' only with Lance charge (Jack); they spur on at a new foe and
     // their first blow on it hits twice as hard, with a burst of dust
     const charge = v.cav && v.charged !== foe && (v.summoned || UPK.lance);
-    if (d > reach) { walkTo(v, foe.x, foe.z, dt, 1, reach * .9, 1.25 * ride * (charge ? 1.35 : 1)); if (v.noProg > 4) { v.skip = { e: foe, t: 4 }; v.foe = null; } }    // can't reach that one
+    if (d > reach) { if (gateWait(v, foe.x, foe.z)) return; walkTo(v, foe.x, foe.z, dt, 1, reach * .9, 1.25 * ride * (charge ? 1.35 : 1)); if (v.noProg > 4) { v.skip = { e: foe, t: 4 }; v.foe = null; } }    // can't reach that one
     else { turnTo(v, Math.atan2(foe.x - v.x, foe.z - v.z), dt); if (v.cool <= 0) { v.cool = S.rate * (1 - decorFx(v.x, v.z, 'troopRate')); v.attackT = v.toolKind === 'spear' ? SPEAR_T : SWORD_T; hurtEnemy(foe, S.dmg[k] * (1 + decorFx(v.x, v.z, 'troopDmg')) * (charge ? 2 : 1), v);
       if (charge) { const y = walkY(foe.x, foe.z); for (let n = 0; n < 3; n++) dustAt(foe.x + (Math.random() - .5) * .6, y, foe.z + (Math.random() - .5) * .6); shake(.03, foe, 'charge', .8); }
       v.charged = foe; sfx('clash', v); } }
-  } else if (Math.hypot(hx - v.x, hz - v.z) > .35) walkTo(v, hx, hz, dt, 1, .3, 1.3 * ride);
+  } else if (Math.hypot(hx - v.x, hz - v.z) > .35) { if (!gateWait(v, hx, hz)) walkTo(v, hx, hz, dt, 1, .3, 1.3 * ride); }
   // the castle's riders, at their place, face away from the castle (out of the door, or out from it at a rally flag)
   else if (v.summoned) { const c = center(B); turnTo(v, B.rally ? Math.atan2(hx - c.x, hz - c.z) : faceAngle(B), dt); }
 }

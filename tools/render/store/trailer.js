@@ -52,7 +52,7 @@ if(want('town')){const p=await L.open(env,SC.hero.map,W,H,D);
   const L=buildings.filter(B=>B!==K).map(B=>({B,t:B.tier,d:Math.hypot(center(B).x-c.x,center(B).z-c.z)+(B.type==='wall'||B.type==='gate'?6:0)})).sort((a,b)=>a.d-b.d);
   L.forEach((o,i)=>{o.a=.02+.5*i/L.length;o.u2=o.t>=2?Math.min(.93,o.a+.12+R()*.4):9;o.u3=o.t>=3?Math.min(.97,o.u2+.1+R()*.3):9;});
   const pop=(B,up)=>{B.pop=window.__T;const q=center(B);for(let n=0;n<6;n++){const a=n/6*6.283;dustAt(q.x+Math.cos(a)*1.2,hAt(q.x,q.z),q.z+Math.sin(a)*1.2);}
-   if(B===K){window.__ev.push([window.__fi||0,'castleUp',1]);return;}if(B.type!=='wall'&&B.type!=='gate')sfx(up?'upgrade':'build',{x:q.x,z:q.z},up?.55:.7);};
+   if(B===K){window.__ev.push([window.__fi||0,'castleUp',1]);return;}if(B.type!=='wall'&&B.type!=='gate')sfx('build',{x:q.x,z:q.z},up?.55:.7);};
   const set=(B,t)=>{if(B.tier>=t)return;B.tier=t;B.max=DEF[B.type].hp[t-1];B.hp=B.max;swapModel(B);pop(B,1);};
   for(const o of L){o.B.tier=1;o.B.max=DEF[o.B.type].hp[0];o.B.hp=o.B.max;swapModel(o.B);o.B.group.visible=false;}K.tier=1;swapModel(K);refreshWalls();for(const o of L)if(o.B.type==='wall'||o.B.type==='gate')o.B.group.visible=false;
   paused=false;PH.kind='day';const lo=updateLight;updateLight=(dt,now)=>{light=PH.t<DUSK?.25+.75*sstep(0,DUSK,PH.t):1;lo(dt,now);};
@@ -84,8 +84,8 @@ if(want('siege')){const p=await L.open(env,'plains',W,H,D);
   for(let k=0;k<2;k++){aim();SH.run(.3);}for(const B of buildings)if(B.rallyFlag)B.rallyFlag.visible=false;
   for(const B of buildings)if(B.bar)B.bar.grp.visible=false;const lo=updateLight;updateLight=(dt,now)=>{light=1;lo(dt,now);};
   const mx=x,mz=z-6.5;window.__ok=[x,z,SIZE].join(' ');
-  // from the raiders' side, looking in toward the town: the map's edge stays behind the camera
-  window.__tick=t=>SH.look(mx,mz,{yaw:Math.PI+.5-t*.35,pitch:.9,dist:21-t*2,y:1.5});})()`);
+  // from the town's side, behind its engines (Jack), looking down steeply so little sky and none of the map's edge shows
+  window.__tick=t=>SH.look(mx,mz+1,{yaw:.35-t*.3,pitch:1.0,dist:20-t*2,y:1.5});})()`);
  console.log('siege at',await G(p,'window.__ok'));await clip(p,'5-siege',7,{k:.8});await p.close();}
 // 5 the title over the Blighted Isle, and "Your castle awaits" under it, big and gold
 if(want('title')){const p=await L.open(env,SC.title.map,W,H,D);await G(p,SC.title.code);await p.waitForTimeout(3000);
@@ -93,5 +93,5 @@ if(want('title')){const p=await L.open(env,SC.title.map,W,H,D);await G(p,SC.titl
   d.style.cssText='position:fixed;left:0;right:0;bottom:0;height:36%;display:flex;align-items:center;justify-content:center;z-index:9998;opacity:0;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.55) 45%,rgba(0,0,0,.7))';
   const s=d.firstChild;s.style.cssText=`display:inline-block;font-family:${cs.fontFamily};color:#f6d77a;font-size:${parseFloat(cs.fontSize)*1.05}px;letter-spacing:.03em;-webkit-text-stroke:2px #3a2009;paint-order:stroke fill;text-shadow:0 3px 14px rgba(0,0,0,.9),0 0 22px rgba(243,207,110,.35)`;document.body.appendChild(d);});
  await G(p,`window.__tick=t=>{const d=document.getElementById('awaits');if(d){const k=Math.min(1,Math.max(0,(t-.22)/.25));d.style.opacity=k;d.firstChild.style.transform='scale('+(1.08-.08*k)+')';}}`);
- await clip(p,'8-title',3.5,{fout:0});await save(p,'8-title',[[Math.round(.22*104),'star',1]]);await p.close();}
+ await clip(p,'8-title',3.5,{fout:0});await p.close();}
 await env.b.close();env.server.close();})();
