@@ -288,7 +288,8 @@ var TARGET_LOUD = .09, LOUD_WINDOW = .3, GAIN_MIN = .1, GAIN_MAX = 6, MASTER = .
 var SFX_GAP = { ramHit: .3, hen: 2, pig: 1.5, cow: 4, neigh: 3, bolt: .1, qbolt: .06, rockFire: .15, rockHit: .15, path: .12, clash: .12, arrowHit: .08, grunt: 3, yawn: 3, nope: .3, rooster: 2, chop: .15, pick: .15, hoe: .2, hammer: .12, arrow: .08, attack: .1, coins: .3, click: .05 };   // min seconds between repeats
 var STROKE_SFX = { axe: 'chop', pick: 'pick', hoe: 'hoe', hammer: 'hammer' };
 // the mute button and M are only for ?debug now (Jack removed the corner buttons), so a player is never left muted with no way back
-var devOn = /[?&]debug\b/.test(location.search); document.body.classList.toggle('dev', devOn);
+// ?open (the temporary tester shortcut) shows the admin panel too: Jack, to set up store screenshots in a browser
+var devOn = /[?&](debug|open)\b/.test(location.search); document.body.classList.toggle('dev', devOn);
 var muted = false; try { muted = devOn && localStorage.getItem('mtd-muted') === '1'; } catch (e) {}
 // music and sounds each have their own loudness (the pause card's two sliders, 0 to 1; all the way down is off); the corner
 // button still mutes everything. Stored as numbers ('mtd-music', 'mtd-sfx'; the old on/off toggles stored '1' and '0')
