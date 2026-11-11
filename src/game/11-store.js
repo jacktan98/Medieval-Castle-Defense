@@ -6,7 +6,7 @@
 // approved later or a refund all come through. ?debug owns it, for testing.
 var FULL_ID = 'com.jacktan.castledefense.fullgame', FREE_N = 3, fullPrice = '', buying = false;
 var STORE = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Store || null;
-function fullOwned() { if (devOn) return true; try { return localStorage.getItem('mtd-full') === '1'; } catch (e) { return false; } }
+function fullOwned() { if (devOn || TEST_OPEN) return true; try { return localStorage.getItem('mtd-full') === '1'; } catch (e) { return false; } }
 function paidStage(i) { return i >= FREE_N && !fullOwned(); }
 function testFree() { try { return TEST_SKIP && localStorage.getItem('mtd-testfree') === '1'; } catch (e) { return false; } }
 function setFull(on, user) {

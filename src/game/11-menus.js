@@ -634,7 +634,9 @@ const STORY = {
   pass: 'The longest winter in memory has buried the mountain pass in snow. The Warlord\'s last loyal captains have gathered every raider they could find for one final march. Hold the pass, keep the fires burning, and the kingdom will see spring.',
 };
 // locked stages can't be played (Jack: win the one before first); set true to let a tester play every stage
-const TEST_OPEN = false;
+// temporary tester's shortcut (Jack): add ?open to the address to play every stage (locks and the full-game purchase skipped,
+// nothing saved); a var, so a call before this line runs reads false instead of throwing
+var TEST_OPEN = /[?&]open\b/.test(location.search);
 const mainWon = () => MAIN.every(c => STARS[c.map] > 0);
 // ---------- the campaign as a carousel (Jack's sketch; it replaced a scrolling road, which replaced the overview map): the stages are
 // cards in a 3D deck, the one in front large, the others angled away behind it on both sides; swipe, tap a side card, the arrows, the

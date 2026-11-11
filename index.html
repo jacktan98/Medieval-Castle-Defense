@@ -9024,7 +9024,9 @@ const STORY = {
   pass: 'The longest winter in memory has buried the mountain pass in snow. The Warlord\'s last loyal captains have gathered every raider they could find for one final march. Hold the pass, keep the fires burning, and the kingdom will see spring.',
 };
 // locked stages can't be played (Jack: win the one before first); set true to let a tester play every stage
-const TEST_OPEN = false;
+// temporary tester's shortcut (Jack): add ?open to the address to play every stage (locks and the full-game purchase skipped,
+// nothing saved); a var, so a call before this line runs reads false instead of throwing
+var TEST_OPEN = /[?&]open\b/.test(location.search);
 const mainWon = () => MAIN.every(c => STARS[c.map] > 0);
 // ---------- the campaign as a carousel (Jack's sketch; it replaced a scrolling road, which replaced the overview map): the stages are
 // cards in a 3D deck, the one in front large, the others angled away behind it on both sides; swipe, tap a side card, the arrows, the
@@ -9580,7 +9582,7 @@ $('#galWalk').addEventListener('click', () => { gWalk = !gWalk; $('#galWalk').se
 // approved later or a refund all come through. ?debug owns it, for testing.
 var FULL_ID = 'com.jacktan.castledefense.fullgame', FREE_N = 3, fullPrice = '', buying = false;
 var STORE = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Store || null;
-function fullOwned() { if (devOn) return true; try { return localStorage.getItem('mtd-full') === '1'; } catch (e) { return false; } }
+function fullOwned() { if (devOn || TEST_OPEN) return true; try { return localStorage.getItem('mtd-full') === '1'; } catch (e) { return false; } }
 function paidStage(i) { return i >= FREE_N && !fullOwned(); }
 function testFree() { try { return TEST_SKIP && localStorage.getItem('mtd-testfree') === '1'; } catch (e) { return false; } }
 function setFull(on, user) {
@@ -10494,7 +10496,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'de49c7c0c1'; var updateWait = false, updateT = 0;
+const BUILD = '8fa61c97e3'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
