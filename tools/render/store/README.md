@@ -6,3 +6,5 @@ Run from this folder (they write into it):
 - `node video.js 443 960 2 vframes`: 630 frames of the 21 s preview (886 × 1920, 30 fps; each frame is stepped by hand, so it is smooth however slow the render), then
   `ffmpeg -framerate 30 -i vframes/f%05d.png -i ../../../audio/music/Night_theme_music.mp3 -map 0:v -map 1:a -c:v libx264 -pix_fmt yuv420p -crf 18 -c:a aac -b:a 256k -ar 48000 -af "afade=t=in:d=0.5,afade=t=out:st=19.5:d=1.5" -shortest -movflags +faststart preview.mp4`.
 The finished set lives in `design/store/`.
+
+- `node trailer.js 960 443 2 tframes [town wall siege upgrades title]`: the trailer's frames (render one clip per run: a long run can time out), then number them in order and join them: `ffmpeg -framerate 30 -i seq/f%05d.png -i ../../../audio/music/Medieval_theme_music.mp3 -map 0:v -map 1:a -c:v libx264 -pix_fmt yuv420p -crf 18 -c:a aac -b:a 256k -ar 48000 -af "afade=t=in:d=0.4,afade=t=out:st=18.7:d=1.5" -shortest -movflags +faststart ../../../design/store/trailer-iphone.mp4`.
