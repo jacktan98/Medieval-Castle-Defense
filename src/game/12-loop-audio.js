@@ -128,7 +128,7 @@ function startGame() {
   log('<b>Day 1</b>', 'good');
   // behind the new-building or goals cards nobody saw it (Jack): it waits for their Play
   bannerLater = !$('#newCards').hidden ? ['Day 1', 'Build before dark'] : null; if (!bannerLater) banner('Day 1', 'Build before dark');
-  applyLoadout(); cat = 'eco'; renderTools(); setTool('select');
+  applyLoadout(); cat = 'eco'; renderTools(); dockMini = false; document.body.classList.remove('dockMini'); setTool('select');
   // the Goals panel shows this game's goals at once (it only redrew on the HUD tick, which waits behind the new-building cards,
   // so an open panel kept the last stage's goals: Jack)
   goalsKey = ''; renderGoals(); weatherReset(); sweepGeo(); cellOpen = fieldCache = pass3 = null; regionDirty = true;
@@ -507,7 +507,7 @@ function updateAmbience(dt) {
     if (flip) syncMusic();
     // now and then an animal calls, when the camera is close in on a farmhouse yard or the stables
     if ((ambCallT -= .25) <= 0 && zoom > .3 && quiet) {
-      ambCallT = 2.5 + Math.random() * 4;
+      ambCallT = 10 + Math.random() * 10;   // Jack: calls were too frequent (it was every 2.5–6.5 s)
       const pens = buildings.filter(B => B.built && (B.type === 'farmhouse' || B.type === 'stables') && Math.hypot(center(B).x - target.x, center(B).z - target.z) < 14);
       const B = pens[Math.floor(Math.random() * pens.length)];
       if (B) { const kinds = B.type === 'stables' ? ['neigh'] : [...new Set(HERD[B.tier])]; sfx(kinds[Math.floor(Math.random() * kinds.length)], center(B), zoom); }
@@ -744,7 +744,8 @@ function guideMark() {
   const S = GUIDE[guideStep]; g.hidden = false;
   $('#gStep').textContent = `${guideStep + 1}/${GUIDE.length}`; $('#gText').innerHTML = S.text; $('#gSkip').hidden = false;
   if (tool !== S.tool) {
-    if (S.cat && cat !== S.cat) { const tab = document.querySelector(`.tab[data-cat="${S.cat}"]`); if (tab) tab.classList.add('guidePulse'); }
+    if (dockMini) $('#dockMin').classList.add('guidePulse');      // the bar is folded away: unfold it first
+    else if (S.cat && cat !== S.cat) { const tab = document.querySelector(`.tab[data-cat="${S.cat}"]`); if (tab) tab.classList.add('guidePulse'); }
     else { const b = document.querySelector(`.tool[data-tool="${S.tool}"]`); if (b) b.classList.add('guidePulse'); }
   }
 }

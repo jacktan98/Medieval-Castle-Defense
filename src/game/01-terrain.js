@@ -383,7 +383,7 @@ const bridgeCell = new Uint8Array(N_MAX * N_MAX), BRIDGE_RISE = .45, DECK_W = 1.
 function bridgeRays() {
   if (MAP === 'pass' || MAP === 'vale' || MAP === 'cross' || MAP === 'watch' || MAP === 'dune' || MAP === 'crag' || MAP === 'plains' || MAP === 'keep') return [];
   if (MAP === 'hold') return [{ ox: 39, oz: holdRiverZ(39) - 9, dx: 0, dz: 1, stone: true, grand: true, w: 3.2 }, ...[16, 64].map(x => ({ ox: x, oz: holdRiverZ(x) - 9, dx: 0, dz: 1, stone: true }))];
-  if (MAP === 'mere') return [{ ...MERE_BRIDGE, ox: MERE_BRIDGE.ox * MK, oz: MERE_BRIDGE.oz * MK }];
+  if (MAP === 'mere') return [{ ...MERE_BRIDGE, ox: MERE_BRIDGE.ox * MK, oz: MERE_BRIDGE.oz * MK, w: 3.4 }];   // Jack: wider, so more raiders cross at once
   if (MAP === 'ford') return [{ ox: FORD_BRIDGE_X * MK, oz: (fordRiverZ(FORD_BRIDGE_X) - 10) * MK, dx: 0, dz: 1, stone: true }];
   if (MAP === 'bend') return BEND_BRIDGES.map(([ox, oz, dx, dz]) => ({ ox, oz, dx, dz, w: 3 }));   // Jack: both bridges bigger (3 m decks)
   if (MAP === 'bridge') {                       // the stone bridge, square across the river north of the castle

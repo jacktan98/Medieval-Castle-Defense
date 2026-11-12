@@ -1003,6 +1003,11 @@ body.tablet .achName{font-size:14px} body.tablet #achPick .achName{min-height:2.
 body.tablet .upTx h3{font-size:23px} body.tablet .upTx p{font-size:17px} body.tablet .cxStats .stat{font-size:15px;gap:4px} body.tablet .cxStats .stat .ico{width:16px;height:16px} body.tablet .cxStats .ico svg{width:16px;height:16px}
 body.tablet .achP{font-size:15px} body.tablet .upSec{font-size:19px} body.tablet .upRs button{font-size:14px!important}
 body.tablet .modal.tome .cxTiers .seg{font-size:14px!important;padding:3px 12px!important}
+
+/* the dock folded down to its fold, Select and Grid buttons (Jack): bottom right on a phone, bottom middle on a tablet or laptop */
+body.dockMini .bar .tabs,body.dockMini .bar .tools{display:none}
+body.dockMini .barTop{padding-bottom:0;border-bottom:0}
+@media (max-width:700px){ body.dockMini:not(.tablet) .dock{width:calc(100% - 24px)} body.dockMini:not(.tablet) .bar{align-self:flex-end} }
 </style>
 
 <!-- shown from the first paint until the game is ready (three.js comes from a CDN; on a slow phone that takes a while) -->
@@ -1092,8 +1097,9 @@ body.tablet .modal.tome .cxTiers .seg{font-size:14px!important;padding:3px 12px!
           <button class="tab" data-cat="decor" aria-pressed="false">Decor</button>
         </div>
         <div class="util">
-          <button class="tool iconBtn" data-tool="select" aria-pressed="false" aria-label="Select a building" title="Select a building to upgrade or demolish"><svg viewBox="0 0 24 24"><path d="M6 4 L6 18 L10 14.5 L12.8 20 L15 19 L12.3 13.5 L17.5 13.5 Z"/></svg></button>
           <button class="iconBtn" id="rotBtn" hidden aria-label="Rotate" title="Rotate (R)"><svg viewBox="0 0 24 24"><path d="M19 12 a7 7 0 1 1-2.05-4.95"/><path d="M19.2 3.8 V7.5 H15.5"/></svg></button>
+          <button class="iconBtn" id="dockMin" aria-label="Hide the bar" title="Hide the bar"><svg viewBox="0 0 24 24"><path d="M6 9.5 L12 15.5 L18 9.5"/></svg></button>
+          <button class="tool iconBtn" data-tool="select" aria-pressed="false" aria-label="Select a building" title="Select a building to upgrade or demolish"><svg viewBox="0 0 24 24"><path d="M6 4 L6 18 L10 14.5 L12.8 20 L15 19 L12.3 13.5 L17.5 13.5 Z"/></svg></button>
           <button class="iconBtn" id="gridBtn" aria-pressed="false" aria-label="Show grid" title="Show the tile grid"><svg viewBox="0 0 24 24"><path d="M4 4 H20 V20 H4 Z M4 9.3 H20 M4 14.6 H20 M9.3 4 V20 M14.6 4 V20"/></svg></button>
         </div>
       </div>
@@ -1953,7 +1959,7 @@ const bridgeCell = new Uint8Array(N_MAX * N_MAX), BRIDGE_RISE = .45, DECK_W = 1.
 function bridgeRays() {
   if (MAP === 'pass' || MAP === 'vale' || MAP === 'cross' || MAP === 'watch' || MAP === 'dune' || MAP === 'crag' || MAP === 'plains' || MAP === 'keep') return [];
   if (MAP === 'hold') return [{ ox: 39, oz: holdRiverZ(39) - 9, dx: 0, dz: 1, stone: true, grand: true, w: 3.2 }, ...[16, 64].map(x => ({ ox: x, oz: holdRiverZ(x) - 9, dx: 0, dz: 1, stone: true }))];
-  if (MAP === 'mere') return [{ ...MERE_BRIDGE, ox: MERE_BRIDGE.ox * MK, oz: MERE_BRIDGE.oz * MK }];
+  if (MAP === 'mere') return [{ ...MERE_BRIDGE, ox: MERE_BRIDGE.ox * MK, oz: MERE_BRIDGE.oz * MK, w: 3.4 }];   // Jack: wider, so more raiders cross at once
   if (MAP === 'ford') return [{ ox: FORD_BRIDGE_X * MK, oz: (fordRiverZ(FORD_BRIDGE_X) - 10) * MK, dx: 0, dz: 1, stone: true }];
   if (MAP === 'bend') return BEND_BRIDGES.map(([ox, oz, dx, dz]) => ({ ox, oz, dx, dz, w: 3 }));   // Jack: both bridges bigger (3 m decks)
   if (MAP === 'bridge') {                       // the stone bridge, square across the river north of the castle
@@ -4877,6 +4883,8 @@ function upgrade(B) {
   const cost = T.up[B.tier - 1];
   if (!canAfford(cost)) { setHint(`Need ${shortfall(cost)}`, 'bad'); return; }
   pay(cost);
+  // a siege engine rolling somewhere stops where it stands, so it sits inside its scaffold (Jack)
+  if (B.move) { const c = center(B); B.group.position.set(c.x, hAt(c.x, c.z), c.z); B.move = null; if (moveFor === B) moveFor = null; syncMoveFlags(); }
   B.site = { kind: 'up', progress: instantBuild ? 1 : 0, time: Math.round(T.build * 1.3) }; addScaffold(B);
   log(`Upgrading · <b>${T.tiers[B.tier]}</b>`);
   refreshCard();
@@ -8108,9 +8116,25 @@ function rotateBuilding(B) {
   }
   setHint('Door blocked', 'bad');
 }
+// the dock can be folded down to its Select and Grid buttons for a clear view (Jack); the fold button shares its slot with Rotate,
+// which only shows while placing something that turns: folded, no build tool is picked, so the slot is the unfold button
+var dockMini = false;
+const DOCK_ICO = { min: '<svg viewBox="0 0 24 24"><path d="M6 9.5 L12 15.5 L18 9.5"/></svg>', max: '<svg viewBox="0 0 24 24"><path d="M6 14.5 L12 8.5 L18 14.5"/></svg>' };
+function syncDockBtns() {
+  const rot = !!(ROTATES[tool] || FACING[tool]) && !dockMini, b = $('#dockMin');
+  $('#rotBtn').hidden = !rot; b.hidden = rot;
+  b.innerHTML = DOCK_ICO[dockMini ? 'max' : 'min']; b.title = dockMini ? 'Show the bar' : 'Hide the bar'; b.setAttribute('aria-label', b.title);
+}
+function setDockMini(on) {
+  dockMini = on; document.body.classList.toggle('dockMini', on);
+  if (on && tool !== 'select') setTool('select'); else syncDockBtns();
+  if (typeof guideMark === 'function') guideMark();
+}
+$('#dockMin').addEventListener('click', () => setDockMini(!dockMini));
 function setTool(t) {
   tool = t;
-  $('#rotBtn').hidden = !(ROTATES[t] || FACING[t]);
+  if (dockMini && t !== 'select') { dockMini = false; document.body.classList.remove('dockMini'); }   // picking a tool (a number key) unfolds it
+  syncDockBtns();
   for (const c in CATS) if (CATS[c].includes(t) && c !== cat) { cat = c; renderTools(); }
   markTools();
   if (tool === 'select') { hideGhost(); setHint('Select a building'); }
@@ -10103,7 +10127,7 @@ function startGame() {
   log('<b>Day 1</b>', 'good');
   // behind the new-building or goals cards nobody saw it (Jack): it waits for their Play
   bannerLater = !$('#newCards').hidden ? ['Day 1', 'Build before dark'] : null; if (!bannerLater) banner('Day 1', 'Build before dark');
-  applyLoadout(); cat = 'eco'; renderTools(); setTool('select');
+  applyLoadout(); cat = 'eco'; renderTools(); dockMini = false; document.body.classList.remove('dockMini'); setTool('select');
   // the Goals panel shows this game's goals at once (it only redrew on the HUD tick, which waits behind the new-building cards,
   // so an open panel kept the last stage's goals: Jack)
   goalsKey = ''; renderGoals(); weatherReset(); sweepGeo(); cellOpen = fieldCache = pass3 = null; regionDirty = true;
@@ -10482,7 +10506,7 @@ function updateAmbience(dt) {
     if (flip) syncMusic();
     // now and then an animal calls, when the camera is close in on a farmhouse yard or the stables
     if ((ambCallT -= .25) <= 0 && zoom > .3 && quiet) {
-      ambCallT = 2.5 + Math.random() * 4;
+      ambCallT = 10 + Math.random() * 10;   // Jack: calls were too frequent (it was every 2.5–6.5 s)
       const pens = buildings.filter(B => B.built && (B.type === 'farmhouse' || B.type === 'stables') && Math.hypot(center(B).x - target.x, center(B).z - target.z) < 14);
       const B = pens[Math.floor(Math.random() * pens.length)];
       if (B) { const kinds = B.type === 'stables' ? ['neigh'] : [...new Set(HERD[B.tier])]; sfx(kinds[Math.floor(Math.random() * kinds.length)], center(B), zoom); }
@@ -10543,7 +10567,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '18e9162564'; var updateWait = false, updateT = 0;
+const BUILD = 'cffe264af4'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
@@ -10719,7 +10743,8 @@ function guideMark() {
   const S = GUIDE[guideStep]; g.hidden = false;
   $('#gStep').textContent = `${guideStep + 1}/${GUIDE.length}`; $('#gText').innerHTML = S.text; $('#gSkip').hidden = false;
   if (tool !== S.tool) {
-    if (S.cat && cat !== S.cat) { const tab = document.querySelector(`.tab[data-cat="${S.cat}"]`); if (tab) tab.classList.add('guidePulse'); }
+    if (dockMini) $('#dockMin').classList.add('guidePulse');      // the bar is folded away: unfold it first
+    else if (S.cat && cat !== S.cat) { const tab = document.querySelector(`.tab[data-cat="${S.cat}"]`); if (tab) tab.classList.add('guidePulse'); }
     else { const b = document.querySelector(`.tool[data-tool="${S.tool}"]`); if (b) b.classList.add('guidePulse'); }
   }
 }

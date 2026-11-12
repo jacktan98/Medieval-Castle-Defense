@@ -421,9 +421,25 @@ function rotateBuilding(B) {
   }
   setHint('Door blocked', 'bad');
 }
+// the dock can be folded down to its Select and Grid buttons for a clear view (Jack); the fold button shares its slot with Rotate,
+// which only shows while placing something that turns: folded, no build tool is picked, so the slot is the unfold button
+var dockMini = false;
+const DOCK_ICO = { min: '<svg viewBox="0 0 24 24"><path d="M6 9.5 L12 15.5 L18 9.5"/></svg>', max: '<svg viewBox="0 0 24 24"><path d="M6 14.5 L12 8.5 L18 14.5"/></svg>' };
+function syncDockBtns() {
+  const rot = !!(ROTATES[tool] || FACING[tool]) && !dockMini, b = $('#dockMin');
+  $('#rotBtn').hidden = !rot; b.hidden = rot;
+  b.innerHTML = DOCK_ICO[dockMini ? 'max' : 'min']; b.title = dockMini ? 'Show the bar' : 'Hide the bar'; b.setAttribute('aria-label', b.title);
+}
+function setDockMini(on) {
+  dockMini = on; document.body.classList.toggle('dockMini', on);
+  if (on && tool !== 'select') setTool('select'); else syncDockBtns();
+  if (typeof guideMark === 'function') guideMark();
+}
+$('#dockMin').addEventListener('click', () => setDockMini(!dockMini));
 function setTool(t) {
   tool = t;
-  $('#rotBtn').hidden = !(ROTATES[t] || FACING[t]);
+  if (dockMini && t !== 'select') { dockMini = false; document.body.classList.remove('dockMini'); }   // picking a tool (a number key) unfolds it
+  syncDockBtns();
   for (const c in CATS) if (CATS[c].includes(t) && c !== cat) { cat = c; renderTools(); }
   markTools();
   if (tool === 'select') { hideGhost(); setHint('Select a building'); }

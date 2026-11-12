@@ -986,3 +986,8 @@ body.tablet .achName{font-size:14px} body.tablet #achPick .achName{min-height:2.
 body.tablet .upTx h3{font-size:23px} body.tablet .upTx p{font-size:17px} body.tablet .cxStats .stat{font-size:15px;gap:4px} body.tablet .cxStats .stat .ico{width:16px;height:16px} body.tablet .cxStats .ico svg{width:16px;height:16px}
 body.tablet .achP{font-size:15px} body.tablet .upSec{font-size:19px} body.tablet .upRs button{font-size:14px!important}
 body.tablet .modal.tome .cxTiers .seg{font-size:14px!important;padding:3px 12px!important}
+
+/* the dock folded down to its fold, Select and Grid buttons (Jack): bottom right on a phone, bottom middle on a tablet or laptop */
+body.dockMini .bar .tabs,body.dockMini .bar .tools{display:none}
+body.dockMini .barTop{padding-bottom:0;border-bottom:0}
+@media (max-width:700px){ body.dockMini:not(.tablet) .dock{width:calc(100% - 24px)} body.dockMini:not(.tablet) .bar{align-self:flex-end} }

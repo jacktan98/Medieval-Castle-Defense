@@ -284,6 +284,8 @@ function upgrade(B) {
   const cost = T.up[B.tier - 1];
   if (!canAfford(cost)) { setHint(`Need ${shortfall(cost)}`, 'bad'); return; }
   pay(cost);
+  // a siege engine rolling somewhere stops where it stands, so it sits inside its scaffold (Jack)
+  if (B.move) { const c = center(B); B.group.position.set(c.x, hAt(c.x, c.z), c.z); B.move = null; if (moveFor === B) moveFor = null; syncMoveFlags(); }
   B.site = { kind: 'up', progress: instantBuild ? 1 : 0, time: Math.round(T.build * 1.3) }; addScaffold(B);
   log(`Upgrading · <b>${T.tiers[B.tier]}</b>`);
   refreshCard();
