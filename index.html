@@ -1008,6 +1008,10 @@ body.tablet .modal.tome .cxTiers .seg{font-size:14px!important;padding:3px 12px!
 body.dockMini .bar .tabs,body.dockMini .bar .tools{display:none}
 body.dockMini .barTop{padding-bottom:0;border-bottom:0}
 @media (max-width:700px){ body.dockMini:not(.tablet) .dock{width:calc(100% - 24px)} body.dockMini:not(.tablet) .bar{align-self:flex-end} }
+/* upright on a phone, with the dock folded the hint pill sits on the bar's row at the left, beside the three buttons (Jack) */
+@media (max-width:700px) and (min-height:521px){
+  body.dockMini:not(.tablet) .dock>#hint{position:absolute;left:0;bottom:var(--hintB,7px);margin:0;max-width:calc(100% - var(--barW,130px) - 10px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
 </style>
 
 <!-- shown from the first paint until the game is ready (three.js comes from a CDN; on a slow phone that takes a while) -->
@@ -8129,6 +8133,9 @@ function setDockMini(on) {
   dockMini = on; document.body.classList.toggle('dockMini', on);
   if (on && tool !== 'select') setTool('select'); else syncDockBtns();
   if (typeof guideMark === 'function') guideMark();
+  // the hint's spot beside the folded bar (upright phones, CSS): the bar's width, and the lift that centres the pill on its row
+  if (on) requestAnimationFrame(() => { const d = document.querySelector('.dock'), bar = d.querySelector('.bar'), h = $('#hint');
+    d.style.setProperty('--barW', bar.offsetWidth + 'px'); d.style.setProperty('--hintB', Math.max(0, (bar.offsetHeight - h.offsetHeight) / 2) + 'px'); });
 }
 $('#dockMin').addEventListener('click', () => setDockMini(!dockMini));
 function setTool(t) {
@@ -10567,7 +10574,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '1dfebb910f'; var updateWait = false, updateT = 0;
+const BUILD = '7d433038bc'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

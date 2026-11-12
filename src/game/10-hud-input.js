@@ -434,6 +434,9 @@ function setDockMini(on) {
   dockMini = on; document.body.classList.toggle('dockMini', on);
   if (on && tool !== 'select') setTool('select'); else syncDockBtns();
   if (typeof guideMark === 'function') guideMark();
+  // the hint's spot beside the folded bar (upright phones, CSS): the bar's width, and the lift that centres the pill on its row
+  if (on) requestAnimationFrame(() => { const d = document.querySelector('.dock'), bar = d.querySelector('.bar'), h = $('#hint');
+    d.style.setProperty('--barW', bar.offsetWidth + 'px'); d.style.setProperty('--hintB', Math.max(0, (bar.offsetHeight - h.offsetHeight) / 2) + 'px'); });
 }
 $('#dockMin').addEventListener('click', () => setDockMini(!dockMini));
 function setTool(t) {
