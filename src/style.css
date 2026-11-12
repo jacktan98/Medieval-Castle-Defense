@@ -991,7 +991,7 @@ body.tablet .modal.tome .cxTiers .seg{font-size:14px!important;padding:3px 12px!
 body.dockMini .bar .tabs,body.dockMini .bar .tools{display:none}
 body.dockMini .barTop{padding-bottom:0;border-bottom:0}
 @media (max-width:700px){ body.dockMini:not(.tablet) .dock{width:calc(100% - 24px)} body.dockMini:not(.tablet) .bar{align-self:flex-end} }
-/* upright on a phone, with the dock folded the hint pill sits on the bar's row at the left, beside the three buttons (Jack) */
+/* upright on a phone, with the dock folded the hint pill sits just left of the three buttons, on their row, as sideways (Jack) */
 @media (max-width:700px) and (min-height:521px){
-  body.dockMini:not(.tablet) .dock>#hint{position:absolute;left:0;bottom:var(--hintB,7px);margin:0;max-width:calc(100% - var(--barW,130px) - 10px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.dockMini:not(.tablet) .dock>#hint{position:absolute;left:auto;right:calc(var(--barW,130px) + 8px);transform:none;bottom:var(--hintB,7px);margin:0;max-width:calc(100% - var(--barW,130px) - 10px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 }
