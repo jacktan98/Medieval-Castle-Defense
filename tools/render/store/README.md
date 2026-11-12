@@ -7,4 +7,4 @@ Run from this folder (they write into it):
   `ffmpeg -framerate 30 -i vframes/f%05d.png -i ../../../audio/music/Night_theme_music.mp3 -map 0:v -map 1:a -c:v libx264 -pix_fmt yuv420p -crf 18 -c:a aac -b:a 256k -ar 48000 -af "afade=t=in:d=0.5,afade=t=out:st=19.5:d=1.5" -shortest -movflags +faststart preview.mp4`.
 The finished set lives in `design/store/`.
 
-- `node trailer.js 960 443 2 tframes [cards town wall siege title]` (one part per run: a long run can time out), then `node mix.js tframes ../../../design/store/trailer-iphone.mp4`: the soundtrack (the logged game sounds, music and ambience) and the video.
+- `node trailer.js 960 443 2 tframes [town wall siege black title]` (no `cards` any more: each part's name is drawn over its first seconds) (one part per run: a long run can time out), then `node mix.js tframes ../../../design/store/trailer-iphone.mp4`: the soundtrack (the logged game sounds, music and ambience) and the video.
