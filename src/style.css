@@ -990,7 +990,19 @@ body.tablet .achName{font-size:14px} body.tablet #achPick .achName{min-height:2.
 /* every row of achievements has room for two-line names (Jack); sideways a column a little narrower keeps the whole list on the iPad Pro 13-inch without scrolling */
 @media (orientation:landscape){ body.tablet #achPick .achGrid{grid-template-columns:repeat(auto-fill,minmax(70px,1fr))} } body.tablet .upBan div{font-size:12.5px} body.tablet .upOf{font-size:14px}
 body.tablet .upTx h3{font-size:23px} body.tablet .upTx p{font-size:17px} body.tablet .cxStats .stat{font-size:15px;gap:4px} body.tablet .cxStats .stat .ico{width:16px;height:16px} body.tablet .cxStats .ico svg{width:16px;height:16px}
-body.tablet .achP{font-size:15px} body.tablet .upSec{font-size:19px} body.tablet .upRs button{font-size:14px!important}
+body.tablet .achP{font-size:15px} body.tablet .upSec{font-size:19px}
+/* Reset, away from Buy so a tap meant for Buy never resets (Jack): on a phone at the details' left; on a tablet only "Reset", the same
+   size on screen upright and sideways (--rsZ, set by fitModal, undoes the screen's own fitted scale), upright under the details on
+   the right, sideways beside the details' top-right corner with the details narrower */
+body:not(.tablet) .upRs{justify-content:flex-start}
+body.tablet .upRs .rsW{display:none}
+body.tablet .modal.tome #upPick .upRs button{font-size:calc(12px * var(--rsZ, 1))!important;padding:.33em .83em!important;border-radius:1.4em!important}
+body.tablet #upPick .upRs svg{width:1.15em;height:1.15em}
+@media (orientation:landscape){
+  .upWide .upSide{display:flex;flex-direction:row;align-items:flex-start;justify-content:center;gap:10px}
+  .upWide .upSide .upDet{width:250px;max-width:250px;flex:none}
+  .upWide .upSide .upRs{width:auto;margin:0;padding:0;flex:none}
+}
 body.tablet .modal.tome .cxTiers .seg{font-size:14px!important;padding:3px 12px!important}
 
 /* the dock folded down to its fold, Select and Grid buttons (Jack): bottom right on a phone, bottom middle on a tablet or laptop */

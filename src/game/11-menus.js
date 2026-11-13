@@ -942,7 +942,10 @@ function fitModal(m) {
   sh.style.minHeight = sh.style.height = '';
   // a phone held sideways may zoom past 1 when the height allows (Jack: the three screens looked smaller than the room there was)
   const cap = !document.body.classList.contains('tablet') && innerHeight <= 520 && innerWidth > innerHeight ? 1.3 : k;
-  uiScale(m, +Math.max(.7, Math.min(cap, innerHeight / need)).toFixed(3), '0 0', 1);
+  const z = +Math.max(.7, Math.min(cap, innerHeight / need)).toFixed(3); uiScale(m, z, '0 0', 1);
+  // the Upgrades' Reset is drawn at one size on a tablet whichever way it is held (Jack): a scale from the screen's short side, the
+  // same both ways, over the sheet's fitted zoom, which differs (upright 1.39, sideways 1.31 on an 820 x 1180 iPad)
+  if (m.id === 'upPick') m.style.setProperty('--rsZ', document.body.classList.contains('tablet') ? (Math.max(1, Math.min(1.6, Math.min(innerWidth, innerHeight) / 600)) / z).toFixed(3) : 1);
 }
 // the Achievements and Archive take the Upgrades screen's zoom, so all three sheets are one size and their Back buttons sit in
 // one place (Jack; first on a tablet, then on a phone too: held sideways the Upgrades is shrunk to fit and its Back was smaller and
