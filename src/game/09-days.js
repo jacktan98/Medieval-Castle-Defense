@@ -61,12 +61,16 @@ function nightPts() { if (!nextPts) nextPts = [edgePoint(0), edgePoint(1)]; retu
 // two crossed falchions (Jack's sketch: a broad blade with a straight back and a curved edge sweeping up to the tip, a crossguard, a short grip)
 const RAID_ICO = '<svg viewBox="0 0 24 24" class="swords"><g transform="translate(12 11.6) scale(.76) rotate(44)"><g transform="translate(0 7.6)"><path class="bl" d="M-.6 0 V-15 Q-.6 -17.8 1.15 -18.3 Q1.3 -9.5 .6 0 Z"/><path class="hl" d="M-3.4 .15 L3.4 -.15"/><path class="hl" d="M-.8 .25 V3.4 H.8 V.25"/><circle class="hl" cx="0" cy="4.3" r=".75"/></g></g><g transform="translate(12 11.6) scale(-.76 .76) rotate(44)"><g transform="translate(0 7.6)"><path class="bl" d="M-.6 0 V-15 Q-.6 -17.8 1.15 -18.3 Q1.3 -9.5 .6 0 Z"/><path class="hl" d="M-3.4 .15 L3.4 -.15"/><path class="hl" d="M-.8 .25 V3.4 H.8 V.25"/><circle class="hl" cx="0" cy="4.3" r=".75"/></g></g></svg><span class="arr"></span>';
 const WAVE_ORDER = ['ram', 'ballista', 'catapult', 'spear', 'sword', 'archer', 'xbow', 'lancer', 'rider', 'chief', 'warlord'];
-function wavePopHTML() {
-  const w = WAVES[PH.wave - 1] || {}, rows = [];
-  for (const k of WAVE_ORDER) { const by = [0, 0, 0]; (w[k] || []).forEach((c, t) => { by[Math.min(2, t + (hardOn && !ENEMY[k].boss ? 1 : 0))] += c; });   // hard mode: a tier up
+// a mark's list: with two marks showing, only the raiders that come from that mark's spot (startNight sends each kind's n-th raider
+// of a tier to point n % 2, so point 0 takes the odd one out), and how many that is of the whole night (Jack: both marks listed the
+// whole wave and he read Greenvale's 4 spearmen as 8); with the two points at one spot (one mark) the whole wave
+function wavePopHTML(i = -1) {
+  const w = WAVES[PH.wave - 1] || {}, rows = [], part = c => i < 0 ? c : i === 0 ? Math.ceil(c / 2) : Math.floor(c / 2);
+  let mine = 0, all = 0;
+  for (const k of WAVE_ORDER) { const by = [0, 0, 0]; (w[k] || []).forEach((c, t) => { all += c; mine += part(c); by[Math.min(2, t + (hardOn && !ENEMY[k].boss ? 1 : 0))] += part(c); });   // hard mode: a tier up
     by.forEach((c, t) => { if (!c) return; const nm = RAIDER_NAME[k], name = Array.isArray(nm) ? nm[t] : nm;
     rows.push(`<div class="${ENEMY[k].boss ? 'boss' : ''}"><span>${name}${!Array.isArray(nm) && !ENEMY[k].boss && t ? `<i>${['', 'II', 'III'][t]}</i>` : ''}</span><b>${c}</b></div>`); }); }
-  return `<h4>Night ${PH.wave}${hardOn ? ' · Hard' : ''}</h4>${rows.join('')}`;
+  return `<h4>Night ${PH.wave}${hardOn ? ' · Hard' : ''}${i >= 0 ? `<span>${mine} of ${all}</span>` : ''}</h4>${rows.join('')}`;
 }
 let markRect = null, markRectT = 0;
 // the band the edge marks may use: below the top panel, above the dock (measured every .5 s)
@@ -187,7 +191,7 @@ function updateRaidMarks(dt) {
   const P = nightPts();
   const R = markBand(dt);
   P.forEach((p, i) => {
-    const e = m[i]; if (!e.innerHTML) { e.innerHTML = RAID_ICO; e.addEventListener('click', () => { sfx('click'); const pop = $('#wavePop'); if (!pop.hidden && pop.dataset.i === String(i)) { pop.hidden = true; return; } pop.innerHTML = wavePopHTML(); pop.dataset.i = i; pop.hidden = false; placePop(e); }); }
+    const e = m[i]; if (!e.innerHTML) { e.innerHTML = RAID_ICO; e.addEventListener('click', () => { sfx('click'); const pop = $('#wavePop'); if (!pop.hidden && pop.dataset.i === String(i)) { pop.hidden = true; return; } const P2 = nightPts(), one = Math.hypot(P2[0].x - P2[1].x, P2[0].z - P2[1].z) < 3; pop.innerHTML = wavePopHTML(one ? -1 : i); pop.dataset.i = i; pop.hidden = false; placePop(e); }); }
     if (i === 1 && Math.hypot(P[0].x - p.x, P[0].z - p.z) < 3) { e.hidden = true; return; }   // both at one spot: one mark
     const q = edgeSpot(p.x, walkY(p.x, p.z) + 1, p.z, R);
     if (q.edge) e.style.setProperty('--a', q.a + 'rad');
