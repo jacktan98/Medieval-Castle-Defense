@@ -6134,8 +6134,9 @@ function edgePoint(side, avoid) {
     // Raider Keep: everyone out of the keep's gate; Warlord's Hold: out of the hold's gate, from night 3 the west pass, from night 4 the east
     const W = PH.wave, roll = () => { const r = Math.random(); return MAP === 'keep' ? (W >= 4 ? (r < .4 ? 'kl' : r < .8 ? 'kr' : 'g') : 'g') : (W >= 4 && r < .25 ? 'e' : W >= 3 && r < .5 ? 'w' : 'g'); };
     // the keep: out of its gate; from night 4 to the last (Jack: night 7 too) also out of its west and east sides, right by its walls;
-    // a night's two points never share a side there (Jack saw night 6 come only from the left: both points had rolled the west side)
-    let side = roll(); if (MAP === 'keep' && W >= 4 && avoid) for (let k = 0; k < 30 && side === avoid; k++) side = roll();
+    // a night's two points never share a side, on both maps once there is more than one (Jack saw the keep's night 6 come only from
+    // the left: both points had rolled the west side; then had the hold match)
+    let side = roll(); if ((MAP === 'keep' ? W >= 4 : W >= 3) && avoid) for (let k = 0; k < 30 && side === avoid; k++) side = roll();
     const G = MAP === 'keep' ? KEEP_GATE : HOLD_GATE;
     const pick = side === 'kl' ? () => [25.5 + Math.random() * 2, 12 + Math.random() * 7] : side === 'kr' ? () => [54.5 + Math.random() * 2, 12 + Math.random() * 7] : side === 'w' ? () => [1.2, 24 + Math.random() * 2.5] : side === 'e' ? () => [SIZE - 1.2, 24 + Math.random() * 2.5] : () => [G[0] - (MAP === 'keep' ? 2.5 : 1.5) + Math.random() * (MAP === 'keep' ? 5 : 3), G[1] + 2 + Math.random() * 1.5];
     for (const needRoute of [true, false]) for (let n = 0; n < 60; n++) {
@@ -10580,7 +10581,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '33a1a8eec7'; var updateWait = false, updateT = 0;
+const BUILD = 'ed1800039c'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
