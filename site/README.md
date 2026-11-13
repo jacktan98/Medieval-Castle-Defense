@@ -10,5 +10,5 @@ Set up once:
 
 Then in App Store Connect: Privacy Policy URL https://jacktan98.github.io/privacy.html, Support URL https://jacktan98.github.io/support.html, Marketing URL https://jacktan98.github.io/
 
-Support email in `privacy.html` and `support.html`: noobstickz.98@gmail.com. Once the game is live, swap the "Coming soon to the App Store" button in `index.html` (see the `APP_STORE` comment) for the App Store link and Apple's official badge.
+Support email in `privacy.html` and `support.html`: support@castledefense.app. Once the game is live, swap the "Coming soon to the App Store" button in `index.html` (see the `APP_STORE` comment) for the App Store link and Apple's official badge.
 Pictures: `img/hero.jpg` is the title showcase rendered without the title; the four game shots are the store set's raw frames (no captions; `tools/render/store/`), shrunk to 1600 px; `video/trailer.mp4` is `design/store/trailer-iphone.mp4` at 1280 px.
