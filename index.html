@@ -4798,7 +4798,7 @@ function place(type, ci, cj, opts = {}) {
   if (WALLY[type]) refreshWalls();
   if (opts.instant) syncTerrain(); else rebuildRoads();
   villagers.forEach(v => v.path = null); regionDirty = true;
-  if (!opts.quiet) { log(`<b>${T.tiers[0]}</b> placed`); buzz('light'); }
+  if (!opts.quiet) log(`<b>${T.tiers[0]}</b> placed`);
   return B;
 }
 // ---------- construction ----------
@@ -10435,22 +10435,8 @@ setInterval(() => {
     }
   }
 }, 1500);
-// haptics in the app (Jack): a light tap when a building is placed or finished and a star pops, a firmer one when a building
-// falls or an upgrade is bought, a heavy one at nightfall's horn, the system's success and failure buzzes for achievements,
-// unlocks, victory and defeat; through Capacitor's Haptics plugin, nothing on the website; they follow the sounds' events
-// (also when the sound is turned down), at most one every 80 ms
-var HAPT = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Haptics || null, buzzAt = 0;
-var BUZZ = { build: 'light', star: 'light', trade: 'light', destroyed: 'medium', upgrade: 'medium', horn: 'heavy', achieve: 'ok', unlock: 'ok', victory: 'ok', defeat: 'bad' };
-function buzz(k) {
-  if (!HAPT || !k || document.hidden) return; const now = performance.now(); if (now - buzzAt < 80) return; buzzAt = now;
-  try {
-    const p = k === 'ok' ? HAPT.notification({ type: 'SUCCESS' }) : k === 'bad' ? HAPT.notification({ type: 'ERROR' }) : HAPT.impact({ style: k === 'heavy' ? 'HEAVY' : k === 'medium' ? 'MEDIUM' : 'LIGHT' });
-    if (p && p.catch) p.catch(() => {});
-  } catch (e) {}
-}
 // at: a world point; world sounds fade with distance from what the camera looks at, and when zoomed far out
 function sfx(name, at, vol = 1) {
-  if (BUZZ && BUZZ[name] && typeof menuOn === 'function') buzz(BUZZ[name]);
   if (muted || !actx) return;
   if (actx.state !== 'running') { if (audioUnlocked && !document.hidden && actx.state !== 'closed') actx.resume().catch(() => {}); return; }
   if (name === 'victory' || name === 'defeat' ? musicOff : sfxOff) return;
@@ -10581,7 +10567,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'ed1800039c'; var updateWait = false, updateT = 0;
+const BUILD = 'e0c0109c11'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
