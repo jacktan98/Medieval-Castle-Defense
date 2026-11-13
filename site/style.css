@@ -132,7 +132,7 @@ footer .tm { flex-basis: 100%; margin-top: 8px; font-size: 13px; opacity: .7 }
 .card { position: relative; padding: 0 30px 26px; border: 1px solid var(--rule); border-radius: 14px; background: rgba(255, 255, 255, .025); text-align: center }
 .card.full { border: 2px solid rgba(227, 191, 102, .75); background: linear-gradient(180deg, rgba(227, 191, 102, .13), rgba(227, 191, 102, .03)); box-shadow: 0 0 30px rgba(227, 191, 102, .12) }
 .card .bld { display: block; height: 200px; width: auto; max-width: 70%; object-fit: contain; object-position: 50% 100%; margin: -56px auto 8px; filter: drop-shadow(0 10px 14px rgba(0, 0, 0, .55)) }
-.card h3 { margin: 0 0 18px; font: 34px/1.1 var(--title); color: #f3ead4 }
+.card h3 { margin: 0 0 24px; font: 34px/1.1 var(--title); color: #f3ead4 }
 .card.full h3 { color: var(--gold) }
 .card .amt { margin: 6px 0 18px; color: var(--dim); font-size: 17px }
 .card ul { margin: 0; padding: 0; list-style: none; text-align: left }
@@ -147,7 +147,7 @@ footer .tm { flex-basis: 100%; margin-top: 8px; font-size: 13px; opacity: .7 }
 .army { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; padding: 0 0 0; border-bottom: 0; position: relative }
 .army::after { content: ''; position: absolute; left: -10%; right: -10%; bottom: 0; height: 26px; background: radial-gradient(ellipse at 50% 100%, rgba(80, 120, 50, .35), transparent 70%) }
 .army .side { display: flex; align-items: flex-end }
-.army img { --k: 190px; height: calc(var(--h) * var(--k)); width: auto; margin: 0 -10px calc(var(--b, 0) * var(--h) * var(--k) * -1); filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .6)) }
+.army img { position: relative; --k: 190px; height: calc(var(--h) * var(--k)); width: auto; margin: 0 -18px calc(var(--b, 0) * var(--h) * var(--k) * -1); filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .6)) }
 /* drawn to scale: --h is each figure's height in the game (m) */
 @media (max-width: 1100px) { .army img { --k: 150px; margin-left: -8px; margin-right: -8px } }
 @media (max-width: 760px) { .army img { --k: 72px; margin-left: -6px; margin-right: -6px } }
