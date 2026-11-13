@@ -5,8 +5,8 @@
   --title: 'IM Fell English SC', Georgia, serif; --body: 'Alegreya Sans', system-ui, sans-serif;
 }
 * { box-sizing: border-box }
-html { -webkit-text-size-adjust: 100% }
-body { margin: 0; background: var(--bg); color: var(--text); font: 18px/1.6 var(--body) }
+html { -webkit-text-size-adjust: 100%; overflow-x: hidden }
+body { overflow-x: hidden; margin: 0; background: var(--bg); color: var(--text); font: 18px/1.6 var(--body) }
 a { color: var(--gold); text-underline-offset: 3px }
 img, video { max-width: 100%; height: auto; display: block }
 .wrap { width: min(1120px, 100% - 48px); margin: 0 auto }
@@ -31,9 +31,9 @@ img, video { max-width: 100%; height: auto; display: block }
   linear-gradient(90deg, rgba(11, 9, 6, .78) 0, rgba(11, 9, 6, .3) 46%, rgba(11, 9, 6, 0) 72%),
   linear-gradient(180deg, rgba(16, 14, 10, 0) 52%, var(--bg) 100%) }
 .hero .wrap { position: relative; padding-bottom: 72px }
-h1 { margin: 0; font: clamp(44px, 8vw, 92px)/.98 var(--title); color: var(--gold); text-shadow: 0 2px 2px rgba(0, 0, 0, .9), 0 0 18px rgba(0, 0, 0, .6) }
-.tSub { display: flex; align-items: center; gap: .5em; font-size: .5em; letter-spacing: .28em; margin-top: .34em; line-height: 1; text-shadow: 0 3px 3px rgba(0, 0, 0, .95), 0 0 4px rgba(0, 0, 0, .95), 0 0 12px rgba(0, 0, 0, .85) }
-.tSub::before, .tSub::after { content: ''; width: 2.2em; height: 2px; background: linear-gradient(90deg, transparent, currentColor); opacity: .8 }
+h1 { margin: 0; display: inline-flex; flex-direction: column; align-items: stretch; font: clamp(44px, 8vw, 92px)/.98 var(--title); color: var(--gold); text-shadow: 0 2px 2px rgba(0, 0, 0, .9), 0 0 18px rgba(0, 0, 0, .6) }
+.tSub { display: flex; align-items: center; justify-content: center; gap: .55em; font-size: .52em; letter-spacing: .28em; padding-left: .28em; margin-top: .3em; line-height: 1; text-shadow: 0 3px 3px rgba(0, 0, 0, .95), 0 0 4px rgba(0, 0, 0, .95), 0 0 12px rgba(0, 0, 0, .85) }
+.tSub::before, .tSub::after { content: ''; flex: 1; max-width: 3.2em; min-width: 1em; height: 2px; background: linear-gradient(90deg, transparent, currentColor); opacity: .8 }
 .tSub::after { background: linear-gradient(90deg, currentColor, transparent); margin-left: -.28em }
 .tag { margin: 26px 0 30px; font-size: clamp(19px, 2.4vw, 24px); font-weight: 500; color: #fff6dc; text-shadow: 0 1px 8px rgba(0, 0, 0, .9) }
 /* the store button: dark, like the store's own badge, until the real one replaces it */
@@ -49,31 +49,50 @@ h1 { margin: 0; font: clamp(44px, 8vw, 92px)/.98 var(--title); color: var(--gold
 }
 
 /* the premise, then the trailer */
-.lede { padding: 28px 0 72px }
-.lede p { margin: 0; max-width: 30em; font-size: clamp(21px, 2.5vw, 27px); line-height: 1.45; color: #f3ead4 }
-.film video { width: 100%; height: auto; background: #000; border-radius: 4px }
-.label { margin: 0 0 12px; font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim) }
+section { position: relative }
+.lede { padding: 28px 0 80px }
+.lede .wrap { position: relative }
+.lede p { margin: 0; max-width: 28em; font-size: clamp(21px, 2.5vw, 27px); line-height: 1.45; color: #f3ead4 }
+.frame { position: relative; border: 2px solid rgba(227, 191, 102, .7); border-radius: 14px; overflow: hidden; background: #000; box-shadow: 0 0 0 1px rgba(0, 0, 0, .6), 0 10px 34px rgba(0, 0, 0, .6) }
+.frame::after { content: ''; position: absolute; inset: 3px; border: 1px solid rgba(227, 191, 102, .22); border-radius: 11px; pointer-events: none }
+.frame img, .frame video { width: 100%; height: auto; display: block }
+.head { margin: 0 0 30px; font: clamp(30px, 4.2vw, 42px)/1.1 var(--title); color: var(--gold); text-align: center }
+.head::after { content: ''; display: block; width: 140px; height: 2px; margin: 16px auto 0; background: linear-gradient(90deg, transparent, var(--gold), transparent) }
+.film { padding: 0 0 40px }
 
-/* the game, in four pictures */
-.shots { padding: 104px 0 24px }
-.shot { margin: 0 0 84px }
-.shot img { width: 100%; border-radius: 4px }
-.shot figcaption { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 8px 40px; align-items: baseline; padding-top: 22px }
-.shot h2 { margin: 0; font: clamp(26px, 3vw, 34px)/1.1 var(--title); color: var(--gold) }
-.shot p { margin: 0; max-width: 34em; color: var(--text) }
-@media (max-width: 720px) {
-  .shots { padding-top: 72px }
-  .shot { margin-bottom: 56px }
-  .shot img { width: calc(100% + 36px); max-width: none; margin: 0 -18px; border-radius: 0 }
-  .shot figcaption { grid-template-columns: 1fr; padding-top: 16px }
+/* the game: picture rows, side by side, each with a figure stepping out of its corner */
+.feats { padding: 72px 0 40px }
+.feat { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 56px; align-items: center; margin: 0 0 96px }
+.feat:nth-of-type(even) { grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr) }
+.feat:nth-of-type(even) .pic { order: 2 }
+.pic { position: relative }
+.pic .fig { position: absolute; bottom: -34px; right: -38px; height: 46%; width: auto; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .55)); pointer-events: none }
+.feat:nth-of-type(even) .pic .fig { right: auto; left: -38px }
+.txt .ico { width: 58px; height: 58px; margin-bottom: 14px; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .6)) }
+.txt h3 { margin: 0 0 12px; font: clamp(30px, 3.4vw, 40px)/1.1 var(--title); color: var(--gold) }
+.txt p { margin: 0; font-size: clamp(19px, 1.8vw, 22px); line-height: 1.55; color: #efe5cd }
+@media (max-width: 760px) {
+  .feats { padding-top: 56px }
+  .feat, .feat:nth-of-type(even) { grid-template-columns: 1fr; gap: 30px; margin-bottom: 64px }
+  .feat:nth-of-type(even) .pic { order: 0 }
+  .pic .fig, .feat:nth-of-type(even) .pic .fig { height: 50%; bottom: -16px; right: -8px; left: auto }
+  .feat:nth-of-type(even) .pic .fig { right: auto; left: -8px }
+  .txt .ico { width: 46px; height: 46px; margin-bottom: 10px }
 }
+
+/* figures peeking in from the page's edge */
+.peek { position: absolute; height: 260px; width: auto; bottom: -20px; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, .6)); pointer-events: none }
+.peekR { right: -150px }
+@media (max-width: 1440px) { .peekR { right: -40px } }
+@media (max-width: 1100px) { .peek { height: 190px } .peekR { right: 0 } .lede p { max-width: calc(100% - 150px) } }
+@media (max-width: 560px) { .peek { height: 130px; bottom: -40px } .lede p { max-width: calc(100% - 70px) } .peekR { right: -26px } }
 
 /* fact sheet */
 .sheet { padding: 0 0 112px }
 .sheet dl { margin: 0; border-top: 1px solid var(--rule) }
 .sheet dl div { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 4px 40px; padding: 15px 0; border-bottom: 1px solid var(--rule) }
 .sheet dt { color: var(--dim) }
-.sheet dd { margin: 0 }
+.sheet dd { margin: 0; overflow-wrap: anywhere }
 @media (max-width: 720px) { .sheet dl div { grid-template-columns: 8.5em minmax(0, 1fr); gap: 4px 16px } .sheet { padding-bottom: 72px } }
 
 /* text pages */
@@ -101,32 +120,54 @@ footer .tm { flex-basis: 100%; margin-top: 8px; font-size: 13px; opacity: .7 }
 @media (max-width: 520px) { .brand span { display: none } .top nav { gap: 20px } footer nav { margin-left: 0; flex-basis: 100% } }
 
 /* boxes: the numbers, the two prices, and the panels on the text pages */
-.nums { padding: 8px 0 88px }
+.nums { padding: 8px 0 104px }
 .nums ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px }
-.nums li { padding: 22px 20px; border: 1px solid var(--rule); border-radius: 8px; background: rgba(227, 191, 102, .04) }
-.nums b { display: block; font: 48px/1 var(--title); color: var(--gold) }
-.nums span { display: block; margin-top: 8px; color: var(--dim); font-size: 16px }
-.price { padding: 0 0 96px }
-.price h2 { margin: 0 0 24px; font: clamp(26px, 3vw, 34px)/1.1 var(--title); color: var(--gold) }
-.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px }
-.card { padding: 26px 28px 22px; border: 1px solid var(--rule); border-radius: 8px; background: rgba(255, 255, 255, .025) }
-.card.full { border-color: rgba(227, 191, 102, .55); background: linear-gradient(180deg, rgba(227, 191, 102, .1), rgba(227, 191, 102, .03)) }
-.card h3 { margin: 0; font: 26px/1.1 var(--title); color: #f3ead4 }
+.nums li { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 16px; align-items: center; padding: 22px 22px; border: 1px solid var(--rule); border-radius: 12px; background: linear-gradient(180deg, rgba(227, 191, 102, .08), rgba(227, 191, 102, .02)) }
+.nums li img { grid-row: span 2; width: 52px; height: 52px; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .6)) }
+.nums b { font: 46px/1 var(--title); color: var(--gold) }
+.nums span { margin-top: 4px; color: var(--dim); font-size: 16px }
+.price { padding: 0 0 104px }
+.price .wrap { position: relative }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: stretch }
+.card { position: relative; padding: 0 30px 26px; border: 1px solid var(--rule); border-radius: 14px; background: rgba(255, 255, 255, .025); text-align: center }
+.card.full { border: 2px solid rgba(227, 191, 102, .75); background: linear-gradient(180deg, rgba(227, 191, 102, .13), rgba(227, 191, 102, .03)); box-shadow: 0 0 30px rgba(227, 191, 102, .12) }
+.card .bld { display: block; height: 190px; width: auto; max-width: 70%; object-fit: contain; object-position: 50% 100%; margin: -56px auto 8px; filter: drop-shadow(0 10px 14px rgba(0, 0, 0, .55)) }
+.card h3 { margin: 0; font: 34px/1.1 var(--title); color: #f3ead4 }
 .card.full h3 { color: var(--gold) }
-.card .amt { margin: 4px 0 16px; color: var(--dim) }
-.card ul { margin: 0; padding: 0; list-style: none }
-.card li { padding: 9px 0; border-top: 1px solid var(--rule) }
+.card .amt { margin: 6px 0 18px; color: var(--dim); font-size: 17px }
+.card ul { margin: 0; padding: 0; list-style: none; text-align: left }
+.card li { display: flex; align-items: center; gap: 14px; padding: 11px 0; border-top: 1px solid var(--rule); font-size: 18px }
+.card li img { width: 30px; height: 30px; flex: none; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .6)) }
+.cards { margin-top: 84px }
+.card .cfig { position: absolute; top: -70px; left: 18px; height: 150px; width: auto; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .55)) }
+.card .cfig.r { left: auto; right: 22px }
+@media (max-width: 560px) { .card .cfig { height: 110px; top: -44px; left: 6px } .card .cfig.r { right: 8px } .card .bld { height: 150px } .card { padding: 0 20px 22px } }
+
+/* the closing band: the town and the raiders face off */
+.end { padding: 40px 0 0; text-align: center; overflow: hidden }
+.end h2 { margin: 0 0 22px; font: clamp(34px, 5vw, 56px)/1.1 var(--title); color: var(--gold); text-shadow: 0 2px 2px rgba(0, 0, 0, .9) }
+.army { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; padding: 0 0 0; border-bottom: 0; position: relative }
+.army::after { content: ''; position: absolute; left: -10%; right: -10%; bottom: 0; height: 26px; background: radial-gradient(ellipse at 50% 100%, rgba(80, 120, 50, .35), transparent 70%) }
+.army .side { display: flex; align-items: flex-end }
+.army img { height: 150px; width: auto; margin: 0 -14px; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .6)) }
+.army img.m { height: 175px }
+.army img.b { height: 175px }
+.army .foe img { margin: 0 -10px }
+@media (max-width: 760px) { .army img { height: 88px; margin: 0 -10px } .army img.m, .army img.b { height: 102px } .army .town img:nth-child(n+4), .army .foe img:nth-child(2) { display: none } }
+
 .box { margin-top: 40px; padding: 22px 26px; border: 1px solid var(--rule); border-radius: 8px; background: rgba(227, 191, 102, .05) }
 .box .k { margin: 0 0 6px; font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim) }
 .box .v { margin: 0 0 10px; font-size: 24px }
 .box p:last-child { margin-bottom: 0 }
 .box ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 24px }
 .box li::before { content: '\2713'; color: var(--gold); margin-right: 10px }
-@media (max-width: 720px) {
-  .nums { padding-bottom: 64px }
+@media (max-width: 860px) {
+  .nums { padding-bottom: 72px }
   .nums ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px }
-  .nums b { font-size: 40px }
-  .cards { grid-template-columns: 1fr }
+  .nums li { padding: 16px; column-gap: 12px }
+  .nums li img { width: 40px; height: 40px }
+  .nums b { font-size: 38px }
+  .cards { grid-template-columns: 1fr; gap: 64px }
   .price { padding-bottom: 72px }
   .box ul { grid-template-columns: 1fr }
   .box .v { font-size: 20px }
