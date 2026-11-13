@@ -8,7 +8,7 @@ const OUT = path.resolve(__dirname, '../../design/site');
 // name, what to build (code run in the game's scope that returns { g, p }), the pose's moment, the turn, frame size [w, h] in metres
 const FIGS = [
   ['lumberjack', `fig({ tool: 'axe', carry: 'log' })`, 0.3, 0.55],
-  ['chopper', `fig({ tool: 'axe', work: 1 })`, 0.75, 0.6],
+  ['chopper', `fig({ tool: 'axe', work: 1 })`, 0.75, 1.05],
   ['mason', `fig({ tool: 'pick', work: 1 })`, 0.85, .6],
   ['builder', `fig({ tool: 'hammer', work: 1 })`, 1.6, 0.5],
   ['farmer', `fig({ tool: 'hoe', work: 1 })`, 0.6, .6],

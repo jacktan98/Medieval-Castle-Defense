@@ -54,7 +54,6 @@ section { position: relative }
 .lede .wrap { position: relative }
 .lede p { margin: 0; max-width: 28em; font-size: clamp(21px, 2.5vw, 27px); line-height: 1.45; color: #f3ead4 }
 .frame { position: relative; border: 2px solid rgba(227, 191, 102, .7); border-radius: 14px; overflow: hidden; background: #000; box-shadow: 0 0 0 1px rgba(0, 0, 0, .6), 0 10px 34px rgba(0, 0, 0, .6) }
-.frame::after { content: ''; position: absolute; inset: 3px; border: 1px solid rgba(227, 191, 102, .22); border-radius: 11px; pointer-events: none }
 .frame img, .frame video { width: 100%; height: auto; display: block }
 .head { margin: 0 0 30px; font: clamp(30px, 4.2vw, 42px)/1.1 var(--title); color: var(--gold); text-align: center }
 .head::after { content: ''; display: block; width: 140px; height: 2px; margin: 16px auto 0; background: linear-gradient(90deg, transparent, var(--gold), transparent) }
@@ -174,8 +173,8 @@ footer .tm { flex-basis: 100%; margin-top: 8px; font-size: 13px; opacity: .7 }
 .page { padding-bottom: 0 }
 .duel { display: flex; justify-content: space-between; align-items: flex-end; max-width: 720px; margin-top: 64px; position: relative }
 .duel::after { content: ''; position: absolute; left: -10%; right: -10%; bottom: 0; height: 22px; background: radial-gradient(ellipse at 50% 100%, rgba(80, 120, 50, .3), transparent 70%) }
-.duel img { height: 140px; width: auto; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .6)) }
-@media (max-width: 560px) { .duel img { height: 100px } }
+.duel img { --k: 140px; height: calc(var(--k) / (1 - var(--b, 0))); width: auto; margin-bottom: calc(var(--b, 0) * var(--k) / (1 - var(--b, 0)) * -1); filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .6)) }
+@media (max-width: 560px) { .duel img { --k: 100px } }
 /* the town's figures stand apart, the raiders bunch up: the spearman a little over the horseman, the horseman well over the ballista (Jack) */
 .army .town img { margin-left: calc(var(--k) * .04); margin-right: calc(var(--k) * .04) }
 .army .foe img { margin-left: 0; margin-right: 0 }
