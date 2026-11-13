@@ -229,19 +229,21 @@ const edgeK = ([x, z]) => [x === 1.2 || x === SIZE - 1.2 ? x : x * MK, z === 1.2
 // village's outer ruins, then on along their side's road (walked with A*, so the legs route round the ruins)
 const KEEP_VIA = { kl: [[22, 20], [18, 27], [22, 33], [33, 40], [30, 47], [33, 54]],
   kr: [[60, 20], [64, 27], [61, 33], [52, 38], [56, 47], [52, 54]] };
-function edgePoint(side) {
+function edgePoint(side, avoid) {
   const C = castleB(), dp = C && doorPoint(C);   // a spawn must have a walkable route to the castle's door
   if (MAP === 'keep' || MAP === 'hold') {
     // Raider Keep: everyone out of the keep's gate; Warlord's Hold: out of the hold's gate, from night 3 the west pass, from night 4 the east
-    const r = Math.random(), W = PH.wave;
-    const side = MAP === 'keep' ? (W >= 4 && W < NIGHTS ? (r < .4 ? 'kl' : r < .8 ? 'kr' : 'g') : 'g') : (W >= 4 && r < .25 ? 'e' : W >= 3 && r < .5 ? 'w' : 'g');   // the keep: out of its gate; from night 4 also out of its west and east sides (Jack), right by its walls; the last night all out of the gate (Jack)
+    const W = PH.wave, roll = () => { const r = Math.random(); return MAP === 'keep' ? (W >= 4 ? (r < .4 ? 'kl' : r < .8 ? 'kr' : 'g') : 'g') : (W >= 4 && r < .25 ? 'e' : W >= 3 && r < .5 ? 'w' : 'g'); };
+    // the keep: out of its gate; from night 4 to the last (Jack: night 7 too) also out of its west and east sides, right by its walls;
+    // a night's two points never share a side there (Jack saw night 6 come only from the left: both points had rolled the west side)
+    let side = roll(); if (MAP === 'keep' && W >= 4 && avoid) for (let k = 0; k < 30 && side === avoid; k++) side = roll();
     const G = MAP === 'keep' ? KEEP_GATE : HOLD_GATE;
     const pick = side === 'kl' ? () => [25.5 + Math.random() * 2, 12 + Math.random() * 7] : side === 'kr' ? () => [54.5 + Math.random() * 2, 12 + Math.random() * 7] : side === 'w' ? () => [1.2, 24 + Math.random() * 2.5] : side === 'e' ? () => [SIZE - 1.2, 24 + Math.random() * 2.5] : () => [G[0] - (MAP === 'keep' ? 2.5 : 1.5) + Math.random() * (MAP === 'keep' ? 5 : 3), G[1] + 2 + Math.random() * 1.5];
     for (const needRoute of [true, false]) for (let n = 0; n < 60; n++) {
       const [x, z] = pick();
-      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return side === 'kl' || side === 'kr' ? { x, z, via: KEEP_VIA[side] } : { x, z };
+      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return side === 'kl' || side === 'kr' ? { x, z, via: KEEP_VIA[side], sd: side } : { x, z, sd: side };
     }
-    const [x, z] = pick(); return { x, z };
+    const [x, z] = pick(); return side === 'kl' || side === 'kr' ? { x, z, via: KEEP_VIA[side], sd: side } : { x, z, sd: side };
   }
   if (MAP === 'mere' || MAP === 'plains') {
     // Meadowmere: the north causeway at the top edge; from night 3 some on the east causeway at the right edge

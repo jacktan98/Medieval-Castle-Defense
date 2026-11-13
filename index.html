@@ -6128,19 +6128,21 @@ const edgeK = ([x, z]) => [x === 1.2 || x === SIZE - 1.2 ? x : x * MK, z === 1.2
 // village's outer ruins, then on along their side's road (walked with A*, so the legs route round the ruins)
 const KEEP_VIA = { kl: [[22, 20], [18, 27], [22, 33], [33, 40], [30, 47], [33, 54]],
   kr: [[60, 20], [64, 27], [61, 33], [52, 38], [56, 47], [52, 54]] };
-function edgePoint(side) {
+function edgePoint(side, avoid) {
   const C = castleB(), dp = C && doorPoint(C);   // a spawn must have a walkable route to the castle's door
   if (MAP === 'keep' || MAP === 'hold') {
     // Raider Keep: everyone out of the keep's gate; Warlord's Hold: out of the hold's gate, from night 3 the west pass, from night 4 the east
-    const r = Math.random(), W = PH.wave;
-    const side = MAP === 'keep' ? (W >= 4 && W < NIGHTS ? (r < .4 ? 'kl' : r < .8 ? 'kr' : 'g') : 'g') : (W >= 4 && r < .25 ? 'e' : W >= 3 && r < .5 ? 'w' : 'g');   // the keep: out of its gate; from night 4 also out of its west and east sides (Jack), right by its walls; the last night all out of the gate (Jack)
+    const W = PH.wave, roll = () => { const r = Math.random(); return MAP === 'keep' ? (W >= 4 ? (r < .4 ? 'kl' : r < .8 ? 'kr' : 'g') : 'g') : (W >= 4 && r < .25 ? 'e' : W >= 3 && r < .5 ? 'w' : 'g'); };
+    // the keep: out of its gate; from night 4 to the last (Jack: night 7 too) also out of its west and east sides, right by its walls;
+    // a night's two points never share a side there (Jack saw night 6 come only from the left: both points had rolled the west side)
+    let side = roll(); if (MAP === 'keep' && W >= 4 && avoid) for (let k = 0; k < 30 && side === avoid; k++) side = roll();
     const G = MAP === 'keep' ? KEEP_GATE : HOLD_GATE;
     const pick = side === 'kl' ? () => [25.5 + Math.random() * 2, 12 + Math.random() * 7] : side === 'kr' ? () => [54.5 + Math.random() * 2, 12 + Math.random() * 7] : side === 'w' ? () => [1.2, 24 + Math.random() * 2.5] : side === 'e' ? () => [SIZE - 1.2, 24 + Math.random() * 2.5] : () => [G[0] - (MAP === 'keep' ? 2.5 : 1.5) + Math.random() * (MAP === 'keep' ? 5 : 3), G[1] + 2 + Math.random() * 1.5];
     for (const needRoute of [true, false]) for (let n = 0; n < 60; n++) {
       const [x, z] = pick();
-      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return side === 'kl' || side === 'kr' ? { x, z, via: KEEP_VIA[side] } : { x, z };
+      if (canStand(x, z, 2) && cellPass(cellAt(x, z), 2) && (!needRoute || !dp || findPath(x, z, dp.x, dp.z, 2))) return side === 'kl' || side === 'kr' ? { x, z, via: KEEP_VIA[side], sd: side } : { x, z, sd: side };
     }
-    const [x, z] = pick(); return { x, z };
+    const [x, z] = pick(); return side === 'kl' || side === 'kr' ? { x, z, via: KEEP_VIA[side], sd: side } : { x, z, sd: side };
   }
   if (MAP === 'mere' || MAP === 'plains') {
     // Meadowmere: the north causeway at the top edge; from night 3 some on the east causeway at the right edge
@@ -7346,7 +7348,7 @@ function banner(title, sub, night) {
 // the coming night's two spawn points, picked at dawn (and at the start) so their marks can show all day; a point built over since
 // is picked again at nightfall
 var nextPts = null;
-function nightPts() { if (!nextPts) nextPts = [edgePoint(0), edgePoint(1)]; return nextPts; }
+function nightPts() { if (!nextPts) { const a = edgePoint(0); nextPts = [a, edgePoint(1, a.sd)]; } return nextPts; }
 // two crossed falchions (Jack's sketch: a broad blade with a straight back and a curved edge sweeping up to the tip, a crossguard, a short grip)
 const RAID_ICO = '<svg viewBox="0 0 24 24" class="swords"><g transform="translate(12 11.6) scale(.76) rotate(44)"><g transform="translate(0 7.6)"><path class="bl" d="M-.6 0 V-15 Q-.6 -17.8 1.15 -18.3 Q1.3 -9.5 .6 0 Z"/><path class="hl" d="M-3.4 .15 L3.4 -.15"/><path class="hl" d="M-.8 .25 V3.4 H.8 V.25"/><circle class="hl" cx="0" cy="4.3" r=".75"/></g></g><g transform="translate(12 11.6) scale(-.76 .76) rotate(44)"><g transform="translate(0 7.6)"><path class="bl" d="M-.6 0 V-15 Q-.6 -17.8 1.15 -18.3 Q1.3 -9.5 .6 0 Z"/><path class="hl" d="M-3.4 .15 L3.4 -.15"/><path class="hl" d="M-.8 .25 V3.4 H.8 V.25"/><circle class="hl" cx="0" cy="4.3" r=".75"/></g></g></svg><span class="arr"></span>';
 const WAVE_ORDER = ['ram', 'ballista', 'catapult', 'spear', 'sword', 'archer', 'xbow', 'lancer', 'rider', 'chief', 'warlord'];
@@ -7500,7 +7502,7 @@ function startNight() {
   $('#nightBtn').classList.remove('skipGlow');
   const w = WAVES[PH.wave - 1];
   PH.kind = 'night'; spawnQueue = []; sfx('horn');
-  const pts = nightPts().map((p, i) => cellPass(cellAt(p.x, p.z), 2) ? p : edgePoint(i)); nextPts = null;
+  const P0 = nightPts(), pts = P0.map((p, i) => cellPass(cellAt(p.x, p.z), 2) ? p : edgePoint(i, P0[1 - i].sd)); nextPts = null;
   tipOnce('volley', 'Tap <b>Arrow volley</b>, then tap the raiders'); tipOnce('riders', `Tap <b>Riders</b> to call ${SUMMON.n > 1 ? 'two horsemen' : 'a horseman'} from the castle`);
   // siege engines at the head of the column (Jack: they are slow, so they set off first), then foot and horse mixed (spearmen first),
   // bosses last of all; each entry [kind, spawn point, tier]
@@ -10578,7 +10580,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '03f631de22'; var updateWait = false, updateT = 0;
+const BUILD = '33a1a8eec7'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

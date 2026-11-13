@@ -57,7 +57,7 @@ function banner(title, sub, night) {
 // the coming night's two spawn points, picked at dawn (and at the start) so their marks can show all day; a point built over since
 // is picked again at nightfall
 var nextPts = null;
-function nightPts() { if (!nextPts) nextPts = [edgePoint(0), edgePoint(1)]; return nextPts; }
+function nightPts() { if (!nextPts) { const a = edgePoint(0); nextPts = [a, edgePoint(1, a.sd)]; } return nextPts; }
 // two crossed falchions (Jack's sketch: a broad blade with a straight back and a curved edge sweeping up to the tip, a crossguard, a short grip)
 const RAID_ICO = '<svg viewBox="0 0 24 24" class="swords"><g transform="translate(12 11.6) scale(.76) rotate(44)"><g transform="translate(0 7.6)"><path class="bl" d="M-.6 0 V-15 Q-.6 -17.8 1.15 -18.3 Q1.3 -9.5 .6 0 Z"/><path class="hl" d="M-3.4 .15 L3.4 -.15"/><path class="hl" d="M-.8 .25 V3.4 H.8 V.25"/><circle class="hl" cx="0" cy="4.3" r=".75"/></g></g><g transform="translate(12 11.6) scale(-.76 .76) rotate(44)"><g transform="translate(0 7.6)"><path class="bl" d="M-.6 0 V-15 Q-.6 -17.8 1.15 -18.3 Q1.3 -9.5 .6 0 Z"/><path class="hl" d="M-3.4 .15 L3.4 -.15"/><path class="hl" d="M-.8 .25 V3.4 H.8 V.25"/><circle class="hl" cx="0" cy="4.3" r=".75"/></g></g></svg><span class="arr"></span>';
 const WAVE_ORDER = ['ram', 'ballista', 'catapult', 'spear', 'sword', 'archer', 'xbow', 'lancer', 'rider', 'chief', 'warlord'];
@@ -211,7 +211,7 @@ function startNight() {
   $('#nightBtn').classList.remove('skipGlow');
   const w = WAVES[PH.wave - 1];
   PH.kind = 'night'; spawnQueue = []; sfx('horn');
-  const pts = nightPts().map((p, i) => cellPass(cellAt(p.x, p.z), 2) ? p : edgePoint(i)); nextPts = null;
+  const P0 = nightPts(), pts = P0.map((p, i) => cellPass(cellAt(p.x, p.z), 2) ? p : edgePoint(i, P0[1 - i].sd)); nextPts = null;
   tipOnce('volley', 'Tap <b>Arrow volley</b>, then tap the raiders'); tipOnce('riders', `Tap <b>Riders</b> to call ${SUMMON.n > 1 ? 'two horsemen' : 'a horseman'} from the castle`);
   // siege engines at the head of the column (Jack: they are slow, so they set off first), then foot and horse mixed (spearmen first),
   // bosses last of all; each entry [kind, spawn point, tier]
