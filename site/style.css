@@ -180,3 +180,6 @@ footer .tm { flex-basis: 100%; margin-top: 8px; font-size: 13px; opacity: .7 }
 .army .foe img { margin-left: 0; margin-right: 0 }
 .army .foe img:nth-child(1) { margin-right: calc(var(--k) * -.32) }
 .army .foe img:nth-child(2) { margin-right: calc(var(--k) * -.42) }
+/* the figures stand a little above the gold line, not on it (Jack) */
+.duel, .army { padding-bottom: 12px }
+@media (max-width: 560px) { .duel, .army { padding-bottom: 8px } }
