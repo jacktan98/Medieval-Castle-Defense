@@ -7,22 +7,22 @@ const { openGame } = require('./serve');
 const OUT = path.resolve(__dirname, '../../design/site');
 // name, what to build (code run in the game's scope that returns { g, p }), the pose's moment, the turn, frame size [w, h] in metres
 const FIGS = [
-  ['lumberjack', `fig({ tool: 'axe', carry: 'log' })`, 0.3, .55],
-  ['chopper', `fig({ tool: 'axe', work: 1 })`, 0.75, -.6],
+  ['lumberjack', `fig({ tool: 'axe', carry: 'log' })`, 0.3, -0.55],
+  ['chopper', `fig({ tool: 'axe', work: 1 })`, 0.75, 0.6],
   ['mason', `fig({ tool: 'pick', work: 1 })`, 0.85, .6],
-  ['builder', `fig({ tool: 'hammer', work: 1 })`, 1.6, -.5],
+  ['builder', `fig({ tool: 'hammer', work: 1 })`, 1.6, 0.5],
   ['farmer', `fig({ tool: 'hoe', work: 1 })`, 0.6, .6],
-  ['archer', `fig({ guard: 3 })`, 0.5, -.7],
+  ['archer', `fig({ guard: 3 })`, 0.5, 0.7],
   ['crossbow', `fig({ guard: 3, xbow: 1 })`, 0.5, .7],
   ['knight', `fig({ kit: 3 })`, 0.3, .6],
-  ['guard', `fig({ kit: 2 })`, 0.2, -.6],
-  ['rider', `fig({ kit: 3, cav: 1 })`, 0.4, -.9],
+  ['guard', `fig({ kit: 2 })`, 0.2, 0.6],
+  ['rider', `fig({ kit: 3, cav: 1 })`, 0.4, 0.9],
   ['raider_sword', `fig({ raider: 'sword', rt: 3 })`, 0.25, -.6],
-  ['raider_spear', `fig({ raider: 'spear', rt: 2 })`, 0.3, .6],
+  ['raider_spear', `fig({ raider: 'spear', rt: 2 })`, 0.3, -0.6],
   ['raider_archer', `fig({ raider: 'archer', rt: 2 })`, 0.5, -.7],
-  ['raider_horse', `fig({ raider: 'rider', rt: 3 })`, 0.4, .9],
+  ['raider_horse', `fig({ raider: 'rider', rt: 3 })`, 0.4, -0.9],
   ['chief', `fig({ raider: 'chief', rt: 3 })`, 0.3, -.5],
-  ['warlord', `fig({ raider: 'warlord', rt: 3 })`, 0.4, .8],
+  ['warlord', `fig({ raider: 'warlord', rt: 3 })`, 0.4, -0.8],
 ];
 const BLDS = [['castle1', 'castle', 1], ['castle3', 'castle', 3], ['house2', 'house', 2], ['tower3', 'tower', 3], ['catapult3', 'catapult', 3], ['ballista2', 'ballista', 2], ['market3', 'market', 3]];
 
@@ -69,11 +69,10 @@ const BLDS = [['castle1', 'castle', 1], ['castle3', 'castle', 3], ['house2', 'ho
           const g = makeModel(type, tier, true, 0, 0); galPreview(g, type, tier); S.add(g); g.rotation.y = -.55; g.updateMatrixWorld(true);
           const lawn = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.03, .3, 48), mat('#2a4f1d')); 
           const b = new THREE.Box3().setFromObject(g); b.min.y = Math.max(b.min.y, 0); const s = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3());
-          const r = Math.hypot(s.x, s.z) * .5 + .15; lawn.scale.set(r, 1, r); lawn.position.y = -.15; lawn.receiveShadow = true; S.add(lawn);
-          R.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, 1, 0), .32)];
+          const r = Math.hypot(s.x, s.z) * .5 + .15; lawn.scale.set(r, 1, r); lawn.position.y = -.15; lawn.receiveShadow = true;           R.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, 1, 0), .005)];
           const fit = Math.max(r * 2.1, s.y * 1.6), d = fit / 2 / Math.tan(cam.fov * Math.PI / 360) / (1.2) * 1.15;
           const url = shoot(g, 1200, 1000, new THREE.Vector3(0, s.y * .38, 0), d, .62);
-          S.remove(g, lawn); R.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, 1, 0), .005)]; return url;
+          S.remove(g); R.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, 1, 0), .005)]; return url;
         },
         icons() { return { MAP_ICO, RED_CROWN, BONUS_ICO, OFFER_DOTS, GOLD_LOCK, CROWN_ICO, UP: document.querySelector('#campUpBtn svg').outerHTML,
           ACH: document.querySelector('#campAchBtn svg').outerHTML, CX: document.querySelector('#campCxBtn svg').outerHTML, ICON, TOOL_ICON }; },
