@@ -10,8 +10,8 @@ The app is the same game as the website, wrapped by [Capacitor](https://capacito
 2. Install **Node.js** (the LTS version) from nodejs.org.
 3. Open **Terminal** and get the game:
    ```
-   cd ~/Documents
-   git clone https://github.com/jacktan98/Medieval-Castle-Defense.git
+   cd ~/Developer
+   git clone https://github.com/jacktan98/castledefense-medieval.git Medieval-Castle-Defense
    cd Medieval-Castle-Defense
    npm install
    ```
@@ -30,7 +30,7 @@ The app is the same game as the website, wrapped by [Capacitor](https://capacito
 ## Every time the game changes
 
 ```
-cd ~/Documents/Medieval-Castle-Defense
+cd ~/Developer/Medieval-Castle-Defense
 git pull
 npm run app
 ```
