@@ -1,4 +1,4 @@
-/* Medieval Castle Defense: the game's site (home, privacy, support), in the game's bronze and gold */
+/* Castle Defense: Medieval, the game's site (home, privacy, support), in the game's bronze and gold */
 @import url(fonts/fonts.css);
 :root {
   --bg: #15110a; --bg2: #1e1810; --panel: linear-gradient(180deg, #3a2c19, #241a0e);
@@ -28,6 +28,10 @@ img, video { max-width: 100%; display: block }
 .hero .wrap { position: relative; padding: 0 0 48px }
 .hero img.icon { width: 96px; height: 96px; border-radius: 22px; box-shadow: 0 6px 24px rgba(0, 0, 0, .6); margin-bottom: 18px }
 h1 { margin: 0; font: clamp(38px, 7vw, 68px)/1.02 var(--title); color: var(--gold); text-shadow: 0 2px 14px rgba(0, 0, 0, .8) }
+.hero .tSub { display: flex; align-items: center; gap: .55em; font-size: .42em; letter-spacing: .32em; margin-top: .3em; line-height: 1 }
+.hero .tSub::before, .hero .tSub::after { content: ''; width: 2.4em; height: 2px; background: linear-gradient(90deg, transparent, currentColor); opacity: .8 }
+.hero .tSub::after { background: linear-gradient(90deg, currentColor, transparent); margin-left: -.32em }
+.tag b { color: var(--gold); font-size: 1.12em }
 .tag { margin: 12px 0 22px; font-size: clamp(18px, 2.6vw, 22px); max-width: 560px; text-shadow: 0 1px 6px rgba(0, 0, 0, .9) }
 .btn { display: inline-flex; align-items: center; gap: 10px; padding: 12px 22px; border-radius: 12px; font: 700 17px var(--body); text-decoration: none; color: #2a1c08; background: linear-gradient(180deg, #ffe08a, var(--gold2)); border: 2px solid #f6d77e; box-shadow: 0 3px 12px rgba(0, 0, 0, .5) }
 .btn svg { width: 20px; height: 20px }

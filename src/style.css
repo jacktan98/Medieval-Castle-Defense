@@ -142,6 +142,10 @@ button.danger{border-color:#6b3a33;color:var(--bad)}
 @media (max-height:520px){ .loadSheet{gap:6px;width:min(780px,100%)} .ldRows{display:grid;grid-template-columns:1fr 1fr;gap:6px} .ldOpt{min-height:38px;padding:4px 6px} .loadSheet h3{font-size:17px} }
 #mapPick{z-index:50;background:radial-gradient(ellipse at 50% 35%, #23271f 0%, #121410 70%, #0b0c09 100%)}
 .tCrown svg{width:.82em;height:.7em;fill:#f0c95a;stroke:#fff1c4;stroke-width:.8;vertical-align:-.03em;margin-left:.22em;filter:drop-shadow(0 0 8px rgba(255,205,90,.65))}
+/* the title in two lines (Jack): Castle Defense, then Medieval smaller between two gold rules */
+.tSub{display:flex;align-items:center;justify-content:center;gap:.55em;font-size:.44em;letter-spacing:.32em;line-height:1;margin-top:.28em;padding-left:.32em;white-space:nowrap}
+.tSub::before,.tSub::after{content:'';width:2.6em;height:2px;background:linear-gradient(90deg,transparent,currentColor);opacity:.8}
+.tSub::after{background:linear-gradient(90deg,currentColor,transparent);margin-left:-.32em}
 .gameTitle{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(34px,10vw,52px);line-height:1.05;color:var(--gold);text-shadow:0 2px 18px rgba(0,0,0,.6);text-wrap:balance}
 .stars{color:#5a5646;letter-spacing:.06em;white-space:nowrap} .stars .on{color:var(--gold)} .stars.big{font-size:34px;text-align:center;line-height:1}
 #sumGoals{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:14px}
@@ -597,7 +601,7 @@ body.islandR{--padR:max(8px,env(safe-area-inset-right,0px));--padL:12px}
 #loading{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 45%,#1b1a12 0%,#0d0e0a 70%);transition:opacity .5s}
 #loading.done{opacity:0;pointer-events:none}
 .ldBox{display:flex;flex-direction:column;align-items:center;gap:14px}
-.ldTitle{font-family:var(--display);font-size:clamp(28px,8vw,46px);color:#e8c46a;text-align:center;line-height:1.05;max-width:12ch;text-shadow:0 2px 8px rgba(0,0,0,.7)}
+.ldTitle{font-family:var(--display);font-size:clamp(28px,8vw,46px);color:#e8c46a;text-align:center;line-height:1.05;text-shadow:0 2px 8px rgba(0,0,0,.7)}
 .ldBar{width:min(220px,60vw);height:6px;border-radius:4px;background:rgba(255,255,255,.08);border:1px solid rgba(212,168,78,.5);overflow:hidden}
 .ldBar i{display:block;height:100%;width:35%;border-radius:4px;background:linear-gradient(90deg,#a47422,#f2d27a);animation:ldSlide 1.2s ease-in-out infinite}
 #loading.fail .ldBar{display:none}
@@ -718,7 +722,7 @@ body.showcase #upPick.modal.tome{background-color:transparent!important;backgrou
 /* the title screen on a phone held sideways (Jack: the title and Campaign were cut off): smaller title, the map pictures cropped wide */
 @media (max-height:520px){
   #mapPick.modal{padding-top:max(6px,env(safe-area-inset-top,0px));padding-bottom:max(6px,env(safe-area-inset-bottom,0px))}
-  #mapPick .mapSheet{gap:6px}
+  #mapPick .mapSheet{gap:12px}
   #mapPick .gameTitle{font-size:clamp(26px,8.5vh,38px)}
   #mapPick .mapSub{font-size:11px}
   /* the map cards at their upright size (Jack) */

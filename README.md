@@ -1,4 +1,4 @@
-# Medieval Castle Defense
+# Castle Defense: Medieval
 
 Medieval village builder + tower defence prototype (three.js).
 

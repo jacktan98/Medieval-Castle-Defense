@@ -1,5 +1,5 @@
 // ---------- game setup ----------
-// ---------- the title screen's showcase: the real game behind "Medieval Castle Defense", a small town on the Meadow at dusk, torches and
+// ---------- the title screen's showcase: the real game behind "Castle Defense: Medieval", a small town on the Meadow at dusk, torches and
 // fires lit, the camera slowly circling it (Jack). Built with the game's own placement (free, instant), then left still: the sim doesn't
 // run under a menu, only the camera, the trees, smoke and embers, flags and flames move. Any game started afterwards replaces it.
 let showcaseBuilt = false;
