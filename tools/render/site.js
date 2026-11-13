@@ -7,7 +7,7 @@ const { openGame } = require('./serve');
 const OUT = path.resolve(__dirname, '../../design/site');
 // name, what to build (code run in the game's scope that returns { g, p }), the pose's moment, the turn, frame size [w, h] in metres
 const FIGS = [
-  ['lumberjack', `fig({ tool: 'axe', carry: 'log' })`, 0.3, -0.55],
+  ['lumberjack', `fig({ tool: 'axe', carry: 'log' })`, 0.3, 0.55],
   ['chopper', `fig({ tool: 'axe', work: 1 })`, 0.75, 0.6],
   ['mason', `fig({ tool: 'pick', work: 1 })`, 0.85, .6],
   ['builder', `fig({ tool: 'hammer', work: 1 })`, 1.6, 0.5],
@@ -22,6 +22,7 @@ const FIGS = [
   ['raider_archer', `fig({ raider: 'archer', rt: 2 })`, 0.5, -.7],
   ['raider_horse', `fig({ raider: 'rider', rt: 3 })`, 0.4, -0.9],
   ['chief', `fig({ raider: 'chief', rt: 3 })`, 0.3, -.5],
+  ['raider_ballista', `fig({ raider: 'ballista', rt: 2 })`, 1.2, -0.75],
   ['warlord', `fig({ raider: 'warlord', rt: 3 })`, 0.4, -0.8],
 ];
 const BLDS = [['castle1', 'castle', 1], ['castle3', 'castle', 3], ['house2', 'house', 2], ['tower3', 'tower', 3], ['catapult3', 'catapult', 3], ['ballista2', 'ballista', 2], ['market3', 'market', 3]];
@@ -45,7 +46,8 @@ const BLDS = [['castle1', 'castle', 1], ['castle3', 'castle', 3], ['house2', 'ho
         if (P.kit) soldierKit(p, P.kit, P.cav);
         else if (P.guard) armour(p, P.guard);
         else if (!P.raider) { p.plainHat = !P.tool; p.outfitTier = 3; addLoads(p); giveTool(p, P.tool || null); dress(p, P.tool || null); if (P.carry === 'log') p.carryLog.visible = true; }
-        Object.assign(p, P, { seed: 0 }); return p;
+        if (P.raider && ENEMY[P.raider].engine) Object.assign(p, { kind: P.raider, tier: P.rt, rate: ENEMY[P.raider].rate, seed: 0 });
+        else Object.assign(p, P, { seed: 0 }); return p;
       };
       // a figure: posed at time t, turned by rot, framed tight to its own box, ground shadow on an invisible floor
       const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.ShadowMaterial({ opacity: .32 })); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; S.add(floor);
