@@ -147,11 +147,10 @@ footer .tm { flex-basis: 100%; margin-top: 8px; font-size: 13px; opacity: .7 }
 .army { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; padding: 0 0 0; border-bottom: 0; position: relative }
 .army::after { content: ''; position: absolute; left: -10%; right: -10%; bottom: 0; height: 26px; background: radial-gradient(ellipse at 50% 100%, rgba(80, 120, 50, .35), transparent 70%) }
 .army .side { display: flex; align-items: flex-end }
-.army img { height: 150px; width: auto; margin: 0 -14px; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .6)) }
-.army img.m { height: 175px }
-.army img.b { height: 175px }
-.army .foe img { margin: 0 -10px }
-@media (max-width: 760px) { .army img { height: 88px; margin: 0 -10px } .army img.m, .army img.b { height: 102px } .army .town img:nth-child(n+4), .army .foe img:nth-child(2) { display: none } }
+.army img { --k: 190px; height: calc(var(--h) * var(--k)); width: auto; margin: 0 -10px calc(var(--b, 0) * var(--h) * var(--k) * -1); filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .6)) }
+/* drawn to scale: --h is each figure's height in the game (m) */
+@media (max-width: 1100px) { .army img { --k: 150px; margin-left: -8px; margin-right: -8px } }
+@media (max-width: 760px) { .army img { --k: 72px; margin-left: -6px; margin-right: -6px } }
 
 .box { margin-top: 40px; padding: 22px 26px; border: 1px solid var(--rule); border-radius: 8px; background: rgba(227, 191, 102, .05) }
 .box .k { margin: 0 0 6px; font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim) }
