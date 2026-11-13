@@ -34,7 +34,7 @@ const CX_PX = 320;
 // the tile while he faces the same way as the others (Jack: held level it poked out of the tile)
 function cxRest(m, side, id) {
   galPose(m.p, .4, 1);
-  if (side === 'r' && id === 'spear') { const p = m.p; p.arms[1].rotation.x = -.35; p.pivot.rotation.x = CX_SPEAR; p.pivot.position.y = CX_SPEAR_Y; p.body.position.z = 0; p.body.rotation.x = 0; }
+  if (side === 'r' && id === 'spear') { const p = m.p; p.arms[1].rotation.x = -.35; p.pivot.rotation.x = CX_SPEAR; p.pivot.position.y = CX_SPEAR_Y; p.pivot.position.z = 0; p.body.position.z = 0; p.body.rotation.x = 0; }
 }
 const CX_SPEAR = -2.8, CX_SPEAR_Y = -.33;
 // each kind's zoom: [fit (metres), how high the camera aims (× fit), the grass patch's radius for figures and engines]

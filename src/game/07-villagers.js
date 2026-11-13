@@ -40,8 +40,9 @@ function makeTool(kind) {
   }
   if (kind === 'crossbow') {            // the hand holds the grip under the stock; the stock runs forward (−y with the arm raised) from a butt at the shoulder to a curved prod
     const SX = -.06, SZ = .055;          // the stock sits a little toward the other hand (which steadies it) and just above the grip
-    p.add(box(.05, .66, .06, M.wood, SX, -.06, SZ));                                     // stock, butt to nose
-    p.add(box(.06, .1, .08, M.wood, SX, .24, SZ - .01));                                 // butt
+    // the stock runs from just behind the hand to the nose (Jack: the longer stock reached far back past the hand)
+    p.add(box(.05, .5, .06, M.wood, SX, -.14, SZ));                                      // stock, butt to nose
+    p.add(box(.06, .08, .08, M.wood, SX, .09, SZ - .01));                                // butt
     const gr = box(.04, .05, .12, M.timber, SX * .5, 0, SZ * .35); gr.rotation.y = .45; p.add(gr);   // the grip, from the hand up into the stock
     p.add(box(.012, .04, .03, M.iron, SX, .05, SZ - .045));                              // trigger lever
     p.add(box(.012, .3, .012, M.dark, SX, -.2, SZ + .04));                               // a bolt on top

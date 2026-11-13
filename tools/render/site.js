@@ -65,7 +65,9 @@ const BLDS = [['castle1', 'castle', 1], ['castle3', 'castle', 3], ['house2', 'ho
           const b = new THREE.Box3().setFromObject(p.g), c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3());
           const hgt = Math.max(s.y, s.x * 1.1) * 1.18, d = hgt / 2 / Math.tan(cam.fov * Math.PI / 360);
           const url = shoot(p.g, 900, 1200, new THREE.Vector3(c.x, c.y, c.z), d * 1.05, .18);
-          S.remove(p.g); return url;
+          // its height in the game, for drawing figures side by side to scale: people at UNIT_K, bosses at their own size, engines at 1
+          const E = ENEMY[p.raider || p.kind], k = E && E.engine ? 1 : E && E.boss ? E.boss : UNIT_K;
+          S.remove(p.g); return { url, h: +(s.y * k).toFixed(3) };
         },
         building(type, tier) {
           const g = makeModel(type, tier, true, 0, 0); galPreview(g, type, tier); S.add(g); g.rotation.y = -.55; g.updateMatrixWorld(true);
@@ -81,7 +83,10 @@ const BLDS = [['castle1', 'castle', 1], ['castle3', 'castle', 3], ['house2', 'ho
       };
     })();`));
   const save = (n, url) => fs.writeFileSync(path.join(OUT, n + '.png'), Buffer.from(url.split(',')[1], 'base64'));
-  for (const [n, code, t, rot] of FIGS) save(n, await page.evaluate(a => G(`SITE.person(${JSON.stringify(a[0])}, ${a[1]}, ${a[2]})`), [code, t, rot]));
+  const H = {};
+  for (const [n, code, t, rot] of FIGS) { const r = await page.evaluate(a => G(`SITE.person(${JSON.stringify(a[0])}, ${a[1]}, ${a[2]})`), [code, t, rot]); save(n, r.url); H[n] = r.h; }
+  // each figure's height in the game (m), so the site can draw a lineup to scale
+  fs.writeFileSync(path.join(OUT, 'heights.json'), JSON.stringify(H, null, 1));
   for (const [n, type, tier] of BLDS) save(n, await page.evaluate(a => G(`SITE.building('${a[0]}', ${a[1]})`), [type, tier]));
   fs.writeFileSync(path.join(OUT, 'icons.json'), JSON.stringify(await page.evaluate(() => G('SITE.icons()')), null, 1));
   if (errors.length) console.log(errors.join('\n'));

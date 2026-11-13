@@ -63,7 +63,9 @@ const spearThrust = at => {
 };
 function spearPose(p, at, sw) {
   const u = spearThrust(at), out = Math.max(0, u);
-  p.arms[1].rotation.x = -1.0 - .45 * u + sw * .08; p.pivot.rotation.x = -.57 + .45 * u - sw * .08 - .12 * out; p.pivot.position.y = -.33 - .45 * u;   // - lean: shaft stays level
+  // the grip slides along the shaft's own line (Jack: sliding along the arm's line instead took the shaft off the hand mid-thrust)
+  const r = -.57 + .45 * u - sw * .08 - .12 * out, sl = -.45 * u;
+  p.arms[1].rotation.x = -1.0 - .45 * u + sw * .08; p.pivot.rotation.x = r; p.pivot.position.set(0, -.33 + Math.cos(r) * sl, Math.sin(r) * sl);   // - lean: shaft stays level
   p.body.position.z = .15 * out; if (out > 0) p.body.rotation.x = .12 * out;
 }
 // a sword cut over SWORD_T: raise the blade overhead with the wrist cocked back, chop down with a small step in, recover

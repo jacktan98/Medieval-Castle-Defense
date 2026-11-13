@@ -1,0 +1,19 @@
+{
+ "lumberjack": 1.042,
+ "chopper": 0.782,
+ "mason": 0.77,
+ "builder": 0.783,
+ "farmer": 0.776,
+ "archer": 0.74,
+ "crossbow": 0.74,
+ "knight": 0.774,
+ "guard": 0.747,
+ "rider": 1.296,
+ "raider_sword": 0.772,
+ "raider_spear": 0.749,
+ "raider_archer": 0.74,
+ "raider_horse": 1.323,
+ "chief": 1.413,
+ "raider_ballista": 1.563,
+ "warlord": 2.483
+}
