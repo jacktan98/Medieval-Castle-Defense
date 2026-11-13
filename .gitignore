@@ -5,3 +5,8 @@ tools/render/store/*.png
 tools/render/store/*.log
 tools/render/store/vframes/
 tools/render/store/tframes/
+# Xcode's own files on Jack's Mac: the Simulator's StoreKit test file, its scheme and Swift package caches
+ios/App/Products.storekit
+ios/App/App.xcodeproj/xcshareddata/
+ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+plugins/store/.swiftpm/
