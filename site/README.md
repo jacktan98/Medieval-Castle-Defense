@@ -1,7 +1,7 @@
 # The game's website
 
 Home (`index.html`), `privacy.html` and `support.html`, in the game's bronze and gold, with the fonts, pictures and trailer kept here (about 6 MB, no other site needed).
-It is meant for its own **public** repo, so the game's repo can be private: GitHub Pages on the free plan only serves public repos.
+It lives in its own **public** repo, `jacktan98/castledefense-site`, served at https://castledefense.app (the `CNAME` file), so the game's repo can be private: GitHub Pages on the free plan only serves public repos. (It was first in `jacktan98.github.io`, but a custom domain on the account's main site moves every other repo's Pages under that domain too.)
 
 Set up once:
 1. On GitHub: New repository, name it exactly `jacktan98.github.io`, Public, no README.
