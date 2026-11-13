@@ -104,7 +104,9 @@ if(want('siege')){const p=await L.open(env,'plains',W,H,D);
 if(want('black')){const p=await env.b.newPage({viewport:{width:W,height:H},deviceScaleFactor:D});await p.setContent('<html><body style="margin:0;background:#000"></body></html>');
  for(let i=0;i<15;i++)await shot(p,'6-black',i);fs.writeFileSync(`${OUT}/6-black.json`,'[]');console.log('black 15');await p.close();}
 // 5 the title over the Blighted Isle, and "Your castle awaits" under it, big and gold
-if(want('title')){const p=await L.open(env,SC.title.map,W,H,D);await G(p,SC.title.code);await p.waitForTimeout(3000);
+if(want('title')){const p=await L.open(env,SC.title.map,W,H,D);await G(p,SC.title.code);
+ // the title a little lower in the trailer than on the store picture (Jack)
+ await p.addStyleTag({content:'.gameTitle{top:9vh!important}'});await p.waitForTimeout(3000);
  await p.evaluate(()=>{const t=document.querySelector('.gameTitle'),cs=getComputedStyle(t),d=document.createElement('div');d.id='awaits';d.innerHTML='<span>Your castle awaits</span>';
   d.style.cssText='position:fixed;left:0;right:0;bottom:0;height:36%;display:flex;align-items:center;justify-content:center;z-index:9998;opacity:0;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.55) 45%,rgba(0,0,0,.7))';
   const s=d.firstChild;s.style.cssText=`display:inline-block;font-family:${cs.fontFamily};color:#f6d77a;font-size:${parseFloat(cs.fontSize)*1.05}px;letter-spacing:.03em;-webkit-text-stroke:2px #3a2009;paint-order:stroke fill;text-shadow:0 3px 14px rgba(0,0,0,.9),0 0 22px rgba(243,207,110,.35)`;document.body.appendChild(d);});
