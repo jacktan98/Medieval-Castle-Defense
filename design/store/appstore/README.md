@@ -3,7 +3,7 @@
 Everything in this folder and in `design/store/` is ready to upload. Text to paste is in `description.txt` and below.
 
 ## 1. iOS App Version 1.0 → Header and Search Results
-- **Header** (optional; Apple's new custom header): upload `header-3840x1646.png`, or `header-5244x2950.png` if it asks for that size. No words on it, so the app name and icon Apple lays over it never clash.
+- **Header** (optional; Apple's new custom header): upload `header-3840x1646.png` (one of the two sizes Apple takes; only 1 header is needed). No words on it, so the app name and icon Apple lays over it never clash.
 - **Search Results**: leave it as it is. Apple uses your screenshots there.
 
 ## 2. iOS App Version 1.0 → App Previews and Screenshots
