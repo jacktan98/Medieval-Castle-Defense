@@ -99,3 +99,35 @@ footer a { color: var(--dim); text-decoration: none }
 footer a:hover { color: var(--gold) }
 footer .tm { flex-basis: 100%; margin-top: 8px; font-size: 13px; opacity: .7 }
 @media (max-width: 520px) { .brand span { display: none } .top nav { gap: 20px } footer nav { margin-left: 0; flex-basis: 100% } }
+
+/* boxes: the numbers, the two prices, and the panels on the text pages */
+.nums { padding: 8px 0 88px }
+.nums ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px }
+.nums li { padding: 22px 20px; border: 1px solid var(--rule); border-radius: 8px; background: rgba(227, 191, 102, .04) }
+.nums b { display: block; font: 48px/1 var(--title); color: var(--gold) }
+.nums span { display: block; margin-top: 8px; color: var(--dim); font-size: 16px }
+.price { padding: 0 0 96px }
+.price h2 { margin: 0 0 24px; font: clamp(26px, 3vw, 34px)/1.1 var(--title); color: var(--gold) }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px }
+.card { padding: 26px 28px 22px; border: 1px solid var(--rule); border-radius: 8px; background: rgba(255, 255, 255, .025) }
+.card.full { border-color: rgba(227, 191, 102, .55); background: linear-gradient(180deg, rgba(227, 191, 102, .1), rgba(227, 191, 102, .03)) }
+.card h3 { margin: 0; font: 26px/1.1 var(--title); color: #f3ead4 }
+.card.full h3 { color: var(--gold) }
+.card .amt { margin: 4px 0 16px; color: var(--dim) }
+.card ul { margin: 0; padding: 0; list-style: none }
+.card li { padding: 9px 0; border-top: 1px solid var(--rule) }
+.box { margin-top: 40px; padding: 22px 26px; border: 1px solid var(--rule); border-radius: 8px; background: rgba(227, 191, 102, .05) }
+.box .k { margin: 0 0 6px; font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim) }
+.box .v { margin: 0 0 10px; font-size: 24px }
+.box p:last-child { margin-bottom: 0 }
+.box ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 24px }
+.box li::before { content: '\2713'; color: var(--gold); margin-right: 10px }
+@media (max-width: 720px) {
+  .nums { padding-bottom: 64px }
+  .nums ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px }
+  .nums b { font-size: 40px }
+  .cards { grid-template-columns: 1fr }
+  .price { padding-bottom: 72px }
+  .box ul { grid-template-columns: 1fr }
+  .box .v { font-size: 20px }
+}
