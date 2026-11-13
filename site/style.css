@@ -1,0 +1,82 @@
+/* Medieval Castle Defense: the game's site (home, privacy, support), in the game's bronze and gold */
+@import url(fonts/fonts.css);
+:root {
+  --bg: #15110a; --bg2: #1e1810; --panel: linear-gradient(180deg, #3a2c19, #241a0e);
+  --gold: #e8c46a; --gold2: #c9962f; --line: rgba(232, 196, 106, .55); --text: #f1e4c3; --dim: #bfae88;
+  --title: 'IM Fell English SC', Georgia, serif; --body: 'Alegreya Sans', system-ui, sans-serif;
+}
+* { box-sizing: border-box }
+html { -webkit-text-size-adjust: 100% }
+body { margin: 0; background: var(--bg); color: var(--text); font: 18px/1.55 var(--body) }
+a { color: var(--gold) }
+img, video { max-width: 100%; display: block }
+.wrap { width: min(1080px, 100% - 32px); margin: 0 auto }
+
+/* top bar */
+.top { position: sticky; top: 0; z-index: 5; background: rgba(21, 17, 10, .88); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-bottom: 1px solid rgba(232, 196, 106, .2) }
+.top .wrap { display: flex; align-items: center; gap: 12px; height: 58px }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--gold); text-decoration: none; font: 21px var(--title) }
+.brand img { width: 34px; height: 34px; border-radius: 8px }
+.top nav { margin-left: auto; display: flex; gap: 18px }
+.top nav a { color: var(--dim); text-decoration: none; font-weight: 500; font-size: 16px }
+.top nav a:hover, .top nav a[aria-current] { color: var(--gold) }
+
+/* hero: the title screen's picture */
+.hero { position: relative; min-height: min(78vh, 640px); display: flex; align-items: flex-end; background: #0d0a06 url(img/hero.jpg) 68% 40% / cover }
+.hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(13, 10, 6, .82) 0%, rgba(13, 10, 6, .45) 42%, rgba(13, 10, 6, 0) 70%), linear-gradient(180deg, rgba(13, 10, 6, 0) 35%, rgba(21, 17, 10, .97) 100%) }
+@media (max-width: 720px) { .hero { background-position: 55% 30% } .hero::before { background: linear-gradient(180deg, rgba(13, 10, 6, .1) 20%, rgba(21, 17, 10, .97) 92%) } }
+.hero .wrap { position: relative; padding: 0 0 48px }
+.hero img.icon { width: 96px; height: 96px; border-radius: 22px; box-shadow: 0 6px 24px rgba(0, 0, 0, .6); margin-bottom: 18px }
+h1 { margin: 0; font: clamp(38px, 7vw, 68px)/1.02 var(--title); color: var(--gold); text-shadow: 0 2px 14px rgba(0, 0, 0, .8) }
+.tag { margin: 12px 0 22px; font-size: clamp(18px, 2.6vw, 22px); max-width: 560px; text-shadow: 0 1px 6px rgba(0, 0, 0, .9) }
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 12px 22px; border-radius: 12px; font: 700 17px var(--body); text-decoration: none; color: #2a1c08; background: linear-gradient(180deg, #ffe08a, var(--gold2)); border: 2px solid #f6d77e; box-shadow: 0 3px 12px rgba(0, 0, 0, .5) }
+.btn svg { width: 20px; height: 20px }
+.btn.soon { cursor: default }
+.note { margin-top: 10px; font-size: 15px; color: var(--dim) }
+
+/* sections */
+section { padding: 64px 0 }
+section + section { padding-top: 16px }
+h2 { margin: 0 0 22px; font: clamp(28px, 4.4vw, 38px)/1.1 var(--title); color: var(--gold); text-align: center }
+h2::after { content: ''; display: block; width: 120px; height: 2px; margin: 14px auto 0; background: linear-gradient(90deg, transparent, var(--gold), transparent) }
+.frame { border: 2px solid var(--line); border-radius: 14px; overflow: hidden; background: #000; box-shadow: 0 8px 30px rgba(0, 0, 0, .55) }
+.frame video { width: 100%; height: auto }
+
+.feat { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; align-items: center; margin: 0 0 44px }
+.feat:nth-child(even) { grid-template-columns: 1fr 1.4fr }
+.feat:nth-child(even) .frame { order: 2 }
+.feat h3 { margin: 0 0 8px; font: 28px/1.15 var(--title); color: var(--gold) }
+.feat p { margin: 0; color: var(--text) }
+@media (max-width: 720px) {
+  .feat, .feat:nth-child(even) { grid-template-columns: 1fr; gap: 14px }
+  .feat:nth-child(even) .frame { order: 0 }
+}
+
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px }
+.fact { background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 18px; text-align: center }
+.fact b { display: block; font: 36px/1 var(--title); color: var(--gold); margin-bottom: 6px }
+.fact span { color: var(--dim); font-size: 16px }
+
+/* text pages (privacy, support) */
+.page { padding: 48px 0 64px }
+.page .wrap { max-width: 760px }
+.page h1 { font-size: clamp(34px, 6vw, 50px); text-shadow: none }
+.page .when { color: var(--dim); margin: 8px 0 30px }
+.page h2 { text-align: left; font-size: 26px; margin: 34px 0 10px }
+.page h2::after { display: none }
+.page p, .page li { color: var(--text) }
+.card { background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 20px 22px; margin: 18px 0 }
+.card p { margin: 0 }
+details { border-bottom: 1px solid rgba(232, 196, 106, .2); padding: 12px 0 }
+summary { cursor: pointer; font-weight: 700; color: var(--gold); list-style: none }
+summary::-webkit-details-marker { display: none }
+summary::before { content: '+'; display: inline-block; width: 20px; color: var(--gold2) }
+details[open] summary::before { content: '−' }
+details p { margin: 8px 0 0 20px }
+
+footer { border-top: 1px solid rgba(232, 196, 106, .2); padding: 26px 0 34px; color: var(--dim); font-size: 15px }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center }
+footer nav { display: flex; gap: 18px }
+footer a { color: var(--dim) }
+footer .credit { flex-basis: 100%; font-size: 13px; opacity: .8 }
+@media (max-width: 480px) { .top nav { gap: 12px } .brand span { display: none } }
