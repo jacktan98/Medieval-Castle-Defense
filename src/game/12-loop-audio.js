@@ -93,7 +93,7 @@ function startGame() {
   Object.assign(res, (MAP_RULES[MAP] || {}).res || { gold: 40, wood: 45, stone: 0, food: 20 });
   // hard: the stage's own hard gold and wood (Jack: set by stage band, not worked out), else 30% less, to the nearest ten
   if (hardOn) { const hr = (MAP_RULES[MAP] || {}).hardRes; if (hr) Object.assign(res, hr); else { res.gold = Math.round(res.gold * .07) * 10; res.wood = Math.round(res.wood * .07) * 10; } }
-  stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, lostB: 0, felled: 0, mined: 0, boostKills: {}, t0: performance.now() }; guideDone = false; goalsMet = {};
+  stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, lostB: 0, felled: 0, mined: 0, boostKills: {}, t0: performance.now() }; guideDone = false; guideWait = false; goalsMet = {};
   clearSummary(); $('#log').innerHTML = '';
   const ev = MAP === 'isle' ? findValid('castle', 12, 12, { free: true }) : MAP === 'pass' ? findValid('castle', 12, 9, { free: true }) : MAP === 'vale' ? findValid('castle', 11, 15, { free: true }) : MAP === 'bridge' ? findValid('castle', 13, 17, { free: true }) : MAP === 'cross' ? findValid('castle', 7, 18, { free: true }) : MAP === 'watch' ? findValid('castle', 7, 13, { free: true }) : MAP === 'dune' ? findValid('castle', 6, 11, { free: true }) : MAP === 'bend' ? findValid('castle', 9, 12, { free: true }) : MAP === 'crag' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'ford' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'mere' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'plains' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'keep' ? findValid('castle', 19, 32, { free: true }) : MAP === 'hold' ? findValid('castle', 18, 31, { free: true }) : findValid('castle', 8, 12, { free: true });
   // the camera starts square on the castle's front and centred on it (Jack: some stages started at an angle, kept from the last game
@@ -719,7 +719,7 @@ function coinFly(x, y, z, n, kind = 'gold') {
 
 // ---------- guided first day: one short step at a time, the button to press pulses; shown once per device ----------
 var GUIDE;   // filled per game from the picks (applyLoadout)
-var guideOn = false, guideStep = -1, guideEndT = 0;
+var guideOn = false, guideStep = -1, guideEndT = 0, guideWait = false;
 // (startGame may already have run: a campaign stage after the first keeps its guide off, the tutorial keeps it on)
 try { guideOn = MAP === 'vale' || (!CAMP_MAPS[MAP] && localStorage.getItem('mtd-guide') !== 'done'); } catch (e) { guideOn = !CAMP_MAPS[MAP]; }
 function guideFinish() { guideOn = false; try { localStorage.setItem('mtd-guide', 'done'); } catch (e) {} guideMark(); }
@@ -728,7 +728,8 @@ function guideMark() {
   const g = $('#guide'); if (!g) return;
   if (!guideOn || gameOver || guideStep < 0) { if (!guideEndT) g.hidden = true; return; }
   const S = GUIDE[guideStep]; g.hidden = false;
-  $('#gStep').textContent = `${guideStep + 1}/${GUIDE.length}`; $('#gText').innerHTML = S.text; $('#gSkip').hidden = false;
+  $('#gStep').textContent = `${guideStep + 1}/${GUIDE.length}`; $('#gText').innerHTML = guideWait || S.text; $('#gSkip').hidden = false;
+  if (guideWait) return;
   if (tool !== S.tool) {
     if (dockMini) $('#dockMin').classList.add('guidePulse');      // the bar is folded away: unfold it first
     else if (S.cat && cat !== S.cat) { const tab = document.querySelector(`.tab[data-cat="${S.cat}"]`); if (tab) tab.classList.add('guidePulse'); }
@@ -741,6 +742,12 @@ function guideTick() {
   if (!guideOn) return;
   const next = GUIDE.findIndex(S => !S.done());
   // the last step done (Stage 1: the archers): point at Skip day (Jack), which glows until it's pressed or night falls
+  // every step placed, but a building still going up (Jack: Skip day before the archers stand would leave the town unguarded):
+  // say so, and point at Skip day only once the builders are done
+  if (next < 0) { const wait = GUIDE.find(S => DEF[S.tool] && !buildings.some(B => B.type === S.tool && (!B.site || B.site.kind === 'up')));
+    const w = wait ? `Wait for the <b>${DEF[wait.tool].name}</b> to be built` : false;
+    if (w) { if (guideWait !== w) { guideWait = w; guideStep = GUIDE.length - 1; guideMark(); } return; } }
+  if (guideWait) { guideWait = false; guideMark(); }
   if (next < 0) { guideDone = true; $('#gStep').textContent = '✓'; $('#gText').innerHTML = 'When ready, <b>Skip day</b> to face the raiders'; $('#gSkip').hidden = true; guideEndT = performance.now() + 6000; guideFinish(); g.hidden = false; $('#nightBtn').classList.add('skipGlow'); return; }
   if (next !== guideStep) { guideStep = next; guideMark(); }
 }

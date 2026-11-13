@@ -169,7 +169,7 @@ function tileSpot(ev) {
   guideTiles.geometry.dispose(); guideTiles.geometry = new THREE.BufferGeometry(); guideTiles.geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
 }
 function updateGuideSpot(now) {
-  const S = guideOn && !gameOver && guideStep >= 0 && GUIDE[guideStep], t = S && S.tool && DEF[S.tool] ? S.tool : null;
+  const S = guideOn && !guideWait && !gameOver && guideStep >= 0 && GUIDE[guideStep], t = S && S.tool && DEF[S.tool] ? S.tool : null;
   if (!t || menuOn() || PH.kind !== 'day') { guideTiles.visible = false; guideSpotFor = -1; return; }
   if (guideSpotFor !== guideStep) {
     guideSpotFor = guideStep; guideTiles.visible = false; const K = castleB(); if (!K) return; const c = center(K); let tx = c.x, tz = c.z + 6;
