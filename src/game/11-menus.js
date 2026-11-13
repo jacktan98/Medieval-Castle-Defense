@@ -633,10 +633,7 @@ const STORY = {
   isle: 'A blight has crept onto the river isle and the fields are failing. Hungry raiders are circling the island, hoping your town is too weak to fight. Show them that a full henhouse and a sharp arrow beat a blight any day.',
   pass: 'The longest winter in memory has buried the mountain pass in snow. The Warlord\'s last loyal captains have gathered every raider they could find for one final march. Hold the pass, keep the fires burning, and the kingdom will see spring.',
 };
-// locked stages can't be played (Jack: win the one before first); set true to let a tester play every stage
-// temporary tester's shortcut (Jack): add ?open to the address to play every stage (locks and the full-game purchase skipped,
-// nothing saved); a var, so a call before this line runs reads false instead of throwing
-var TEST_OPEN = /[?&]open\b/.test(location.search);
+// locked stages can't be played (Jack: win the one before first)
 const mainWon = () => MAIN.every(c => STARS[c.map] > 0);
 // ---------- the campaign as a carousel (Jack's sketch; it replaced a scrolling road, which replaced the overview map): the stages are
 // cards in a 3D deck, the one in front large, the others angled away behind it on both sides; swipe, tap a side card, the arrows, the
@@ -735,8 +732,8 @@ function openStage(i) {
   const R = c.map && MAP_RULES[c.map];
   $('#stInfo').innerHTML = R ? `<span>Day 1: <b>${Math.round(R.day[0] / 60)}</b> min${Math.round(R.day[0] / 60) === 1 ? '' : 's'}</span><span>Waves: <b>${R.waves.length}</b></span>${BEST[c.map] ? `<span>Best: <b>${fmt(BEST[c.map])}</b></span>` : ''}` : '';
   requestAnimationFrame(fitDetSlot);
-  // a locked stage can't be played (TEST_OPEN off): Play is a padlock that refuses
-  const shut = !TEST_OPEN && campState().locked[i];
+  // a locked stage can't be played: Play is a padlock that refuses
+  const shut = campState().locked[i];
   // Stage 4 on, once open, needs the full game (11-store.js): Play becomes Unlock with the price from the App Store
   const paid = !shut && paidStage(i);
   $('#stPlay').innerHTML = c.map ? `<button class="primary${shut ? ' shut' : ''}${paid ? ' buy' : ''}" id="campPlay"${buying ? ' disabled' : ''}>${shut ? LOCK_ICO : paid ? `<span class="upLk">${UNLOCK_ICO}Unlock${fullPrice ? `<small>${fullPrice}</small>` : ''}</span>` : 'Play'}</button>` : '';
@@ -961,8 +958,6 @@ function matchUpZoom(m) {
   uiScale(m, z, '0 0', 1);
 }
 tabletScale(); addEventListener('resize', tabletScale);
-// one line for Xcode's console on a tablet: how wide the Goals word and its panel are drawn, to tell whether text follows the UI scale
-if (document.body.classList.contains('tablet')) setTimeout(() => { const g = $('#goalHead'), p = $('.panel'); if (g && p) console.log(`ui scale ${uiK.toFixed(2)}: Goals word ${g.getBoundingClientRect().width.toFixed(1)} px wide, panel ${p.getBoundingClientRect().width.toFixed(0)} px`); }, 4000);
 // the HUD tick that places the night powers and the boss bar stops while paused: place them again whenever the screen turns
 // (Jack turned the phone while paused and the powers stayed where the sideways layout had them)
 addEventListener('resize', () => { markRect = null; updatePowers(); updateBossBar(); if (typeof sideHints === 'function') sideHints(); }); addEventListener('orientationchange', () => setTimeout(islandSide, 100));

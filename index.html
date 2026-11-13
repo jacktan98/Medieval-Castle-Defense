@@ -806,7 +806,7 @@ body.showcase #achPick.modal.tome{background-color:transparent!important;backgro
 #achToast .atTx{display:flex;flex-direction:column;line-height:1.1} #achToast small{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#d9c08a} #achToast b{font-family:var(--display);font-weight:400;font-size:17px;color:#ffe2a0}
 @media (max-height:520px){ .achSheet .achGrid{grid-template-columns:none;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:78px;gap:8px 6px;overflow-x:auto;overflow-y:hidden;padding:8px 7px 18px;flex:0 0 auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin} .achSheet{max-width:820px} .achSheet .upTop{margin-bottom:6px;padding-bottom:6px} .modal.tome .achNode{width:52px;height:52px} .achNode > svg:first-child{width:28px;height:28px;transform:translateY(-4px)} .upSheet .achDet{margin-top:10px;max-width:520px;align-self:center} #achToast{top:12px} }
 /* the bonus stages (Jack): a violet edge and label, like the bosses' red; the progress bar's three bonus segments too; their switch
-   shows only Hard; a locked stage's Play (release only, TEST_OPEN off) is a padlock */
+   shows only Hard; a locked stage's Play is a padlock */
 .cCard.bonus{border-color:rgba(176,132,232,.9)} .cCard.bonus .cName small{color:#c7a6f2}
 .cDot.bonus{border-color:#b084e8!important} .cDot.bonus.won{background:linear-gradient(180deg,#c7a6f2,#6d47a8)!important}
 .modal.tome #stDiff.only #dHard{border-radius:999px}
@@ -9128,10 +9128,7 @@ const STORY = {
   isle: 'A blight has crept onto the river isle and the fields are failing. Hungry raiders are circling the island, hoping your town is too weak to fight. Show them that a full henhouse and a sharp arrow beat a blight any day.',
   pass: 'The longest winter in memory has buried the mountain pass in snow. The Warlord\'s last loyal captains have gathered every raider they could find for one final march. Hold the pass, keep the fires burning, and the kingdom will see spring.',
 };
-// locked stages can't be played (Jack: win the one before first); set true to let a tester play every stage
-// temporary tester's shortcut (Jack): add ?open to the address to play every stage (locks and the full-game purchase skipped,
-// nothing saved); a var, so a call before this line runs reads false instead of throwing
-var TEST_OPEN = /[?&]open\b/.test(location.search);
+// locked stages can't be played (Jack: win the one before first)
 const mainWon = () => MAIN.every(c => STARS[c.map] > 0);
 // ---------- the campaign as a carousel (Jack's sketch; it replaced a scrolling road, which replaced the overview map): the stages are
 // cards in a 3D deck, the one in front large, the others angled away behind it on both sides; swipe, tap a side card, the arrows, the
@@ -9230,8 +9227,8 @@ function openStage(i) {
   const R = c.map && MAP_RULES[c.map];
   $('#stInfo').innerHTML = R ? `<span>Day 1: <b>${Math.round(R.day[0] / 60)}</b> min${Math.round(R.day[0] / 60) === 1 ? '' : 's'}</span><span>Waves: <b>${R.waves.length}</b></span>${BEST[c.map] ? `<span>Best: <b>${fmt(BEST[c.map])}</b></span>` : ''}` : '';
   requestAnimationFrame(fitDetSlot);
-  // a locked stage can't be played (TEST_OPEN off): Play is a padlock that refuses
-  const shut = !TEST_OPEN && campState().locked[i];
+  // a locked stage can't be played: Play is a padlock that refuses
+  const shut = campState().locked[i];
   // Stage 4 on, once open, needs the full game (11-store.js): Play becomes Unlock with the price from the App Store
   const paid = !shut && paidStage(i);
   $('#stPlay').innerHTML = c.map ? `<button class="primary${shut ? ' shut' : ''}${paid ? ' buy' : ''}" id="campPlay"${buying ? ' disabled' : ''}>${shut ? LOCK_ICO : paid ? `<span class="upLk">${UNLOCK_ICO}Unlock${fullPrice ? `<small>${fullPrice}</small>` : ''}</span>` : 'Play'}</button>` : '';
@@ -9456,8 +9453,6 @@ function matchUpZoom(m) {
   uiScale(m, z, '0 0', 1);
 }
 tabletScale(); addEventListener('resize', tabletScale);
-// one line for Xcode's console on a tablet: how wide the Goals word and its panel are drawn, to tell whether text follows the UI scale
-if (document.body.classList.contains('tablet')) setTimeout(() => { const g = $('#goalHead'), p = $('.panel'); if (g && p) console.log(`ui scale ${uiK.toFixed(2)}: Goals word ${g.getBoundingClientRect().width.toFixed(1)} px wide, panel ${p.getBoundingClientRect().width.toFixed(0)} px`); }, 4000);
 // the HUD tick that places the night powers and the boss bar stops while paused: place them again whenever the screen turns
 // (Jack turned the phone while paused and the powers stayed where the sideways layout had them)
 addEventListener('resize', () => { markRect = null; updatePowers(); updateBossBar(); if (typeof sideHints === 'function') sideHints(); }); addEventListener('orientationchange', () => setTimeout(islandSide, 100));
@@ -9690,13 +9685,11 @@ $('#galWalk').addEventListener('click', () => { gWalk = !gWalk; $('#galWalk').se
 // approved later or a refund all come through. ?debug owns it, for testing.
 var FULL_ID = 'com.jacktan.castledefense.fullgame', FREE_N = 3, fullPrice = '', buying = false;
 var STORE = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Store || null;
-function fullOwned() { if (devOn || TEST_OPEN) return true; try { return localStorage.getItem('mtd-full') === '1'; } catch (e) { return false; } }
+function fullOwned() { if (devOn) return true; try { return localStorage.getItem('mtd-full') === '1'; } catch (e) { return false; } }
 function paidStage(i) { return i >= FREE_N && !fullOwned(); }
-function testFree() { try { return TEST_SKIP && localStorage.getItem('mtd-testfree') === '1'; } catch (e) { return false; } }
+// the test builds' "forget purchase" switch is gone: drop its leftover flag, so the App Store's record counts again
+try { localStorage.removeItem('mtd-testfree'); } catch (e) {}
 function setFull(on, user) {
-  // test switch (TEST_SKIP): after "forget purchase" the App Store's own record is ignored until a Buy or Restore
-  if (on && !user && testFree()) return;
-  if (on) try { localStorage.removeItem('mtd-testfree'); } catch (e) {}
   const was = fullOwned();
   try { if (on) localStorage.setItem('mtd-full', '1'); else localStorage.removeItem('mtd-full'); } catch (e) {}
   // bought on the campaign: the thank-you card, then the stages' reveal; bought anywhere else (a locked colour on the title or
@@ -9815,20 +9808,6 @@ if (STORE) {
   try { STORE.addListener('owned', d => { if (d && d.ids && d.ids.includes(FULL_ID)) setFull(!d.revoked); }); } catch (e) {}
 }
 
-// TEMPORARY, for testing the purchase on a phone (Jack): five quick taps on the campaign's "N / 12 stages" line mark Stages 1
-// to 3 won (1 star each) and turn the deck to Stage 4; with the full game owned, five taps forget it instead (the free version
-// again, kept across restarts in mtd-testfree until Unlock or Restore). Set TEST_SKIP to false before the App Store release.
-var TEST_SKIP = true;
-if (TEST_SKIP) { let n = 0, t0 = 0;
-  $('#campStars').addEventListener('click', () => {
-    const now = performance.now(); if (now - t0 > 3000) n = 0; if (!n) t0 = now;
-    if (++n < 5) return; n = 0;
-    if (fullOwned() && !devOn) { try { localStorage.setItem('mtd-testfree', '1'); } catch (e) {} setFull(false); sfx('nope'); return; }
-    for (const c of CAMPAIGN.slice(0, FREE_N)) STARS[c.map] = Math.max(STARS[c.map] || 0, 1);
-    try { localStorage.setItem('mtd-stars', JSON.stringify(STARS)); } catch (e) {}
-    sfx('unlock'); openCampaign(FREE_N);
-  });
-}
 syncTitleCrown();
 // ---------- star upgrades (campaign only) ----------
 // Jack: the stars won on the campaign buy upgrades, ★1 each, in three tabs (Economy, Defences, Castle); every building has one
@@ -10326,7 +10305,7 @@ var SFX_GAP = { ramHit: .3, hen: 2, pig: 1.5, cow: 4, neigh: 3, bolt: .1, qbolt:
 var STROKE_SFX = { axe: 'chop', pick: 'pick', hoe: 'hoe', hammer: 'hammer' };
 // the mute button and M are only for ?debug now (Jack removed the corner buttons), so a player is never left muted with no way back
 // ?open (the temporary tester shortcut) shows the admin panel too: Jack, to set up store screenshots in a browser
-var devOn = /[?&](debug|open)\b/.test(location.search); document.body.classList.toggle('dev', devOn);
+var devOn = /[?&]debug\b/.test(location.search); document.body.classList.toggle('dev', devOn);
 var muted = false; try { muted = devOn && localStorage.getItem('mtd-muted') === '1'; } catch (e) {}
 // music and sounds each have their own loudness (the pause card's two sliders, 0 to 1; all the way down is off); the corner
 // button still mutes everything. Stored as numbers ('mtd-music', 'mtd-sfx'; the old on/off toggles stored '1' and '0')
@@ -10591,7 +10570,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '34a80258cf'; var updateWait = false, updateT = 0;
+const BUILD = '2f78e57c41'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

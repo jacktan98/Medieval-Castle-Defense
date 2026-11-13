@@ -289,7 +289,7 @@ var SFX_GAP = { ramHit: .3, hen: 2, pig: 1.5, cow: 4, neigh: 3, bolt: .1, qbolt:
 var STROKE_SFX = { axe: 'chop', pick: 'pick', hoe: 'hoe', hammer: 'hammer' };
 // the mute button and M are only for ?debug now (Jack removed the corner buttons), so a player is never left muted with no way back
 // ?open (the temporary tester shortcut) shows the admin panel too: Jack, to set up store screenshots in a browser
-var devOn = /[?&](debug|open)\b/.test(location.search); document.body.classList.toggle('dev', devOn);
+var devOn = /[?&]debug\b/.test(location.search); document.body.classList.toggle('dev', devOn);
 var muted = false; try { muted = devOn && localStorage.getItem('mtd-muted') === '1'; } catch (e) {}
 // music and sounds each have their own loudness (the pause card's two sliders, 0 to 1; all the way down is off); the corner
 // button still mutes everything. Stored as numbers ('mtd-music', 'mtd-sfx'; the old on/off toggles stored '1' and '0')
