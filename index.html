@@ -1501,7 +1501,10 @@ const GOAL_N = { felled: 100, mined: 120, folk: 40, xbowKills: 40, cataKills: 50
 const cg = (t, have, n) => [t, () => have() >= n, false, () => [Math.min(have(), n), n]];
 const STAGE_GOALS = {
   // skipped but its buildings built still counts (Jack)
-  vale: [['Follow the tutorial', () => guideDone || (GUIDE.length > 0 && GUIDE.every(S => S.tool === 'select' || made(S.tool) >= 1))],
+  // the tutorial skipped (or hard mode, which has none): the goal reads as the buildings it asks for, with a count (Jack)
+  vale: [['Follow the tutorial', () => guideDone || (GUIDE.length > 0 && GUIDE.every(S => S.tool === 'select' || made(S.tool) >= 1)),
+    false, () => tutSkipped() ? [tutTools().filter(t => made(t) >= 1).length, tutTools().length] : null,
+    () => tutSkipped() ? 'Build 1 ' + andList(tutTools().map(t => DEF[t].name.toLowerCase())) : 'Follow the tutorial'],
     cg('Build 1 quarry', () => made('quarry'), 1)],
   bridge: [cg('Build 1 barracks', () => made('barracks'), 1), cg('Build 2 gates', () => made('gate'), 2)],
   cross: [cg('Build 1 market', () => made('market'), 1), ['Upgrade 1 building to tier 2', () => stats.upgrades >= 1]],
@@ -1516,6 +1519,11 @@ const STAGE_GOALS = {
   hold: [['Upgrade to Castle', () => upTo('castle', 3)], cg(`Reach ${GOAL_N.folk} villagers`, () => townsfolk().length, GOAL_N.folk)],
 };
 const stageGoals = m => STAGE_GOALS[m] || [];
+const tutTools = () => (GUIDE || []).map(S => S.tool).filter(t => DEF[t]);
+const tutSkipped = () => !guideOn && !guideDone && tutTools().length > 0;
+const andList = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+// what a goal shows (its key, g[0], never changes, so a goal met stays met)
+const goalLabel = g => g[4] ? g[4]() : g[0];
 const goalOk = ([t, ok]) => !!goalsMet[t] || !!ok();
 function goalTick() {
   if (gameOver) return;
@@ -1530,8 +1538,8 @@ var goalsKey = '';
 function renderGoals() {
   const hard = !!hardOn;
   // each goal's progress beside it (a met goal shows its full count): nights survived, and the counted goals' have / need
-  const prog = g => { if (!g[3]) return ''; const [h, n] = g[3](); return `${goalsMet[g[0]] ? n : h} / ${n}`; };
-  const list = [[`Survive ${NIGHTS} nights`, false, `${Math.max(0, PH.wave - 1)} / ${NIGHTS}`], ...stageGoals(MAP).map(g => [g[0], !!goalsMet[g[0]], prog(g)])];
+  const prog = g => { const p = g[3] && g[3](); if (!p) return ''; const [h, n] = p; return `${goalsMet[g[0]] ? n : h} / ${n}`; };
+  const list = [[`Survive ${NIGHTS} nights`, false, `${Math.max(0, PH.wave - 1)} / ${NIGHTS}`], ...stageGoals(MAP).map(g => [goalLabel(g), !!goalsMet[g[0]], prog(g)])];
   const key = hard + '|' + list.map(g => g[0] + g[1] + g[2]).join(',');
   if (key === goalsKey) return; goalsKey = key;
   const L = $('#ledger'); L.classList.toggle('hard', hard); if (hard) L.open = false;
@@ -7432,6 +7440,16 @@ function tipOnce(key, html) {
   TIPS_SEEN[key] = 1; try { localStorage.setItem('mtd-tips', JSON.stringify(TIPS_SEEN)); } catch (e) {}
   tipQ.push([key, html]);
 }
+// food runs out (the food chip turns red) by day: once a game, not once ever like the others (Jack), point at the stage's food
+// building, and at upgrading it once one stands and a higher tier is open
+var foodTipDone = false;
+function foodTip() {
+  if (foodTipDone || showcaseBuilt || galleryOn || gameOver || guideOn || PH.kind !== 'day') return;
+  foodTipDone = true;
+  const t = CATS.eco.includes('farmhouse') ? 'farmhouse' : 'farm', name = t === 'farm' ? 'Fields' : 'Farmhouses';
+  const up = tierCap() > 1 && buildings.some(B => B.type === t && B.built && B.tier < tierCap());
+  tipQ.push(['food', `Food is low, build more <b>${name}</b>${up ? ' or <b>Upgrade</b> them' : ''}`]);
+}
 // a phone held sideways (Jack): at the bottom, just left of the bar, the short hint (Select a building, Placed…), the first day's
 // guide above it and a tip above that, so the building card has the whole height over the bar
 function sideHints() {
@@ -7645,7 +7663,7 @@ function endGame(won) {
   // stars: a win is one star and each of the stage's two goals one more (Jack); hard mode (and the bonus stages) a crown instead
   // a defeat meets no goals
   const C = castleB();
-  const goals = stageGoals(MAP).map(g => [g[0], won && goalOk(g)]);
+  const goals = stageGoals(MAP).map(g => [goalLabel(g), won && goalOk(g)]);
   const got = goals.filter(g => g[1]).length, n = !won ? 0 : hardOn ? 1 : 1 + got;
   // hard mode: no stars, one crown that pops in on a win (Jack); hard has no goals, so only Survive is listed
   $('#sumStars').innerHTML = hardOn ? `<span class="stars"><span class="sumCrown">${CROWN_ICO}</span></span>` : starsHTML(0);
@@ -7802,6 +7820,7 @@ function updateHud() {
   $('#cPop').classList.toggle('dim', !night && pop.idle === 0);
   const eaters = hungry ? 1e9 : 1;
   for (const k of RES_KEYS) { const el = $('#c' + k[0].toUpperCase() + k.slice(1)); el.querySelector('b').textContent = shortN(Math.floor(res[k])); el.classList.toggle('low', k === 'food' && res.food < eaters); }
+  if (res.food < eaters) foodTip();
   markTools(); refreshCard();
   if (!$('#admin').hidden) syncAdmin(false);
 }
@@ -8655,7 +8674,7 @@ function renderNewCard() {
   if (t === 'goals') {        // the stage's two goals: each one met is a star on top of the win's
     $('#ncStep').textContent = `Stage ${CAMP_MAPS[MAP].stop + 1}`; $('#ncName').textContent = 'Goals'; $('#ncIcon').innerHTML = STAR_ICO;
     $('#ncCost').innerHTML = '';
-    $('#ncStats').innerHTML = `<ul class="ncGoals"><li><b>★</b>Win</li>${stageGoals(MAP).map(([g]) => `<li><b>★</b>${g}</li>`).join('')}</ul>`;
+    $('#ncStats').innerHTML = `<ul class="ncGoals"><li><b>★</b>Win</li>${stageGoals(MAP).map(g => `<li><b>★</b>${goalLabel(g)}</li>`).join('')}</ul>`;
     return;
   }
   if (/^tier\d$/.test(t)) {   // a tier opening up: what an upgrade brings, house and archer tower as examples
@@ -10109,7 +10128,7 @@ function startGame() {
   Object.assign(res, (MAP_RULES[MAP] || {}).res || { gold: 40, wood: 45, stone: 0, food: 20 });
   // hard: the stage's own hard gold and wood (Jack: set by stage band, not worked out), else 30% less, to the nearest ten
   if (hardOn) { const hr = (MAP_RULES[MAP] || {}).hardRes; if (hr) Object.assign(res, hr); else { res.gold = Math.round(res.gold * .07) * 10; res.wood = Math.round(res.wood * .07) * 10; } }
-  stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, lostB: 0, felled: 0, mined: 0, boostKills: {}, t0: performance.now() }; guideDone = false; guideWait = false; goalsMet = {};
+  stats = { slain: 0, lost: 0, fallen: 0, gold: 0, wood: 0, stone: 0, food: 0, built: 0, upgrades: 0, made: {}, lostB: 0, felled: 0, mined: 0, boostKills: {}, t0: performance.now() }; guideDone = false; guideWait = false; foodTipDone = false; goalsMet = {};
   clearSummary(); $('#log').innerHTML = '';
   const ev = MAP === 'isle' ? findValid('castle', 12, 12, { free: true }) : MAP === 'pass' ? findValid('castle', 12, 9, { free: true }) : MAP === 'vale' ? findValid('castle', 11, 15, { free: true }) : MAP === 'bridge' ? findValid('castle', 13, 17, { free: true }) : MAP === 'cross' ? findValid('castle', 7, 18, { free: true }) : MAP === 'watch' ? findValid('castle', 7, 13, { free: true }) : MAP === 'dune' ? findValid('castle', 6, 11, { free: true }) : MAP === 'bend' ? findValid('castle', 9, 12, { free: true }) : MAP === 'crag' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'ford' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'mere' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'plains' ? findValid('castle', Math.round(KX / CELL - 1.5), Math.round(KZ / CELL - 1.5), { free: true }) : MAP === 'keep' ? findValid('castle', 19, 32, { free: true }) : MAP === 'hold' ? findValid('castle', 18, 31, { free: true }) : findValid('castle', 8, 12, { free: true });
   // the camera starts square on the castle's front and centred on it (Jack: some stages started at an angle, kept from the last game
@@ -10570,7 +10589,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = 'd38081e713'; var updateWait = false, updateT = 0;
+const BUILD = '888d78ae2d'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();

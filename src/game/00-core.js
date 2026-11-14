@@ -255,7 +255,10 @@ const GOAL_N = { felled: 100, mined: 120, folk: 40, xbowKills: 40, cataKills: 50
 const cg = (t, have, n) => [t, () => have() >= n, false, () => [Math.min(have(), n), n]];
 const STAGE_GOALS = {
   // skipped but its buildings built still counts (Jack)
-  vale: [['Follow the tutorial', () => guideDone || (GUIDE.length > 0 && GUIDE.every(S => S.tool === 'select' || made(S.tool) >= 1))],
+  // the tutorial skipped (or hard mode, which has none): the goal reads as the buildings it asks for, with a count (Jack)
+  vale: [['Follow the tutorial', () => guideDone || (GUIDE.length > 0 && GUIDE.every(S => S.tool === 'select' || made(S.tool) >= 1)),
+    false, () => tutSkipped() ? [tutTools().filter(t => made(t) >= 1).length, tutTools().length] : null,
+    () => tutSkipped() ? 'Build 1 ' + andList(tutTools().map(t => DEF[t].name.toLowerCase())) : 'Follow the tutorial'],
     cg('Build 1 quarry', () => made('quarry'), 1)],
   bridge: [cg('Build 1 barracks', () => made('barracks'), 1), cg('Build 2 gates', () => made('gate'), 2)],
   cross: [cg('Build 1 market', () => made('market'), 1), ['Upgrade 1 building to tier 2', () => stats.upgrades >= 1]],
@@ -270,6 +273,11 @@ const STAGE_GOALS = {
   hold: [['Upgrade to Castle', () => upTo('castle', 3)], cg(`Reach ${GOAL_N.folk} villagers`, () => townsfolk().length, GOAL_N.folk)],
 };
 const stageGoals = m => STAGE_GOALS[m] || [];
+const tutTools = () => (GUIDE || []).map(S => S.tool).filter(t => DEF[t]);
+const tutSkipped = () => !guideOn && !guideDone && tutTools().length > 0;
+const andList = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+// what a goal shows (its key, g[0], never changes, so a goal met stays met)
+const goalLabel = g => g[4] ? g[4]() : g[0];
 const goalOk = ([t, ok]) => !!goalsMet[t] || !!ok();
 function goalTick() {
   if (gameOver) return;
@@ -284,8 +292,8 @@ var goalsKey = '';
 function renderGoals() {
   const hard = !!hardOn;
   // each goal's progress beside it (a met goal shows its full count): nights survived, and the counted goals' have / need
-  const prog = g => { if (!g[3]) return ''; const [h, n] = g[3](); return `${goalsMet[g[0]] ? n : h} / ${n}`; };
-  const list = [[`Survive ${NIGHTS} nights`, false, `${Math.max(0, PH.wave - 1)} / ${NIGHTS}`], ...stageGoals(MAP).map(g => [g[0], !!goalsMet[g[0]], prog(g)])];
+  const prog = g => { const p = g[3] && g[3](); if (!p) return ''; const [h, n] = p; return `${goalsMet[g[0]] ? n : h} / ${n}`; };
+  const list = [[`Survive ${NIGHTS} nights`, false, `${Math.max(0, PH.wave - 1)} / ${NIGHTS}`], ...stageGoals(MAP).map(g => [goalLabel(g), !!goalsMet[g[0]], prog(g)])];
   const key = hard + '|' + list.map(g => g[0] + g[1] + g[2]).join(',');
   if (key === goalsKey) return; goalsKey = key;
   const L = $('#ledger'); L.classList.toggle('hard', hard); if (hard) L.open = false;

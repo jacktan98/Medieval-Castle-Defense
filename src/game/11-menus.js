@@ -160,7 +160,7 @@ function renderNewCard() {
   if (t === 'goals') {        // the stage's two goals: each one met is a star on top of the win's
     $('#ncStep').textContent = `Stage ${CAMP_MAPS[MAP].stop + 1}`; $('#ncName').textContent = 'Goals'; $('#ncIcon').innerHTML = STAR_ICO;
     $('#ncCost').innerHTML = '';
-    $('#ncStats').innerHTML = `<ul class="ncGoals"><li><b>★</b>Win</li>${stageGoals(MAP).map(([g]) => `<li><b>★</b>${g}</li>`).join('')}</ul>`;
+    $('#ncStats').innerHTML = `<ul class="ncGoals"><li><b>★</b>Win</li>${stageGoals(MAP).map(g => `<li><b>★</b>${goalLabel(g)}</li>`).join('')}</ul>`;
     return;
   }
   if (/^tier\d$/.test(t)) {   // a tier opening up: what an upgrade brings, house and archer tower as examples

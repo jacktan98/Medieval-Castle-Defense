@@ -119,6 +119,16 @@ function tipOnce(key, html) {
   TIPS_SEEN[key] = 1; try { localStorage.setItem('mtd-tips', JSON.stringify(TIPS_SEEN)); } catch (e) {}
   tipQ.push([key, html]);
 }
+// food runs out (the food chip turns red) by day: once a game, not once ever like the others (Jack), point at the stage's food
+// building, and at upgrading it once one stands and a higher tier is open
+var foodTipDone = false;
+function foodTip() {
+  if (foodTipDone || showcaseBuilt || galleryOn || gameOver || guideOn || PH.kind !== 'day') return;
+  foodTipDone = true;
+  const t = CATS.eco.includes('farmhouse') ? 'farmhouse' : 'farm', name = t === 'farm' ? 'Fields' : 'Farmhouses';
+  const up = tierCap() > 1 && buildings.some(B => B.type === t && B.built && B.tier < tierCap());
+  tipQ.push(['food', `Food is low, build more <b>${name}</b>${up ? ' or <b>Upgrade</b> them' : ''}`]);
+}
 // a phone held sideways (Jack): at the bottom, just left of the bar, the short hint (Select a building, Placed…), the first day's
 // guide above it and a tip above that, so the building card has the whole height over the bar
 function sideHints() {
@@ -332,7 +342,7 @@ function endGame(won) {
   // stars: a win is one star and each of the stage's two goals one more (Jack); hard mode (and the bonus stages) a crown instead
   // a defeat meets no goals
   const C = castleB();
-  const goals = stageGoals(MAP).map(g => [g[0], won && goalOk(g)]);
+  const goals = stageGoals(MAP).map(g => [goalLabel(g), won && goalOk(g)]);
   const got = goals.filter(g => g[1]).length, n = !won ? 0 : hardOn ? 1 : 1 + got;
   // hard mode: no stars, one crown that pops in on a win (Jack); hard has no goals, so only Survive is listed
   $('#sumStars').innerHTML = hardOn ? `<span class="stars"><span class="sumCrown">${CROWN_ICO}</span></span>` : starsHTML(0);

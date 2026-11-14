@@ -75,6 +75,7 @@ function updateHud() {
   $('#cPop').classList.toggle('dim', !night && pop.idle === 0);
   const eaters = hungry ? 1e9 : 1;
   for (const k of RES_KEYS) { const el = $('#c' + k[0].toUpperCase() + k.slice(1)); el.querySelector('b').textContent = shortN(Math.floor(res[k])); el.classList.toggle('low', k === 'food' && res.food < eaters); }
+  if (res.food < eaters) foodTip();
   markTools(); refreshCard();
   if (!$('#admin').hidden) syncAdmin(false);
 }
