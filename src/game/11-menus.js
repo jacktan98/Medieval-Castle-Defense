@@ -893,7 +893,9 @@ islandSide(); addEventListener('resize', islandSide);
 // tablets (Jack: on an iPad the menus and the bars stayed phone-sized): a touch screen at least 700 px both ways scales the menus
 // and the HUD's panels by --uiK with CSS zoom, so they lay out as on a big phone (upright) or a small laptop (sideways)
 function tabletScale() {
-  const W = innerWidth, H = innerHeight, tab = (navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches) && Math.min(W, H) >= 700;
+  // any screen at least 700 px both ways takes the tablet layout, a laptop's or a desktop browser's too (Jack: on a laptop, in the
+  // itch.io demo, the phone-sized screens left most of the window empty); it was for touch screens only
+  const W = innerWidth, H = innerHeight, tab = Math.min(W, H) >= 700;
   const k = !tab ? 1 : Math.max(1, Math.min(1.6, W < H ? Math.min(W / 430, H / 900) : Math.min(W / 900, H / 560)));
   document.body.classList.toggle('tablet', tab); document.documentElement.style.setProperty('--uiK', k.toFixed(3)); uiK = k;
   // the HUD's panels and the paused overlay grow by k with a CSS scale (uiScale), each from the corner or edge it is pinned to
