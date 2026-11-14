@@ -24,15 +24,17 @@ Build the game's files first: `node tools/build.js && node tools/demo.js` (write
 
 Build your town by day. Defend it by night.
 
-You are the young heir to a fallen kingdom. Start with a small wooden fort and 3 villagers, then raise houses, fields, lumber camps and quarries. When the horn sounds, raiders come out of the dark: man your archer towers, rally your soldiers and call down arrow volleys to hold the walls.
+You are the young heir to a fallen kingdom. Start with a small wooden fort and 3 villagers, then raise houses, fields, lumber camps and quarries. When the horn sounds, raiders come out of the dark. Man your archer towers, rally your soldiers and call down arrow volleys to hold the walls.
 
-This free demo has the first 3 stages: the tutorial, Stonebridge and Market Cross.
+This free demo has the first 3 stages, the tutorial, Stonebridge and Market Cross.
 
-**The full game is on the App Store** for iPhone and iPad: https://apps.apple.com/app/id6832629905
+The full game is on the App Store for iPhone and iPad, with
 - 12 campaign stages
 - 2 boss battles
 - 3 bonus stages on Hard
 - 36 star upgrades and 28 achievements
+
+Get it at https://apps.apple.com/app/id6832629905
 
 Plays best in full screen. Your progress is saved in your browser.
 
