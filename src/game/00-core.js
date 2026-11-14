@@ -326,16 +326,18 @@ var WAVES = MAP_RULES.vale.waves, NIGHTS = WAVES.length, DAYLEN = MAP_RULES.vale
 // Each wave's foot and horse total is cut and rounded, the cut shared over its kinds and tiers by largest remainder;
 // siege engines and bosses are never cut
 const NORMAL_K = .9, KEEP_N = ['ballista', 'catapult', 'ram', 'chief', 'warlord'];
-function normalWave(w) {
+function normalWave(w, K = NORMAL_K) {
   const r = {}, cells = []; let tot = 0;
-  for (const t in w) { r[t] = w[t].slice(); if (KEEP_N.includes(t)) continue; w[t].forEach((c, j) => { if (c) { cells.push({ t, j, x: c * NORMAL_K }); tot += c; } }); }
+  for (const t in w) { r[t] = w[t].slice(); if (KEEP_N.includes(t)) continue; w[t].forEach((c, j) => { if (c) { cells.push({ t, j, x: c * K }); tot += c; } }); }
   cells.forEach(c => c.f = Math.floor(c.x));
-  const left = Math.round(tot * NORMAL_K) - cells.reduce((a, c) => a + c.f, 0);
+  const left = Math.round(tot * K) - cells.reduce((a, c) => a + c.f, 0);
   cells.slice().sort((a, b) => (b.x - b.f) - (a.x - a.f) || b.x - a.x).slice(0, left).forEach(c => c.f++);
   cells.forEach(c => r[c.t][c.j] = c.f);
   return r;
 }
-function mapRules() { const R = MAP_RULES[MAP]; WAVES = hardOn || (CAMP_MAPS[MAP] && CAMP_MAPS[MAP].bonus) ? R.waves : R.waves.map(normalWave); NIGHTS = WAVES.length; DAYLEN = R.day; SPAWN_GAP = R.spawnGap; }
+// Hard on the early stages sends more raiders (Jack: they were too easy there): foot and horse × this, siege engines unchanged
+const HARD_K = { vale: 2, bridge: 2, cross: 1.8, watch: 1.6, dune: 1.4, bend: 1.2 };
+function mapRules() { const R = MAP_RULES[MAP]; WAVES = CAMP_MAPS[MAP] && CAMP_MAPS[MAP].bonus ? R.waves : hardOn ? (HARD_K[MAP] ? R.waves.map(w => normalWave(w, HARD_K[MAP])) : R.waves) : R.waves.map(w => normalWave(w)); NIGHTS = WAVES.length; DAYLEN = R.day; SPAWN_GAP = R.spawnGap; }
 const ENEMY = {
   sword:   { hp: 50, speed: 1.5, range: .6, dmg: 6, rate: 1.0 },
   archer:  { hp: 32, speed: 1.3, range: 4.5, dmg: 6, rate: 1.8 },
