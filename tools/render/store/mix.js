@@ -22,14 +22,19 @@ const bed=(file,t0,t1,g,fi=.5,fo=.8,from=0)=>{const a=pcm(file),n=Math.round((t1
 const T=p=>off[p]/FPS,E=p=>(off[p]+fs.readdirSync(DIR).filter(f=>f.startsWith(p+'-')&&f.endsWith('.png')).length)/FPS,end=F/FPS;
 // music under everything, ambience by part
 // the second day theme from 35 s in (Jack); it measured 1.25 × as loud as the first, so a little lower
+// a video's own plan (reddit.js writes one): <dir>/mix.json {music: [[file, first part, last part, gain, from, fade out, start late]], beds: [[file, part, gain]], keep, horn}
+const CFG=fs.existsSync(DIR+'/mix.json')?JSON.parse(fs.readFileSync(DIR+'/mix.json')):null;
+if(CFG){for(const [f,a,b,g,from,fo,late] of CFG.music)if(off[a]!==undefined&&off[b]!==undefined)bed(f,T(a)+(late||0),E(b),g,.6,fo||1.6,from||0);for(const [f,a,g] of CFG.beds||[])if(off[a]!==undefined)bed(f,T(a),E(a),g);}
+else{
 bed('music/Medieval_theme_music_2.mp3',0,end,.115,.6,1.6,35);
 if(off['1-town']!==undefined)bed('sfx/Bird_chirping.mp3',T('1-town'),E('1-town'),.28);
 if(off['3-wall']!==undefined){bed('sfx/Fire_sound.mp3',T('3-wall'),E('3-wall'),1.6);}
 if(off['5-siege']!==undefined)bed('sfx/Bird_chirping.mp3',T('5-siege'),E('5-siege'),.18);
+}
 // effects: the logged ones, with a little room between repeats of one sound
 // Jack: too many effects at once overwhelmed the viewer: each part keeps only a few telling sounds, one at a time, well spaced
 // the town: only the castle's upgrades (Jack); the wall: the ram, both grunts, arrows and siege; the siege: stones, bolts, falling houses and the riders' rush
-const KEEP={'1-town':['castleUp'],'3-wall':['ramHit','kill','arrow','qbolt','rockFire','rockHit','bolt'],'5-siege':['rockFire','rockHit','bolt','clash','destroyed','rush','kill'],'8-title':[]};
+const KEEP=CFG&&CFG.keep?CFG.keep:{'1-town':['castleUp'],'3-wall':['ramHit','kill','arrow','qbolt','rockFire','rockHit','bolt'],'5-siege':['rockFire','rockHit','bolt','clash','destroyed','rush','kill'],'8-title':[]};
 // these play whatever else is sounding (still kept apart from their own repeats)
 const LOUD={ramHit:1,grunt:1,rockHit:1,destroyed:1,bolt:1};
 // a little louder than the game levels them (Jack): the ram's blow and the stones landing
@@ -40,12 +45,13 @@ const GAP={grunt:.6,arrow:.55,qbolt:.7,ramHit:1.2,build:.7,upgrade:.9,rockFire:.
 const turn={};const fx=(name,t,g,force)=>{const S=SND[name];if(!S||!S.files.length)return;if(!force&&(t-(last[name]??-9)<(GAP[name]??.5)||(!LOUD[name]&&t-lastAny<ALL))){skip++;return;}last[name]=t;lastAny=t;
  turn[name]=(turn[name]??-1)+1;let a=pcm(S.files[turn[name]%S.files.length]);if(S.strikes)a=strike(a);const k=Math.min(6,Math.max(.1,.09*S.trim/loud(a)));put(a,t,k*Math.min(1,g)*.65*(BOOST[name]||1),0,.15);n++;};
 // one more blow of the ram at the wall, a swing (2 s) after its last logged one, if it still falls inside the part
-if(off['3-wall']!==undefined&&fs.existsSync(`${DIR}/3-wall.json`)){const r=JSON.parse(fs.readFileSync(`${DIR}/3-wall.json`)).filter(e=>e[1]==='ramHit');if(r.length){const t=(off['3-wall']+r[r.length-1][0])/FPS+2/.8;if(t<E('3-wall')-.3)fx('ramHit',t,1,1);}}
+if(!CFG&&off['3-wall']!==undefined&&fs.existsSync(`${DIR}/3-wall.json`)){const r=JSON.parse(fs.readFileSync(`${DIR}/3-wall.json`)).filter(e=>e[1]==='ramHit');if(r.length){const t=(off['3-wall']+r[r.length-1][0])/FPS+2/.8;if(t<E('3-wall')-.3)fx('ramHit',t,1,1);}}
 // the wave horn as the wall part begins (Jack)
-if(off['3-wall']!==undefined)fx('horn',T('3-wall')+.1,1,1);
+if(!CFG&&off['3-wall']!==undefined)fx('horn',T('3-wall')+.1,1,1);
 for(const p of parts){const f=`${DIR}/${p}.json`;if(!fs.existsSync(f))continue;const keep=KEEP[p]||[];ALL=ALLP[p]??.55;for(const [fr,name,g] of JSON.parse(fs.readFileSync(f)).sort((a,b)=>a[0]-b[0]))if(keep.includes(name)){const t=(off[p]+fr)/FPS;
   // a building's upgrade in the game plays the built sound (the upgrade sound is only the menu's star upgrades: Jack);
   // the castle's upgrade two built sounds, one after the other
+  if(name==='horn'){fx('horn',t,1,1);continue;}
   if(name==='castleUp'){fx('build',t,1,1);continue;}
   // a raider falling: a grunt, the two recordings in turn
   if(name==='kill'){fx('grunt',t,Math.max(.5,g));continue;}
