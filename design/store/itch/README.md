@@ -37,3 +37,8 @@ This free demo has the first 3 stages: the tutorial, Stonebridge and Market Cros
 Plays best in full screen. Your progress is saved in your browser.
 
 Made by Jack Tan · castledefense.app
+
+## Edit theme (the page's look, like the website)
+- **BG** `#100e0a` · **BG 2** `#1b1712` · **Text** `#e9dfc8` · **Link** `#e3bf66`
+- **Font** Alegreya Sans (else Lato) · **Size** Large · **Screenshots** Auto
+- **Banner** `banner-960x240.png` (made by `tools/render/store/itch-banner.html`, shot at 2×) · **Background** none · **Embed BG** none
