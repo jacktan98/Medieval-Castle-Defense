@@ -26,6 +26,13 @@ img, video { max-width: 100%; height: auto; display: block }
 .hero { position: relative; min-height: min(92vh, 780px); display: flex; align-items: flex-end; background: #0b0906 url(img/hero.jpg) 0% 38% / auto 128% }
 /* the castle sits right of the title; very wide screens just fill */
 @media (min-width: 1900px) { .hero { background-size: cover; background-position: 50% 40% } }
+/* the moving background lies exactly over the still (the same placing as the background's), fading in once it plays */
+.hero { overflow: hidden }
+.heroVid { position: absolute; left: 0; top: -10.64%; height: 128%; width: auto; aspect-ratio: 2 / 1; max-width: none; opacity: 0; transition: opacity .8s; pointer-events: none }
+.heroVid.on { opacity: 1 }
+@media (min-width: 1900px) { .heroVid { top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40% } }
+.hero::before { z-index: 1 }
+.hero .wrap { z-index: 2 }
 .hero::before { content: ''; position: absolute; inset: 0; background:
   linear-gradient(180deg, rgba(11, 9, 6, .55) 0, rgba(11, 9, 6, 0) 22%),
   linear-gradient(90deg, rgba(11, 9, 6, .78) 0, rgba(11, 9, 6, .3) 46%, rgba(11, 9, 6, 0) 72%),
@@ -46,6 +53,7 @@ h1 { margin: 0; display: inline-flex; flex-direction: column; align-items: stret
 .plat svg { width: 22px; height: 22px; display: block; filter: drop-shadow(0 1px 4px rgba(0, 0, 0, .9)) }
 @media (max-width: 720px) {
   .hero { min-height: 86vh; background-size: cover; background-position: 49% 30% }
+  .heroVid { top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 49% 30% }
   .hero::before { background: linear-gradient(180deg, rgba(11, 9, 6, .5) 0, rgba(11, 9, 6, 0) 20%), linear-gradient(180deg, rgba(16, 14, 10, 0) 30%, rgba(16, 14, 10, .9) 78%, var(--bg) 100%) }
   .hero .wrap { padding-bottom: 44px }
 }
