@@ -2072,7 +2072,8 @@ renderer.debug.checkShaderErrors = /[?&]debug\b/.test(location.search);
 // Graphics (Jack: Low / High in Settings and the pause card, kept in 'mtd-gfx'): High renders at the screen's full sharpness (phones
 // are 3×; adaptResolution steps it down if frames get slow), Low at most 1.5 pixels a point, with no shadows and a third of the weather
 var gfxLow = false; try { gfxLow = localStorage.getItem('mtd-gfx') === 'low'; } catch (e) {}
-const pixelMax = () => Math.min(devicePixelRatio, gfxLow ? 1.5 : 3);
+// High draws at most 2 pixels a point (Jack: 3 on an iPhone made the phone hot; 2 looks the same at phone size), Low 1.5
+const pixelMax = () => Math.min(devicePixelRatio, gfxLow ? 1.5 : 2);
 var pixelK = pixelMax(), fpsAcc = 0, fpsN = 0;
 renderer.setPixelRatio(pixelK);
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -10597,7 +10598,7 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // Stage 12): on start and whenever the app comes back, version.json (written by tools/build.js) is checked against this page's
 // build; a newer one reloads the page at once if the title or campaign is up (the campaign opens again after), else as soon
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
-const BUILD = '3ca304a220'; var updateWait = false, updateT = 0;
+const BUILD = 'b7f41a152a'; var updateWait = false, updateT = 0;
 function checkUpdate() {
   // the itch.io demo has no version.json: no update check there
   if (window.MTD_DEMO || (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search))) return;

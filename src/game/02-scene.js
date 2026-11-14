@@ -7,7 +7,8 @@ renderer.debug.checkShaderErrors = /[?&]debug\b/.test(location.search);
 // Graphics (Jack: Low / High in Settings and the pause card, kept in 'mtd-gfx'): High renders at the screen's full sharpness (phones
 // are 3×; adaptResolution steps it down if frames get slow), Low at most 1.5 pixels a point, with no shadows and a third of the weather
 var gfxLow = false; try { gfxLow = localStorage.getItem('mtd-gfx') === 'low'; } catch (e) {}
-const pixelMax = () => Math.min(devicePixelRatio, gfxLow ? 1.5 : 3);
+// High draws at most 2 pixels a point (Jack: 3 on an iPhone made the phone hot; 2 looks the same at phone size), Low 1.5
+const pixelMax = () => Math.min(devicePixelRatio, gfxLow ? 1.5 : 2);
 var pixelK = pixelMax(), fpsAcc = 0, fpsN = 0;
 renderer.setPixelRatio(pixelK);
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
