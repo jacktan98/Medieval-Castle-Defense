@@ -10,7 +10,7 @@ The finished set lives in `design/store/`.
 - `node trailer.js 960 443 2 tframes [town wall siege black title]` (no `cards` any more: each part's name is drawn over its first seconds) (one part per run: a long run can time out), then `node mix.js tframes ../../../design/store/trailer-iphone.mp4`: the soundtrack (the logged game sounds, music and ambience) and the video.
 
 ## The website hero's moving background
-`node hero-loop.js 1920 960 <dir> 14` renders 14 s of the title showcase's green River isle by day, swaying gently (a sine, so
+`node hero-loop.js 1920 960 <dir> 16` renders 16 s of the title showcase's green River isle by day, swaying gently (a sine, so
 the end meets the start), plus one more second; `python3 hero-blend.py <dir>` blends that second over the first into `<dir>/o`.
 Then, from `<dir>/o`:
 `ffmpeg -framerate 30 -i o%05d.png -c:v libx264 -preset slow -crf 26 -pix_fmt yuv420p -movflags +faststart -an hero-lg.mp4` and the

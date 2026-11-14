@@ -3,7 +3,7 @@
 // The camera sways gently (a sine, so the end meets the start exactly); one extra second is rendered and blended over the
 // first second (smoke, flags and birds aren't periodic). Then: ffmpeg the frames (see the README).
 const L=require('./lib');const fs=require('fs');const [W,H,OUT]=[+process.argv[2],+process.argv[3],process.argv[4]];
-const T=+(process.argv[5]||14),A=.11,FPS=30,N=T*FPS,K=FPS;fs.mkdirSync(OUT,{recursive:true});
+const T=+(process.argv[5]||14),A=.3,FPS=30,N=T*FPS,K=FPS;fs.mkdirSync(OUT,{recursive:true});
 (async()=>{const env=await L.start();const p=await L.open(env,'vale',W,H,1);
  // the first random draw picks the time of day (.1: day); no weather
  await p.evaluate(()=>G(`(()=>{const R=Math.random;let k=0;Math.random=()=>(k++<1?.1:R());try{buildShowcase(2);}finally{Math.random=R;}const K=castleB();showYaw0=(K.face||0)*Math.PI/2+(window.YAW0||.25);showPh=0;yaw=showYaw0;weatherReset(null);showMapPick();})()`));

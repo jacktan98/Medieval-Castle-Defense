@@ -22,7 +22,7 @@
   <nav><a href="/support">Support</a><a href="/privacy">Privacy</a></nav>
 </div></header>
 
-<div class="hero"><video class="heroVid" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video><div class="wrap">
+<div class="hero"><video class="heroVid" muted loop playsinline preload="auto" autoplay aria-hidden="true" tabindex="-1"></video><div class="wrap">
   <h1 aria-label="Castle Defense: Medieval">Castle Defense<span class="tSub">Medieval</span></h1>
   <p class="tag">Build by Day, Defend by Night</p>
   <!-- APP_STORE: once the game is live, make this an <a> to the App Store page with Apple's own "Download on the App Store" badge -->
@@ -100,14 +100,18 @@
   <span class="tm">Apple, iPhone, iPad and App Store are trademarks of Apple Inc.</span>
 </div></footer>
 <script>
-// the hero's moving background: a 14 s loop (about 2 MB on a phone, 4 MB on a computer), loaded only after the page has shown;
-// the still picture stays underneath until it plays (Low Power Mode and reduced motion keep the still), and it pauses out of view
+// the hero's moving background: a 16 s loop (about 1.5 MB on a phone, 4 MB on a computer), loaded only after the page has shown;
+// the still picture stays underneath until it plays, and it pauses out of view. iPhones play a video on their own only when it is
+// muted and inline, set as properties before the source; if the phone still refuses (Low Power Mode), it starts on the first touch
 (function () {
   var v = document.querySelector('.heroVid'); if (!v || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  v.src = '/video/hero-' + (innerWidth <= 900 ? 'sm' : 'lg') + '.mp4?v=1';
+  v.muted = true; v.defaultMuted = true; v.playsInline = true; v.loop = true; v.autoplay = true;
+  v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', '');
   v.addEventListener('playing', function () { v.classList.add('on'); });
-  var play = function () { var p = v.play(); if (p && p.catch) p.catch(function () {}); };
-  if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { e[0].isIntersecting ? play() : v.pause(); }).observe(v); else play();
+  var seen = true, play = function () { if (!seen) return; var p = v.play(); if (p && p.catch) p.catch(function () {}); };
+  v.src = '/video/hero-' + (innerWidth <= 900 ? 'sm' : 'lg') + '.mp4?v=2'; v.load(); play();
+  ['touchstart', 'pointerdown', 'scroll'].forEach(function (k) { addEventListener(k, function f() { if (v.paused) play(); else removeEventListener(k, f); }, { passive: true }); });
+  if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { seen = e[0].isIntersecting; seen ? play() : v.pause(); }).observe(v);
 })();
 </script>
 </body>
