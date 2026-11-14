@@ -556,7 +556,8 @@ document.addEventListener('visibilitychange', autoPause); addEventListener('page
 // as the player is back on a menu that way; never in a game, or while a stage is being unlocked on the campaign
 const BUILD = '@BUILD@'; var updateWait = false, updateT = 0;
 function checkUpdate() {
-  if (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search)) return;
+  // the itch.io demo has no version.json: no update check there
+  if (window.MTD_DEMO || (location.protocol !== 'https:' && !/[?&]sw\b/.test(location.search))) return;
   if (performance.now() - updateT < 5000) return applyUpdate(); updateT = performance.now();
   fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.json() : null)
     .then(v => {

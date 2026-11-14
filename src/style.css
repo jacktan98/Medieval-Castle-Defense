@@ -955,6 +955,7 @@ body.tablet .panel{top:calc(18px + var(--safeT));left:max(18px,env(safe-area-ins
 .offerList i{width:22px;height:22px;flex:none;display:flex;align-items:center;justify-content:center;color:#f0c95a}
 .offerList i svg{width:22px;height:22px} .offerList i .lockIco{fill:none;stroke:#f0c95a;stroke-width:2.2}
 .offerAct{position:relative;display:flex;justify-content:center}
+.storeBadge{display:block;line-height:0;border-radius:9px;animation:buyGlow 2.2s ease-in-out infinite alternate}.storeBadge svg{display:block;height:46px;width:auto}
 #offerBuy{display:flex;align-items:center;gap:6px;padding:6px 22px;font-size:16px;border-radius:8px;position:relative;overflow:hidden;animation:buyGlow 2.2s ease-in-out infinite alternate}
 /* the stage's Unlock's slow shine too (Jack): the offer card sits outside the menus, so the menus' rule never reached it */
 #offerBuy::after{content:'';position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,250,225,.22),transparent);animation:shine 4.5s ease-in-out infinite;pointer-events:none}

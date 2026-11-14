@@ -218,7 +218,7 @@ function ldFail(msg) { const L = document.getElementById('loading'); if (!L || L
 addEventListener('error', () => ldFail('Something went wrong'));
 // offline play (Jack): sw.js keeps the game, three.js, the pictures and the sounds on the phone once it has been opened online
 // (on https, i.e. the live site; ?sw turns it on for a local test server)
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || /[?&]sw\b/.test(location.search))) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+if ('serviceWorker' in navigator && !window.MTD_DEMO && (location.protocol === 'https:' || /[?&]sw\b/.test(location.search))) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 </script>
   <!-- the full game bought (Jack): a parchment card stamped with the seal, then every stage's picture is revealed in turn -->
     <div class="fullWrap" id="fullWrap" hidden><div class="credCard fullCard" id="fullCard"><div class="credText fullText"><span class="cSp1"></span><span class="cSp2"></span>

@@ -10,3 +10,5 @@ ios/App/Products.storekit
 ios/App/App.xcodeproj/xcshareddata/
 ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 plugins/store/.swiftpm/
+demo/
+demo.zip
