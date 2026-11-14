@@ -36,8 +36,8 @@ function applyLoadout() {
   if (CM.guide) { GUIDE = CM.guide(); return; }
   // each step says what to build and why, in the tips' style (Jack: more detail; no "·" or full stop)
   const STEP = { lodge: 'Build a <b>Lumber</b> near trees for wood', forester: 'Build a <b>Forester</b> for wood',
-    farm: 'Build a <b>Fields</b> for food', farmhouse: 'Build a <b>Farmhouse</b> for food',
-    tower: 'Build a <b>Archers</b> to guard the town', crossbow: 'Build a <b>Crossbow</b> to guard the town' };
+    farm: 'Build <b>Fields</b> for food', farmhouse: 'Build a <b>Farmhouse</b> for food',
+    tower: 'Build an <b>Archers</b> to guard the town', crossbow: 'Build a <b>Crossbow</b> to guard the town' };
   GUIDE.push({ text: 'Build a <b>House</b> for more villagers', tool: 'house', cat: 'eco', done: () => buildings.some(B => B.type === 'house') },
     { text: STEP[L.wood], tool: L.wood, cat: 'eco', done: () => buildings.some(B => B.type === L.wood) },
     { text: STEP[L.food], tool: L.food, cat: 'eco', done: () => buildings.some(B => B.type === L.food) },
